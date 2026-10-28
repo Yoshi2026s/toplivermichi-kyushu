@@ -19,4 +19,4 @@ main には v5.29 の公開HTMLを配置しています。このドラフトPR�
 - [版情報](VERSION.txt)
 - [公開準備・更新チェックリスト](docs/PUBLIC_RELEASE_CHECKLIST.md)
 
-編集元は `src/`、配信用はルートの `index.html` です。元の公開ZIPから取得した `index.html` をそのまま使用しています。
+編集元は `src/`、プレビュー用はルートの `index.html` です。プレビュー用HTMLは `node scripts/build.mjs` で再生成します。

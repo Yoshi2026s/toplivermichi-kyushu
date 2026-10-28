@@ -628,6 +628,17 @@ function growthBattleBadges(run){
   return out;
 }
 const DEFENSE_BADGES={B036:"全員で帰還",B037:"余力を残す",B038:"万全の勝利"};
+const PARTY_BADGES={B023:"二人で進む",B024:"全員に出番",B025:"職業を合わせる"};
+function partyBattleBadges(run){
+  if(run.actionHistoryComplete!==true || !run.actionFlags) return [];
+  const actors=new Set(Array.isArray(run.actionFlags.actors)?run.actionFlags.actors:[]);
+  const jobs=new Set(Array.isArray(run.actionFlags.jobs)?run.actionFlags.jobs:[]);
+  const out=[];
+  if(actors.size>=2) out.push("B023");
+  if(run.party.length>0 && run.party.every(m=>actors.has(m.cid))) out.push("B024");
+  if(jobs.size>=2) out.push("B025");
+  return out;
+}
 function defenseBattleBadges(run){
   const out=[];
   if(run.actionHistoryComplete===true && run.actionFlags && !run.actionFlags.downSeen) out.push("B036");

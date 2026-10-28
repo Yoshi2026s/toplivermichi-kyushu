@@ -1,5 +1,5 @@
-/* ===== data: 全定義（福岡編で使う範囲） ===== */
-const GAME_VERSION = "5.29";
+/* ===== data: 福岡編と唐津の探索拠点 ===== */
+const GAME_VERSION = "5.29-dev";
 const SCHEMA_VERSION = 5;
 
 const PAL = {
@@ -107,7 +107,7 @@ const BOSS_SCALE_OVERRIDE = { LB01:{ 2:{hp:0.9,atk:1} } };
 function bossScale(bid, n){ n=Math.min(4,Math.max(1,n)); const o=BOSS_SCALE_OVERRIDE[bid]; return (o&&o[n]) || BOSS_PARTY_SCALE[n]; }
 
 /* 宿屋：1人あたりの宿泊料（ゴールド）。泊まると翌朝になり、体力と集中力が全回復 */
-const INN_PRICE = { KY01:6, KY02:10 };
+const INN_PRICE = { KY01:6, KY02:10, KY03:12 };
 
 /* 第05D節：もえのシナリオ到達ランク */
 const MOE_RANKS = ["E1","D1","D2","D3","C1","C2","C3","B1","B2","B3","A1","A2","A3","S1","S2","S3","S4","S5","S6"];
@@ -213,7 +213,8 @@ const MAPS = {
       {id:"sign6",x:22,y:10,type:"sign",label:"案内板（灯台の段丘）",area:"KY02-A3"},
       {id:"lighthouse",x:24,y:1,type:"tower",label:"灯台"},
       {id:"boss2",x:24,y:2,type:"boss",label:"灯台の前（ボス待機地点）",boss:"B01",walk:true},
-      {id:"gate2",x:1,y:24,type:"gate",label:"福岡市への道",to:"KY01",tx:45,ty:24}
+      {id:"gate2",x:1,y:24,type:"gate",label:"福岡市への道",to:"KY01",tx:45,ty:24},
+      {id:"gate_saga",x:46,y:24,type:"gate",label:"唐津市への道",to:"KY03",tx:2,ty:24}
     ],
     zones:{"1":"KY02-A1","2":"KY02-A2","3":"KY02-A3"}
   },
@@ -225,13 +226,31 @@ const MAPS = {
       {id:"moe2",x:17,y:6,type:"npc",label:"もえ",npc:"moe"},
       {id:"board2",x:20,y:3,type:"board",label:"控室の編成ボード"}
     ], zones:{}
+  },
+  "KY03":{ hub:"KY03", name:"唐津市", kind:"out", w:48, h:32, safeAnchor:[12,20],
+    tiles: buildMap(48,32,[
+      [".",1,1,46,30],["~",1,1,46,8],["~",33,9,14,8],
+      ["T",2,10,8,8],["T",39,18,7,7],
+      [",",1,24,24,1],[",",12,16,2,9],[",",12,16,24,2],
+      ["#",17,20,6,3],["c",17,19,6,1],["#",27,20,6,3],["c",27,19,6,1]
+    ]),
+    objects:[
+      {id:"gate_kitakyushu",x:1,y:24,type:"gate",label:"北九州市への道",to:"KY02",tx:45,ty:24},
+      {id:"karatsu_guide",x:12,y:19,type:"npc",label:"唐津の案内人",npc:"karatsuGuide"},
+      {id:"karatsu_landmark",x:25,y:16,type:"landmark",label:"海辺の案内板"},
+      {id:"karatsu_inn",x:20,y:20,type:"inn",label:"唐津の宿屋"},
+      {id:"karatsu_rest",x:30,y:20,type:"rest",label:"休憩所（日付を進める）"},
+      {id:"karatsu_board",x:27,y:16,type:"board",label:"編成ボード"},
+      {id:"karatsu_record",x:33,y:16,type:"shelf",label:"旅の記録"}
+    ], zones:{}
   }
 };
 const HUBS = {
   KY01:{name:"福岡市", pref:"福岡", prefId:"PR01", map:"KY01", home:true},
-  KY02:{name:"北九州市", pref:"福岡", prefId:"PR01", map:"KY02"}
+  KY02:{name:"北九州市", pref:"福岡", prefId:"PR01", map:"KY02"},
+  KY03:{name:"唐津市", pref:"佐賀", prefId:"PR02", map:"KY03"}
 };
-const FUTURE_HUBS = [["KY03","唐津市","佐賀"],["KY04","佐賀市","佐賀"],["KY05","佐世保市","長崎"],["KY06","長崎市","長崎"],["KY07","熊本市","熊本"],["KY08","阿蘇市","熊本"],["KY09","別府市","大分"],["KY10","大分市","大分"],["KY11","宮崎市","宮崎"],["KY12","日南市","宮崎"],["KY13","霧島市","鹿児島"],["KY14","鹿児島市","鹿児島"],["KY15","那覇市","沖縄"],["KY16","名護市","沖縄"]];
+const FUTURE_HUBS = [["KY04","佐賀市","佐賀"],["KY05","佐世保市","長崎"],["KY06","長崎市","長崎"],["KY07","熊本市","熊本"],["KY08","阿蘇市","熊本"],["KY09","別府市","大分"],["KY10","大分市","大分"],["KY11","宮崎市","宮崎"],["KY12","日南市","宮崎"],["KY13","霧島市","鹿児島"],["KY14","鹿児島市","鹿児島"],["KY15","那覇市","沖縄"],["KY16","名護市","沖縄"]];
 
 /* ===== 住民と会話 ===== */
 const NPCS = {
@@ -255,6 +274,9 @@ const NPCS = {
   misuzu:{name:"美鈴", hub:"KY02", sprite:[PAL.aqua,PAL.red],
     first:p=>[["美鈴","遊歩道の足元灯、点いたり消えたりしてるの。乱れのせいかしら。"]],
     normal:p=>[["美鈴","係留ロープの結び目って、きれいな形をしてるのよ。"]] },
+  karatsuGuide:{name:"唐津の案内人", hub:"KY03", sprite:[PAL.sand,PAL.sea],
+    first:p=>[["案内人",`${p}さん、唐津へようこそ。海辺の案内板から、この街の声を聞いてみてください。`],["案内人","ここは旅の入口です。佐賀の依頼や配信は、準備が整うまで開かれません。"]],
+    normal:p=>[["案内人","北九州へは西の門から戻れます。宿屋と休憩所も利用できますよ。"]] },
   moe:{name:"もえ", sprite:[PAL.cream,PAL.violet]}
 };
 
@@ -295,7 +317,7 @@ const SCENES = {
     ["","もえのシナリオ到達ランクがD2になった。"],
     [p,"二人でここまで来られたね。次の県では、手伝ってくれる仲間も探そう。"],
     ["もえ",`${p}、次は佐賀だね。私、相手の返事を取り入れた紹介を試してみたい。`],
-    ["","福岡編はここまで。佐賀から先の章は、この版には未収録です。通常戦での育成、図鑑集め、任意依頼は続けられます。"]
+    ["","福岡編はここまで。唐津の探索拠点へ進めます。佐賀の依頼・戦闘・配信は、まだ準備中です。"]
   ]},
   S01_DONE:{title:"ふるさとの紹介文", lines:p=>[
     ["灯里","できた！『待ち合わせの広場。帰ってきた人に、おかえりを言う場所』。"],

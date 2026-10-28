@@ -14,9 +14,9 @@ const NATIONAL_PREFECTURES = [
   ["JP40","福岡県","RG08"], ["JP41","佐賀県","RG08"], ["JP42","長崎県","RG08"], ["JP43","熊本県","RG08"], ["JP44","大分県","RG08"], ["JP45","宮崎県","RG08"], ["JP46","鹿児島県","RG08"], ["JP47","沖縄県","RG08"]
 ].map(([id,name,regionId])=>({id,name,regionId}));
 /* 実際に遊べる拠点だけを列挙。未収録の県には移動先を作らない。 */
-const NATIONAL_IMPLEMENTED_HUBS = {JP40:["KY01","KY02"]};
+const NATIONAL_IMPLEMENTED_HUBS = {JP40:["KY01","KY02"],JP41:["KY03"]};
 /* 経路は実装状態と解放条件を分ける。planned は地図の移動先にしない。 */
 const NATIONAL_ROUTES = [
   {id:"RT-KY01-KY02",from:"KY01",to:"KY02",mode:"road",status:"playable",unlock:"always"},
-  {id:"RT-KY02-KY03",from:"KY02",to:"KY03",mode:"road",status:"planned",unlock:"fukuokaClear"}
+  {id:"RT-KY02-KY03",from:"KY02",to:"KY03",mode:"road",status:"playable",unlock:"fukuokaClear"}
 ];

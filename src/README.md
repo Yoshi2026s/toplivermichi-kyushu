@@ -1,5 +1,5 @@
-# v5.29 編集元
+# v5.29-dev 編集元（公開版 v5.29 からの作業中）
 
-`src/` は2026年10月22日の `toplivermichi_kyushu_source.zip` から取得した編集元です。配信用の `index.html` は同時に提供された公開用ZIPのものです。
+`src/` は2026年10月22日の `toplivermichi_kyushu_source.zip` から取得した編集元を更新したものです。現在のドラフトPRの `index.html` は `node scripts/build.mjs` で再生成します。
 
-元ZIPの `build.sh` は当時の作業環境 `/home/claude/game` に固定されていたため、ここでは採用していません。今後の更新では、編集元と公開版の生成手順を整備し、版・仕様・テストを揃えてください。
+元ZIPの `build.sh` は当時の作業環境 `/home/claude/game` に固定されていたため、ここでは採用していません。版と検査状況は `VERSION.txt` と `docs/UPDATE_PROGRESS.md` を参照してください。

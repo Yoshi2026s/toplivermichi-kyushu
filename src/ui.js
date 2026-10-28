@@ -656,10 +656,13 @@ function autoStep(){
 }
 function toResult(){
   const st=G.st, run=st.run; const res=applyVictory(st,run);
+  st.battleBadges=Array.isArray(st.battleBadges)?st.battleBadges:[];
+  const newBadges=run.itemHistoryComplete===true?itemBattleBadges(run.itemHistory).filter(id=>!st.battleBadges.includes(id)):[];
+  st.battleBadges.push(...newBadges);
   if(res.levelAfter>res.levelBefore && Vof(res.levelAfter)>Vof(res.levelBefore)) res.notes.push("技能・装備の効果量が上昇（V"+Vof(res.levelAfter)+"）");
   const L0=res.levelBefore, L1=levelOf(st.xp);
   st.lastResult={seq:run.seq, kind:run.kind, bossId:run.bossId||null, turns:run.turn, ...res,
-    itemsUsed:clone(Array.isArray(run.itemHistory)?run.itemHistory:[]),
+    itemsUsed:clone(Array.isArray(run.itemHistory)?run.itemHistory:[]), newBadges,
     enemies:run.enemies.map(e=>({name:e.display||e.name, boss:!!e.boss, rarity:e.rarity||0})),
     members:run.party.map(m=>({cid:m.cid, maxBefore:charStats(st,m.cid,L0).maxHP, maxAfter:charStats(st,m.cid,L1).maxHP}))};
   const back=run.returnPos; st.run=null;
@@ -706,6 +709,7 @@ function renderResult(){
     ${r.quest?`<div class="rquest done">依頼「${r.quest} ${esc(QUESTS[r.quest].name)}」完了！</div>`:r.kills&&r.killQuest?`<div class="rquest"><span>依頼 ${r.killQuest} 討伐</span><span class="bar"><i style="width:${pct(r.killNow,r.killNeed)}%"></i></span><b>${r.killNow}/${r.killNeed}</b></div>`:""}
     ${items.length||gifts.length?`<div class="rbox"><h3 class="label">手に入れたもの</h3><ul class="rlist">${[...items,...gifts].join("")}</ul></div>`:""}
     ${usedItems.length?`<div class="rbox"><h3 class="label">この戦闘で使った道具（${usedItems.length}回）</h3><ul class="rlist">${usedItems.join("")}</ul></div>`:""}
+    ${(r.newBadges||[]).length?`<div class="rbox"><h3 class="label">新しい戦闘バッジ</h3><ul class="rlist">${r.newBadges.map(id=>`<li>${id} ${esc(ITEM_BADGES[id]||id)}</li>`).join("")}</ul></div>`:""}
     ${r.notes.filter(n=>!/効果量が上昇/.test(n)).map(n=>`<p class="good rnote">${esc(n)}</p>`).join("")}
     <h3 class="label">仲間</h3><div class="rmems">${mem}</div>
     ${anyLow?`<p class="small warn">体力が減っている仲間がいます。次の戦闘へ持ち越すので、道具や宿屋で回復しておこう。</p>`:""}
@@ -1138,8 +1142,12 @@ function soundPref(){ try{ return localStorage.getItem("tlr-kyushu-sound")!=="0"
 function migrate(s){
   if(!s.itemsVersion){ s.bag=INITIAL_ITEMS.map(([id,n])=>({id,n})); s.keep=[]; s.itemsVersion=1; s.gameVersion=GAME_VERSION; }
   if(s.run&&!s.run.bag) s.run.bag=clone(s.bag);
-  if(s.run&&!Array.isArray(s.run.itemHistory)) s.run.itemHistory=[];
+  if(s.run){
+    if(!Array.isArray(s.run.itemHistory)){ s.run.itemHistory=[]; s.run.itemHistoryComplete=false; }
+    else if(s.run.itemHistoryComplete!==true) s.run.itemHistoryComplete=false;
+  }
   if(s.lastResult&&!Array.isArray(s.lastResult.itemsUsed)) s.lastResult.itemsUsed=[];
+  if(!Array.isArray(s.battleBadges)) s.battleBadges=[];
   if(s.settings&&s.settings.soundV!==2){ s.settings.sound=true; s.settings.soundV=2; }
   if(s.vitals===undefined) s.vitals=null;
   s.jobs.moe=s.jobs.moe||"J08"; s.jp.moe=s.jp.moe||{}; s.equip.moe=s.equip.moe||{w:null,a:null,acc:null};

@@ -97,7 +97,7 @@ function baseRun(st, kind){
   return { seq: st.runSeq+1, kind, L, V:Vof(L), difficulty:st.settings.difficulty, support:st.support,
     party: buildParty(st,L), enemies:[], turn:1, A:Math.min(100,A0), B:0,
     chain:{stage:0, members:[]}, kiraDone:false, firstKill:false,
-    cue:null, log:[], itemHistory:[], state:"input", rewardsApplied:false, bag:clone(st.bag||[]) };
+    cue:null, log:[], itemHistory:[], itemHistoryComplete:true, state:"input", rewardsApplied:false, bag:clone(st.bag||[]) };
 }
 function createFieldRun(st, areaId, rolls){ // rolls: {count:0|1, picks:[r0,r1]}
   const run = baseRun(st,"field"); const ar=AREAS[areaId]; const q=ar.q; const diff=DIFFICULTY[run.difficulty];
@@ -578,6 +578,17 @@ function aiItemUseful(run,p){
   });
   const usefulC=p.cgain.some(g=>g.amt>=1);
   return usefulHP||usefulC;
+}
+const ITEM_BADGES={B081:"道具を温存",B082:"一つだけの切り札",B083:"備えを生かす",B084:"道具を使い分ける",B085:"回復と補給の準備"};
+function itemBattleBadges(history){
+  const used=Array.isArray(history)?history.filter(x=>x&&typeof x.id==="string"):[];
+  const out=[];
+  if(!used.length) out.push("B081");
+  if(used.length===1) out.push("B082");
+  if(used.length) out.push("B083");
+  if(new Set(used.map(x=>x.id)).size>=2) out.push("B084");
+  if(used.some(x=>x.hp>0)&&used.some(x=>x.c>0)) out.push("B085");
+  return out;
 }
 function aiChoose(run){
   let best=null;

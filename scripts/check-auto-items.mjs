@@ -148,6 +148,15 @@ if(!items().some(a=>a.item==='IT001')||items().some(a=>['IT071','IT058'].include
 const before=JSON.stringify(run);
 game.aiChoose(run);
 if(JSON.stringify(run)!==before) fail('candidate search mutated battle state');
+const winRun=game.createFieldRun(st,'KY01-A1',{count:0,picks:[0,0]});
+winRun.enemies[0].hp=1;
+winRun.party[0].hp=Math.floor(winRun.party[0].maxHP*0.8);
+winRun.bag=[{id:'IT001',n:1}];
+const winBefore=JSON.stringify(winRun), winningChoice=game.aiChoose(winRun);
+if(!winningChoice||winningChoice.act.type==='item'||!game.applyAction(JSON.parse(winBefore),winningChoice.idx,winningChoice.act).ok) fail('auto must choose an immediate winning action before recovery');
+const winSim=JSON.parse(winBefore);
+game.applyAction(winSim,winningChoice.idx,winningChoice.act);
+if(winSim.state!=='won'||JSON.stringify(winRun)!==winBefore) fail('immediate victory must win without mutating candidate state');
 run.itemHistory={}; // 旧記録や壊れた記録でも確定した使用を続行する
 const used=game.applyAction(run,actor.pos,{type:'item',item:'IT001',ally:actor.pos});
 if(!used.ok||run.itemHistory?.length!==1||run.itemHistory[0].hp<=0||run.itemHistory[0].c!==0||run.bag.find(e=>e.id==='IT001')) fail('confirmed item use was not recorded once');

@@ -108,7 +108,7 @@ const BOSS_SCALE_OVERRIDE = { LB01:{ 2:{hp:0.9,atk:1} } };
 function bossScale(bid, n){ n=Math.min(4,Math.max(1,n)); const o=BOSS_SCALE_OVERRIDE[bid]; return (o&&o[n]) || BOSS_PARTY_SCALE[n]; }
 
 /* 宿屋：1人あたりの宿泊料（ゴールド）。泊まると翌朝になり、体力と集中力が全回復 */
-const INN_PRICE = { KY01:6, KY02:10, KY03:12 };
+const INN_PRICE = { KY01:6, KY02:10, KY03:12, KY04:12 };
 
 /* 第05D節：もえのシナリオ到達ランク */
 const MOE_RANKS = ["E1","D1","D2","D3","C1","C2","C3","B1","B2","B3","A1","A2","A3","S1","S2","S3","S4","S5","S6"];
@@ -252,16 +252,29 @@ const MAPS = {
       {id:"karatsu_inn",x:20,y:20,type:"inn",label:"唐津の宿屋"},
       {id:"karatsu_rest",x:30,y:20,type:"rest",label:"休憩所（日付を進める）"},
       {id:"karatsu_board",x:27,y:16,type:"board",label:"編成ボード"},
-      {id:"karatsu_record",x:33,y:16,type:"shelf",label:"旅の記録"}
+      {id:"karatsu_record",x:33,y:16,type:"shelf",label:"旅の記録"},
+      {id:"gate_sagacity",x:46,y:24,type:"gate",label:"佐賀市への道",to:"KY04",tx:2,ty:20}
     ], zones:{"1":"KY03-A1","2":"KY03-A2","3":"KY03-A3"}
+  },
+  "KY04":{ hub:"KY04", name:"佐賀市", kind:"out", w:40, h:28, safeAnchor:[12,20],
+    tiles:buildMap(40,28,[[".",1,1,38,26],["T",2,3,7,9],["T",32,3,6,9],[",",1,20,37,1],[",",12,12,2,9],[",",12,12,22,2]]),
+    objects:[
+      {id:"gate_karatsu",x:1,y:20,type:"gate",label:"唐津市への道",to:"KY03",tx:46,ty:25},
+      {id:"sagacity_guide",x:12,y:19,type:"npc",label:"佐賀市の案内人",npc:"sagaCityGuide"},
+      {id:"sagacity_inn",x:20,y:18,type:"inn",label:"佐賀市の宿屋"},
+      {id:"sagacity_rest",x:30,y:18,type:"rest",label:"休憩所（日付を進める）"},
+      {id:"sagacity_board",x:26,y:13,type:"board",label:"編成ボード"},
+      {id:"sagacity_record",x:33,y:13,type:"shelf",label:"旅の記録"}
+    ], zones:{}
   }
 };
 const HUBS = {
   KY01:{name:"福岡市", pref:"福岡", prefId:"PR01", map:"KY01", home:true},
   KY02:{name:"北九州市", pref:"福岡", prefId:"PR01", map:"KY02"},
-  KY03:{name:"唐津市", pref:"佐賀", prefId:"PR02", map:"KY03"}
+  KY03:{name:"唐津市", pref:"佐賀", prefId:"PR02", map:"KY03"},
+  KY04:{name:"佐賀市", pref:"佐賀", prefId:"PR02", map:"KY04"}
 };
-const FUTURE_HUBS = [["KY04","佐賀市","佐賀"],["KY05","佐世保市","長崎"],["KY06","長崎市","長崎"],["KY07","熊本市","熊本"],["KY08","阿蘇市","熊本"],["KY09","別府市","大分"],["KY10","大分市","大分"],["KY11","宮崎市","宮崎"],["KY12","日南市","宮崎"],["KY13","霧島市","鹿児島"],["KY14","鹿児島市","鹿児島"],["KY15","那覇市","沖縄"],["KY16","名護市","沖縄"]];
+const FUTURE_HUBS = [["KY05","佐世保市","長崎"],["KY06","長崎市","長崎"],["KY07","熊本市","熊本"],["KY08","阿蘇市","熊本"],["KY09","別府市","大分"],["KY10","大分市","大分"],["KY11","宮崎市","宮崎"],["KY12","日南市","宮崎"],["KY13","霧島市","鹿児島"],["KY14","鹿児島市","鹿児島"],["KY15","那覇市","沖縄"],["KY16","名護市","沖縄"]];
 
 /* ===== 住民と会話 ===== */
 const NPCS = {
@@ -285,6 +298,9 @@ const NPCS = {
   misuzu:{name:"美鈴", hub:"KY02", sprite:[PAL.aqua,PAL.red],
     first:p=>[["美鈴","遊歩道の足元灯、点いたり消えたりしてるの。乱れのせいかしら。"]],
     normal:p=>[["美鈴","係留ロープの結び目って、きれいな形をしてるのよ。"]] },
+  sagaCityGuide:{name:"佐賀市の案内人", hub:"KY04", sprite:[PAL.sand,PAL.coral],
+    first:p=>[["案内人",`${p}さん、佐賀市へようこそ。唐津での配信を聞きました。`],["案内人","この街から先の依頼は、まだ準備中です。宿屋や旅の記録を利用して、唐津へも戻れます。"]],
+    normal:p=>[["案内人","唐津へは西の門から戻れます。この先の旅の準備を進めています。"]]},
   karatsuGuide:{name:"唐津の案内人", hub:"KY03", sprite:[PAL.sand,PAL.sea],
     first:p=>[["案内人",`${p}さん、唐津へようこそ。海辺の案内板から、この街の声を聞いてみてください。`],["案内人","見晴らし台の返事が乱れています。依頼帳でM03を受け、海辺の探索区域を調べてください。"]],
     normal:p=>[["案内人","北九州へは西の門から戻れます。見晴らし台へ行く前に宿屋で整えてください。"]] },
@@ -338,7 +354,7 @@ const SCENES = {
   RANK_D3:{title:"もえのランク D3", lines:p=>[
     ["もえ","唐津の人の返事を、急がず聞けた気がする。"],
     ["",`${p}たちは佐賀の海辺から次の旅程を考える。`],
-    ["","もえのシナリオ到達ランクがD3になった。佐賀市以降の章は、この開発版には未収録です。"]
+    ["","もえのシナリオ到達ランクがD3になった。唐津の東門から佐賀市へ進めます。佐賀市の依頼は、この開発版には未収録です。"]
   ]},
   S01_DONE:{title:"ふるさとの紹介文", lines:p=>[
     ["灯里","できた！『待ち合わせの広場。帰ってきた人に、おかえりを言う場所』。"],
@@ -376,3 +392,5 @@ for(const [id,r] of Object.entries(ITEMS_RAW)){
 /* 店の道具：地域段階1（福岡）の購入可能品 */
 const SHOP_ITEMS = Object.values(ITEMS).filter(it=>(it.acq==="S"||it.acq==="SD")&&it.tier<=1).map(it=>it.id);
 const INITIAL_ITEMS = [["IT001",5],["IT033",3]];
+
+

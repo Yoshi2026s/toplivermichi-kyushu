@@ -59,7 +59,7 @@ function objective(){
   if(streamPending()) return `${streamPending()}：配信で80点以上を目指す（依頼帳から開始）`;
   if(q){ const Q=QUESTS[q]; if(st.quests[q]==="bossReady") return `${q}：${BOSSES[Q.boss].name}に挑む（${MAPS[Q.hub].name}の奥地）`; return `${q}：通常敵 ${st.qprog[q]||0}/${Q.kills}体（${HUBS[Q.hub].name}のA1～A3）`; }
   const avail=["M01","M02","M03"].find(k=>st.quests[k]==="available"); if(avail) return `依頼帳で「${avail} ${QUESTS[avail].name}」を受ける（2枠）`;
-  if(st.quests.M03==="complete") return "唐津編クリア！ 育成・図鑑・任意依頼を続けられます";
+  if(st.quests.M03==="complete") return curHub()==="KY03"?"唐津編クリア！ 東門から佐賀市へ進めます":"唐津編クリア！ 佐賀市で旅の準備を続けられます";
   if(st.fukuokaClear) return curHub()==="KY03"?"唐津でM03を受け、海辺の探索区域へ進もう":"福岡編クリア！ 北九州の東門から唐津へ進めます";
   return "探索して仲間を育てよう";
 }
@@ -114,7 +114,7 @@ function renderTitle(){
       <button class="btn" data-a="openSheet" data-k="about">この作品について</button>
     </div>
     <p class="note">配信文化を参考にした非公式の創作ゲームです。実在のサービス・アカウントとは連携しません。BGMと効果音は最初からONです（画面に触れると鳴り始めます。設定で消音にできます）。</p>
-    <p class="note">この開発版の収録範囲：第1章 福岡（M01・M02）＋佐賀県唐津市のM03と配信まで。佐賀市以降は未収録です。</p>
+    <p class="note">この開発版の収録範囲：第1章 福岡（M01・M02）＋佐賀県唐津市のM03と配信、佐賀市の安全な探索拠点まで。佐賀市の依頼・戦闘は未収録です。</p>
   </section>`;
 }
 function drawTitleArt(){
@@ -831,16 +831,16 @@ function renderWorld(){
   let h=`<p class="small">拠点間の移動は旅程枠1。安全地帯から出発できます。</p><div class="stack">`;
   for(const [id,H] of Object.entries(HUBS)){
     const here=curHub()===id; const visited=st.visitedHubs.includes(id);
-    const route=!here&&nationalRouteAvailable(st,curHub(),id)&&(id!=="KY03"||visited);
+    const route=!here&&nationalRouteAvailable(st,curHub(),id)&&(!["KY03","KY04"].includes(id)||visited);
     h+=`<div class="qcard"><div class="srow"><b>${id} ${esc(H.pref)}・${esc(H.name)}${H.home?"（故郷）":""}</b><span class="tag">${here?"現在地":visited?"訪問済み":"未訪問"}</span></div>
-      ${here?"":`<button class="btn" data-a="worldGo" data-v="${id}" ${safe&&route?"":"disabled"}>${id==="KY03"&&!visited?"初回は北九州の東門から":"向かう（1枠）"}</button>`}</div>`;
+      ${here?"":`<button class="btn" data-a="worldGo" data-v="${id}" ${safe&&route?"":"disabled"}>${id==="KY03"&&!visited?"初回は北九州の東門から":id==="KY04"&&!visited?"初回は唐津の東門から":"向かう（1枠）"}</button>`}</div>`;
   }
   h+=`</div><h3 class="label">この先の拠点</h3><ul class="list dim">${FUTURE_HUBS.map(([id,n,p])=>`<li>${id} ${p}・${n}　未解放</li>`).join("")}</ul>
-    <h3 class="label">全国編の準備状況</h3><p class="small">${NATIONAL_REGIONS.length}地方・${NATIONAL_PREFECTURES.length}都道府県の地理台帳を準備中。現在遊べるのは福岡県の福岡市・北九州市と佐賀県の唐津市（M03まで）です。佐賀市以降は未収録です。</p>`;
+    <h3 class="label">全国編の準備状況</h3><p class="small">${NATIONAL_REGIONS.length}地方・${NATIONAL_PREFECTURES.length}都道府県の地理台帳を準備中。現在遊べるのは福岡県の福岡市・北九州市、佐賀県の唐津市（M03まで）と佐賀市の探索拠点です。佐賀市の依頼・戦闘とその先は未収録です。</p>`;
   return h;
 }
 function nationalRouteAvailable(st,from,to){
-  return NATIONAL_ROUTES.some(r=>r.status==="playable"&&((r.from===from&&r.to===to)||(r.from===to&&r.to===from))&&(r.unlock==="always"||r.unlock==="fukuokaClear"&&!!st.fukuokaClear));
+  return NATIONAL_ROUTES.some(r=>r.status==="playable"&&((r.from===from&&r.to===to)||(r.from===to&&r.to===from))&&(r.unlock==="always"||r.unlock==="fukuokaClear"&&!!st.fukuokaClear||r.unlock==="karatsuClear"&&st.quests?.M03==="complete"));
 }
 function renderParty(){
   const st=G.st; const d=G.sheetData; const L=levelOf(st.xp);
@@ -1050,7 +1050,7 @@ const ACT = {
   interactId(el){ const o=MAPS[G.st.mapId].objects.find(x=>x.id===el.dataset.v); G.sheet=null; render(); interact(o); },
   guideTo(el){ const o=MAPS[G.st.mapId].objects.find(x=>x.id===el.dataset.v); G.sheet=null; render(); walkTo(o.x,o.y); },
   doTravel(){ if(!canTravelFrom("travel")) return; const d=G.sheetData; if(!HUBS[d.to]||curHub()===d.to||!nationalRouteAvailable(G.st,curHub(),d.to)||!nearbyObjects().some(o=>o.type==="gate"&&o.to===d.to&&o.tx===d.tx&&o.ty===d.ty)) return toast("移動先が変わりました。門を調べ直してください。"); G.sheet=null; travelHub(d.to,d.tx,d.ty); },
-  worldGo(el){ if(!canTravelFrom("map")) return; const to=el.dataset.v; if(!Object.hasOwn(HUBS,to)||curHub()===to||!nationalRouteAvailable(G.st,curHub(),to)||to==="KY03"&&!G.st.visitedHubs.includes(to)) return toast("行先を選び直してください。"); const map=MAPS[to]; if(!map||!Array.isArray(map.safeAnchor)) return toast("この行先にはまだ移動できません。"); const s=map.safeAnchor; G.sheet=null; travelHub(to,s[0],s[1]); },
+  worldGo(el){ if(!canTravelFrom("map")) return; const to=el.dataset.v; if(!Object.hasOwn(HUBS,to)||curHub()===to||!nationalRouteAvailable(G.st,curHub(),to)||["KY03","KY04"].includes(to)&&!G.st.visitedHubs.includes(to)) return toast("行先を選び直してください。"); const map=MAPS[to]; if(!map||!Array.isArray(map.safeAnchor)) return toast("この行先にはまだ移動できません。"); const s=map.safeAnchor; G.sheet=null; travelHub(to,s[0],s[1]); },
   doInn(el){ if(G.readOnly||G.screen!=="explore"||G.sheet!=="inn"||G.dlg||G.st.run||!isSafe()) return; const st=G.st; const total=(INN_PRICE[curHub()]||10)*st.roster.length; if(st.gold<total) return toast(`ゴールドが足りません（あと${total-st.gold}）。`); el.disabled=true; G.sheet=null; st.gold-=total; restoreAll(st); st.day++; st.slots=6; commit(); render(); SND.sfx("heal"); say([["",`${total}ゴールドを払って泊まった。`],["",`${st.day}日目の朝。全員の体力と集中力が全回復した！`]]); },
   doRest(){ if(G.readOnly||G.screen!=="explore"||G.sheet!=="rest"||G.dlg||G.st.run||!isSafe()) return; const st=G.st; G.sheet=null; st.day++; st.slots=6; commit(); render(); toast(`${st.day}日目の朝。旅程枠が6に戻った。`); },
   acceptQuest(el){ if(!canManageQuests()) return; const st=G.st, id=el.dataset.v, q=QUESTS[id]; if(!q||st.quests[id]!=="available"||st.activeQuest||curHub()!==q.hub||!isSafe()) return toast("依頼の状態が変わりました。選び直してください。"); if(st.slots<2) return openSheet("rest",{reason:"受注には旅程枠2が必要です。"});

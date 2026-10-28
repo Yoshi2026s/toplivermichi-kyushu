@@ -773,12 +773,13 @@ function createBossRun(st, bossId){
 
 /* ---- 予告（第08・11D節） ---- */
 function alive(run){ return run.party.filter(p=>p.hp>0); }
-function pickTarget(run, pos){
-  const t = run.party[pos];
-  if(t && t.hp>0) return pos;
-  const al = alive(run); if(!al.length) return -1;
-  let best = al[0]; for(const p of al){ if(p.hp<best.hp) best=p; }
-  return best.pos;
+function pickTarget(run, seed){
+  const candidates=run.party.map((p,i)=>({p,i,weight:run.party.length-i})).filter(x=>x.p.hp>0);
+  if(!candidates.length) return -1;
+  const total=candidates.reduce((n,x)=>n+x.weight,0);
+  let cursor=((seed%total)+total)%total;
+  for(const x of candidates){ if(cursor<x.weight) return x.i; cursor-=x.weight; }
+  return candidates[0].i;
 }
 function enemyAction(run, e){
   const step = e.cycle[(run.turn-1)%e.cycle.length];
@@ -788,7 +789,7 @@ function enemyAction(run, e){
     power = step.t==="c" ? 0 : Math.ceil(step.p * e.atkMult * cueMult);
   }
   const res = { type: step.t, power, heavy: !!step.heavy };
-  if(step.t==="s") res.target = pickTarget(run, (run.turn-1+e.slot)%run.party.length);
+  if(step.t==="s") res.target = pickTarget(run, run.turn-1+e.slot);
   return res;
 }
 function telegraph(run){ return run.enemies.filter(e=>e.hp>0).map(e=>({slot:e.slot, ...enemyAction(run,e)})); }
@@ -981,7 +982,7 @@ function enemyPhase(run){
   for(const e of run.enemies.filter(x=>x.hp>0).sort((x,y)=>x.slot-y.slot)){
     const act = enemyAction(run,e);
     if(act.type==="c"){ log.push(`${e.display}は力をためている。`); continue; }
-    const targets = act.type==="a" ? alive(run) : [run.party[pickTarget(run, (run.turn-1+e.slot)%run.party.length)]].filter(Boolean);
+    const targets = act.type==="a" ? alive(run) : [run.party[act.target]].filter(Boolean);
     for(const t of targets){
       let inc = Math.max(0, act.power - run.V*(t.armorD + t.ward));
       if(t.guard) inc = Math.ceil(inc/2);
@@ -2116,6 +2117,7 @@ function arrive(){
     }
     commit();
   }
+  else keepFlush();
   const o=objAt(m,st.pos.x,st.pos.y);
   if(!G.walk.path.length){
     const pend=G.walk.pending; G.walk.pending=null;
@@ -2228,11 +2230,6 @@ function partyCard(m,i,run){
     <span class="pstat">体力<b>${m.hp}</b>/${m.maxHP} 集中力<b>${m.c}</b></span>
   </button>`;
 }
-function teleText(run,t){
-  if(t.type==="c") return "次：ため（攻撃なし）";
-  if(t.type==="a") return `次：全員へ${t.power}${t.heavy?"（強攻撃）":""}`;
-  return `次：1人へ${t.power}→${esc(run.party[t.target]?run.party[t.target].name:"")}`;
-}
 function cueText(run){
   if(!run.cue) return "";
   const kindName={guard:"2人がガード",comment:"2人が応援コメント",damage:"2人が攻撃"}[run.cue.kind];
@@ -2242,15 +2239,14 @@ function cueText(run){
 }
 function renderBattle(){
   const st=G.st, run=st.run; if(!run) return "";
-  const tel=telegraph(run);
   const enemies=run.enemies.map(e=>{
-    const t=tel.find(x=>x.slot===e.slot); const pct=Math.round(100*e.hp/e.maxHP);
+    const pct=Math.round(100*e.hp/e.maxHP);
     return `<div class="ecard ${e.hp<=0?"down":""} ${e.boss?"isboss":""}" id="ec${e.slot}">
       <canvas data-enemy="${e.slot}" width="${e.boss?64:32}" height="${e.boss?64:32}" class="esprite ${e.boss?"boss":""}" aria-hidden="true"></canvas>
       <div class="einfo"><div class="ename">${esc(e.display)}${e.rarity>1?` <span class="rar">${"★".repeat(e.rarity)}${["","通常","やや珍しい","希少","極希少","幻影"][e.rarity]}</span>`:""}</div>
       <span class="bar enemy"><i style="width:${pct}%"></i></span>
       <div class="estat">体力 ${e.hp}/${e.maxHP}・防御力${e.def}</div>
-      <div class="tele">${e.hp<=0?"鎮まった":t?teleText(run,t):""}</div></div></div>`; }).join("");
+      ${e.hp<=0?`<div class="tele">鎮まった</div>`:""}</div></div>`; }).join("");
   const chain = run.kiraDone?"キラコメ済":`キラコメ${run.chain.stage}/3 次:${["挨拶","作戦","感謝"][run.chain.stage]}`;
   const last = (run.log||[]).slice(-3);
   return `<section class="battle">
@@ -2649,9 +2645,10 @@ function renderParty(){
   }
   const bond = npc => !st.talked[npc]?0: 1 + (npc==="akari"? (st.quests.M01==="complete"?1:0)+(st.quests.S01==="complete"?1:0) : (st.quests.M02==="complete"?1:0)+(st.quests.S02==="complete"?1:0));
   const supOk = st.talked.akari && st.quests.M01==="complete" && st.quests.S01==="complete";
-  return `${lockMsg?`<p class="warn">${lockMsg}</p>`:""}<p class="small">先頭から順に隊列0～3。タップで人物の詳細、↑で並びを前へ。戦闘は最大4人、控えも共通のレベル${L}で育ちます。仲間は旅の各地で加わります。</p>
-    <h3 class="label">戦闘メンバー</h3><div class="stack">${st.party.map((c,i)=>`<div class="prow"><button class="btn grow" data-a="partyView" data-c="${c}" data-v="">${i+1}. ${esc(charName(st,c))}・${esc(JOBS[st.jobs[c]].name)}</button>${i?`<button class="btn sq" data-a="partyUp" data-v="${i}" aria-label="前へ" ${st.run?"disabled":""}>↑</button>`:""}${st.party.length>1&&st.roster.length>st.party.length?`<button class="btn sq" data-a="partyOut" data-v="${i}" aria-label="控えへ" ${st.run?"disabled":""}>↓</button>`:""}</div>`).join("")}</div>
-    ${st.roster.length>st.party.length?`<h3 class="label">控え</h3><div class="stack">${st.roster.filter(c=>!st.party.includes(c)).map(c=>`<div class="prow"><button class="btn grow" data-a="partyView" data-c="${c}" data-v="">${esc(charName(st,c))}・${esc(JOBS[st.jobs[c]].name)}</button><button class="btn" data-a="partyIn" data-v="${c}" ${st.run?"disabled":""}>${st.party.length<4?"戦闘メンバーに入れる":"4番目と入れ替え"}</button></div>`).join("")}</div>`:""}
+  const partyLocked=G.readOnly||G.screen!=="explore"||G.sheet!=="party"||!!G.dlg||!!st.run||!!G.walk.path.length||!isSafe();
+  return `${lockMsg?`<p class="warn">${lockMsg}</p>`:""}<p class="small">出撃は1～4人。先頭が前衛です。加入済みの仲間から選び、待機メンバーとは出撃枠を指定して直接入れ替えられます。</p>
+    <h3 class="label">戦闘メンバー</h3><div class="stack">${st.party.map((c,i)=>`<div class="prow"><button class="btn grow" data-a="partyView" data-c="${c}" data-v="">${i+1}. ${esc(charName(st,c))}・${esc(JOBS[st.jobs[c]].name)}</button>${i?`<button class="btn sq" data-a="partyUp" data-v="${i}" data-c="${c}" aria-label="${esc(charName(st,c))}を前へ" ${partyLocked?"disabled":""}>↑</button>`:""}${st.party.length>1?`<button class="btn sq" data-a="partyLeave" data-v="${i}" data-c="${c}" aria-label="${esc(charName(st,c))}を待機へ" ${partyLocked?"disabled":""}>待機</button>`:""}</div>`).join("")}</div>
+    ${st.roster.length>st.party.length?`<h3 class="label">控え</h3><div class="stack">${st.roster.filter(c=>!st.party.includes(c)).map(c=>`<div class="prow"><button class="btn grow" data-a="partyView" data-c="${c}" data-v="">${esc(charName(st,c))}・${esc(JOBS[st.jobs[c]].name)}</button>${st.party.length<4?`<button class="btn" data-a="partyIn" data-v="${c}" ${partyLocked?"disabled":""}>出撃に加える</button>`:""}${st.party.map((target,i)=>`<button class="btn" data-a="partySwap" data-v="${c}" data-i="${i}" data-c="${target}" ${partyLocked?"disabled":""}>${i+1}番の${esc(charName(st,target))}と入替</button>`).join("")}</div>`).join("")}</div>`:""}
     <h3 class="label">地域支援</h3><p class="small">コア応援者がいる県の効果を1つ選べます（戦闘開始時に固定）。</p>
     <div class="stack"><button class="btn ${!st.support?"on":""}" data-a="setSupport" data-v="">${!st.support?"▶ ":""}なし</button>
     <button class="btn ${st.support==="PR01"?"on":""}" data-a="setSupport" data-v="PR01" ${supOk?"":"disabled"}>${st.support==="PR01"?"▶ ":""}福岡：戦闘開始時のエール＋10（灯里 親密度${bond("akari")}/3）</button></div>`;
@@ -2725,6 +2722,7 @@ function renderShop(){
 }
 function itemText(it,V){ return it.text.replace(/(\d+)×V/g,(m,n)=>String(+n*V)).replace("−防御のダメージ","から敵の防御力を引いたダメージ"); }
 function keepFlush(){ const st=G.st; if(!st||G.readOnly||G.screen!=="explore"||G.sheet||G.dlg||st.run||!st.keep||!st.keep.length||!isSafe()) return 0; const n=flushKeep(st); if(n){ commit(); toast(`預かり所から道具を${n}個受け取った。`); } return n; }
+function canEditParty(){ return !!G.st&&!G.readOnly&&G.screen==="explore"&&G.sheet==="party"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&isSafe(); }
 function renderItems(){
   const st=G.st, d=G.sheetData||{}; const L=levelOf(st.xp);
   if(d.item && ITEMS[d.item] && bagCount(st.bag,d.item)>0){
@@ -2829,14 +2827,15 @@ const ACT = {
       const next=migrate(o.state); G.auto=false; clearTimeout(G.autoT); G.walk={path:[],prog:0,pending:null}; G.dlg=null; G.cmd={}; G.st=next; await commit(); G.hasSave=true; G.sheet=null; G.screen=G.st.run?"battle":"explore"; render(); toast("記録を読み込みました。"); }
     catch(e){ toast("読み込めませんでした。文字列が途中で切れていないか確認してください。"); } },
   partyView(el){ G.sheetData={cid:el.dataset.c||null, view:el.dataset.v||""}; render(); drawMiniSprites(); },
-  partyUp(el){ const st=G.st,i=+el.dataset.v; [st.party[i-1],st.party[i]]=[st.party[i],st.party[i-1]]; commit(); render(); },
-  partyOut(el){ const st=G.st,i=+el.dataset.v; const bench=st.roster.filter(c=>!st.party.includes(c)); if(!bench.length) return; st.party[i]=bench[0]; commit(); render(); toast(`${charName(st,bench[0])}と入れ替えた。`); },
-  partyIn(el){ const st=G.st,c=el.dataset.v; if(st.party.length<4) st.party.push(c); else st.party[3]=c; commit(); render(); toast(`${charName(st,c)}を戦闘メンバーに入れた。`); },
-  setJob(el){ const st=G.st,cid=el.dataset.c,j=el.dataset.v; st.jobs[cid]=j; st.equip[cid]=previewEquipFor(st,cid,j);
+  partyUp(el){ if(!canEditParty()) return; const st=G.st,i=Number(el.dataset.v),c=el.dataset.c; if(!Number.isInteger(i)||i<1||i>=st.party.length||st.party[i]!==c) return toast("編成が変わりました。選び直してください。"); [st.party[i-1],st.party[i]]=[st.party[i],st.party[i-1]]; commit(); render(); },
+  partyLeave(el){ if(!canEditParty()) return; const st=G.st,i=Number(el.dataset.v),c=el.dataset.c; if(!Number.isInteger(i)||i<0||i>=st.party.length||st.party[i]!==c) return toast("編成が変わりました。選び直してください。"); if(st.party.length<=1) return toast("最後の1人は待機にできません。"); st.party.splice(i,1); commit(); render(); toast(`${charName(st,c)}を待機にした。`); },
+  partyIn(el){ if(!canEditParty()) return; const st=G.st,c=el.dataset.v; if(!st.roster.includes(c)||st.party.includes(c)||st.party.length>=4) return toast("この仲間は追加できません。編成を確認してください。"); st.party.push(c); commit(); render(); toast(`${charName(st,c)}を戦闘メンバーに入れた。`); },
+  partySwap(el){ if(!canEditParty()) return; const st=G.st,c=el.dataset.v,i=Number(el.dataset.i),old=el.dataset.c; if(!Number.isInteger(i)||i<0||i>=st.party.length||st.party[i]!==old||!st.roster.includes(c)||st.party.includes(c)) return toast("編成が変わりました。選び直してください。"); st.party[i]=c; commit(); render(); toast(`${charName(st,old)}と${charName(st,c)}を入れ替えた。`); },
+  setJob(el){ if(!canEditParty()||streamPending()) return; const st=G.st,cid=el.dataset.c,j=el.dataset.v; if(!st.roster.includes(cid)||!Object.hasOwn(JOBS,j)||G.sheetData.cid!==cid||G.sheetData.view!=="job") return; st.jobs[cid]=j; st.equip[cid]=previewEquipFor(st,cid,j);
     for(const [s,id] of [["w","CW01"],["a","CA01"]]) if(!st.equip[cid][s]&&availableCount(st,id)>0) st.equip[cid][s]=id;
     commit(); G.sheetData={cid,view:""}; render(); drawMiniSprites(); toast(`${charName(st,cid)}のジョブを${JOBS[j].name}にした。`); },
-  setEquip(el){ const st=G.st,cid=el.dataset.c,s=el.dataset.s,id=el.dataset.v||null; if(id&&availableCount(st,id)<=0&&st.equip[cid][s]!==id) return toast("未装備の在庫がありません。"); st.equip[cid][s]=id; commit(); G.sheetData={cid,view:""}; render(); drawMiniSprites(); },
-  setSupport(el){ G.st.support=el.dataset.v||null; commit(); render(); },
+  setEquip(el){ if(!canEditParty()||streamPending()) return; const st=G.st,cid=el.dataset.c,s=el.dataset.s,id=el.dataset.v||null; if(!st.roster.includes(cid)||!["w","a","acc"].includes(s)||G.sheetData.cid!==cid||G.sheetData.view!==`eq:${s}`) return; if(id&&(!Object.hasOwn(EQUIP,id)||EQUIP[id].slot!==s)) return; if(id){ const it=EQUIP[id], cur=charStats(st,cid,levelOf(st.xp)); if(it.job&&(it.job!==cur.job||cur.R<it.needR)) return toast("現在の職業と熟練度では装備できません。"); } if(id&&availableCount(st,id)<=0&&st.equip[cid][s]!==id) return toast("未装備の在庫がありません。"); st.equip[cid][s]=id; commit(); G.sheetData={cid,view:""}; render(); drawMiniSprites(); },
+  setSupport(el){ if(!canEditParty()||streamPending()) return; const v=el.dataset.v||null; if(v!==null&&v!=="PR01") return; if(v==="PR01"&&!(G.st.talked.akari&&G.st.quests.M01==="complete"&&G.st.quests.S01==="complete")) return toast("この地域支援はまだ使えません。"); G.st.support=v; commit(); render(); },
   dexNav(el){ const k=el.dataset.k, v=el.dataset.v; if(k==="area"){ G.sheetData={area:v,page:0}; } else if(k==="page"){ G.sheetData.page=+v; } else { G.sheetData.detail=v||null; } render(); drawMiniSprites(); const s=$(".sheet"); if(s) s.scrollTop=0; },
   shopTab(el){ G.sheetData.tab=el.dataset.v; G.sheetData.item=null; render(); },
   shopItem(el){ G.sheetData.item=el.dataset.v||null; G.sheetData.qty=1; render(); },
@@ -2864,7 +2863,7 @@ function drawMiniSprites(){
 }
 function validateState(s){
   const okNum=v=>Number.isFinite(v)&&v>=0;
-  if(!okNum(s.xp)||!okNum(s.gold)||!okNum(s.tickets)||!MAPS[s.mapId]||!Array.isArray(s.party)||s.party.some(c=>!CHARS[c])) throw new Error("bad");
+  if(!okNum(s.xp)||!okNum(s.gold)||!okNum(s.tickets)||!MAPS[s.mapId]||!Array.isArray(s.roster)||!Array.isArray(s.party)||s.party.length<1||s.party.length>4||new Set(s.party).size!==s.party.length||s.party.some(c=>!CHARS[c]||!s.roster.includes(c))) throw new Error("bad");
   for(const c of s.party) if(!JOBS[s.jobs[c]]) throw new Error("bad job");
 }
 function padSide(){ const s=G.st?G.st.settings:G.tmpSettings; if(s&&(s.padSide==="left"||s.padSide==="right")) return s.padSide; try{ const v=localStorage.getItem("tlr-kyushu-pad"); if(v==="left"||v==="right") return v; }catch(e){} return "right"; }
@@ -3044,4 +3043,3 @@ const PAD = (()=>{
 if(window.claude&&window.claude.hot&&window.claude.hot.ready) window.claude.hot.ready(()=>boot()); else boot();
 </script>
 </body></html>
-

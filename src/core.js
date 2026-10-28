@@ -570,17 +570,22 @@ function aiScore(before, after){
   if(after.chain.stage>before.chain.stage) s+=12*after.chain.stage;
   return s;
 }
+function aiItemUseful(run,p){
+  if(p.heal.some(h=>h.revive)) return true;
+  const usefulHP=p.heal.some(h=>{
+    const m=run.party[h.pos], need=Math.min(Math.ceil(m.maxHP*0.03),m.maxHP-m.hp);
+    return need>0 && h.amt>=need;
+  });
+  const usefulC=p.cgain.some(g=>g.amt>=1);
+  return usefulHP||usefulC;
+}
 function aiChoose(run){
   let best=null;
   for(const a of run.party){
     if(a.hp<=0||a.acted) continue;
     for(const act of aiCandidates(run,a)){
       const p=planAction(run,a.pos,act); if(!p.ok) continue;
-      if(act.type==="item" && !p.heal.some(h=>h.revive)){
-        const usefulHP=p.heal.some(h=>h.amt>=Math.min(Math.ceil(run.party[h.pos].maxHP*0.03),run.party[h.pos].maxHP-run.party[h.pos].hp));
-        const usefulC=p.cgain.some(g=>g.amt>=Math.min(1,10-run.party[g.pos].c));
-        if(!usefulHP && !usefulC) continue;
-      }
+      if(act.type==="item" && !aiItemUseful(run,p)) continue;
       const sim=JSON.parse(JSON.stringify(run)); sim.log=[];
       const r=applyAction(sim,a.pos,act); if(!r.ok) continue;
       if(act.type==="item"&&sim.state!=="won"){

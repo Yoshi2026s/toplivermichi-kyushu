@@ -572,6 +572,11 @@ function aiChoose(run){
       const p=planAction(run,a.pos,act); if(!p.ok) continue;
       const sim=JSON.parse(JSON.stringify(run)); sim.log=[];
       const r=applyAction(sim,a.pos,act); if(!r.ok) continue;
+      if(act.type==="item"&&sim.state!=="won"){
+        const netGain=sim.party.some((m,i)=>m.hp>run.party[i].hp||m.c>run.party[i].c);
+        const newDown=sim.party.some((m,i)=>run.party[i].hp>0&&m.hp<=0);
+        if(!netGain||newDown) continue;
+      }
       let sc=aiScore(run,sim);
       if(act.type==="attack") sc+=0.5;            // 同点なら通常攻撃
       if(act.type==="item"){ const it=ITEMS[act.item]; sc -= 10 + 12*it.stars + Math.min(60,Math.max(it.price,it.sell,40)/4); } // 道具は数に限りがあるため控えめに（レアほど温存）

@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="男女混合アイドルグループを脱退したヒロインと2人で九州・沖縄を旅する、昭和風ドットのスマホ向けRPG（非公式の創作ゲーム・福岡編）。">
+<meta name="description" content="福岡編と佐賀県唐津市の探索拠点を遊べる、スマホ向けの非公式創作RPG。佐賀の依頼・戦闘・配信は開発中。">
 <meta name="theme-color" content="#101820">
 <style>body{margin:0}</style>
 <script>window.TLR_PUBLIC=true;window.TLR_BUILD="2026-10-29";</script>
@@ -323,15 +323,15 @@ const NATIONAL_PREFECTURES = [
   ["JP40","福岡県","RG08"], ["JP41","佐賀県","RG08"], ["JP42","長崎県","RG08"], ["JP43","熊本県","RG08"], ["JP44","大分県","RG08"], ["JP45","宮崎県","RG08"], ["JP46","鹿児島県","RG08"], ["JP47","沖縄県","RG08"]
 ].map(([id,name,regionId])=>({id,name,regionId}));
 /* 実際に遊べる拠点だけを列挙。未収録の県には移動先を作らない。 */
-const NATIONAL_IMPLEMENTED_HUBS = {JP40:["KY01","KY02"]};
+const NATIONAL_IMPLEMENTED_HUBS = {JP40:["KY01","KY02"],JP41:["KY03"]};
 /* 経路は実装状態と解放条件を分ける。planned は地図の移動先にしない。 */
 const NATIONAL_ROUTES = [
   {id:"RT-KY01-KY02",from:"KY01",to:"KY02",mode:"road",status:"playable",unlock:"always"},
-  {id:"RT-KY02-KY03",from:"KY02",to:"KY03",mode:"road",status:"planned",unlock:"fukuokaClear"}
+  {id:"RT-KY02-KY03",from:"KY02",to:"KY03",mode:"road",status:"playable",unlock:"fukuokaClear"}
 ];
 
-/* ===== data: 全定義（福岡編で使う範囲） ===== */
-const GAME_VERSION = "5.29";
+/* ===== data: 福岡編と唐津の探索拠点 ===== */
+const GAME_VERSION = "5.29-dev";
 const SCHEMA_VERSION = 5;
 
 const PAL = {
@@ -439,7 +439,7 @@ const BOSS_SCALE_OVERRIDE = { LB01:{ 2:{hp:0.9,atk:1} } };
 function bossScale(bid, n){ n=Math.min(4,Math.max(1,n)); const o=BOSS_SCALE_OVERRIDE[bid]; return (o&&o[n]) || BOSS_PARTY_SCALE[n]; }
 
 /* 宿屋：1人あたりの宿泊料（ゴールド）。泊まると翌朝になり、体力と集中力が全回復 */
-const INN_PRICE = { KY01:6, KY02:10 };
+const INN_PRICE = { KY01:6, KY02:10, KY03:12 };
 
 /* 第05D節：もえのシナリオ到達ランク */
 const MOE_RANKS = ["E1","D1","D2","D3","C1","C2","C3","B1","B2","B3","A1","A2","A3","S1","S2","S3","S4","S5","S6"];
@@ -545,7 +545,8 @@ const MAPS = {
       {id:"sign6",x:22,y:10,type:"sign",label:"案内板（灯台の段丘）",area:"KY02-A3"},
       {id:"lighthouse",x:24,y:1,type:"tower",label:"灯台"},
       {id:"boss2",x:24,y:2,type:"boss",label:"灯台の前（ボス待機地点）",boss:"B01",walk:true},
-      {id:"gate2",x:1,y:24,type:"gate",label:"福岡市への道",to:"KY01",tx:45,ty:24}
+      {id:"gate2",x:1,y:24,type:"gate",label:"福岡市への道",to:"KY01",tx:45,ty:24},
+      {id:"gate_saga",x:46,y:24,type:"gate",label:"唐津市への道",to:"KY03",tx:2,ty:24}
     ],
     zones:{"1":"KY02-A1","2":"KY02-A2","3":"KY02-A3"}
   },
@@ -557,13 +558,31 @@ const MAPS = {
       {id:"moe2",x:17,y:6,type:"npc",label:"もえ",npc:"moe"},
       {id:"board2",x:20,y:3,type:"board",label:"控室の編成ボード"}
     ], zones:{}
+  },
+  "KY03":{ hub:"KY03", name:"唐津市", kind:"out", w:48, h:32, safeAnchor:[12,20],
+    tiles: buildMap(48,32,[
+      [".",1,1,46,30],["~",1,1,46,8],["~",33,9,14,8],
+      ["T",2,10,8,8],["T",39,18,7,7],
+      [",",1,24,24,1],[",",12,16,2,9],[",",12,16,24,2],
+      ["#",17,20,6,3],["c",17,19,6,1],["#",27,20,6,3],["c",27,19,6,1]
+    ]),
+    objects:[
+      {id:"gate_kitakyushu",x:1,y:24,type:"gate",label:"北九州市への道",to:"KY02",tx:45,ty:24},
+      {id:"karatsu_guide",x:12,y:19,type:"npc",label:"唐津の案内人",npc:"karatsuGuide"},
+      {id:"karatsu_landmark",x:25,y:16,type:"landmark",label:"海辺の案内板"},
+      {id:"karatsu_inn",x:20,y:20,type:"inn",label:"唐津の宿屋"},
+      {id:"karatsu_rest",x:30,y:20,type:"rest",label:"休憩所（日付を進める）"},
+      {id:"karatsu_board",x:27,y:16,type:"board",label:"編成ボード"},
+      {id:"karatsu_record",x:33,y:16,type:"shelf",label:"旅の記録"}
+    ], zones:{}
   }
 };
 const HUBS = {
   KY01:{name:"福岡市", pref:"福岡", prefId:"PR01", map:"KY01", home:true},
-  KY02:{name:"北九州市", pref:"福岡", prefId:"PR01", map:"KY02"}
+  KY02:{name:"北九州市", pref:"福岡", prefId:"PR01", map:"KY02"},
+  KY03:{name:"唐津市", pref:"佐賀", prefId:"PR02", map:"KY03"}
 };
-const FUTURE_HUBS = [["KY03","唐津市","佐賀"],["KY04","佐賀市","佐賀"],["KY05","佐世保市","長崎"],["KY06","長崎市","長崎"],["KY07","熊本市","熊本"],["KY08","阿蘇市","熊本"],["KY09","別府市","大分"],["KY10","大分市","大分"],["KY11","宮崎市","宮崎"],["KY12","日南市","宮崎"],["KY13","霧島市","鹿児島"],["KY14","鹿児島市","鹿児島"],["KY15","那覇市","沖縄"],["KY16","名護市","沖縄"]];
+const FUTURE_HUBS = [["KY04","佐賀市","佐賀"],["KY05","佐世保市","長崎"],["KY06","長崎市","長崎"],["KY07","熊本市","熊本"],["KY08","阿蘇市","熊本"],["KY09","別府市","大分"],["KY10","大分市","大分"],["KY11","宮崎市","宮崎"],["KY12","日南市","宮崎"],["KY13","霧島市","鹿児島"],["KY14","鹿児島市","鹿児島"],["KY15","那覇市","沖縄"],["KY16","名護市","沖縄"]];
 
 /* ===== 住民と会話 ===== */
 const NPCS = {
@@ -587,6 +606,9 @@ const NPCS = {
   misuzu:{name:"美鈴", hub:"KY02", sprite:[PAL.aqua,PAL.red],
     first:p=>[["美鈴","遊歩道の足元灯、点いたり消えたりしてるの。乱れのせいかしら。"]],
     normal:p=>[["美鈴","係留ロープの結び目って、きれいな形をしてるのよ。"]] },
+  karatsuGuide:{name:"唐津の案内人", hub:"KY03", sprite:[PAL.sand,PAL.sea],
+    first:p=>[["案内人",`${p}さん、唐津へようこそ。海辺の案内板から、この街の声を聞いてみてください。`],["案内人","ここは旅の入口です。佐賀の依頼や配信は、準備が整うまで開かれません。"]],
+    normal:p=>[["案内人","北九州へは西の門から戻れます。宿屋と休憩所も利用できますよ。"]] },
   moe:{name:"もえ", sprite:[PAL.cream,PAL.violet]}
 };
 
@@ -627,7 +649,7 @@ const SCENES = {
     ["","もえのシナリオ到達ランクがD2になった。"],
     [p,"二人でここまで来られたね。次の県では、手伝ってくれる仲間も探そう。"],
     ["もえ",`${p}、次は佐賀だね。私、相手の返事を取り入れた紹介を試してみたい。`],
-    ["","福岡編はここまで。佐賀から先の章は、この版には未収録です。通常戦での育成、図鑑集め、任意依頼は続けられます。"]
+    ["","福岡編はここまで。唐津の探索拠点へ進めます。佐賀の依頼・戦闘・配信は、まだ準備中です。"]
   ]},
   S01_DONE:{title:"ふるさとの紹介文", lines:p=>[
     ["灯里","できた！『待ち合わせの広場。帰ってきた人に、おかえりを言う場所』。"],
@@ -1490,6 +1512,7 @@ const ART = (()=>{
       case "box": px(g,2,13,12,9,PAL.brown); px(g,2,13,12,1,light(PAL.brown,.3)); px(g,2,11,12,3,PAL.gold); px(g,2,11,12,1,light(PAL.gold,.4)); px(g,7,13,2,4,PAL.cream); px(g,11,14,2,7,dark(PAL.brown));
         if(frame%2) px(g,12,9,1,1,PAL.cream); break;
       case "boxOpen": px(g,2,14,12,8,PAL.brown); px(g,3,15,10,2,dark(PAL.brown,.5)); px(g,1,8,14,3,PAL.gold); px(g,1,8,14,1,light(PAL.gold,.4)); break;
+      case "landmark":
       case "sign": px(g,7,14,2,9,PAL.brown); px(g,1,7,14,8,PAL.cream); px(g,1,7,14,1,light(PAL.cream,.5)); px(g,3,9,10,1,PAL.slate); px(g,3,11,7,1,PAL.slate); px(g,11,11,2,2,PAL.red); break;
       case "bench": px(g,1,14,14,3,PAL.brown); px(g,1,14,14,1,light(PAL.brown,.3)); px(g,2,17,2,5,dark(PAL.brown)); px(g,12,17,2,5,dark(PAL.brown)); px(g,1,10,14,2,PAL.sand); break;
       case "tower": ol=false; px(g,7,0,2,24,PAL.mist); px(g,8,0,1,24,dark(PAL.mist,.3)); for(let y=3;y<24;y+=5){ px(g,4,y,8,1,PAL.mist); px(g,5,y+1,1,3,PAL.slate); px(g,10,y+1,1,3,PAL.slate); }
@@ -1860,7 +1883,7 @@ function objective(){
   if(streamPending()) return `${streamPending()}：配信で80点以上を目指す（依頼帳から開始）`;
   if(q){ const Q=QUESTS[q]; if(st.quests[q]==="bossReady") return `${q}：${BOSSES[Q.boss].name}に挑む（${MAPS[Q.hub].name}の奥地）`; return `${q}：通常敵 ${st.qprog[q]||0}/${Q.kills}体（${HUBS[Q.hub].name}のA1～A3）`; }
   const avail=["M01","M02"].find(k=>st.quests[k]==="available"); if(avail) return `依頼帳で「${avail} ${QUESTS[avail].name}」を受ける（2枠）`;
-  if(st.fukuokaClear) return "福岡編クリア！ 育成・図鑑・任意依頼を続けられます";
+  if(st.fukuokaClear) return curHub()==="KY03"?"唐津の探索拠点：案内人と海辺の案内板を調べよう":"福岡編クリア！ 北九州の東門から唐津の探索拠点へ進めます";
   return "探索して仲間を育てよう";
 }
 
@@ -1914,7 +1937,7 @@ function renderTitle(){
       <button class="btn" data-a="openSheet" data-k="about">この作品について</button>
     </div>
     <p class="note">配信文化を参考にした非公式の創作ゲームです。実在のサービス・アカウントとは連携しません。BGMと効果音は最初からONです（画面に触れると鳴り始めます。設定で消音にできます）。</p>
-    <p class="note">この版の収録範囲：第1章 福岡（福岡市・北九州市、M01・M02と初配信まで）。</p>
+    <p class="note">この開発版の収録範囲：第1章 福岡（M01・M02と初配信まで）＋佐賀県唐津市の探索拠点。佐賀の依頼・戦闘・配信は未収録です。</p>
   </section>`;
 }
 function drawTitleArt(){
@@ -2161,7 +2184,7 @@ function interact(o){
     case "npc": return talkNpc(o.npc);
     case "shop": return openSheet("shop",{shop:o.shop, npc:o.npc, tab:"buy"});
     case "door": return travelMap(o.to,o.tx,o.ty);
-    case "gate": return openSheet("travel",{to:o.to,tx:o.tx,ty:o.ty});
+    case "gate": return nationalRouteAvailable(st,curHub(),o.to)?openSheet("travel",{to:o.to,tx:o.tx,ty:o.ty}):say([["",o.to==="KY03"?"唐津への道は福岡編の完了後に開きます。":"この先の道はまだ開いていません。"]]);
     case "box": return openBox(o);
     case "sign": { const a=AREAS[o.area]; const b=Object.values(BOSSES).find(x=>x.areaId===o.area);
       return say([["案内板",`${a.name}（${o.area}）。強度q${a.q}・推奨レベル${a.q}。`+(b?`この奥に地域ボス「${b.name}」（推奨レベル${b.q}）。`:"")],["案内板",a.lore]]); }
@@ -2172,6 +2195,7 @@ function interact(o){
     case "shelf": return openSheet("record");
     case "bench": return say([["もえ",st.moeRank>=1?"ここから見る夕焼け、配信の最後に話したくなるね。":"夕焼けがきれい。……旅に出る前に、この景色を覚えておきたいな。"],[st.profile.name,"また帰ってこよう。"]]);
     case "tower": return say([["","放送塔が空へ伸びている。"]]);
+    case "landmark": return say([["案内板","唐津の海辺。新しい土地の声を聞く旅が、ここから始まる。"],["もえ","街の人に、どんな景色を届けたいか聞いてみよう。"]]);
   }
 }
 function talkNpc(id){
@@ -2561,7 +2585,7 @@ function renderSheet(){
     case "nearby": { const near=nearbyObjects(); return sheetWrap("近くを調べる", near.length? `<div class="stack">${near.map(o=>`<button class="btn" data-a="interactId" data-v="${o.id}">${esc(o.label)}</button>`).join("")}</div>` : `<p>近くに調べられるものはありません。道しるべから目的地を選べます。</p>`); }
     case "guide": { const m=MAPS[st.mapId]; return sheetWrap("道しるべ", `<p class="small">選ぶと、その場所まで実際に歩きます（途中の遭遇エリアでは抽選があります）。</p><div class="stack">${m.objects.filter(o=>o.type!=="tower").map(o=>{ const a=o.area?AREAS[o.area]:null; return `<button class="btn" data-a="guideTo" data-v="${o.id}">${esc(o.label)}${a?`（推奨レベル${a.q}）`:""}</button>`; }).join("")}</div>`); }
     case "quests": return sheetWrap("依頼帳", renderQuests());
-    case "map": return sheetWrap("九州と沖縄の地図", renderWorld());
+    case "map": return sheetWrap("全国の旅の地図", renderWorld());
     case "travel": return sheetWrap("移動", `<p>${esc(HUBS[d.to].name)}へ向かいますか？（旅程枠1を使います。残り${st.slots}枠）</p><div class="stack"><button class="btn primary" data-a="doTravel">向かう</button><button class="btn" data-a="closeSheet">やめる</button></div>`);
     case "rest": return sheetWrap("休息", `${d.reason?`<p class="warn">${esc(d.reason)}</p>`:""}<p>日付を進めると翌日になり、旅程枠が6に戻ります（費用なし）。体力と集中力は回復しません。回復は宿屋で。今は${st.day}日目・残り${st.slots}枠。</p><div class="stack"><button class="btn primary" data-a="doRest">日付を進める</button><button class="btn" data-a="closeSheet">やめる</button></div>`);
     case "party": return sheetWrap("編成", renderParty());
@@ -2626,12 +2650,12 @@ function renderWorld(){
   let h=`<p class="small">拠点間の移動は旅程枠1。安全地帯から出発できます。</p><div class="stack">`;
   for(const [id,H] of Object.entries(HUBS)){
     const here=curHub()===id; const visited=st.visitedHubs.includes(id);
-    const route=!here&&nationalRouteAvailable(st,curHub(),id);
+    const route=!here&&nationalRouteAvailable(st,curHub(),id)&&(id!=="KY03"||visited);
     h+=`<div class="qcard"><div class="srow"><b>${id} ${esc(H.pref)}・${esc(H.name)}${H.home?"（故郷）":""}</b><span class="tag">${here?"現在地":visited?"訪問済み":"未訪問"}</span></div>
-      ${here?"":`<button class="btn" data-a="worldGo" data-v="${id}" ${safe&&route?"":"disabled"}>向かう（1枠）</button>`}</div>`;
+      ${here?"":`<button class="btn" data-a="worldGo" data-v="${id}" ${safe&&route?"":"disabled"}>${id==="KY03"&&!visited?"初回は北九州の東門から":"向かう（1枠）"}</button>`}</div>`;
   }
-  h+=`</div><h3 class="label">この先の拠点</h3><ul class="list dim">${FUTURE_HUBS.map(([id,n,p])=>`<li>${id} ${p}・${n}　${id==="KY03"&&st.fukuokaClear?"進行条件達成・拠点未収録":"未解放"}</li>`).join("")}</ul>
-    <h3 class="label">全国編の準備状況</h3><p class="small">${NATIONAL_REGIONS.length}地方・${NATIONAL_PREFECTURES.length}都道府県の地理台帳を準備中。現在遊べるのは福岡県の福岡市・北九州市です。他の都道府県への移動は、拠点と物語の実装後に追加します。</p>`;
+  h+=`</div><h3 class="label">この先の拠点</h3><ul class="list dim">${FUTURE_HUBS.map(([id,n,p])=>`<li>${id} ${p}・${n}　未解放</li>`).join("")}</ul>
+    <h3 class="label">全国編の準備状況</h3><p class="small">${NATIONAL_REGIONS.length}地方・${NATIONAL_PREFECTURES.length}都道府県の地理台帳を準備中。現在遊べるのは福岡県の福岡市・北九州市と佐賀県の唐津市（探索拠点のみ）です。佐賀の依頼・戦闘・配信は未収録です。</p>`;
   return h;
 }
 function nationalRouteAvailable(st,from,to){
@@ -2691,7 +2715,8 @@ function renderRecord(){
     <ul class="list">${milestones.map(([r,c],i)=>`<li>${i<=st.moeRank?"●":"○"} ${r}：${c}</li>`).join("")}<li class="dim">…S6：M16完了（この版には未収録）</li></ul>
     <h3 class="label">仲間</h3><ul class="list">${st.roster.map(c=>{const s=charStats(st,c,L); return `<li>${esc(charName(st,c))}：${esc(JOBS[s.job].name)} 熟練度${s.R}・最大体力${s.maxHP}</li>`;}).join("")}</ul>
     <h3 class="label">九州アルバム</h3><ul class="list">${Object.entries(BOX_CARDS).map(([k,n])=>`<li>${st.cards.includes(k)?"● "+esc(n):"○ 未取得"}</li>`).join("")}</ul>
-    <h3 class="label">応援者帳</h3><ul class="list"><li>灯里（福岡市）：${st.talked.akari?"話を聞いた":"未会話"}</li><li>奏太（北九州市）：${st.talked.sota?"話を聞いた":"未会話"}</li></ul>
+    <h3 class="label">訪れた拠点</h3><ul class="list">${Object.entries(HUBS).map(([id,h])=>`<li>${st.visitedHubs.includes(id)?"●":"○"} ${esc(h.pref)}・${esc(h.name)}</li>`).join("")}</ul>
+    <h3 class="label">応援者帳</h3><ul class="list"><li>灯里（福岡市）：${st.talked.akari?"話を聞いた":"未会話"}</li><li>奏太（北九州市）：${st.talked.sota?"話を聞いた":"未会話"}</li><li>唐津の案内人：${st.talked.karatsuGuide?"話を聞いた":"未会話"}</li></ul>
     <h3 class="label">配信記録</h3><p>福岡の最高得点：${st.streamBest.PR01!=null?st.streamBest.PR01+"点":"未配信"}</p>
     ${st.lastResult?`<h3 class="label">直前の戦闘結果</h3><p class="small">経験値＋${st.lastResult.xp}・${st.lastResult.gold}ゴールド・${st.lastResult.jp.map(j=>`${esc(j.name)} 熟練度経験値＋${j.gain}`).join("、")}</p>`:""}`;
 }
@@ -2842,7 +2867,7 @@ const ACT = {
   interactId(el){ const o=MAPS[G.st.mapId].objects.find(x=>x.id===el.dataset.v); G.sheet=null; render(); interact(o); },
   guideTo(el){ const o=MAPS[G.st.mapId].objects.find(x=>x.id===el.dataset.v); G.sheet=null; render(); walkTo(o.x,o.y); },
   doTravel(){ if(!canTravelFrom("travel")) return; const d=G.sheetData; if(!HUBS[d.to]||curHub()===d.to||!nationalRouteAvailable(G.st,curHub(),d.to)||!nearbyObjects().some(o=>o.type==="gate"&&o.to===d.to&&o.tx===d.tx&&o.ty===d.ty)) return toast("移動先が変わりました。門を調べ直してください。"); G.sheet=null; travelHub(d.to,d.tx,d.ty); },
-  worldGo(el){ if(!canTravelFrom("map")) return; const to=el.dataset.v; if(!Object.hasOwn(HUBS,to)||curHub()===to||!nationalRouteAvailable(G.st,curHub(),to)) return toast("行先を選び直してください。"); const map=MAPS[to]; if(!map||!Array.isArray(map.safeAnchor)) return toast("この行先にはまだ移動できません。"); const gate=map.objects.find(o=>o.type==="gate"); const s=map.safeAnchor; G.sheet=null; travelHub(to,gate?gate.x+(to==="KY02"?1:-1):s[0],gate?gate.y:s[1]); },
+  worldGo(el){ if(!canTravelFrom("map")) return; const to=el.dataset.v; if(!Object.hasOwn(HUBS,to)||curHub()===to||!nationalRouteAvailable(G.st,curHub(),to)||to==="KY03"&&!G.st.visitedHubs.includes(to)) return toast("行先を選び直してください。"); const map=MAPS[to]; if(!map||!Array.isArray(map.safeAnchor)) return toast("この行先にはまだ移動できません。"); const s=map.safeAnchor; G.sheet=null; travelHub(to,s[0],s[1]); },
   doInn(el){ if(G.readOnly||G.screen!=="explore"||G.sheet!=="inn"||G.dlg||G.st.run||!isSafe()) return; const st=G.st; const total=(INN_PRICE[curHub()]||10)*st.roster.length; if(st.gold<total) return toast(`ゴールドが足りません（あと${total-st.gold}）。`); el.disabled=true; G.sheet=null; st.gold-=total; restoreAll(st); st.day++; st.slots=6; commit(); render(); SND.sfx("heal"); say([["",`${total}ゴールドを払って泊まった。`],["",`${st.day}日目の朝。全員の体力と集中力が全回復した！`]]); },
   doRest(){ if(G.readOnly||G.screen!=="explore"||G.sheet!=="rest"||G.dlg||G.st.run||!isSafe()) return; const st=G.st; G.sheet=null; st.day++; st.slots=6; commit(); render(); toast(`${st.day}日目の朝。旅程枠が6に戻った。`); },
   acceptQuest(el){ if(!canManageQuests()) return; const st=G.st, id=el.dataset.v, q=QUESTS[id]; if(!q||st.quests[id]!=="available"||st.activeQuest||curHub()!==q.hub||!isSafe()) return toast("依頼の状態が変わりました。選び直してください。"); if(st.slots<2) return openSheet("rest",{reason:"受注には旅程枠2が必要です。"});
@@ -2898,7 +2923,7 @@ const ACT = {
     d.item=null; commit(); SND.sfx("buy"); render(); toast(`${it.name}×${q}を${offer.tab==="sell"?"売った":"買った"}。`); },
   replay(el){ G.sheet=null; playScene(el.dataset.v); },
   ssSet(el){ G.sheetData[el.dataset.k]=el.dataset.v; render(); },
-  streamStart(){ const st=G.st, d=G.sheetData; st.stream=newStream(st,curHub(),d.host,d.theme,d.style); commit(); G.sheet=null; G.screen="stream"; SND.play("stream"); render(); },
+  streamStart(){ const st=G.st, d=G.sheetData, qid=streamPending(); if(!st||G.readOnly||G.screen!=="explore"||G.sheet!=="streamSetup"||!qid||QUESTS[qid].hub!==curHub()||!STREAM_REQ[HUBS[curHub()].prefId]||!st.roster.includes(d.host)||!STREAM_THEMES[d.theme]||!["video","voice"].includes(d.style)) return toast("配信の開始条件が変わりました。依頼帳を確認してください。"); st.stream=newStream(st,curHub(),d.host,d.theme,d.style); commit(); G.sheet=null; G.screen="stream"; SND.play("stream"); render(); },
   streamAct(el){ streamAct(el.dataset.v); },
   streamRetry(){ const s=G.st.stream; Object.assign(s,{hand:0,score:0,used:[],themeBonusUsed:false,picks:[],done:false}); commit(); render(); },
   streamLeave(){ G.st.stream=null; commit(); G.screen="explore"; exploreBgm(); render(); },

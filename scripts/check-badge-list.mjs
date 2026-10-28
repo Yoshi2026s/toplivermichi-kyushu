@@ -21,12 +21,16 @@ const missing=catalog.renderBadgeRecord(st);
 if(missing.includes('● 獲得済み B001')||!missing.includes('B100')||!missing.includes('すべて表示')) throw new Error('missing badge filter failed');
 G.st={battleBadges:[],run:{kind:'field',turn:2,state:'input',A:0,kiraDone:false,party:[{cid:'hero',hp:10,maxHP:10,c:5}],itemHistory:[],itemHistoryComplete:true,actionFlags:{attackHit:true,actionCount:2,enemyAttacked:true,restUsed:false,cheerSpent:false},actionHistoryComplete:true}};
 let live=catalog.renderBattleChallenges();
-if(!live.includes('勝利で確定・B011')||!live.includes('今回達成不可・B001')||!live.includes('今回達成不可・B005')||!live.includes('対象外・B008')||!live.includes('制作中・B009')||!live.includes('速攻（今回の対象 8件）')) throw new Error('live challenge statuses failed');
+if(!live.includes('勝利で確定・B011')||!live.includes('今回達成不可・B001')||!live.includes('今回達成不可・B005')||!live.includes('今回達成不可・B007')||!live.includes('対象外・B008')||!live.includes('対象外・B023')||!live.includes('制作中・B009')||!live.includes('速攻（今回の対象 8件）')||!live.includes('B021 多彩な作戦')||!live.includes('B021 多彩な作戦（0/3）')) throw new Error('live challenge statuses failed');
 G.st.run.itemHistory=[{id:'IT01'}];
 live=catalog.renderBattleChallenges();
 if(!live.includes('今回達成不可・B081')||!live.includes('勝利で確定・B083')) throw new Error('item challenge statuses failed');
 G.st.run.actionHistoryComplete=false;
 live=catalog.renderBattleChallenges();
 if(live.includes('勝利で確定・B011')) throw new Error('incomplete action history must not confirm badge');
-console.log('Badge catalog: 100 IDs, 10 groups, record filter and live statuses OK');
+if(live.includes('B021 多彩な作戦（0/3）')) throw new Error('incomplete action history must not show inferred progress');
+G.st.run.turn=1;G.st.run.actionHistoryComplete=true;G.st.battleBadges=['B001','B002','B011','B021','B023','B031','B041','B061','B081'];
+live=catalog.renderBattleChallenges();
+if(live.includes('B001 開幕の決着：')||live.includes('B011 基本の一撃：')||live.includes('B081 道具を温存：')) throw new Error('owned or impossible badges recommended');
+console.log('Badge catalog: 100 IDs, 10 groups, live progress and recommendations OK');
 

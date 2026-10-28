@@ -856,7 +856,7 @@ function baseRun(st, kind){
     party: buildParty(st,L), enemies:[], turn:1, A:Math.min(100,A0), B:0,
     chain:{stage:0, members:[]}, kiraDone:false, firstKill:false,
     cue:null, log:[], itemHistory:[], itemHistoryComplete:true,
-    actionFlags:{cheerSpent:false,skillUsed:false,mpRestored:false,guardUsed:false}, actionHistoryComplete:true,
+    actionFlags:{cheerSpent:false,skillUsed:false,mpRestored:false,guardUsed:false,actors:[],jobs:[],revived:false}, actionHistoryComplete:true,
     state:"input", rewardsApplied:false, bag:clone(st.bag||[]) };
 }
 function createFieldRun(st, areaId, rolls){ // rolls: {count:0|1, picks:[r0,r1]}
@@ -1037,6 +1037,9 @@ function applyAction(run, idx, act){
     if(act.type==="skill") run.actionFlags.skillUsed=true;
     if(act.type!=="item" && p.cgain.some(g=>g.amt>0)) run.actionFlags.mpRestored=true;
     if(act.type==="guard") run.actionFlags.guardUsed=true;
+    if(!run.actionFlags.actors.includes(run.party[idx].cid)) run.actionFlags.actors.push(run.party[idx].cid);
+    if(!run.actionFlags.jobs.includes(run.party[idx].job)) run.actionFlags.jobs.push(run.party[idx].job);
+    if(p.heal.some(h=>h.revive)) run.actionFlags.revived=true;
   }
   const a = run.party[idx]; const log=[]; const nm=a.name;
   const label = actLabel(run,a,act);
@@ -1361,6 +1364,19 @@ function itemBattleBadges(history,run){
     if(!used.length && f.skillUsed) out.push("B088");
     if(!used.length && f.mpRestored) out.push("B089");
     if(used.length && f.guardUsed) out.push("B090");
+  }
+  return out;
+}
+const GROWTH_BADGES={B091:"旅路の一勝",B092:"ライバルを越える",B094:"三職業の共演",B095:"二人の物語",B096:"復活から勝利へ"};
+function growthBattleBadges(run){
+  const out=[];
+  if(run.kind==="field") out.push("B091");
+  if(run.kind==="boss") out.push("B092");
+  if(run.actionHistoryComplete===true && run.actionFlags){
+    const f=run.actionFlags;
+    if(Array.isArray(f.jobs)&&new Set(f.jobs).size>=3) out.push("B094");
+    if(Array.isArray(f.actors)&&f.actors.includes("hero")&&f.actors.includes("moe")) out.push("B095");
+    if(f.revived && run.party.every(m=>m.hp>0)) out.push("B096");
   }
   return out;
 }
@@ -2601,7 +2617,8 @@ function autoStep(){
 function toResult(){
   const st=G.st, run=st.run; const res=applyVictory(st,run);
   st.battleBadges=Array.isArray(st.battleBadges)?st.battleBadges:[];
-  const newBadges=run.itemHistoryComplete===true?itemBattleBadges(run.itemHistory,run).filter(id=>!st.battleBadges.includes(id)):[];
+  const eligible=[...(run.itemHistoryComplete===true?itemBattleBadges(run.itemHistory,run):[]),...growthBattleBadges(run)];
+  const newBadges=eligible.filter(id=>!st.battleBadges.includes(id));
   st.battleBadges.push(...newBadges);
   if(res.levelAfter>res.levelBefore && Vof(res.levelAfter)>Vof(res.levelBefore)) res.notes.push("技能・装備の効果量が上昇（V"+Vof(res.levelAfter)+"）");
   const L0=res.levelBefore, L1=levelOf(st.xp);
@@ -2653,7 +2670,7 @@ function renderResult(){
     ${r.quest?`<div class="rquest done">依頼「${r.quest} ${esc(QUESTS[r.quest].name)}」完了！</div>`:r.kills&&r.killQuest?`<div class="rquest"><span>依頼 ${r.killQuest} 討伐</span><span class="bar"><i style="width:${pct(r.killNow,r.killNeed)}%"></i></span><b>${r.killNow}/${r.killNeed}</b></div>`:""}
     ${items.length||gifts.length?`<div class="rbox"><h3 class="label">手に入れたもの</h3><ul class="rlist">${[...items,...gifts].join("")}</ul></div>`:""}
     ${usedItems.length?`<div class="rbox"><h3 class="label">この戦闘で使った道具（${usedItems.length}回）</h3><ul class="rlist">${usedItems.join("")}</ul></div>`:""}
-    ${(r.newBadges||[]).length?`<div class="rbox"><h3 class="label">新しい戦闘バッジ</h3><ul class="rlist">${r.newBadges.map(id=>`<li>${id} ${esc(ITEM_BADGES[id]||id)}</li>`).join("")}</ul></div>`:""}
+    ${(r.newBadges||[]).length?`<div class="rbox"><h3 class="label">新しい戦闘バッジ</h3><ul class="rlist">${r.newBadges.map(id=>`<li>${id} ${esc(ITEM_BADGES[id]||GROWTH_BADGES[id]||id)}</li>`).join("")}</ul></div>`:""}
     ${r.notes.filter(n=>!/効果量が上昇/.test(n)).map(n=>`<p class="good rnote">${esc(n)}</p>`).join("")}
     <h3 class="label">仲間</h3><div class="rmems">${mem}</div>
     ${anyLow?`<p class="small warn">体力が減っている仲間がいます。次の戦闘へ持ち越すので、道具や宿屋で回復しておこう。</p>`:""}
@@ -2860,8 +2877,8 @@ function renderRecord(){
     <h3 class="label">訪れた拠点</h3><ul class="list">${Object.entries(HUBS).map(([id,h])=>`<li>${st.visitedHubs.includes(id)?"●":"○"} ${esc(h.pref)}・${esc(h.name)}</li>`).join("")}</ul>
     <h3 class="label">応援者帳</h3><ul class="list"><li>灯里（福岡市）：${st.talked.akari?"話を聞いた":"未会話"}</li><li>奏太（北九州市）：${st.talked.sota?"話を聞いた":"未会話"}</li><li>唐津の案内人：${st.talked.karatsuGuide?"話を聞いた":"未会話"}</li></ul>
     <h3 class="label">配信記録</h3><p>福岡の最高得点：${st.streamBest.PR01!=null?st.streamBest.PR01+"点":"未配信"}／佐賀の最高得点：${st.streamBest.PR02!=null?st.streamBest.PR02+"点":"未配信"}</p>
-    <h3 class="label">戦闘バッジ</h3><p class="small">実装済み10種のうち取得${Object.keys(ITEM_BADGES).filter(id=>(st.battleBadges||[]).includes(id)).length}種。残る90種は制作中です。</p>
-    <ul class="list">${Object.entries(ITEM_BADGES).map(([id,name])=>`<li>${(st.battleBadges||[]).includes(id)?"●":"○"} ${id} ${esc(name)}</li>`).join("")}</ul>
+    <h3 class="label">戦闘バッジ</h3><p class="small">実装済み15種のうち取得${Object.keys({...ITEM_BADGES,...GROWTH_BADGES}).filter(id=>(st.battleBadges||[]).includes(id)).length}種。残る85種は制作中です。</p>
+    <ul class="list">${Object.entries({...ITEM_BADGES,...GROWTH_BADGES}).map(([id,name])=>`<li>${(st.battleBadges||[]).includes(id)?"●":"○"} ${id} ${esc(name)}</li>`).join("")}</ul>
     ${st.lastResult?`<h3 class="label">直前の戦闘結果</h3><p class="small">経験値＋${st.lastResult.xp}・${st.lastResult.gold}ゴールド・${st.lastResult.jp.map(j=>`${esc(j.name)} 熟練度経験値＋${j.gain}`).join("、")}</p>`:""}`;
 }
 function renderDex(){

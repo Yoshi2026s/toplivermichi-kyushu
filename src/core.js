@@ -98,7 +98,7 @@ function baseRun(st, kind){
     party: buildParty(st,L), enemies:[], turn:1, A:Math.min(100,A0), B:0,
     chain:{stage:0, members:[]}, kiraDone:false, firstKill:false,
     cue:null, log:[], itemHistory:[], itemHistoryComplete:true,
-    actionFlags:{cheerSpent:false,skillUsed:false,mpRestored:false,guardUsed:false,actors:[],jobs:[],revived:false,lowHeal:false,cueSolved:false,downSeen:false}, actionHistoryComplete:true,
+    actionFlags:{cheerSpent:false,skillUsed:false,mpRestored:false,guardUsed:false,actors:[],jobs:[],actionTypes:[],skills:[],revived:false,lowHeal:false,cueSolved:false,downSeen:false}, actionHistoryComplete:true,
     state:"input", rewardsApplied:false, bag:clone(st.bag||[]) };
 }
 function createFieldRun(st, areaId, rolls){ // rolls: {count:0|1, picks:[r0,r1]}
@@ -279,6 +279,8 @@ function applyAction(run, idx, act){
     if(act.type==="skill") run.actionFlags.skillUsed=true;
     if(act.type!=="item" && p.cgain.some(g=>g.amt>0)) run.actionFlags.mpRestored=true;
     if(act.type==="guard") run.actionFlags.guardUsed=true;
+    if(Array.isArray(run.actionFlags.actionTypes) && !run.actionFlags.actionTypes.includes(act.type)) run.actionFlags.actionTypes.push(act.type);
+    if(act.type==="skill" && Array.isArray(run.actionFlags.skills) && !run.actionFlags.skills.includes(run.party[idx].job)) run.actionFlags.skills.push(run.party[idx].job);
     if(!run.actionFlags.actors.includes(run.party[idx].cid)) run.actionFlags.actors.push(run.party[idx].cid);
     if(!run.actionFlags.jobs.includes(run.party[idx].job)) run.actionFlags.jobs.push(run.party[idx].job);
     if(p.heal.some(h=>h.revive)) run.actionFlags.revived=true;
@@ -629,6 +631,20 @@ function growthBattleBadges(run){
 }
 const DEFENSE_BADGES={B036:"全員で帰還",B037:"余力を残す",B038:"万全の勝利"};
 const PARTY_BADGES={B023:"二人で進む",B024:"全員に出番",B025:"職業を合わせる"};
+const ACTION_BADGES={B021:"多彩な作戦",B022:"引き出し豊富",B026:"技を使い分ける",B027:"攻撃の二本柱",B028:"攻守の切り替え",B029:"声と技の共演"};
+function actionBattleBadges(run){
+  if(run.actionHistoryComplete!==true || !run.actionFlags) return [];
+  const types=new Set(Array.isArray(run.actionFlags.actionTypes)?run.actionFlags.actionTypes:[]);
+  const skills=new Set(Array.isArray(run.actionFlags.skills)?run.actionFlags.skills:[]);
+  const out=[];
+  if(types.size>=3) out.push("B021");
+  if(types.size>=4) out.push("B022");
+  if(skills.size>=2) out.push("B026");
+  if(types.has("attack")&&types.has("skill")) out.push("B027");
+  if(types.has("guard")&&types.has("skill")) out.push("B028");
+  if(types.has("comment")&&types.has("skill")) out.push("B029");
+  return out;
+}
 function partyBattleBadges(run){
   if(run.actionHistoryComplete!==true || !run.actionFlags) return [];
   const actors=new Set(Array.isArray(run.actionFlags.actors)?run.actionFlags.actors:[]);

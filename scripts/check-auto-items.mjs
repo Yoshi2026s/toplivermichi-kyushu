@@ -10,6 +10,7 @@ const fail=msg=>{throw new Error(msg)};
 const st=game.newGame('確認用','女性');
 st.bag=[{id:'IT001',n:1},{id:'IT057',n:1},{id:'IT071',n:1},{id:'IT058',n:1}];
 const run=game.createFieldRun(st,'KY01-A1',{count:0,picks:[0,0]});
+if(!Array.isArray(run.itemHistory)||run.itemHistory.length) fail('new battle history must start empty');
 const actor=run.party.find(m=>m.hp>0);
 const fullHP=actor.maxHP;
 actor.maxHP=1000; actor.hp=500;
@@ -24,6 +25,7 @@ if(!items().some(a=>a.item==='IT001')||items().some(a=>['IT071','IT058'].include
 const before=JSON.stringify(run);
 game.aiChoose(run);
 if(JSON.stringify(run)!==before) fail('candidate search mutated battle state');
+run.itemHistory={}; // 旧記録や壊れた記録でも確定した使用を続行する
 const used=game.applyAction(run,actor.pos,{type:'item',item:'IT001',ally:actor.pos});
 if(!used.ok||run.itemHistory?.length!==1||run.itemHistory[0].hp<=0||run.itemHistory[0].c!==0||run.bag.find(e=>e.id==='IT001')) fail('confirmed item use was not recorded once');
 const record=JSON.stringify(run.itemHistory);

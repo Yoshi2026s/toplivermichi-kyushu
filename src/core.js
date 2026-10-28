@@ -98,7 +98,7 @@ function baseRun(st, kind){
     party: buildParty(st,L), enemies:[], turn:1, A:Math.min(100,A0), B:0,
     chain:{stage:0, members:[]}, kiraDone:false, firstKill:false,
     cue:null, log:[], itemHistory:[], itemHistoryComplete:true,
-    actionFlags:{cheerSpent:false,skillUsed:false,mpRestored:false,guardUsed:false,actors:[],jobs:[],revived:false,lowHeal:false,cueSolved:false}, actionHistoryComplete:true,
+    actionFlags:{cheerSpent:false,skillUsed:false,mpRestored:false,guardUsed:false,actors:[],jobs:[],revived:false,lowHeal:false,cueSolved:false,downSeen:false}, actionHistoryComplete:true,
     state:"input", rewardsApplied:false, bag:clone(st.bag||[]) };
 }
 function createFieldRun(st, areaId, rolls){ // rolls: {count:0|1, picks:[r0,r1]}
@@ -288,6 +288,7 @@ function applyAction(run, idx, act){
   const label = actLabel(run,a,act);
   log.push(`${nm}の${label}！`);
   a.c -= p.cost.c; run.A -= p.cost.a; if(p.cost.hp){ a.hp -= p.cost.hp; log.push(`${nm}は体力を${p.cost.hp}払った。`); }
+  if(a.hp<=0 && run.actionHistoryComplete===true && run.actionFlags) run.actionFlags.downSeen=true;
   // 攻撃
   let killedNow=0;
   for(const d of p.dmg){
@@ -360,6 +361,7 @@ function enemyPhase(run){
       let inc = Math.max(0, act.power - run.V*(t.armorD + t.ward));
       if(t.guard) inc = Math.ceil(inc/2);
       t.hp = Math.max(0, t.hp-inc);
+      if(t.hp===0 && run.actionHistoryComplete===true && run.actionFlags) run.actionFlags.downSeen=true;
       log.push(`${e.display}の${act.type==="a"?"全体攻撃":"攻撃"}。${t.name}に${inc}。`+(t.hp===0?` ${t.name}は戦闘不能。`:""));
     }
     if(alive(run).length===0){ run.state="lost"; log.push("全員が戦闘不能になった……"); return log; }
@@ -623,6 +625,14 @@ function growthBattleBadges(run){
     if(f.lowHeal) out.push("B097");
     if(run.kind==="boss" && f.cueSolved) out.push("B098");
   }
+  return out;
+}
+const DEFENSE_BADGES={B036:"全員で帰還",B037:"余力を残す",B038:"万全の勝利"};
+function defenseBattleBadges(run){
+  const out=[];
+  if(run.actionHistoryComplete===true && run.actionFlags && !run.actionFlags.downSeen) out.push("B036");
+  if(run.party.every(m=>m.hp>0 && m.hp>=m.maxHP/2)) out.push("B037");
+  if(run.party.every(m=>m.hp>0 && m.hp>=m.maxHP)) out.push("B038");
   return out;
 }
 function aiChoose(run){

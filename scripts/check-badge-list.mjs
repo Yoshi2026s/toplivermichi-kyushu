@@ -32,5 +32,11 @@ if(live.includes('B021 多彩な作戦（0/3）')) throw new Error('incomplete a
 G.st.run.turn=1;G.st.run.actionHistoryComplete=true;G.st.battleBadges=['B001','B002','B011','B021','B023','B031','B041','B061','B081'];
 live=catalog.renderBattleChallenges();
 if(live.includes('B001 開幕の決着：')||live.includes('B011 基本の一撃：')||live.includes('B081 道具を温存：')) throw new Error('owned or impossible badges recommended');
-console.log('Badge catalog: 100 IDs, 10 groups, live progress and recommendations OK');
+G.sheetData.onlyActionable=true;
+live=catalog.renderBattleChallenges();
+if(!live.includes('すべて表示')||live.includes('獲得済み・B001')||live.includes('制作中・B009')||live.includes('今回達成不可・B081')||!live.includes('未達成・B003')) throw new Error('actionable challenge filter failed');
+G.sheetData.onlyActionable=false;G.st.battleBadges=[];G.st.run.state='lost';
+live=catalog.renderBattleChallenges();
+if(!live.includes('今回達成不可・B011')||live.includes('勝利で確定・B011')||!live.includes('今おすすめできる未達成の条件はありません')) throw new Error('lost battle challenge status failed');
+console.log('Badge catalog: 100 IDs, 10 groups, live progress, recommendations and filter OK');
 

@@ -58,8 +58,9 @@ function objective(){
   const st=G.st; const q=st.activeQuest;
   if(streamPending()) return `${streamPending()}：配信で80点以上を目指す（依頼帳から開始）`;
   if(q){ const Q=QUESTS[q]; if(st.quests[q]==="bossReady") return `${q}：${BOSSES[Q.boss].name}に挑む（${MAPS[Q.hub].name}の奥地）`; return `${q}：通常敵 ${st.qprog[q]||0}/${Q.kills}体（${HUBS[Q.hub].name}のA1～A3）`; }
-  const avail=["M01","M02","M03"].find(k=>st.quests[k]==="available"); if(avail) return `依頼帳で「${avail} ${QUESTS[avail].name}」を受ける（2枠）`;
-  if(st.quests.M03==="complete") return curHub()==="KY03"?"唐津編クリア！ 東門から佐賀市へ進めます":"唐津編クリア！ 佐賀市で旅の準備を続けられます";
+  const avail=["M01","M02","M03","M04"].find(k=>st.quests[k]==="available"); if(avail) return `依頼帳で「${avail} ${QUESTS[avail].name}」を受ける（2枠）`;
+  if(st.quests.M04==="complete") return "佐賀市編クリア！ 続きの地域は開発中です";
+  if(st.quests.M03==="complete") return curHub()==="KY03"?"唐津編クリア！ 東門から佐賀市へ進めます":"佐賀市でM04を受け、街の声を集めよう";
   if(st.fukuokaClear) return curHub()==="KY03"?"唐津でM03を受け、海辺の探索区域へ進もう":"福岡編クリア！ 北九州の東門から唐津へ進めます";
   return "探索して仲間を育てよう";
 }
@@ -114,7 +115,7 @@ function renderTitle(){
       <button class="btn" data-a="openSheet" data-k="about">この作品について</button>
     </div>
     <p class="note">配信文化を参考にした非公式の創作ゲームです。実在のサービス・アカウントとは連携しません。BGMと効果音は最初からONです（画面に触れると鳴り始めます。設定で消音にできます）。</p>
-    <p class="note">この開発版の収録範囲：第1章 福岡（M01・M02）＋佐賀県唐津市のM03と配信、佐賀市の探索3区域まで。佐賀市の主編依頼・地域ボス・配信は未収録です。</p>
+    <p class="note">この開発版の収録範囲：第1章 福岡（M01・M02）＋佐賀県唐津市のM03、佐賀市のM04と各配信まで。佐賀市の先は未収録です。</p>
   </section>`;
 }
 function drawTitleArt(){
@@ -709,6 +710,7 @@ function resultDone(){
   else if(r && r.quest==="S02" && !G.st.scenes.S02_DONE) playScene("S02_DONE");
   else if(r && r.bossId==="B01" && !G.st.scenes.M02_BOSS) playScene("M02_BOSS");
   else if(r && r.bossId==="B02" && !G.st.scenes.M03_BOSS) playScene("M03_BOSS");
+  else if(r && r.bossId==="B03" && !G.st.scenes.M04_BOSS) playScene("M04_BOSS");
 }
 
 /* ---- 配信（第13・14節） ---- */
@@ -724,9 +726,9 @@ function renderStream(){
       <p>${pass?"目標80点を達成！":"80点に届かなかった。要望に合う行動を、まだ使っていない順に選ぶと点が伸びます。"}</p>
       <div class="stack">${pass?`<button class="btn primary" data-a="streamFinish">配信を終える</button>`:`<button class="btn primary" data-a="streamRetry">同じ配信に再挑戦（0枠）</button><button class="btn" data-a="streamLeave">いったん終える（配信待ちを保持）</button>`}</div></section>`;
   }
-  const comments = [`初見です！ ${STREAM_ACTS[req[s.hand]].req}`, "こんばんは〜", s.hand>0?`${STREAM_ACTS[s.picks[s.hand-1].act].name}よかった！`:s.prefId==="PR02"?"唐津から見てます":"港から見てます"];
+  const comments = [`初見です！ ${STREAM_ACTS[req[s.hand]].req}`, "こんばんは〜", s.hand>0?`${STREAM_ACTS[s.picks[s.hand-1].act].name}よかった！`:s.hub==="KY04"?"佐賀市から見てます":s.prefId==="PR02"?"唐津から見てます":"港から見てます"];
   return statusBar()+`<section class="win stream">
-    <div class="srow"><span class="label">${s.prefId==="PR02"?"唐津の声便":"九州エール便"}</span><span>${STREAM_TIMES[s.hand]}（${s.hand+1}／4手番）</span></div>
+    <div class="srow"><span class="label">${s.hub==="KY04"?"佐賀市の声便":s.prefId==="PR02"?"唐津の声便":"九州エール便"}</span><span>${STREAM_TIMES[s.hand]}（${s.hand+1}／4手番）</span></div>
     <p class="small">メインライバー：もえ　配信サポート：${esc(charName(st,s.host))}　テーマ：${esc(theme.name)}　${s.style==="voice"?"声中心":"映像あり"}</p>
     <div class="meter" aria-label="得点${s.score}"><i style="width:${Math.min(100,s.score/170*100)}%"></i><span class="line" style="left:${80/170*100}%"></span></div>
     <div class="srow small"><span>得点 ${s.score}</span><span>目標 80</span></div>
@@ -738,7 +740,7 @@ function renderStream(){
 }
 function streamAct(k){
   const st=G.st, s=st.stream; const r=streamPlay(s,k);
-  const lines=s.prefId==="PR02"?{first:"はじめまして。今日は唐津の海辺から配信しています。",local:"海辺の小径と見晴らし台を歩いてきました。潮風が心地いいです。",reply:"質問ありがとう。皆さんが見たい景色も教えてください。",thanks:"唐津から届いた返事、ひとつずつ覚えておきます。ありがとう。",like:"いいねの光、海辺まで届いてるよ。",kira:"キラコメが波に映るみたい。ありがとう。"}:{first:"はじめましての人も、ゆっくりしていってね。今日は港の話をするよ。",local:"北九州の港は、夜になると灯りが波に映ってきれいなんです。",reply:"質問ありがとう！ 好きな場所は……灯台の段丘かな。",thanks:"今日来てくれた人、本当にありがとう。全部の声、覚えておくね。",like:"いいねの光、順番に灯っていくね！",kira:"キラコメ、届いてる！ 光の文字がきれい。"};
+  const lines=s.hub==="KY04"?{first:"はじめまして。今日は佐賀市から配信しています。",local:"川沿いの道と駅前を歩き、街灯の広場まで来ました。",reply:"質問ありがとう。佐賀市の好きな景色も教えてください。",thanks:"街で聞いた声を、これからも大切にします。ありがとう。",like:"いいねの光が、街灯と並んで見えるよ。",kira:"キラコメが広場に届いたみたい。ありがとう。"}:s.prefId==="PR02"?{first:"はじめまして。今日は唐津の海辺から配信しています。",local:"海辺の小径と見晴らし台を歩いてきました。潮風が心地いいです。",reply:"質問ありがとう。皆さんが見たい景色も教えてください。",thanks:"唐津から届いた返事、ひとつずつ覚えておきます。ありがとう。",like:"いいねの光、海辺まで届いてるよ。",kira:"キラコメが波に映るみたい。ありがとう。"}:{first:"はじめましての人も、ゆっくりしていってね。今日は港の話をするよ。",local:"北九州の港は、夜になると灯りが波に映ってきれいなんです。",reply:"質問ありがとう！ 好きな場所は……灯台の段丘かな。",thanks:"今日来てくれた人、本当にありがとう。全部の声、覚えておくね。",like:"いいねの光、順番に灯っていくね！",kira:"キラコメ、届いてる！ 光の文字がきれい。"};
   SND.sfx(r.total?"ok":"cancel");
   if(s.done){ s.best=Math.max(st.streamBest[s.prefId]||0,s.score); st.streamBest[s.prefId]=s.best; }
   commit(); say([["もえ",lines[k]],["",`${STREAM_ACTS[k].name}：初使用${r.gain.first}＋要望一致${r.gain.match}＋テーマ${r.gain.theme}＝${r.total}点`]]);
@@ -752,6 +754,7 @@ function streamFinish(){
   toast(`${qid}完了：経験値＋${res.xp}・チケット＋${res.tickets}`);
   if(qid==="M02") playScene("RANK_D2");
   if(qid==="M03") playScene("RANK_D3");
+  if(qid==="M04") playScene("RANK_C1");
 }
 
 /* ---- シート（メニュー） ---- */
@@ -836,7 +839,7 @@ function renderWorld(){
       ${here?"":`<button class="btn" data-a="worldGo" data-v="${id}" ${safe&&route?"":"disabled"}>${id==="KY03"&&!visited?"初回は北九州の東門から":id==="KY04"&&!visited?"初回は唐津の東門から":"向かう（1枠）"}</button>`}</div>`;
   }
   h+=`</div><h3 class="label">この先の拠点</h3><ul class="list dim">${FUTURE_HUBS.map(([id,n,p])=>`<li>${id} ${p}・${n}　未解放</li>`).join("")}</ul>
-    <h3 class="label">全国編の準備状況</h3><p class="small">${NATIONAL_REGIONS.length}地方・${NATIONAL_PREFECTURES.length}都道府県の地理台帳を準備中。現在遊べるのは福岡県の福岡市・北九州市、佐賀県の唐津市（M03まで）と佐賀市の探索3区域です。佐賀市の主編依頼・地域ボス・配信とその先は未収録です。</p>`;
+    <h3 class="label">全国編の準備状況</h3><p class="small">${NATIONAL_REGIONS.length}地方・${NATIONAL_PREFECTURES.length}都道府県の地理台帳を準備中。現在遊べるのは福岡県の福岡市・北九州市、佐賀県の唐津市（M03まで）と佐賀市（M04まで）です。その先は未収録です。</p>`;
   return h;
 }
 function nationalRouteAvailable(st,from,to){
@@ -1133,6 +1136,7 @@ function migrate(s){
   s.settings=Object.assign({difficulty:"std",sound:soundPref(),reduceMotion:false},s.settings||{});
   s.scenes=s.scenes||{}; s.cards=s.cards||[];
   if(!s.quests.M03) s.quests.M03=s.quests.M02==="complete"||s.fukuokaClear?"available":"locked";
+  if(!s.quests.M04) s.quests.M04=s.quests.M03==="complete"?"available":"locked";
   return s;
 }
 

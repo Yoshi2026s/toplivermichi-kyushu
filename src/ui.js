@@ -965,7 +965,12 @@ function renderBattleChallenges(){
     return "未達成";
   };
   const hints={B001:"1ターン以内に勝利",B002:"3ターン以内に勝利",B007:"初ターンに実ダメージを与える",B008:"8ターン以内にボスへ勝利",B011:"基本攻撃で実ダメージを与える",B021:"3種類の行動を使う",B023:"2人が行動する",B031:"ガードで攻撃を受ける",B041:"実際に体力を回復する",B061:"コメントを使う",B081:"道具を使わず勝利する"};
-  const recommendations=Object.keys(hints).filter(id=>status(id)==="未達成"&&(id!=="B023"||run.party.length>=2)&&(id!=="B041"||run.party.some(m=>m.hp>0&&m.hp<m.maxHP))).slice(0,3);
+  const healReady=run.party.some(m=>m.hp>0&&m.hp<m.maxHP)&&run.party.some(a=>a.hp>0&&!a.acted&&aiCandidates(run,a).some(act=>{
+    if(act.type!=="item"&&act.type!=="skill"&&act.type!=="family") return false;
+    const plan=planAction(run,a.pos,act);
+    return plan.ok&&plan.heal.some(h=>h.amt>0&&!h.revive);
+  }));
+  const recommendations=Object.keys(hints).filter(id=>status(id)==="未達成"&&(id!=="B041"||healReady)).slice(0,3);
   const suggestion=recommendations.length?`<h3 class="label">今回のおすすめ</h3><ul class="list">${recommendations.map(id=>`<li>${id} ${esc(names[id])}：${hints[id]}</li>`).join("")}</ul>`:"<p class=\"small\">今おすすめできる未達成の条件はありません。</p>";
   const onlyActionable=!!G.sheetData.onlyActionable;
   const sections=BADGE_GROUPS.map((group,i)=>{const ids=Array.from({length:10},(_,n)=>`B${String(i*10+n+1).padStart(3,"0")}`);const applicable=ids.filter(id=>!Object.hasOwn(PENDING_BADGES,id)&&!outside(id));const shown=ids.filter(id=>!onlyActionable||status(id)==="未達成");return `<h3 class="label">${group}（今回の対象 ${applicable.length}件）</h3>${shown.length?`<ul class="list">${shown.map(id=>`<li>${status(id)}・${id} ${esc(names[id])}${progress[id]||""}</li>`).join("")}</ul>`:`<p class="small">表示する条件はありません。</p>`}`;}).join("");

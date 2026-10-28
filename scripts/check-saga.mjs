@@ -20,10 +20,12 @@ if(fresh.quests.M03!=='available'||!fresh.fukuokaClear) fail('M02 must unlock M0
 
 const old=game.newGame('旧記録','男性');
 old.quests.M02='complete'; old.fukuokaClear=true; old.gold=317; old.bag.push({id:'IT001',n:2});
+old.lastResult={itemsUsed:[]};
 delete old.quests.M03;
 delete old.quests.M04;
 const migrated=game.migrate(JSON.parse(JSON.stringify(old)));
 if(migrated.quests.M03!=='available'||migrated.quests.M04!=='locked'||migrated.gold!==317||migrated.bag.length!==old.bag.length) fail('old save migration changed existing progress');
+if(migrated.lastResult.itemsUsedKnown!==false||migrated.lastResult.itemsUsed.length) fail('old result must keep unknown item history');
 const karatsuOld=game.newGame('唐津済','女性'); karatsuOld.quests.M03='complete'; delete karatsuOld.quests.M04;
 if(game.migrate(JSON.parse(JSON.stringify(karatsuOld))).quests.M04!=='available') fail('Karatsu save must unlock M04');
 
@@ -62,3 +64,4 @@ const cityOnce=fresh.tickets;
 game.completeQuest(fresh,'M04',{xp:0,tickets:0});
 if(fresh.tickets!==cityOnce) fail('M04 reward duplicated');
 console.log('Saga M03-M04: old saves, battles, bosses, streams, ranks and rewards OK');
+

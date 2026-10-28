@@ -291,7 +291,13 @@ function applyAction(run, idx, act){
   for(const g of p.cgain){ const t=run.party[g.pos]; if(g.amt>0){ t.c=Math.min(10,t.c+g.amt); log.push(`${t.name}の集中力＋${g.amt}`); } }
   for(const w of p.ward){ const t=run.party[w.pos]; if(w.amt>0){ t.ward=Math.min(8,t.ward+w.amt); log.push(`${t.name}に防護${w.amt}`); } }
   if(p.guard){ a.guard=true; log.push(`${nm}は身構えた。`); }
-  if(p.item){ bagRemove(run.bag, p.item, 1); }
+  if(p.item){
+    bagRemove(run.bag, p.item, 1);
+    run.itemHistory=run.itemHistory||[];
+    run.itemHistory.push({id:p.item,actor:a.cid,turn:run.turn,
+      hp:p.heal.reduce((n,h)=>n+h.amt,0), c:p.cgain.reduce((n,g)=>n+g.amt,0),
+      revives:p.heal.filter(h=>h.revive).length});
+  }
   // キラコメ連携
   let chainProg=false;
   if(p.chain){

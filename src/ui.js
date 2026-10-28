@@ -659,6 +659,7 @@ function toResult(){
   if(res.levelAfter>res.levelBefore && Vof(res.levelAfter)>Vof(res.levelBefore)) res.notes.push("技能・装備の効果量が上昇（V"+Vof(res.levelAfter)+"）");
   const L0=res.levelBefore, L1=levelOf(st.xp);
   st.lastResult={seq:run.seq, kind:run.kind, bossId:run.bossId||null, turns:run.turn, ...res,
+    itemsUsed:clone(run.itemHistory||[]),
     enemies:run.enemies.map(e=>({name:e.display||e.name, boss:!!e.boss, rarity:e.rarity||0})),
     members:run.party.map(m=>({cid:m.cid, maxBefore:charStats(st,m.cid,L0).maxHP, maxAfter:charStats(st,m.cid,L1).maxHP}))};
   const back=run.returnPos; st.run=null;
@@ -699,6 +700,7 @@ function renderResult(){
     <div class="gauge rxp"><span>レベル${L}</span><span class="bar xp"><i style="width:${pct(xpNow,xpSpan)}%"></i></span><b>${L<999?`次まで${(xpSpan-xpNow).toLocaleString()}`:"最大"}</b></div>
     ${r.quest?`<div class="rquest done">依頼「${r.quest} ${esc(QUESTS[r.quest].name)}」完了！</div>`:r.kills&&r.killQuest?`<div class="rquest"><span>依頼 ${r.killQuest} 討伐</span><span class="bar"><i style="width:${pct(r.killNow,r.killNeed)}%"></i></span><b>${r.killNow}/${r.killNeed}</b></div>`:""}
     ${items.length||gifts.length?`<div class="rbox"><h3 class="label">手に入れたもの</h3><ul class="rlist">${[...items,...gifts].join("")}</ul></div>`:""}
+    ${(r.itemsUsed||[]).length?`<div class="rbox"><h3 class="label">この戦闘で使った道具</h3><ul class="rlist">${r.itemsUsed.map(x=>`<li>${esc(ITEMS[x.id]?.name||x.id)}：体力＋${x.hp}・集中力＋${x.c}${x.revives?`・復帰${x.revives}人`:""}</li>`).join("")}</ul></div>`:""}
     ${r.notes.filter(n=>!/効果量が上昇/.test(n)).map(n=>`<p class="good rnote">${esc(n)}</p>`).join("")}
     <h3 class="label">仲間</h3><div class="rmems">${mem}</div>
     ${anyLow?`<p class="small warn">体力が減っている仲間がいます。次の戦闘へ持ち越すので、道具や宿屋で回復しておこう。</p>`:""}

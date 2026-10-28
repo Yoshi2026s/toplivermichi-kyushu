@@ -24,7 +24,7 @@ const hubs=runInNewContext(`(${match[1]})`);
 if(Object.keys(implemented).join(',')!=='JP40,JP41'||implemented.JP40.join(',')!=='KY01,KY02'||implemented.JP41.join(',')!=='KY03') fail('playable prefectures must match current game');
 for(const ids of Object.values(implemented)) for(const id of ids) if(!hubs[id]) fail(`missing playable hub ${id}`);
 const {maps,joins}=runInNewContext(`${data.slice(0,data.indexOf('const NPCS'))}\n({maps:MAPS,joins:JOIN_PLAN})`);
-if(!maps.KY03||maps.KY03.hub!=='KY03'||maps.KY03.zones&&Object.keys(maps.KY03.zones).length) fail('Karatsu must be a safe exploration hub');
+if(!maps.KY03||maps.KY03.hub!=='KY03'||Object.keys(maps.KY03.zones).join(',')!=='1,2,3') fail('Karatsu exploration zones missing');
 if(!joins.some(j=>j.hub==='KY03'&&j.cid==='kohei')) fail('Karatsu join plan missing');
 const walkable=(m,x,y)=>x>=0&&y>=0&&x<m.w&&y<m.h&&!m.objects.some(o=>o.x===x&&o.y===y&&!o.walk)&&'.,123w='.includes(m.tiles[y][x]);
 const reachable=(m,from,to)=>{const seen=new Set([from.join(',')]),q=[from];for(let i=0;i<q.length;i++){const [x,y]=q[i];if(x===to[0]&&y===to[1])return true;for(const [dx,dy] of [[0,1],[0,-1],[-1,0],[1,0]]){const nx=x+dx,ny=y+dy,k=`${nx},${ny}`;if(!seen.has(k)&&walkable(m,nx,ny)){seen.add(k);q.push([nx,ny])}}}return false};
@@ -33,6 +33,13 @@ const east=maps.KY02.objects.find(o=>o.id==='gate_saga'),west=maps.KY03.objects.
 if(!east||!west||east.to!=='KY03'||west.to!=='KY02'||east.tx!==2||east.ty!==24||west.tx!==45||west.ty!==24) fail('Karatsu gates are not reciprocal');
 if(!reachable(maps.KY02,maps.KY02.safeAnchor,[45,24])||!reachable(maps.KY03,[2,24],maps.KY03.safeAnchor)||!reachable(maps.KY03,maps.KY03.safeAnchor,[2,24])) fail('Karatsu gate or return path blocked');
 for(const type of ['npc','landmark','inn','rest','board','shelf']) if(!maps.KY03.objects.some(o=>o.type===type)) fail(`Karatsu ${type} missing`);
+for(const zone of ['1','2','3']){
+  const id=maps.KY03.zones[zone];
+  const tile=maps.KY03.tiles.flatMap((row,y)=>row.map((value,x)=>value===zone?[x,y]:null)).find(Boolean);
+  if(id!==`KY03-A${zone}`||!tile||!reachable(maps.KY03,maps.KY03.safeAnchor,tile)) fail(`Karatsu zone ${zone} unreachable`);
+  if(!maps.KY03.objects.some(o=>o.type==='sign'&&o.area===id)) fail(`Karatsu zone ${zone} sign missing`);
+}
+if(!maps.KY03.objects.some(o=>o.type==='boss'&&o.boss==='B02')) fail('Karatsu boss missing');
 const playable=new Set(Object.values(implemented).flat());
 const known=new Set([...playable,...[...data.matchAll(/\["(KY\d+)","[^"]+","[^"]+"\]/g)].map(m=>m[1])]);
 if(new Set(routes.map(r=>r.id)).size!==routes.length) fail('duplicate route ID');

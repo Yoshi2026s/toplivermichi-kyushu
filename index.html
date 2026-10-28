@@ -306,7 +306,10 @@ const AREAS={"KY01-A1":{"name":"広場外れ","q":1,"prefix":"福岡広場","mot
 const SAGA_AREA_DEFS = [
   ["KY03-A1","海辺の小径",9,"唐津小径","海辺の小径に残った呼びかけが、波の間隔に遅れて返る。","KY02-A1"],
   ["KY03-A2","潮見の路地",10,"唐津路地","路地の音声案内が重なり、聞き手の返事より先に声が響く。","KY02-A2"],
-  ["KY03-A3","見晴らし台",11,"唐津見晴らし","高台で試した中継音が風に散り、途切れた返事を繰り返す。","KY02-A3"]
+  ["KY03-A3","見晴らし台",11,"唐津見晴らし","高台で試した中継音が風に散り、途切れた返事を繰り返す。","KY02-A3"],
+  ["KY04-A1","川沿いの道",12,"佐賀川沿い","川面に映る街の声がゆっくり流れていく。","KY03-A1"],
+  ["KY04-A2","駅前の通り",13,"佐賀通り","行き交う人の声が通りの角で重なる。","KY03-A2"],
+  ["KY04-A3","街灯の広場",14,"佐賀広場","街灯の下に集まる声が小さな輪を作る。","KY03-A3"]
 ];
 for(const [id,name,q,prefix,lore,base] of SAGA_AREA_DEFS){
   AREAS[id]={name,q,prefix,motif:"潮風の線と石畳の点模様",lore,list:AREAS[base].list.map(([profile,rarity])=>[profile,rarity])};
@@ -600,15 +603,18 @@ const MAPS = {
     ], zones:{"1":"KY03-A1","2":"KY03-A2","3":"KY03-A3"}
   },
   "KY04":{ hub:"KY04", name:"佐賀市", kind:"out", w:40, h:28, safeAnchor:[12,20],
-    tiles:buildMap(40,28,[[".",1,1,38,26],["T",2,3,7,9],["T",32,3,6,9],[",",1,20,37,1],[",",12,12,2,9],[",",12,12,22,2]]),
+    tiles:buildMap(40,28,[[".",1,1,38,26],["T",2,3,7,9],["T",32,3,6,9],["1",3,13,6,5],["2",30,13,6,5],["3",16,4,9,5],[",",1,20,37,1],[",",12,12,2,9],[",",12,12,22,2]]),
     objects:[
       {id:"gate_karatsu",x:1,y:20,type:"gate",label:"唐津市への道",to:"KY03",tx:46,ty:25},
       {id:"sagacity_guide",x:12,y:19,type:"npc",label:"佐賀市の案内人",npc:"sagaCityGuide"},
+      {id:"sagacity_sign1",x:9,y:15,type:"sign",label:"案内板（川沿いの道）",area:"KY04-A1"},
+      {id:"sagacity_sign2",x:29,y:15,type:"sign",label:"案内板（駅前の通り）",area:"KY04-A2"},
+      {id:"sagacity_sign3",x:20,y:9,type:"sign",label:"案内板（街灯の広場）",area:"KY04-A3"},
       {id:"sagacity_inn",x:20,y:18,type:"inn",label:"佐賀市の宿屋"},
       {id:"sagacity_rest",x:30,y:18,type:"rest",label:"休憩所（日付を進める）"},
       {id:"sagacity_board",x:26,y:13,type:"board",label:"編成ボード"},
       {id:"sagacity_record",x:33,y:13,type:"shelf",label:"旅の記録"}
-    ], zones:{}
+    ], zones:{"1":"KY04-A1","2":"KY04-A2","3":"KY04-A3"}
   }
 };
 const HUBS = {
@@ -642,7 +648,7 @@ const NPCS = {
     first:p=>[["美鈴","遊歩道の足元灯、点いたり消えたりしてるの。乱れのせいかしら。"]],
     normal:p=>[["美鈴","係留ロープの結び目って、きれいな形をしてるのよ。"]] },
   sagaCityGuide:{name:"佐賀市の案内人", hub:"KY04", sprite:[PAL.sand,PAL.coral],
-    first:p=>[["案内人",`${p}さん、佐賀市へようこそ。唐津での配信を聞きました。`],["案内人","この街から先の依頼は、まだ準備中です。宿屋や旅の記録を利用して、唐津へも戻れます。"]],
+    first:p=>[["案内人",`${p}さん、佐賀市へようこそ。唐津での配信を聞きました。`],["案内人","川沿いの道、駅前の通り、街灯の広場を調べられます。この街から先の依頼は、まだ準備中です。"]],
     normal:p=>[["案内人","唐津へは西の門から戻れます。この先の旅の準備を進めています。"]]},
   karatsuGuide:{name:"唐津の案内人", hub:"KY03", sprite:[PAL.sand,PAL.sea],
     first:p=>[["案内人",`${p}さん、唐津へようこそ。海辺の案内板から、この街の声を聞いてみてください。`],["案内人","見晴らし台の返事が乱れています。依頼帳でM03を受け、海辺の探索区域を調べてください。"]],
@@ -1987,7 +1993,7 @@ function renderTitle(){
       <button class="btn" data-a="openSheet" data-k="about">この作品について</button>
     </div>
     <p class="note">配信文化を参考にした非公式の創作ゲームです。実在のサービス・アカウントとは連携しません。BGMと効果音は最初からONです（画面に触れると鳴り始めます。設定で消音にできます）。</p>
-    <p class="note">この開発版の収録範囲：第1章 福岡（M01・M02）＋佐賀県唐津市のM03と配信、佐賀市の安全な探索拠点まで。佐賀市の依頼・戦闘は未収録です。</p>
+    <p class="note">この開発版の収録範囲：第1章 福岡（M01・M02）＋佐賀県唐津市のM03と配信、佐賀市の探索3区域まで。佐賀市の主編依頼・地域ボス・配信は未収録です。</p>
   </section>`;
 }
 function drawTitleArt(){
@@ -2709,7 +2715,7 @@ function renderWorld(){
       ${here?"":`<button class="btn" data-a="worldGo" data-v="${id}" ${safe&&route?"":"disabled"}>${id==="KY03"&&!visited?"初回は北九州の東門から":id==="KY04"&&!visited?"初回は唐津の東門から":"向かう（1枠）"}</button>`}</div>`;
   }
   h+=`</div><h3 class="label">この先の拠点</h3><ul class="list dim">${FUTURE_HUBS.map(([id,n,p])=>`<li>${id} ${p}・${n}　未解放</li>`).join("")}</ul>
-    <h3 class="label">全国編の準備状況</h3><p class="small">${NATIONAL_REGIONS.length}地方・${NATIONAL_PREFECTURES.length}都道府県の地理台帳を準備中。現在遊べるのは福岡県の福岡市・北九州市、佐賀県の唐津市（M03まで）と佐賀市の探索拠点です。佐賀市の依頼・戦闘とその先は未収録です。</p>`;
+    <h3 class="label">全国編の準備状況</h3><p class="small">${NATIONAL_REGIONS.length}地方・${NATIONAL_PREFECTURES.length}都道府県の地理台帳を準備中。現在遊べるのは福岡県の福岡市・北九州市、佐賀県の唐津市（M03まで）と佐賀市の探索3区域です。佐賀市の主編依頼・地域ボス・配信とその先は未収録です。</p>`;
   return h;
 }
 function nationalRouteAvailable(st,from,to){

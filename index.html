@@ -444,7 +444,8 @@ const SHOPS = {
 const BOSSES = {
   LB01:{name:"コメラモス", q:3, areaId:"KY01-A3", cue:"guard", hub:"KY01"},
   B01: {name:"ハートーマ", q:8, areaId:"KY02-A3", cue:"guard", hub:"KY02"},
-  B02: {name:"シオカゼラ", q:11, areaId:"KY03-A3", cue:"guard", hub:"KY03"}
+  B02: {name:"シオカゼラ", q:11, areaId:"KY03-A3", cue:"guard", hub:"KY03"},
+  B03: {name:"ヒカリカエシ", q:14, areaId:"KY04-A3", cue:"guard", hub:"KY04"}
 };
 
 /* ボスの少人数補正（ユーザー指定の2人旅に合わせた本作の調整）。HPと攻撃に掛ける */
@@ -467,6 +468,8 @@ const QUESTS = {
        goal:"北九州市のA1～A3で通常敵を2体倒し、灯台の段丘の奥でハートーマに挑む。その後、配信で80点以上。"},
   M03:{hub:"KY03", name:"海辺からの返事", kills:2, boss:"B02", stream:true, main:true,
        goal:"唐津市のA1～A3で通常敵を2体倒し、海辺の見晴らしでシオカゼラに挑む。その後、配信で80点以上。"},
+  M04:{hub:"KY04", name:"街灯をつなぐ声", kills:2, boss:"B03", stream:true, main:true,
+       goal:"佐賀市のA1～A3で通常敵を2体倒し、街灯の広場でヒカリカエシに挑む。その後、配信で80点以上。"},
   S01:{hub:"KY01", name:"ふるさとの紹介文", kills:1, main:false, npc:"akari",
        goal:"灯里と故郷の紹介文を考え、福岡市のA1～A3で通常敵を1体倒す。"},
   S02:{hub:"KY02", name:"港の拍手練習", kills:1, main:false, npc:"sota",
@@ -610,6 +613,7 @@ const MAPS = {
       {id:"sagacity_sign1",x:9,y:15,type:"sign",label:"案内板（川沿いの道）",area:"KY04-A1"},
       {id:"sagacity_sign2",x:29,y:15,type:"sign",label:"案内板（駅前の通り）",area:"KY04-A2"},
       {id:"sagacity_sign3",x:20,y:9,type:"sign",label:"案内板（街灯の広場）",area:"KY04-A3"},
+      {id:"sagacity_boss",x:20,y:5,type:"boss",label:"街灯の広場の奥（ボス待機地点）",boss:"B03",walk:true},
       {id:"sagacity_inn",x:20,y:18,type:"inn",label:"佐賀市の宿屋"},
       {id:"sagacity_rest",x:30,y:18,type:"rest",label:"休憩所（日付を進める）"},
       {id:"sagacity_board",x:26,y:13,type:"board",label:"編成ボード"},
@@ -648,8 +652,8 @@ const NPCS = {
     first:p=>[["美鈴","遊歩道の足元灯、点いたり消えたりしてるの。乱れのせいかしら。"]],
     normal:p=>[["美鈴","係留ロープの結び目って、きれいな形をしてるのよ。"]] },
   sagaCityGuide:{name:"佐賀市の案内人", hub:"KY04", sprite:[PAL.sand,PAL.coral],
-    first:p=>[["案内人",`${p}さん、佐賀市へようこそ。唐津での配信を聞きました。`],["案内人","川沿いの道、駅前の通り、街灯の広場を調べられます。この街から先の依頼は、まだ準備中です。"]],
-    normal:p=>[["案内人","唐津へは西の門から戻れます。この先の旅の準備を進めています。"]]},
+    first:p=>[["案内人",`${p}さん、佐賀市へようこそ。唐津での配信を聞きました。`],["案内人","街灯の広場で声が重なっています。依頼帳でM04を受け、川沿いと駅前から調べてください。"]],
+    normal:p=>[["案内人","唐津へは西の門から戻れます。街灯の広場へ向かう前に宿屋で整えてください。"]]},
   karatsuGuide:{name:"唐津の案内人", hub:"KY03", sprite:[PAL.sand,PAL.sea],
     first:p=>[["案内人",`${p}さん、唐津へようこそ。海辺の案内板から、この街の声を聞いてみてください。`],["案内人","見晴らし台の返事が乱れています。依頼帳でM03を受け、海辺の探索区域を調べてください。"]],
     normal:p=>[["案内人","北九州へは西の門から戻れます。見晴らし台へ行く前に宿屋で整えてください。"]] },
@@ -703,7 +707,16 @@ const SCENES = {
   RANK_D3:{title:"もえのランク D3", lines:p=>[
     ["もえ","唐津の人の返事を、急がず聞けた気がする。"],
     ["",`${p}たちは佐賀の海辺から次の旅程を考える。`],
-    ["","もえのシナリオ到達ランクがD3になった。唐津の東門から佐賀市へ進めます。佐賀市の依頼は、この開発版には未収録です。"]
+    ["","もえのシナリオ到達ランクがD3になった。唐津の東門から佐賀市へ進み、M04を受けられます。"]
+  ]},
+  M04_BOSS:{title:"街灯の広場", lines:p=>[
+    ["","街灯の広場に重なっていた声がほどけ、通りに落ち着きが戻った。"],
+    ["もえ",`${p}、川沿いと駅前で聞いた声も、配信で届けよう。`],
+    ["","佐賀市での配信準備が整った。依頼帳から配信を始めよう。"]
+  ]},
+  RANK_C1:{title:"もえのランク C1", lines:p=>[
+    ["もえ","佐賀市の声を、みんなと一緒に届けられたね。"],
+    ["","もえのシナリオ到達ランクがC1になった。佐賀市の先の地域は開発中です。"]
   ]},
   S01_DONE:{title:"ふるさとの紹介文", lines:p=>[
     ["灯里","できた！『待ち合わせの広場。帰ってきた人に、おかえりを言う場所』。"],
@@ -763,7 +776,7 @@ function newGame(name, gender){
     jobs:{}, jp:{}, equip:{}, owned:{CW01:8, CA01:8}, favorite:{},
     gold:0, tickets:200, gifts:{W:{},A:{}},
     bag:INITIAL_ITEMS.map(([id,n])=>({id,n})), keep:[], itemsVersion:1,
-    quests:{M01:"available", M02:"locked", M03:"locked", S01:"locked", S02:"locked"}, qprog:{}, activeQuest:null,
+    quests:{M01:"available", M02:"locked", M03:"locked", M04:"locked", S01:"locked", S02:"locked"}, qprog:{}, activeQuest:null,
     talked:{}, boxes:{}, cards:[], bossDefeated:{}, seen:{}, killCount:{},
     moeRank:0, run:null, runSeq:0, stream:null, lastResult:null, streamBest:{},
     support:null, scenes:{}, fukuokaClear:false,
@@ -1161,7 +1174,8 @@ function completeQuest(st, qid, res){
   if(res){ res.xp+=xp; res.tickets+=tk; res.quest=qid; }
   if(qid==="M01"){ st.moeRank=Math.max(st.moeRank,1); st.quests.M02="available"; }
   if(qid==="M02"){ st.moeRank=Math.max(st.moeRank,2); st.fukuokaClear=true; st.quests.M03="available"; }
-  if(qid==="M03") st.moeRank=Math.max(st.moeRank,3);
+  if(qid==="M03"){ st.moeRank=Math.max(st.moeRank,3); st.quests.M04="available"; }
+  if(qid==="M04") st.moeRank=Math.max(st.moeRank,4);
   unlockSide(st);
 }
 /* ---- 体力・集中力の持ち越し（ユーザー指定：戦闘後も残り、宿屋で全回復） ---- */
@@ -1937,8 +1951,9 @@ function objective(){
   const st=G.st; const q=st.activeQuest;
   if(streamPending()) return `${streamPending()}：配信で80点以上を目指す（依頼帳から開始）`;
   if(q){ const Q=QUESTS[q]; if(st.quests[q]==="bossReady") return `${q}：${BOSSES[Q.boss].name}に挑む（${MAPS[Q.hub].name}の奥地）`; return `${q}：通常敵 ${st.qprog[q]||0}/${Q.kills}体（${HUBS[Q.hub].name}のA1～A3）`; }
-  const avail=["M01","M02","M03"].find(k=>st.quests[k]==="available"); if(avail) return `依頼帳で「${avail} ${QUESTS[avail].name}」を受ける（2枠）`;
-  if(st.quests.M03==="complete") return curHub()==="KY03"?"唐津編クリア！ 東門から佐賀市へ進めます":"唐津編クリア！ 佐賀市で旅の準備を続けられます";
+  const avail=["M01","M02","M03","M04"].find(k=>st.quests[k]==="available"); if(avail) return `依頼帳で「${avail} ${QUESTS[avail].name}」を受ける（2枠）`;
+  if(st.quests.M04==="complete") return "佐賀市編クリア！ 続きの地域は開発中です";
+  if(st.quests.M03==="complete") return curHub()==="KY03"?"唐津編クリア！ 東門から佐賀市へ進めます":"佐賀市でM04を受け、街の声を集めよう";
   if(st.fukuokaClear) return curHub()==="KY03"?"唐津でM03を受け、海辺の探索区域へ進もう":"福岡編クリア！ 北九州の東門から唐津へ進めます";
   return "探索して仲間を育てよう";
 }
@@ -1993,7 +2008,7 @@ function renderTitle(){
       <button class="btn" data-a="openSheet" data-k="about">この作品について</button>
     </div>
     <p class="note">配信文化を参考にした非公式の創作ゲームです。実在のサービス・アカウントとは連携しません。BGMと効果音は最初からONです（画面に触れると鳴り始めます。設定で消音にできます）。</p>
-    <p class="note">この開発版の収録範囲：第1章 福岡（M01・M02）＋佐賀県唐津市のM03と配信、佐賀市の探索3区域まで。佐賀市の主編依頼・地域ボス・配信は未収録です。</p>
+    <p class="note">この開発版の収録範囲：第1章 福岡（M01・M02）＋佐賀県唐津市のM03、佐賀市のM04と各配信まで。佐賀市の先は未収録です。</p>
   </section>`;
 }
 function drawTitleArt(){
@@ -2588,6 +2603,7 @@ function resultDone(){
   else if(r && r.quest==="S02" && !G.st.scenes.S02_DONE) playScene("S02_DONE");
   else if(r && r.bossId==="B01" && !G.st.scenes.M02_BOSS) playScene("M02_BOSS");
   else if(r && r.bossId==="B02" && !G.st.scenes.M03_BOSS) playScene("M03_BOSS");
+  else if(r && r.bossId==="B03" && !G.st.scenes.M04_BOSS) playScene("M04_BOSS");
 }
 
 /* ---- 配信（第13・14節） ---- */
@@ -2603,9 +2619,9 @@ function renderStream(){
       <p>${pass?"目標80点を達成！":"80点に届かなかった。要望に合う行動を、まだ使っていない順に選ぶと点が伸びます。"}</p>
       <div class="stack">${pass?`<button class="btn primary" data-a="streamFinish">配信を終える</button>`:`<button class="btn primary" data-a="streamRetry">同じ配信に再挑戦（0枠）</button><button class="btn" data-a="streamLeave">いったん終える（配信待ちを保持）</button>`}</div></section>`;
   }
-  const comments = [`初見です！ ${STREAM_ACTS[req[s.hand]].req}`, "こんばんは〜", s.hand>0?`${STREAM_ACTS[s.picks[s.hand-1].act].name}よかった！`:s.prefId==="PR02"?"唐津から見てます":"港から見てます"];
+  const comments = [`初見です！ ${STREAM_ACTS[req[s.hand]].req}`, "こんばんは〜", s.hand>0?`${STREAM_ACTS[s.picks[s.hand-1].act].name}よかった！`:s.hub==="KY04"?"佐賀市から見てます":s.prefId==="PR02"?"唐津から見てます":"港から見てます"];
   return statusBar()+`<section class="win stream">
-    <div class="srow"><span class="label">${s.prefId==="PR02"?"唐津の声便":"九州エール便"}</span><span>${STREAM_TIMES[s.hand]}（${s.hand+1}／4手番）</span></div>
+    <div class="srow"><span class="label">${s.hub==="KY04"?"佐賀市の声便":s.prefId==="PR02"?"唐津の声便":"九州エール便"}</span><span>${STREAM_TIMES[s.hand]}（${s.hand+1}／4手番）</span></div>
     <p class="small">メインライバー：もえ　配信サポート：${esc(charName(st,s.host))}　テーマ：${esc(theme.name)}　${s.style==="voice"?"声中心":"映像あり"}</p>
     <div class="meter" aria-label="得点${s.score}"><i style="width:${Math.min(100,s.score/170*100)}%"></i><span class="line" style="left:${80/170*100}%"></span></div>
     <div class="srow small"><span>得点 ${s.score}</span><span>目標 80</span></div>
@@ -2617,7 +2633,7 @@ function renderStream(){
 }
 function streamAct(k){
   const st=G.st, s=st.stream; const r=streamPlay(s,k);
-  const lines=s.prefId==="PR02"?{first:"はじめまして。今日は唐津の海辺から配信しています。",local:"海辺の小径と見晴らし台を歩いてきました。潮風が心地いいです。",reply:"質問ありがとう。皆さんが見たい景色も教えてください。",thanks:"唐津から届いた返事、ひとつずつ覚えておきます。ありがとう。",like:"いいねの光、海辺まで届いてるよ。",kira:"キラコメが波に映るみたい。ありがとう。"}:{first:"はじめましての人も、ゆっくりしていってね。今日は港の話をするよ。",local:"北九州の港は、夜になると灯りが波に映ってきれいなんです。",reply:"質問ありがとう！ 好きな場所は……灯台の段丘かな。",thanks:"今日来てくれた人、本当にありがとう。全部の声、覚えておくね。",like:"いいねの光、順番に灯っていくね！",kira:"キラコメ、届いてる！ 光の文字がきれい。"};
+  const lines=s.hub==="KY04"?{first:"はじめまして。今日は佐賀市から配信しています。",local:"川沿いの道と駅前を歩き、街灯の広場まで来ました。",reply:"質問ありがとう。佐賀市の好きな景色も教えてください。",thanks:"街で聞いた声を、これからも大切にします。ありがとう。",like:"いいねの光が、街灯と並んで見えるよ。",kira:"キラコメが広場に届いたみたい。ありがとう。"}:s.prefId==="PR02"?{first:"はじめまして。今日は唐津の海辺から配信しています。",local:"海辺の小径と見晴らし台を歩いてきました。潮風が心地いいです。",reply:"質問ありがとう。皆さんが見たい景色も教えてください。",thanks:"唐津から届いた返事、ひとつずつ覚えておきます。ありがとう。",like:"いいねの光、海辺まで届いてるよ。",kira:"キラコメが波に映るみたい。ありがとう。"}:{first:"はじめましての人も、ゆっくりしていってね。今日は港の話をするよ。",local:"北九州の港は、夜になると灯りが波に映ってきれいなんです。",reply:"質問ありがとう！ 好きな場所は……灯台の段丘かな。",thanks:"今日来てくれた人、本当にありがとう。全部の声、覚えておくね。",like:"いいねの光、順番に灯っていくね！",kira:"キラコメ、届いてる！ 光の文字がきれい。"};
   SND.sfx(r.total?"ok":"cancel");
   if(s.done){ s.best=Math.max(st.streamBest[s.prefId]||0,s.score); st.streamBest[s.prefId]=s.best; }
   commit(); say([["もえ",lines[k]],["",`${STREAM_ACTS[k].name}：初使用${r.gain.first}＋要望一致${r.gain.match}＋テーマ${r.gain.theme}＝${r.total}点`]]);
@@ -2631,6 +2647,7 @@ function streamFinish(){
   toast(`${qid}完了：経験値＋${res.xp}・チケット＋${res.tickets}`);
   if(qid==="M02") playScene("RANK_D2");
   if(qid==="M03") playScene("RANK_D3");
+  if(qid==="M04") playScene("RANK_C1");
 }
 
 /* ---- シート（メニュー） ---- */
@@ -2715,7 +2732,7 @@ function renderWorld(){
       ${here?"":`<button class="btn" data-a="worldGo" data-v="${id}" ${safe&&route?"":"disabled"}>${id==="KY03"&&!visited?"初回は北九州の東門から":id==="KY04"&&!visited?"初回は唐津の東門から":"向かう（1枠）"}</button>`}</div>`;
   }
   h+=`</div><h3 class="label">この先の拠点</h3><ul class="list dim">${FUTURE_HUBS.map(([id,n,p])=>`<li>${id} ${p}・${n}　未解放</li>`).join("")}</ul>
-    <h3 class="label">全国編の準備状況</h3><p class="small">${NATIONAL_REGIONS.length}地方・${NATIONAL_PREFECTURES.length}都道府県の地理台帳を準備中。現在遊べるのは福岡県の福岡市・北九州市、佐賀県の唐津市（M03まで）と佐賀市の探索3区域です。佐賀市の主編依頼・地域ボス・配信とその先は未収録です。</p>`;
+    <h3 class="label">全国編の準備状況</h3><p class="small">${NATIONAL_REGIONS.length}地方・${NATIONAL_PREFECTURES.length}都道府県の地理台帳を準備中。現在遊べるのは福岡県の福岡市・北九州市、佐賀県の唐津市（M03まで）と佐賀市（M04まで）です。その先は未収録です。</p>`;
   return h;
 }
 function nationalRouteAvailable(st,from,to){
@@ -3012,6 +3029,7 @@ function migrate(s){
   s.settings=Object.assign({difficulty:"std",sound:soundPref(),reduceMotion:false},s.settings||{});
   s.scenes=s.scenes||{}; s.cards=s.cards||[];
   if(!s.quests.M03) s.quests.M03=s.quests.M02==="complete"||s.fukuokaClear?"available":"locked";
+  if(!s.quests.M04) s.quests.M04=s.quests.M03==="complete"?"available":"locked";
   return s;
 }
 

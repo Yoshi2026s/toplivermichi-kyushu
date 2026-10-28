@@ -8,7 +8,7 @@ const shell = await source('shell.html');
 const scripts = await Promise.all(files.map(source));
 const header = `<!doctype html><html lang="ja"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="男女混合アイドルグループを脱退したヒロインと2人で九州・沖縄を旅する、昭和風ドットのスマホ向けRPG（非公式の創作ゲーム・福岡編）。">
+<meta name="description" content="福岡編と佐賀県唐津市の探索拠点を遊べる、スマホ向けの非公式創作RPG。佐賀の依頼・戦闘・配信は開発中。">
 <meta name="theme-color" content="#101820">
 <style>body{margin:0}</style>
 <script>window.TLR_PUBLIC=true;window.TLR_BUILD="2026-10-29";</script>

@@ -1,0 +1,335 @@
+/* ===== data: 全定義（福岡編で使う範囲） ===== */
+const GAME_VERSION = "5.29";
+const SCHEMA_VERSION = 5;
+
+const PAL = {
+  ink:"#101820", navy:"#23364D", slate:"#455A68", mist:"#8B9BA0",
+  cream:"#F4ECD8", sand:"#D4B483", skin:"#E4A56B", brown:"#945B45",
+  red:"#B84B4B", coral:"#E88470", gold:"#D5B34C", leaf:"#5F7D4E",
+  forest:"#304F43", sea:"#4D8491", aqua:"#83B9AE", violet:"#6E608A"
+};
+
+/* 第06節・06A：操作キャラクター（福岡編で加入する5人＋将来分） */
+const CHARS = {
+  hero:   { name:null, age:32, career:"社会福祉士", from:"福岡市", initJob:"J22", hair:PAL.brown, coat:PAL.red },
+  moe:    { name:"もえ", full:"雪餅羽 もえ", age:null, career:"アイドル（おやすみセカイ元メンバー）", from:null, initJob:"J08", hair:PAL.violet, coat:PAL.cream },
+  naoki:  { name:"直樹", full:"瀬尾 直樹", age:47, career:"電気工事士", from:"北九州", initJob:"J15", hair:PAL.slate, coat:PAL.gold },
+  kohei:  { name:"航平", full:"久住 航平", age:39, career:"トラック運転手", from:"佐賀", initJob:"J01", hair:PAL.ink, coat:PAL.sea },
+  mio:    { name:"澪", full:"芦田 澪", age:29, career:"看護師", from:"大分", initJob:"J13", hair:PAL.violet, coat:PAL.aqua },
+  kayo:   { name:"佳代", full:"水野 佳代", age:54, career:"調理師", from:"長崎", initJob:"J14", hair:PAL.mist, coat:PAL.coral },
+  tsumugi:{ name:"紬", full:"相原 紬", age:26, career:"システムエンジニア", from:"熊本", initJob:"J02", hair:PAL.ink, coat:PAL.violet },
+  makoto: { name:"真琴", full:"辻村 真琴", age:41, career:"建築士", from:"宮崎", initJob:"J17", hair:PAL.brown, coat:PAL.leaf },
+  gaku:   { name:"岳", full:"長岡 岳", age:35, career:"配管工", from:"鹿児島", initJob:"J16", hair:PAL.ink, coat:PAL.forest }
+};
+const CHAR_ORDER = ["hero","moe","naoki","kohei","mio","kayo","tsumugi","makoto","gaku"];
+
+/* 加入予定：福岡は主人公ともえの2人旅。以降は各県の最初の拠点へ着いた時に1人ずつ加入 */
+const JOIN_PLAN = [
+  {cid:"kohei", hub:"KY03", pref:"佐賀"}, {cid:"kayo", hub:"KY05", pref:"長崎"}, {cid:"tsumugi", hub:"KY07", pref:"熊本"},
+  {cid:"mio", hub:"KY09", pref:"大分"}, {cid:"makoto", hub:"KY11", pref:"宮崎"}, {cid:"gaku", hub:"KY13", pref:"鹿児島"},
+  {cid:"naoki", hub:"KY15", pref:"沖縄"}
+];
+
+/* 第10A～10E節：22ジョブ。kind は技能の処理種別 */
+const JOBS = {
+  J01:{name:"トラック運転手",   field:"攻撃と自己防護", skill:"巡回ストライク",   cost:3, desc:S=>`敵1体に攻撃（追加${8+2*S}）。自分に防護2。`},
+  J02:{name:"システムエンジニア",field:"コメント効率",   skill:"コメント整理",     cost:1, desc:S=>`応援コメントの代わりに使う。エール＋${22+S}、コメント連携4。挨拶・作戦・感謝を選ぶ。`},
+  J03:{name:"グラビアアイドル", field:"見せ場と防護",   skill:"ベストショット",   cost:2, desc:S=>`味方1人に防護${4+Math.floor(S/2)}、コメント連携4。`},
+  J04:{name:"ショップ店員",     field:"状況別の補給",   skill:"ぴったり提案",     cost:1, desc:S=>`体力補給（集中力1）：1人の体力を(${10+2*S})×成長係数＋レベル回復。集中補給（集中力2）：自分以外1人の集中力＋${3+Math.floor(S/2)}。`},
+  J05:{name:"スーパーレジ打ち", field:"攻撃とエール",   skill:"スキャン連携",     cost:2, desc:S=>`敵1体に攻撃（追加${3+S}）。通常のエール＋8に加えてエール＋4。`},
+  J06:{name:"ギャンブラー",     field:"危険を選ぶ攻撃", skill:"勝負の一手",       cost:3, desc:S=>`堅実：敵1体に攻撃（追加${10+2*S}）、自分に防護1。強気：体力10×成長係数も払い、敵1体に攻撃（追加${18+2*S}）。`},
+  J07:{name:"ニート",           field:"充電と自己防護", skill:"マイペース充電",   cost:0, desc:S=>`集中力の消費なし。自分の集中力＋5、自分に防護${2+Math.floor(S/2)}。`},
+  J08:{name:"ライバー",         field:"応援と回復",     skill:"コールアンドレスポンス", cost:2, desc:S=>`エール＋${24+S}、味方1人の体力を${8+S}×成長係数回復。`},
+  J09:{name:"工場作業者",       field:"攻撃と全体防護", skill:"品質チェック",     cost:3, desc:S=>`敵1体に攻撃（追加${6+2*S}）。味方全員に防護1。`},
+  J10:{name:"ユーチューバー",   field:"複数の敵への攻撃",skill:"ダイジェスト編集", cost:3, desc:S=>`敵全体に レベル×2＋(${5+S})×成長係数−防御力 のダメージ。エール＋8とコメント連携は使わない。`},
+  J11:{name:"インフルエンサー", field:"応援と全体防護", skill:"シェアウェーブ",   cost:3, desc:S=>`エール＋${16+2*S}、味方全員に防護2。`},
+  J12:{name:"専業主婦",         field:"全体の立て直し", skill:"暮らしの段取り",   cost:3, desc:S=>`味方全員の体力を${8+S}×成長係数回復し、集中力＋1。`},
+  J13:{name:"看護師",           field:"大きな単体回復", skill:"ケアコール",       cost:3, desc:S=>`味方1人の体力を(${18+3*S})×成長係数＋レベル×2回復。`},
+  J14:{name:"調理師",           field:"全体への集中力補給",skill:"キッチンリズム", cost:3, desc:S=>`自分以外の味方全員の集中力＋${2+Math.floor(S/2)}。`},
+  J15:{name:"電気工事士",       field:"単体への集中攻撃",skill:"ライトパルス",    cost:3, desc:S=>`敵1体に攻撃（追加${12+2*S}）。`},
+  J16:{name:"配管工",           field:"防御を越える攻撃",skill:"音声ルート",      cost:2, desc:S=>`敵の防御力を0として、敵1体に攻撃（追加${4+S}）。`},
+  J17:{name:"建築士",           field:"全体防護",       skill:"光のステージ",     cost:3, desc:S=>`味方全員に防護${3+Math.floor(S/2)}。`},
+  J18:{name:"社会福祉士",       field:"回復と攻撃準備", skill:"はじめまして案内", cost:2, desc:S=>`味方1人の体力を(${12+2*S})×成長係数＋レベル×2回復、コメント連携4。`},
+  J19:{name:"素人カメラマン",   field:"攻撃と次の攻撃支援",skill:"フラッシュショット",cost:3, desc:S=>`敵1体に攻撃（追加${10+2*S}）。コメント連携を使った後、コメント連携を4に戻す。`},
+  J20:{name:"観光ガイド",       field:"応援と攻撃準備", skill:"ルートガイド",     cost:2, desc:S=>`エール＋${12+S}、コメント連携4、味方全員に防護1。`},
+  J21:{name:"プロカメラマン",   field:"集中力を使う単体攻撃",skill:"精密フレーミング",cost:4, desc:S=>`敵1体に攻撃（追加${18+2*S}）。コメント連携を使い、戻さない。`},
+  J22:{name:"アイドルオタク",   field:"応援と集中力補給",skill:"推し色コール",    cost:3, desc:S=>`エール＋${14+2*S}、自分以外の味方1人の集中力＋${2+Math.floor(S/2)}。`}
+};
+const JOB_IDS = Object.keys(JOBS);
+const H_TYPE = new Set(["J01","J03","J05","J08","J09","J12","J13","J15","J16","J17","J19"]);
+
+/* 第16A～16D節：装備（共通36種＋専用44種。地域24種は各県の段階で追加） */
+const EQUIP = {
+  CW01:{slot:"w",name:"はじめの配信マイク",price:0,atk:2,text:"単体攻撃力＋2。"},
+  CW02:{slot:"w",name:"声合わせハンドマイク",price:180,atk:1,commentA:1,text:"単体攻撃力＋1。応援コメントのエール＋1。"},
+  CW03:{slot:"w",name:"光つなぎの指示棒",price:240,atk:3,text:"単体攻撃力＋3。"},
+  CW04:{slot:"w",name:"記録のペン型リモコン",price:180,atk:0,c:1,text:"単体攻撃力＋0。最大集中力＋1。"},
+  CW05:{slot:"w",name:"小窓のミニライト",price:240,atk:1,meter:1,text:"単体攻撃力＋1。メーター突破＋1。"},
+  CW06:{slot:"w",name:"返事のチャイムマイク",price:240,atk:1,family:1,text:"単体攻撃力＋1。ファミリー応援の回復＋1。"},
+  CA01:{slot:"a",name:"控室パーカー",price:0,d:1,text:"防御1。"},
+  CA02:{slot:"a",name:"巡回ライトベスト",price:180,d:0,hp:6,text:"防御0、最大体力＋6。"},
+  CA03:{slot:"a",name:"音守りヘッドセット",price:180,d:0,c:1,text:"防御0、最大集中力＋1。"},
+  CA04:{slot:"a",name:"風よけ配信ジャケット",price:300,d:2,text:"防御2。"},
+  CA05:{slot:"a",name:"携行プロテクトバッグ",price:240,d:1,hp:2,text:"防御1、最大体力＋2。"},
+  CA06:{slot:"a",name:"配信用リストサポーター",price:240,d:1,rest:1,text:"防御1、ひと息つくの集中力回復＋1。"},
+  AC01:{slot:"acc",name:"携帯マイク",price:200,atk:2,text:"単体攻撃力＋2。"},
+  AC02:{slot:"acc",name:"コメント手帳",price:200,commentA:2,text:"応援コメントのエール＋2。"},
+  AC03:{slot:"acc",name:"保温ボトル",price:200,rest:1,text:"ひと息つくの集中力回復＋1。"},
+  AC04:{slot:"acc",name:"予備バッテリー",price:200,c:1,text:"最大集中力＋1。"},
+  AC05:{slot:"acc",name:"折り畳みライト",price:300,hp:5,text:"最大体力＋5。"},
+  AC06:{slot:"acc",name:"携帯スピーカー",price:300,meter:2,text:"メーター突破＋2。"},
+  AC07:{slot:"acc",name:"応援タオル",price:300,family:2,text:"ファミリー応援の回復＋2。"},
+  AC08:{slot:"acc",name:"配信者のポーチ",price:300,pouch:true,text:"自分が使う回復・蘇生道具の効果1.5倍（切上げ）。"}
+};
+const JW_NAMES = ["旅程ビーコンマイク","ログ整理キーボード","光彩リフレクター","提案タッチパネル","リズムスキャン端末","読み筋カードデッキ","発見メモタブレット","返事の指向性マイク","工程ライトワンド","四景編集コントローラー","紹介リレースマートフォン","くらしノート端末","ケアコールマイク","リズム調理タイマー","照明調整テスター","音路チューニングレンチ","ステージ設計スタイラス","対話ナビクリップボード","つなぐシャッターカメラ","まち案内ライトポインター","定点フォーカスカメラ","推し色ペンライト"];
+const JA_NAMES = ["巡回配信ジャケット","端末ポケットベスト","ステージライトケープ","セレクトポケットエプロン","チェックラインベスト","テーブルジャケット","趣味じかんカーディガン","ステージパーカー","工程サイン作業ベスト","編集ポケットジャケット","街めぐりライトコート","段取りポケットベスト","ケアステージカーディガン","キッチンステージエプロン","ライト調整プロテクトベスト","ルートメッシュ作業ベスト","設計ポケットロングベスト","対話サポートカーディガン","撮影クッションベスト","まち歩きウインドジャケット","機材サポートベスト","応援ユーティリティパーカー"];
+JOB_IDS.forEach((j,i)=>{
+  const n=j.slice(1);
+  EQUIP["JW"+n]={slot:"w",name:JW_NAMES[i],price:320,atk:2,job:j,needR:4,text:`${JOBS[j].name}専用・熟練度4以上。単体攻撃力＋2、技能強化＋1。`};
+  const h=H_TYPE.has(j);
+  EQUIP["JA"+n]={slot:"a",name:JA_NAMES[i],price:320,d:1,hp:h?4:0,c:h?0:1,job:j,needR:7,text:`${JOBS[j].name}専用・熟練度7以上。防御1、${h?"最大体力＋4":"最大集中力＋1"}。`};
+});
+const SHOPS = {
+  SH01:{name:"広場の道具店", items:["CW01","CW02","CW03","CA01","CA02","CA04","AC01","AC02","AC03","AC04"]},
+  SH02:{name:"港の配信用品店", items:["CW01","CW04","CW05","CW06","CA01","CA03","CA05","CA06","AC05","AC06","AC07","AC08"]}
+};
+
+/* 第11B節：地域ボス（福岡は静観型） */
+const BOSSES = {
+  LB01:{name:"コメラモス", q:3, areaId:"KY01-A3", cue:"guard", hub:"KY01"},
+  B01: {name:"ハートーマ", q:8, areaId:"KY02-A3", cue:"guard", hub:"KY02"}
+};
+
+/* ボスの少人数補正（ユーザー指定の2人旅に合わせた本作の調整）。HPと攻撃に掛ける */
+const BOSS_PARTY_SCALE = { 1:{hp:0.5,atk:0.8}, 2:{hp:0.7,atk:0.85}, 3:{hp:0.85,atk:0.92}, 4:{hp:1,atk:1} };
+/* ボス個別の上書き：コメラモスは2人でLV2～3が勝ちどころになるよう弱めの補正 */
+const BOSS_SCALE_OVERRIDE = { LB01:{ 2:{hp:0.9,atk:1} } };
+function bossScale(bid, n){ n=Math.min(4,Math.max(1,n)); const o=BOSS_SCALE_OVERRIDE[bid]; return (o&&o[n]) || BOSS_PARTY_SCALE[n]; }
+
+/* 宿屋：1人あたりの宿泊料（ゴールド）。泊まると翌朝になり、体力と集中力が全回復 */
+const INN_PRICE = { KY01:6, KY02:10 };
+
+/* 第05D節：もえのシナリオ到達ランク */
+const MOE_RANKS = ["E1","D1","D2","D3","C1","C2","C3","B1","B2","B3","A1","A2","A3","S1","S2","S3","S4","S5","S6"];
+
+/* 第18～19節：依頼（福岡編） */
+const QUESTS = {
+  M01:{hub:"KY01", name:"故郷からの第一声", kills:1, boss:"LB01", stream:false, main:true,
+       goal:"福岡市のA1～A3で通常敵を1体倒し、放送塔の丘の奥でコメラモスに挑む。"},
+  M02:{hub:"KY02", name:"港の声リレー", kills:2, boss:"B01", stream:true, main:true,
+       goal:"北九州市のA1～A3で通常敵を2体倒し、灯台の段丘の奥でハートーマに挑む。その後、配信で80点以上。"},
+  S01:{hub:"KY01", name:"ふるさとの紹介文", kills:1, main:false, npc:"akari",
+       goal:"灯里と故郷の紹介文を考え、福岡市のA1～A3で通常敵を1体倒す。"},
+  S02:{hub:"KY02", name:"港の拍手練習", kills:1, main:false, npc:"sota",
+       goal:"奏太の応援のタイミングを整え、北九州市のA1～A3で通常敵を1体倒す。"}
+};
+
+/* 第15節：地域支援（福岡のみ収録） */
+const SUPPORTS = { PR01:{name:"福岡の声", text:"戦闘開始時のエール＋10", startA:10, npc:"akari"} };
+
+/* 第13・13A節：配信 */
+const STREAM_ACTS = {
+  first:{name:"初見案内", req:"初めての人へ企画を教えて"},
+  local:{name:"地域紹介", req:"街の話を聞きたい"},
+  reply:{name:"コメント返し", req:"質問に答えて"},
+  thanks:{name:"ありがとう", req:"今日を振り返って"},
+  like:{name:"いいねリレー", req:"光のリレーを見たい"},
+  kira:{name:"キラコメ演出", req:"短いキラコメで彩って"}
+};
+const STREAM_REQ = { PR01:["first","local","reply","thanks"] };
+const STREAM_THEMES = { newbie:{name:"初見歓迎",act:"first"}, local:{name:"地域の話",act:"local"}, chat:{name:"ゆったり雑談",act:"reply"} };
+const STREAM_TIMES = ["21時00分","21時20分","21時40分","21時59分"];
+
+/* ===== マップ ===== */
+/* タイル: T木 .草(安全) ,道(安全) ~水 #壁 w床 1/2/3危険 =橋 c屋根 */
+function buildMap(w,h,ops){
+  const g=[]; for(let y=0;y<h;y++){g.push(new Array(w).fill("T"));}
+  for(const [t,x,y,ww,hh] of ops){ for(let j=y;j<y+hh;j++) for(let i=x;i<x+ww;i++) if(g[j]&&i>=0&&i<w) g[j][i]=t; }
+  return g;
+}
+const MAPS = {
+  "KY01":{ hub:"KY01", name:"福岡市", kind:"out", w:48, h:32, safeAnchor:[19,19],
+    tiles: buildMap(48,32,[
+      [".",1,1,46,30],["T",1,1,46,1],["T",1,2,13,9],["T",34,2,13,9],
+      ["3",14,2,20,8],["T",19,4,10,3],["T",14,2,3,2],["T",31,2,3,2],[",",24,10,2,1],
+      ["1",1,11,11,10],["T",4,14,5,4],
+      ["2",36,11,11,10],["#",39,14,5,4],["c",39,13,5,1],
+      [",",14,11,20,10],["~",22,14,4,3],
+      ["#",15,22,7,3],["c",15,21,7,1],
+      ["#",26,22,6,3],["c",26,21,6,1],
+      [",",33,24,14,1],[",",18,21,1,1],[",",29,21,1,1],
+      ["~",1,27,46,4],[",",8,25,10,1],["=",10,26,3,3]
+    ]),
+    objects:[
+      {id:"door_home",x:18,y:22,type:"door",label:"実家と控室",to:"KY01-in",tx:12,ty:16},
+      {id:"shop1",x:29,y:22,type:"shop",label:"広場の道具店",shop:"SH01",npc:"ryosuke"},
+      {id:"akari",x:16,y:13,type:"npc",label:"灯里",npc:"akari"},
+      {id:"chiyo",x:9,y:25,type:"npc",label:"千代",npc:"chiyo"},
+      {id:"inn1",x:34,y:21,type:"inn",label:"宿屋「みなと屋」"},
+      {id:"boxA1",x:14,y:20,type:"box",label:"応援箱A",box:"KY01-A"},
+      {id:"boxB1",x:33,y:11,type:"box",label:"応援箱B",box:"KY01-B"},
+      {id:"bench",x:12,y:24,type:"bench",label:"夕景のベンチ"},
+      {id:"sign1",x:12,y:12,type:"sign",label:"案内板（広場外れ）",area:"KY01-A1"},
+      {id:"sign2",x:35,y:12,type:"sign",label:"案内板（ひさし通り）",area:"KY01-A2"},
+      {id:"sign3",x:23,y:10,type:"sign",label:"案内板（放送塔の丘）",area:"KY01-A3"},
+      {id:"tower",x:24,y:1,type:"tower",label:"放送塔"},
+      {id:"boss1",x:24,y:2,type:"boss",label:"放送塔の前（ボス待機地点）",boss:"LB01",walk:true},
+      {id:"gate1",x:46,y:24,type:"gate",label:"北九州市への道",to:"KY02",tx:2,ty:24}
+    ],
+    zones:{"1":"KY01-A1","2":"KY01-A2","3":"KY01-A3"}
+  },
+  "KY01-in":{ hub:"KY01", name:"福岡市・実家と控室", kind:"in", w:24, h:18, safeAnchor:[12,15],
+    tiles: buildMap(24,18,[["#",0,0,24,18],["w",1,2,22,15],["#",12,2,1,9],["w",12,8,1,2]]),
+    objects:[
+      {id:"exit_home",x:12,y:17,type:"door",label:"外へ出る",to:"KY01",tx:18,ty:21,walk:true},
+      {id:"rest_home",x:4,y:4,type:"rest",label:"居間（日付を進める）"},
+      {id:"shelf",x:8,y:3,type:"shelf",label:"故郷の展示棚"},
+      {id:"moe1",x:17,y:6,type:"npc",label:"もえ",npc:"moe"},
+      {id:"board1",x:20,y:3,type:"board",label:"控室の編成ボード"}
+    ], zones:{}
+  },
+  "KY02":{ hub:"KY02", name:"北九州市", kind:"out", w:48, h:32, safeAnchor:[24,20],
+    tiles: buildMap(48,32,[
+      [".",1,1,46,30],["T",1,1,46,1],["T",1,2,12,9],["T",35,2,12,9],
+      ["3",13,2,22,8],["T",18,4,12,3],[",",23,10,2,1],
+      ["2",36,11,11,12],["#",38,13,3,3],["#",43,13,3,3],["#",38,18,3,3],["#",43,18,3,3],["c",38,12,3,1],["c",43,12,3,1],["c",38,17,3,1],["c",43,17,3,1],
+      [",",14,11,20,10],
+      ["#",16,21,6,3],["c",16,20,6,1],
+      ["#",27,21,6,3],["c",27,20,6,1],[",",19,20,1,1],[",",30,20,1,1],
+      [",",1,24,13,1],
+      ["1",2,25,40,3],["T",10,26,24,1],
+      ["~",1,28,46,3]
+    ]),
+    objects:[
+      {id:"door_k2",x:19,y:21,type:"door",label:"エール便の控室",to:"KY02-in",tx:12,ty:16},
+      {id:"shop2",x:30,y:21,type:"shop",label:"港の配信用品店",shop:"SH02",npc:"shigeru"},
+      {id:"sota",x:27,y:13,type:"npc",label:"奏太",npc:"sota"},
+      {id:"misuzu",x:12,y:22,type:"npc",label:"美鈴",npc:"misuzu"},
+      {id:"inn2",x:24,y:21,type:"inn",label:"宿屋「灯台荘」"},
+      {id:"boxA2",x:15,y:13,type:"box",label:"応援箱A",box:"KY02-A"},
+      {id:"boxB2",x:34,y:20,type:"box",label:"応援箱B",box:"KY02-B"},
+      {id:"sign4",x:14,y:24,type:"sign",label:"案内板（港の遊歩道）",area:"KY02-A1"},
+      {id:"sign5",x:35,y:12,type:"sign",label:"案内板（倉庫街道）",area:"KY02-A2"},
+      {id:"sign6",x:22,y:10,type:"sign",label:"案内板（灯台の段丘）",area:"KY02-A3"},
+      {id:"lighthouse",x:24,y:1,type:"tower",label:"灯台"},
+      {id:"boss2",x:24,y:2,type:"boss",label:"灯台の前（ボス待機地点）",boss:"B01",walk:true},
+      {id:"gate2",x:1,y:24,type:"gate",label:"福岡市への道",to:"KY01",tx:45,ty:24}
+    ],
+    zones:{"1":"KY02-A1","2":"KY02-A2","3":"KY02-A3"}
+  },
+  "KY02-in":{ hub:"KY02", name:"北九州市・エール便の控室", kind:"in", w:24, h:18, safeAnchor:[12,15],
+    tiles: buildMap(24,18,[["#",0,0,24,18],["w",1,2,22,15]]),
+    objects:[
+      {id:"exit_k2",x:12,y:17,type:"door",label:"外へ出る",to:"KY02",tx:19,ty:20,walk:true},
+      {id:"rest_k2",x:4,y:4,type:"rest",label:"仮眠スペース（日付を進める）"},
+      {id:"moe2",x:17,y:6,type:"npc",label:"もえ",npc:"moe"},
+      {id:"board2",x:20,y:3,type:"board",label:"控室の編成ボード"}
+    ], zones:{}
+  }
+};
+const HUBS = {
+  KY01:{name:"福岡市", pref:"福岡", prefId:"PR01", map:"KY01", home:true},
+  KY02:{name:"北九州市", pref:"福岡", prefId:"PR01", map:"KY02"}
+};
+const FUTURE_HUBS = [["KY03","唐津市","佐賀"],["KY04","佐賀市","佐賀"],["KY05","佐世保市","長崎"],["KY06","長崎市","長崎"],["KY07","熊本市","熊本"],["KY08","阿蘇市","熊本"],["KY09","別府市","大分"],["KY10","大分市","大分"],["KY11","宮崎市","宮崎"],["KY12","日南市","宮崎"],["KY13","霧島市","鹿児島"],["KY14","鹿児島市","鹿児島"],["KY15","那覇市","沖縄"],["KY16","名護市","沖縄"]];
+
+/* ===== 住民と会話 ===== */
+const NPCS = {
+  akari:{name:"灯里", hub:"KY01", rep:true, sprite:[PAL.coral,PAL.ink],
+    first:p=>[["灯里",`${p}、おかえり！ 交流会の準備、手伝いに来てくれたんだね。`],["灯里","この広場、昔から皆の待ち合わせ場所でしょ。今日はもえさんの配信を見に来た人も多いよ。"],["灯里","実は、広場の紹介文を一緒に考えてくれる人を探してたんだ。手が空いたら声をかけて。"]],
+    after:p=>[["灯里","紹介文、掲示板に貼ったよ。読んだ人が『行ってみたい』って言ってくれた。"]],
+    normal:p=>[["灯里",`放送塔の丘は乱れが強いから、気をつけてね、${p}。`]] },
+  ryosuke:{name:"良介", hub:"KY01", sprite:[PAL.sand,PAL.brown],
+    first:p=>[["良介",`お、${p}じゃないか。道具店はいつでも開いてるよ。`],["良介","はじめのマイクとパーカーは無料で補充できる。気軽に寄ってくれ。"]],
+    normal:p=>[["良介","いい道具は、使う人の声をちゃんと届けてくれるんだ。"]] },
+  chiyo:{name:"千代", hub:"KY01", sprite:[PAL.mist,PAL.violet],
+    first:p=>[["千代",`あら、${p}ちゃん。水辺の風が気持ちいいでしょう。`],["千代","ひさし通りの雨だれの音、近ごろ変に響くのよ。原因が分かったら教えてね。"]],
+    normal:p=>[["千代","港の船を眺めると、遠くの街の声も聞こえる気がするわ。"]] },
+  sota:{name:"奏太", hub:"KY02", rep:true, sprite:[PAL.sea,PAL.ink],
+    first:p=>[["奏太","福岡市から来たエール便の人たち？ ようこそ北九州へ。"],["奏太","港で拍手の練習をしてるんだけど、いつ手をたたけばいいか迷っちゃって。"],["奏太","よかったら、タイミングを一緒に考えてくれないかな。"]],
+    after:p=>[["奏太","拍手、配信の間合いにぴったり合うようになったよ。ありがとう！"]],
+    normal:p=>[["奏太","灯台の段丘は、夜になると光が強く揺れるんだ。"]] },
+  shigeru:{name:"茂", hub:"KY02", sprite:[PAL.slate,PAL.gold],
+    first:p=>[["茂","港の配信用品店へようこそ。倉庫に眠ってた機材も手入れして並べてるよ。"]],
+    normal:p=>[["茂","スピーカーやタオル、仲間を支える品がそろってる。"]] },
+  misuzu:{name:"美鈴", hub:"KY02", sprite:[PAL.aqua,PAL.red],
+    first:p=>[["美鈴","遊歩道の足元灯、点いたり消えたりしてるの。乱れのせいかしら。"]],
+    normal:p=>[["美鈴","係留ロープの結び目って、きれいな形をしてるのよ。"]] },
+  moe:{name:"もえ", sprite:[PAL.cream,PAL.violet]}
+};
+
+/* 序章と節目（第05A・05E節。台詞は本作用の新規作成） */
+const SCENES = {
+  HS00:{title:"序章　福岡から", lines:p=>[
+    ["","福岡市の実家。窓の外では、交流広場の準備が進んでいる。"],
+    ["",`${p}は、今日の交流会を手伝う約束をしていた。`],
+    ["","交流広場。そこで、ひとりの女性が住民と話していた。"],
+    ["もえ","はじめまして。雪餅羽もえです。読み方は、のわんもえ。"],
+    ["もえ","アイドルグループ『おやすみセカイ』のメンバーとして活動していました。"],
+    ["もえ","おやすみセカイを脱退した今、Pocochaで新しい一歩を踏み出したい。目標はS6。"],
+    ["もえ","今はE1から。一人ひとりの声に、ちゃんと返事ができる配信をしたいんです。"],
+    [p,"その挑戦を支えるよ。配信の準備も旅も、一緒に進めよう。"],
+    ["もえ","ありがとう。……ねえ、この街で好きな場所を、ひとつ教えてほしいな。"],
+    ["","そのとき、交流会の仮想演出装置が乱れた。呼びかけと紹介の声が重なり、ノイズ体が生まれていく。"],
+    ["もえ","声の順番が、ばらばらになってる……。私も一緒に行く。待ってるだけなんて、できないよ。"],
+    ["","雪餅羽もえが仲間に加わった（ジョブ：ライバー）。旅を続けると、各地で新しい仲間に出会えます。"],
+    ["","依頼帳から「M01 故郷からの第一声」を受けて、通常敵を倒し、放送塔の丘のコメラモスへ挑もう。"]
+  ]},
+  RANK_D1:{title:"もえのランク D1", lines:p=>[
+    ["","放送塔の前。重なっていた声がほどけ、交流会の音が戻ってきた。"],
+    ["もえ","聞こえる。最初の挨拶と、返事の声。ちゃんと順番に届いてる。"],
+    ["灯里",`${p}たち、ありがとう！ 広場のみんなが、もえさんの配信を楽しみにしてるよ。`],
+    ["","その後の配信で、もえの新しい挑戦に応援が届いた。もえのシナリオ到達ランクがD1になった。"],
+    ["もえ","この声、次の街にも届けたい。"],
+    [p,"じゃあ北九州へ行こう。九州エール便の始まりだ。"],
+    ["","北九州市への道は、広場の東から続いている。依頼帳の「M02 港の声リレー」を受けよう。"]
+  ]},
+  M02_BOSS:{title:"灯台の段丘", lines:p=>[
+    ["","灯台の光が穏やかになった。港の反響が静まり、配信の準備が整う。"],
+    ["もえ","今日の配信、手伝ってくれる？ 返事は私が届ける。進行を支えてほしいの。"],
+    ["","配信サポート担当と番組テーマを選んで、4手番の配信へ進もう。80点以上で達成。"]
+  ]},
+  RANK_D2:{title:"もえのランク D2", lines:p=>[
+    ["","22時、締め。港のコメント欄に、ありがとうの言葉が並んだ。"],
+    ["もえ","福岡でも北九州でも、声をくれた人がいた。全部、覚えておきたい。"],
+    ["","もえのシナリオ到達ランクがD2になった。"],
+    [p,"二人でここまで来られたね。次の県では、手伝ってくれる仲間も探そう。"],
+    ["もえ",`${p}、次は佐賀だね。私、相手の返事を取り入れた紹介を試してみたい。`],
+    ["","福岡編はここまで。佐賀から先の章は、この版には未収録です。通常戦での育成、図鑑集め、任意依頼は続けられます。"]
+  ]},
+  S01_DONE:{title:"ふるさとの紹介文", lines:p=>[
+    ["灯里","できた！『待ち合わせの広場。帰ってきた人に、おかえりを言う場所』。"],
+    ["もえ","いい紹介文。配信でも読ませてもらっていい？"],
+    ["","紹介文を掲示できた。応援箱Bが開けられるようになった。"]
+  ]},
+  S02_DONE:{title:"港の拍手練習", lines:p=>[
+    ["奏太","話が一区切りしたところで拍手。うん、これなら邪魔にならない！"],
+    ["","拍手のタイミングを整えられた。応援箱Bが開けられるようになった。"]
+  ]}
+};
+const BOX_CARDS = {
+  "KY01-A":"旅立ちの広場","KY01-B":"ふるさとの紹介文","KY02-A":"港の遊歩道の灯り","KY02-B":"倉庫街の拍手"
+};
+const COMMENT_LINES = {
+  greet:["こんばんは、届いてるよ！","はじめまして、来ました！","いい声だね、こんばんは！"],
+  plan:["次は右から攻めよう！","守りを固めて、次で決めよう！","順番に声を届けよう！"],
+  thanks:["ありがとう、助かった！","いい流れ、ありがとう！","一緒に来てくれてありがとう！"]
+};
+const LINE_NAMES = {greet:"挨拶",plan:"作戦",thanks:"感謝"};
+const DIFFICULTY = {
+  easy:{name:"ゆったり",hp:0.8,atk:0.75,startA:20},
+  std:{name:"標準",hp:1,atk:1,startA:0},
+  hard:{name:"手応え",hp:1.2,atk:1.15,startA:0}
+};
+
+/* ---- 道具（ユーザー指定：20種類×各9個まで。v5.29 第16P節） ---- */
+const BAG_KINDS = 20, BAG_STACK = 9, KEEP_MAX = 20;
+const ITEM_RARITY = {1:"★1 ありふれた",2:"★2 ときどき見る",3:"★3 めずらしい",4:"★4 とてもめずらしい",5:"★5 まぼろし"};
+const ITEM_ACQ = {S:"ショップ",E:"イベント限定",DS:"モンスター限定（売却可）",DN:"モンスター限定（売却不可）",SD:"ショップ・モンスター"};
+const ITEMS = {};
+for(const [id,r] of Object.entries(ITEMS_RAW)){
+  ITEMS[id] = {id, name:r[0], cat:r[1], target:r[2], eff:r[3], stars:r[4], tier:r[5], acq:r[6], price:r[7], sell:r[8], battleOnly:!!r[9], text:r[10]};
+}
+/* 店の道具：地域段階1（福岡）の購入可能品 */
+const SHOP_ITEMS = Object.values(ITEMS).filter(it=>(it.acq==="S"||it.acq==="SD")&&it.tier<=1).map(it=>it.id);
+const INITIAL_ITEMS = [["IT001",5],["IT033",3]];

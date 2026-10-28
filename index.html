@@ -2817,7 +2817,7 @@ function autoStep(){
 function toResult(){
   const st=G.st, run=st.run; const res=applyVictory(st,run);
   st.battleBadges=Array.isArray(st.battleBadges)?st.battleBadges:[];
-  const eligible=[...(run.itemHistoryComplete===true?itemBattleBadges(run.itemHistory,run):[]),...growthBattleBadges(run),...partyBattleBadges(run),...actionBattleBadges(run),...healBattleBadges(run),...mpBattleBadges(run),...cheerBattleBadges(run),...speedBattleBadges(run),...attackBattleBadges(run),...guardBattleBadges(run),...defenseBattleBadges(run)];
+  const eligible=eligibleBattleBadges(run);
   const newBadges=eligible.filter(id=>!st.battleBadges.includes(id));
   st.battleBadges.push(...newBadges);
   if(res.levelAfter>res.levelBefore && Vof(res.levelAfter)>Vof(res.levelBefore)) res.notes.push("技能・装備の効果量が上昇（V"+Vof(res.levelAfter)+"）");
@@ -3069,20 +3069,28 @@ function renderParty(){
 function previewEquipFor(st,cid,job){ const e={...st.equip[cid]}; for(const s of ["w","a"]){ const it=e[s]&&EQUIP[e[s]]; if(it&&it.job&&it.job!==job) e[s]=null; } return e; }
 const PENDING_BADGES={B009:"締め前の余裕",B017:"会心の瞬間",B035:"ひらりと回避",B071:"ペットと共闘",B072:"小さな癒やし",B073:"頼れる補助役",B074:"二匹の力",B075:"ずっとそばに",B076:"ペットのMP補給",B077:"主人公を応援",B078:"もえを応援",B079:"息の合った攻撃",B080:"敵を足止め",B093:"実技を越える",B099:"固有必殺技",B100:"継承する技"};
 const BADGE_GROUPS=["速攻","攻撃","連携","防御","回復","集中力","応援","ペット","道具","成長"];
+function eligibleBattleBadges(run){
+  return [...(run.itemHistoryComplete===true?itemBattleBadges(run.itemHistory,run):[]),...growthBattleBadges(run),...partyBattleBadges(run),...actionBattleBadges(run),...healBattleBadges(run),...mpBattleBadges(run),...cheerBattleBadges(run),...speedBattleBadges(run),...attackBattleBadges(run),...guardBattleBadges(run),...defenseBattleBadges(run)];
+}
+const STABLE_BATTLE_BADGES=new Set(["B007","B011","B012","B013","B014","B015","B016","B018","B019","B020","B021","B022","B023","B024","B025","B026","B027","B028","B029","B030","B031","B032","B033","B034","B039","B040","B041","B042","B043","B044","B045","B046","B047","B048","B049","B050","B051","B052","B053","B054","B055","B057","B059","B061","B062","B063","B064","B065","B066","B067","B068","B069","B070","B083","B084","B085","B090","B094","B095","B097","B098"]);
 function renderBattleChallenges(){
   const run=G.st.run; if(!run) return "<p>戦闘中だけ確認できます。</p>";
   const names={...ITEM_BADGES,...GROWTH_BADGES,...PARTY_BADGES,...ACTION_BADGES,...HEAL_BADGES,...MP_BADGES,...CHEER_BADGES,...SPEED_BADGES,...ATTACK_BADGES,...GUARD_BADGES,...DEFENSE_BADGES,...PENDING_BADGES};
-  const owned=new Set(G.st.battleBadges||[]), f=run.actionFlags||{};
+  const owned=new Set(G.st.battleBadges||[]), f=run.actionFlags||{}, used=Array.isArray(run.itemHistory)?run.itemHistory.length:0;
+  const eligible=new Set(eligibleBattleBadges(run));
   const speedImpossible={B001:run.turn>1,B002:run.turn>3,B003:run.turn>5,B004:run.actionHistoryComplete===true&&f.actionCount>run.party.length,B005:run.actionHistoryComplete===true&&f.enemyAttacked===true,B006:run.actionHistoryComplete===true&&f.restUsed===true,B008:run.turn>8,B010:run.actionHistoryComplete===true&&f.actionCount>6};
+  const itemImpossible=run.itemHistoryComplete===true?{B081:used>0,B082:used>1,B086:f.cheerSpent===true,B088:used>0,B089:used>0}:{};
+  const outside=id=>(id==="B008"||id==="B092"||id==="B098")&&run.kind!=="boss" || id==="B091"&&run.kind!=="field";
   const status=id=>{
     if(owned.has(id)) return "獲得済み";
     if(Object.hasOwn(PENDING_BADGES,id)) return "制作中";
-    if((id==="B008"||id==="B092")&&run.kind!=="boss" || id==="B091"&&run.kind!=="field") return "対象外";
-    if(speedImpossible[id]) return "今回達成不可";
-    return run.state==="won"?"勝利時に判定":"未達成";
+    if(outside(id)) return "対象外";
+    if(speedImpossible[id]||itemImpossible[id]) return "今回達成不可";
+    if(eligible.has(id)&&(run.state==="won"||STABLE_BATTLE_BADGES.has(id))) return "勝利で確定";
+    return "未達成";
   };
-  const sections=BADGE_GROUPS.map((group,i)=>`<h3 class="label">${group}</h3><ul class="list">${Array.from({length:10},(_,n)=>{const id=`B${String(i*10+n+1).padStart(3,"0")}`;return `<li>${status(id)}・${id} ${esc(names[id])}</li>`;}).join("")}</ul>`).join("");
-  return `<p class="small">獲得は勝利結果で確定します。戦闘中の条件は変わるため、未確定の項目は未達成と表示します。</p>${sections}`;
+  const sections=BADGE_GROUPS.map((group,i)=>{const ids=Array.from({length:10},(_,n)=>`B${String(i*10+n+1).padStart(3,"0")}`);const applicable=ids.filter(id=>!Object.hasOwn(PENDING_BADGES,id)&&!outside(id));return `<h3 class="label">${group}（今回の対象 ${applicable.length}件）</h3><ul class="list">${ids.map(id=>`<li>${status(id)}・${id} ${esc(names[id])}</li>`).join("")}</ul>`;}).join("");
+  return `<p class="small">獲得は勝利結果で確定します。達成済みの条件も戦闘を終えるまでは未保存です。制作中・対象外は今回の対象件数から除きます。</p>${sections}`;
 }
 function renderBadgeRecord(st){
   const implemented={...ITEM_BADGES,...GROWTH_BADGES,...PARTY_BADGES,...ACTION_BADGES,...HEAL_BADGES,...MP_BADGES,...CHEER_BADGES,...SPEED_BADGES,...ATTACK_BADGES,...GUARD_BADGES,...DEFENSE_BADGES};

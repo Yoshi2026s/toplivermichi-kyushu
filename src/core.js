@@ -128,12 +128,13 @@ function createBossRun(st, bossId){
 
 /* ---- 予告（第08・11D節） ---- */
 function alive(run){ return run.party.filter(p=>p.hp>0); }
-function pickTarget(run, pos){
-  const t = run.party[pos];
-  if(t && t.hp>0) return pos;
-  const al = alive(run); if(!al.length) return -1;
-  let best = al[0]; for(const p of al){ if(p.hp<best.hp) best=p; }
-  return best.pos;
+function pickTarget(run, seed){
+  const candidates=run.party.map((p,i)=>({p,i,weight:run.party.length-i})).filter(x=>x.p.hp>0);
+  if(!candidates.length) return -1;
+  const total=candidates.reduce((n,x)=>n+x.weight,0);
+  let cursor=((seed%total)+total)%total;
+  for(const x of candidates){ if(cursor<x.weight) return x.i; cursor-=x.weight; }
+  return candidates[0].i;
 }
 function enemyAction(run, e){
   const step = e.cycle[(run.turn-1)%e.cycle.length];
@@ -143,7 +144,7 @@ function enemyAction(run, e){
     power = step.t==="c" ? 0 : Math.ceil(step.p * e.atkMult * cueMult);
   }
   const res = { type: step.t, power, heavy: !!step.heavy };
-  if(step.t==="s") res.target = pickTarget(run, (run.turn-1+e.slot)%run.party.length);
+  if(step.t==="s") res.target = pickTarget(run, run.turn-1+e.slot);
   return res;
 }
 function telegraph(run){ return run.enemies.filter(e=>e.hp>0).map(e=>({slot:e.slot, ...enemyAction(run,e)})); }
@@ -336,7 +337,7 @@ function enemyPhase(run){
   for(const e of run.enemies.filter(x=>x.hp>0).sort((x,y)=>x.slot-y.slot)){
     const act = enemyAction(run,e);
     if(act.type==="c"){ log.push(`${e.display}は力をためている。`); continue; }
-    const targets = act.type==="a" ? alive(run) : [run.party[pickTarget(run, (run.turn-1+e.slot)%run.party.length)]].filter(Boolean);
+    const targets = act.type==="a" ? alive(run) : [run.party[act.target]].filter(Boolean);
     for(const t of targets){
       let inc = Math.max(0, act.power - run.V*(t.armorD + t.ward));
       if(t.guard) inc = Math.ceil(inc/2);

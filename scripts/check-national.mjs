@@ -44,6 +44,12 @@ const cityGate=maps.KY03.objects.find(o=>o.id==='gate_sagacity'),returnGate=maps
 if(!cityGate||!returnGate||cityGate.to!=='KY04'||returnGate.to!=='KY03'||cityGate.tx!==2||cityGate.ty!==20||returnGate.tx!==46||returnGate.ty!==25) fail('Saga city gates are not reciprocal');
 if(!reachable(maps.KY03,maps.KY03.safeAnchor,[46,25])||!reachable(maps.KY04,[2,20],maps.KY04.safeAnchor)||!reachable(maps.KY04,maps.KY04.safeAnchor,[2,20])) fail('Saga city gate or return path blocked');
 for(const type of ['npc','inn','rest','board','shelf']) if(!maps.KY04.objects.some(o=>o.type===type)) fail(`Saga city ${type} missing`);
+for(const zone of ['1','2','3']){
+  const id=maps.KY04.zones[zone];
+  const tile=maps.KY04.tiles.flatMap((row,y)=>row.map((value,x)=>value===zone?[x,y]:null)).find(Boolean);
+  if(id!==`KY04-A${zone}`||!tile||!reachable(maps.KY04,maps.KY04.safeAnchor,tile)) fail(`Saga city zone ${zone} unreachable`);
+  if(!maps.KY04.objects.some(o=>o.type==='sign'&&o.area===id)) fail(`Saga city zone ${zone} sign missing`);
+}
 const playable=new Set(Object.values(implemented).flat());
 const known=new Set([...playable,...[...data.matchAll(/\["(KY\d+)","[^"]+","[^"]+"\]/g)].map(m=>m[1])]);
 if(new Set(routes.map(r=>r.id)).size!==routes.length) fail('duplicate route ID');

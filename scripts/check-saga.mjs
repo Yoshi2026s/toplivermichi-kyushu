@@ -23,10 +23,10 @@ delete old.quests.M03;
 const migrated=game.migrate(JSON.parse(JSON.stringify(old)));
 if(migrated.quests.M03!=='available'||migrated.gold!==317||migrated.bag.length!==old.bag.length) fail('old save migration changed existing progress');
 
-for(const id of ['KY03-A1','KY03-A2','KY03-A3']){
+for(const id of ['KY03-A1','KY03-A2','KY03-A3','KY04-A1','KY04-A2','KY04-A3']){
   if(game.AREAS[id]?.list.length!==50||!game.enemyDef(id,0).id.startsWith(`EN-${id}-`)) fail(`${id} enemy catalog invalid`);
   const run=game.createFieldRun(fresh,id,{count:0,picks:[0,0]});
-  if(run.hub!=='KY03'||run.areaId!==id||run.enemies.length!==1) fail(`${id} battle creation failed`);
+  if(run.hub!==id.slice(0,4)||run.areaId!==id||run.enemies.length!==1) fail(`${id} battle creation failed`);
 }
 const boss=game.createBossRun(fresh,'B02');
 if(boss.hub!=='KY03'||boss.areaId!=='KY03-A3'||boss.enemies[0].id!=='B02') fail('Karatsu boss battle invalid');

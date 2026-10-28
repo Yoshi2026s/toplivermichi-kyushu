@@ -19,7 +19,7 @@ function newGame(name, gender){
     jobs:{}, jp:{}, equip:{}, owned:{CW01:8, CA01:8}, favorite:{},
     gold:0, tickets:200, gifts:{W:{},A:{}},
     bag:INITIAL_ITEMS.map(([id,n])=>({id,n})), keep:[], itemsVersion:1,
-    quests:{M01:"available", M02:"locked", S01:"locked", S02:"locked"}, qprog:{}, activeQuest:null,
+    quests:{M01:"available", M02:"locked", M03:"locked", S01:"locked", S02:"locked"}, qprog:{}, activeQuest:null,
     talked:{}, boxes:{}, cards:[], bossDefeated:{}, seen:{}, killCount:{},
     moeRank:0, run:null, runSeq:0, stream:null, lastResult:null, streamBest:{},
     support:null, scenes:{}, fukuokaClear:false,
@@ -416,7 +416,8 @@ function completeQuest(st, qid, res){
   st.xp=Math.min(XP_CAP, st.xp+xp); st.tickets+=tk;
   if(res){ res.xp+=xp; res.tickets+=tk; res.quest=qid; }
   if(qid==="M01"){ st.moeRank=Math.max(st.moeRank,1); st.quests.M02="available"; }
-  if(qid==="M02"){ st.moeRank=Math.max(st.moeRank,2); st.fukuokaClear=true; }
+  if(qid==="M02"){ st.moeRank=Math.max(st.moeRank,2); st.fukuokaClear=true; st.quests.M03="available"; }
+  if(qid==="M03") st.moeRank=Math.max(st.moeRank,3);
   unlockSide(st);
 }
 /* ---- 体力・集中力の持ち越し（ユーザー指定：戦闘後も残り、宿屋で全回復） ---- */

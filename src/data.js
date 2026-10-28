@@ -1,4 +1,4 @@
-/* ===== data: 福岡編と唐津の探索拠点 ===== */
+/* ===== data: 福岡編と佐賀・唐津編 ===== */
 const GAME_VERSION = "5.29-dev";
 const SCHEMA_VERSION = 5;
 
@@ -97,7 +97,8 @@ const SHOPS = {
 /* 第11B節：地域ボス（福岡は静観型） */
 const BOSSES = {
   LB01:{name:"コメラモス", q:3, areaId:"KY01-A3", cue:"guard", hub:"KY01"},
-  B01: {name:"ハートーマ", q:8, areaId:"KY02-A3", cue:"guard", hub:"KY02"}
+  B01: {name:"ハートーマ", q:8, areaId:"KY02-A3", cue:"guard", hub:"KY02"},
+  B02: {name:"シオカゼラ", q:11, areaId:"KY03-A3", cue:"guard", hub:"KY03"}
 };
 
 /* ボスの少人数補正（ユーザー指定の2人旅に合わせた本作の調整）。HPと攻撃に掛ける */
@@ -112,12 +113,14 @@ const INN_PRICE = { KY01:6, KY02:10, KY03:12 };
 /* 第05D節：もえのシナリオ到達ランク */
 const MOE_RANKS = ["E1","D1","D2","D3","C1","C2","C3","B1","B2","B3","A1","A2","A3","S1","S2","S3","S4","S5","S6"];
 
-/* 第18～19節：依頼（福岡編） */
+/* 第18～19節：依頼（福岡編・佐賀編の入口） */
 const QUESTS = {
   M01:{hub:"KY01", name:"故郷からの第一声", kills:1, boss:"LB01", stream:false, main:true,
        goal:"福岡市のA1～A3で通常敵を1体倒し、放送塔の丘の奥でコメラモスに挑む。"},
   M02:{hub:"KY02", name:"港の声リレー", kills:2, boss:"B01", stream:true, main:true,
        goal:"北九州市のA1～A3で通常敵を2体倒し、灯台の段丘の奥でハートーマに挑む。その後、配信で80点以上。"},
+  M03:{hub:"KY03", name:"海辺からの返事", kills:2, boss:"B02", stream:true, main:true,
+       goal:"唐津市のA1～A3で通常敵を2体倒し、海辺の見晴らしでシオカゼラに挑む。その後、配信で80点以上。"},
   S01:{hub:"KY01", name:"ふるさとの紹介文", kills:1, main:false, npc:"akari",
        goal:"灯里と故郷の紹介文を考え、福岡市のA1～A3で通常敵を1体倒す。"},
   S02:{hub:"KY02", name:"港の拍手練習", kills:1, main:false, npc:"sota",
@@ -136,7 +139,7 @@ const STREAM_ACTS = {
   like:{name:"いいねリレー", req:"光のリレーを見たい"},
   kira:{name:"キラコメ演出", req:"短いキラコメで彩って"}
 };
-const STREAM_REQ = { PR01:["first","local","reply","thanks"] };
+const STREAM_REQ = { PR01:["first","local","reply","thanks"], PR02:["local","reply","first","thanks"] };
 const STREAM_THEMES = { newbie:{name:"初見歓迎",act:"first"}, local:{name:"地域の話",act:"local"}, chat:{name:"ゆったり雑談",act:"reply"} };
 const STREAM_TIMES = ["21時00分","21時20分","21時40分","21時59分"];
 
@@ -231,6 +234,7 @@ const MAPS = {
     tiles: buildMap(48,32,[
       [".",1,1,46,30],["~",1,1,46,8],["~",33,9,14,8],
       ["T",2,10,8,8],["T",39,18,7,7],
+      ["1",2,18,9,5],["2",34,18,5,8],["3",15,9,18,6],
       [",",1,24,24,1],[",",12,16,2,9],[",",12,16,24,2],
       ["#",17,20,6,3],["c",17,19,6,1],["#",27,20,6,3],["c",27,19,6,1]
     ]),
@@ -238,11 +242,15 @@ const MAPS = {
       {id:"gate_kitakyushu",x:1,y:24,type:"gate",label:"北九州市への道",to:"KY02",tx:45,ty:24},
       {id:"karatsu_guide",x:12,y:19,type:"npc",label:"唐津の案内人",npc:"karatsuGuide"},
       {id:"karatsu_landmark",x:25,y:16,type:"landmark",label:"海辺の案内板"},
+      {id:"karatsu_sign1",x:10,y:20,type:"sign",label:"案内板（海辺の小径）",area:"KY03-A1"},
+      {id:"karatsu_sign2",x:35,y:17,type:"sign",label:"案内板（潮見の路地）",area:"KY03-A2"},
+      {id:"karatsu_sign3",x:14,y:12,type:"sign",label:"案内板（見晴らし台）",area:"KY03-A3"},
+      {id:"karatsu_boss",x:24,y:10,type:"boss",label:"見晴らし台の前（ボス待機地点）",boss:"B02",walk:true},
       {id:"karatsu_inn",x:20,y:20,type:"inn",label:"唐津の宿屋"},
       {id:"karatsu_rest",x:30,y:20,type:"rest",label:"休憩所（日付を進める）"},
       {id:"karatsu_board",x:27,y:16,type:"board",label:"編成ボード"},
       {id:"karatsu_record",x:33,y:16,type:"shelf",label:"旅の記録"}
-    ], zones:{}
+    ], zones:{"1":"KY03-A1","2":"KY03-A2","3":"KY03-A3"}
   }
 };
 const HUBS = {
@@ -275,8 +283,8 @@ const NPCS = {
     first:p=>[["美鈴","遊歩道の足元灯、点いたり消えたりしてるの。乱れのせいかしら。"]],
     normal:p=>[["美鈴","係留ロープの結び目って、きれいな形をしてるのよ。"]] },
   karatsuGuide:{name:"唐津の案内人", hub:"KY03", sprite:[PAL.sand,PAL.sea],
-    first:p=>[["案内人",`${p}さん、唐津へようこそ。海辺の案内板から、この街の声を聞いてみてください。`],["案内人","ここは旅の入口です。佐賀の依頼や配信は、準備が整うまで開かれません。"]],
-    normal:p=>[["案内人","北九州へは西の門から戻れます。宿屋と休憩所も利用できますよ。"]] },
+    first:p=>[["案内人",`${p}さん、唐津へようこそ。海辺の案内板から、この街の声を聞いてみてください。`],["案内人","見晴らし台の返事が乱れています。依頼帳でM03を受け、海辺の探索区域を調べてください。"]],
+    normal:p=>[["案内人","北九州へは西の門から戻れます。見晴らし台へ行く前に宿屋で整えてください。"]] },
   moe:{name:"もえ", sprite:[PAL.cream,PAL.violet]}
 };
 
@@ -317,7 +325,17 @@ const SCENES = {
     ["","もえのシナリオ到達ランクがD2になった。"],
     [p,"二人でここまで来られたね。次の県では、手伝ってくれる仲間も探そう。"],
     ["もえ",`${p}、次は佐賀だね。私、相手の返事を取り入れた紹介を試してみたい。`],
-    ["","福岡編はここまで。唐津の探索拠点へ進めます。佐賀の依頼・戦闘・配信は、まだ準備中です。"]
+    ["","福岡編はここまで。唐津に渡り、次の依頼「M03 海辺からの返事」を受けられます。"]
+  ]},
+  M03_BOSS:{title:"見晴らし台の風", lines:p=>[
+    ["","見晴らし台の乱れが静まり、海辺からの返事が届き始めた。"],
+    ["航平",`${p}さん、帰りの道は任せて。もえさんの配信で、この街の声を届けよう。`],
+    ["","佐賀での配信準備が整った。依頼帳から配信を始めよう。"]
+  ]},
+  RANK_D3:{title:"もえのランク D3", lines:p=>[
+    ["もえ","唐津の人の返事を、急がず聞けた気がする。"],
+    ["",`${p}たちは佐賀の海辺から次の旅程を考える。`],
+    ["","もえのシナリオ到達ランクがD3になった。佐賀市以降の章は、この開発版には未収録です。"]
   ]},
   S01_DONE:{title:"ふるさとの紹介文", lines:p=>[
     ["灯里","できた！『待ち合わせの広場。帰ってきた人に、おかえりを言う場所』。"],

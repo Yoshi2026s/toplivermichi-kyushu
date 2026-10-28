@@ -98,7 +98,7 @@ function baseRun(st, kind){
     party: buildParty(st,L), enemies:[], turn:1, A:Math.min(100,A0), B:0,
     chain:{stage:0, members:[]}, kiraDone:false, firstKill:false,
     cue:null, log:[], itemHistory:[], itemHistoryComplete:true,
-    actionFlags:{cheerSpent:false,skillUsed:false,mpRestored:false,guardUsed:false}, actionHistoryComplete:true,
+    actionFlags:{cheerSpent:false,skillUsed:false,mpRestored:false,guardUsed:false,actors:[],jobs:[],revived:false}, actionHistoryComplete:true,
     state:"input", rewardsApplied:false, bag:clone(st.bag||[]) };
 }
 function createFieldRun(st, areaId, rolls){ // rolls: {count:0|1, picks:[r0,r1]}
@@ -279,6 +279,9 @@ function applyAction(run, idx, act){
     if(act.type==="skill") run.actionFlags.skillUsed=true;
     if(act.type!=="item" && p.cgain.some(g=>g.amt>0)) run.actionFlags.mpRestored=true;
     if(act.type==="guard") run.actionFlags.guardUsed=true;
+    if(!run.actionFlags.actors.includes(run.party[idx].cid)) run.actionFlags.actors.push(run.party[idx].cid);
+    if(!run.actionFlags.jobs.includes(run.party[idx].job)) run.actionFlags.jobs.push(run.party[idx].job);
+    if(p.heal.some(h=>h.revive)) run.actionFlags.revived=true;
   }
   const a = run.party[idx]; const log=[]; const nm=a.name;
   const label = actLabel(run,a,act);
@@ -603,6 +606,19 @@ function itemBattleBadges(history,run){
     if(!used.length && f.skillUsed) out.push("B088");
     if(!used.length && f.mpRestored) out.push("B089");
     if(used.length && f.guardUsed) out.push("B090");
+  }
+  return out;
+}
+const GROWTH_BADGES={B091:"旅路の一勝",B092:"ライバルを越える",B094:"三職業の共演",B095:"二人の物語",B096:"復活から勝利へ"};
+function growthBattleBadges(run){
+  const out=[];
+  if(run.kind==="field") out.push("B091");
+  if(run.kind==="boss") out.push("B092");
+  if(run.actionHistoryComplete===true && run.actionFlags){
+    const f=run.actionFlags;
+    if(Array.isArray(f.jobs)&&new Set(f.jobs).size>=3) out.push("B094");
+    if(Array.isArray(f.actors)&&f.actors.includes("hero")&&f.actors.includes("moe")) out.push("B095");
+    if(f.revived && run.party.every(m=>m.hp>0)) out.push("B096");
   }
   return out;
 }

@@ -8,7 +8,7 @@ const source=files.map(f=>readFileSync(resolve(root,'src',f),'utf8')).join('\n')
 const ui=readFileSync(resolve(root,'src/ui.js'),'utf8');
 const migration=ui.match(/function migrate\(s\)\{[\s\S]*?\n\}/)?.[0];
 if(!migration) throw new Error('save migration missing');
-const game=runInNewContext(`${source}\nfunction soundPref(){return true}\n${migration}\n({newGame,completeQuest,createFieldRun,createBossRun,newStream,streamPlay,migrate,enemyDef,AREAS,QUESTS})`);
+const game=runInNewContext(`${source}\nfunction soundPref(){return true}\n${migration}\n({newGame,completeQuest,createFieldRun,createBossRun,newStream,streamPlay,migrate,enemyDef,AREAS,QUESTS,SUPPORTS})`);
 const fail=msg=>{throw new Error(msg)};
 
 const fresh=game.newGame('確認用','女性');
@@ -40,4 +40,8 @@ if(fresh.quests.M03!=='complete'||fresh.moeRank!==3||fresh.tickets<=before) fail
 const once=fresh.tickets;
 game.completeQuest(fresh,'M03',{xp:0,tickets:0});
 if(fresh.tickets!==once) fail('M03 reward duplicated');
+if(game.SUPPORTS.PR02.startA!==12) fail('Saga support bonus invalid');
+fresh.support='PR02';
+const supported=game.createFieldRun(fresh,'KY03-A1',{count:0,picks:[0,0]});
+if(supported.A!==game.createFieldRun({...fresh,support:null},'KY03-A1',{count:0,picks:[0,0]}).A+12) fail('Saga support battle bonus invalid');
 console.log('Saga M03: old save, battles, boss, stream, rank and reward OK');

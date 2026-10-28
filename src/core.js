@@ -98,7 +98,7 @@ function baseRun(st, kind){
     party: buildParty(st,L), enemies:[], turn:1, A:Math.min(100,A0), B:0,
     chain:{stage:0, members:[]}, kiraDone:false, firstKill:false,
     cue:null, log:[], itemHistory:[], itemHistoryComplete:true,
-    actionFlags:{actionCount:0,enemyAttacked:false,restUsed:false,firstTurnDamage:false,cheerSpent:false,cheerPeak:Math.min(100,A0),commentLines:[],cheerAction:false,skillUsed:false,mpRestored:false,mpSpent:false,mpTargets:[],mpGuard:false,mpRest:false,mpSkill:false,mpItem:false,mpLow:false,guardUsed:false,guardActors:[],guardHit:false,wardHit:false,zeroHit:false,heavyGuardHit:false,criticalSurvive:false,actors:[],jobs:[],actionTypes:[],skills:[],healTargets:[],healMulti:false,familyHeal:false,itemHeal:false,selfHeal:false,otherHeal:false,fullHeal:false,revived:false,lowHeal:false,cueSolved:false,downSeen:false}, actionHistoryComplete:true,
+    actionFlags:{damageHit:false,attackHit:false,multiHit:false,attackFinish:false,skillFinish:false,meterFinish:false,commentAttack:false,ignoreDefHit:false,bigHit:false,actionCount:0,enemyAttacked:false,restUsed:false,firstTurnDamage:false,cheerSpent:false,cheerPeak:Math.min(100,A0),commentLines:[],cheerAction:false,skillUsed:false,mpRestored:false,mpSpent:false,mpTargets:[],mpGuard:false,mpRest:false,mpSkill:false,mpItem:false,mpLow:false,guardUsed:false,guardActors:[],guardHit:false,wardHit:false,zeroHit:false,heavyGuardHit:false,criticalSurvive:false,actors:[],jobs:[],actionTypes:[],skills:[],healTargets:[],healMulti:false,familyHeal:false,itemHeal:false,selfHeal:false,otherHeal:false,fullHeal:false,revived:false,lowHeal:false,cueSolved:false,downSeen:false}, actionHistoryComplete:true,
     state:"input", rewardsApplied:false, bag:clone(st.bag||[]) };
 }
 function createFieldRun(st, areaId, rolls){ // rolls: {count:0|1, picks:[r0,r1]}
@@ -320,11 +320,31 @@ function applyAction(run, idx, act){
   if(a.hp<=0 && run.actionHistoryComplete===true && run.actionFlags) run.actionFlags.downSeen=true;
   // 攻撃
   let killedNow=0;
+  let hitCount=0;
   for(const d of p.dmg){
     const e = run.enemies.find(x=>x.slot===d.slot); if(!e||e.hp<=0) continue;
     const real = Math.min(d.raw, e.hp); e.hp -= real; log.push(`${e.display}に${real}ダメージ。`);
+    if(real>0){
+      hitCount++;
+      if(run.actionHistoryComplete===true && run.actionFlags){
+        const f=run.actionFlags;
+        f.damageHit=true;
+        if(act.type==="attack") f.attackHit=true;
+        if(p.consumeB && run.B>0) f.commentAttack=true;
+        if(act.type==="skill" && a.job==="J16") f.ignoreDefHit=true;
+        if(real>=e.maxHP/2) f.bigHit=true;
+      }
+    }
     if(real>0 && run.turn===1 && run.actionHistoryComplete===true && run.actionFlags) run.actionFlags.firstTurnDamage=true;
     if(e.hp<=0){ killedNow++; log.push(`${e.display}を鎮めた。`); }
+  }
+  if(run.actionHistoryComplete===true && run.actionFlags){
+    if(hitCount>=2) run.actionFlags.multiHit=true;
+    if(hitCount>0 && run.enemies.every(e=>e.hp<=0)){
+      if(act.type==="attack") run.actionFlags.attackFinish=true;
+      if(act.type==="skill") run.actionFlags.skillFinish=true;
+      if(act.type==="meter") run.actionFlags.meterFinish=true;
+    }
   }
   if(p.consumeB){ run.B=0; }
   if(p.setBAfter){ run.B=p.setBAfter; }
@@ -686,6 +706,22 @@ const HEAL_BADGES={B041:"癒やしの手",B042:"仲間を気遣う",B043:"みん
 const MP_BADGES={B051:"守って補給",B052:"ひと息の価値",B053:"技能で補給",B054:"携帯補給",B055:"MPを分け合う",B056:"MPの余裕",B057:"息切れから復帰",B058:"明日への備え",B059:"自然な補給",B060:"MPを使い切らない"};
 const CHEER_BADGES={B061:"最初の声援",B062:"三つの言葉",B063:"挨拶から始まる",B064:"作戦を共有",B065:"感謝の気持ち",B066:"キラコメ完成",B067:"応援が届く",B068:"大きな応援",B069:"満場の応援",B070:"応援を行動に"};
 const SPEED_BADGES={B001:"開幕の決着",B002:"短期決着",B003:"安定した進行",B004:"一人一手の決着",B005:"先手必勝",B006:"止まらない攻勢",B007:"初手の一撃",B008:"決戦を駆ける",B010:"少ない手数"};
+const ATTACK_BADGES={B011:"基本の一撃",B012:"職業の力",B013:"まとめて攻撃",B014:"基本で締める",B015:"技でフィニッシュ",B016:"突破で締める",B018:"コメントを力に",B019:"防御を突破",B020:"鮮やかな大打撃",B030:"攻めと癒やし"};
+function attackBattleBadges(run){
+  if(run.actionHistoryComplete!==true || !run.actionFlags) return [];
+  const f=run.actionFlags, out=[];
+  if(f.attackHit) out.push("B011");
+  if(f.skillUsed) out.push("B012");
+  if(f.multiHit) out.push("B013");
+  if(f.attackFinish) out.push("B014");
+  if(f.skillFinish) out.push("B015");
+  if(f.meterFinish) out.push("B016");
+  if(f.commentAttack) out.push("B018");
+  if(f.ignoreDefHit) out.push("B019");
+  if(f.bigHit) out.push("B020");
+  if(f.damageHit && Array.isArray(f.healTargets) && f.healTargets.length) out.push("B030");
+  return out;
+}
 function speedBattleBadges(run){
   const out=[];
   if(run.turn<=1) out.push("B001");

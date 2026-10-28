@@ -469,8 +469,11 @@ const QUESTS = {
        goal:"奏太の応援のタイミングを整え、北九州市のA1～A3で通常敵を1体倒す。"}
 };
 
-/* 第15節：地域支援（福岡のみ収録） */
-const SUPPORTS = { PR01:{name:"福岡の声", text:"戦闘開始時のエール＋10", startA:10, npc:"akari"} };
+/* 第15節：地域支援 */
+const SUPPORTS = {
+  PR01:{name:"福岡の声", text:"戦闘開始時のエール＋10", startA:10, npc:"akari"},
+  PR02:{name:"佐賀の声", text:"戦闘開始時のエール＋12", startA:12, npc:"karatsuGuide"}
+};
 
 /* 第13・13A節：配信 */
 const STREAM_ACTS = {
@@ -2731,13 +2734,15 @@ function renderParty(){
   }
   const bond = npc => !st.talked[npc]?0: 1 + (npc==="akari"? (st.quests.M01==="complete"?1:0)+(st.quests.S01==="complete"?1:0) : (st.quests.M02==="complete"?1:0)+(st.quests.S02==="complete"?1:0));
   const supOk = st.talked.akari && st.quests.M01==="complete" && st.quests.S01==="complete";
+  const sagaSupOk = st.talked.karatsuGuide && st.quests.M03==="complete";
   const partyLocked=G.readOnly||G.screen!=="explore"||G.sheet!=="party"||!!G.dlg||!!st.run||!!G.walk.path.length||!isSafe();
   return `${lockMsg?`<p class="warn">${lockMsg}</p>`:""}<p class="small">出撃は1～4人。先頭が前衛です。加入済みの仲間から選び、待機メンバーとは出撃枠を指定して直接入れ替えられます。</p>
     <h3 class="label">戦闘メンバー</h3><div class="stack">${st.party.map((c,i)=>`<div class="prow"><button class="btn grow" data-a="partyView" data-c="${c}" data-v="">${i+1}. ${esc(charName(st,c))}・${esc(JOBS[st.jobs[c]].name)}</button>${i?`<button class="btn sq" data-a="partyUp" data-v="${i}" data-c="${c}" aria-label="${esc(charName(st,c))}を前へ" ${partyLocked?"disabled":""}>↑</button>`:""}${st.party.length>1?`<button class="btn sq" data-a="partyLeave" data-v="${i}" data-c="${c}" aria-label="${esc(charName(st,c))}を待機へ" ${partyLocked?"disabled":""}>待機</button>`:""}</div>`).join("")}</div>
     ${st.roster.length>st.party.length?`<h3 class="label">控え</h3><div class="stack">${st.roster.filter(c=>!st.party.includes(c)).map(c=>`<div class="prow"><button class="btn grow" data-a="partyView" data-c="${c}" data-v="">${esc(charName(st,c))}・${esc(JOBS[st.jobs[c]].name)}</button>${st.party.length<4?`<button class="btn" data-a="partyIn" data-v="${c}" ${partyLocked?"disabled":""}>出撃に加える</button>`:""}${st.party.map((target,i)=>`<button class="btn" data-a="partySwap" data-v="${c}" data-i="${i}" data-c="${target}" ${partyLocked?"disabled":""}>${i+1}番の${esc(charName(st,target))}と入替</button>`).join("")}</div>`).join("")}</div>`:""}
     <h3 class="label">地域支援</h3><p class="small">コア応援者がいる県の効果を1つ選べます（戦闘開始時に固定）。</p>
     <div class="stack"><button class="btn ${!st.support?"on":""}" data-a="setSupport" data-v="">${!st.support?"▶ ":""}なし</button>
-    <button class="btn ${st.support==="PR01"?"on":""}" data-a="setSupport" data-v="PR01" ${supOk?"":"disabled"}>${st.support==="PR01"?"▶ ":""}福岡：戦闘開始時のエール＋10（灯里 親密度${bond("akari")}/3）</button></div>`;
+    <button class="btn ${st.support==="PR01"?"on":""}" data-a="setSupport" data-v="PR01" ${supOk?"":"disabled"}>${st.support==="PR01"?"▶ ":""}福岡：戦闘開始時のエール＋10（灯里 親密度${bond("akari")}/3）</button>
+    <button class="btn ${st.support==="PR02"?"on":""}" data-a="setSupport" data-v="PR02" ${sagaSupOk?"":"disabled"}>${st.support==="PR02"?"▶ ":""}佐賀：戦闘開始時のエール＋12（唐津の案内人との会話・M03完了）</button></div>`;
 }
 function previewEquipFor(st,cid,job){ const e={...st.equip[cid]}; for(const s of ["w","a"]){ const it=e[s]&&EQUIP[e[s]]; if(it&&it.job&&it.job!==job) e[s]=null; } return e; }
 function renderRecord(){
@@ -2944,7 +2949,7 @@ const ACT = {
     for(const [s,id] of [["w","CW01"],["a","CA01"]]) if(!st.equip[cid][s]&&availableCount(st,id)>0) st.equip[cid][s]=id;
     commit(); G.sheetData={cid,view:""}; render(); drawMiniSprites(); toast(`${charName(st,cid)}のジョブを${JOBS[j].name}にした。`); },
   setEquip(el){ if(!canEditParty()||streamPending()) return; const st=G.st,cid=el.dataset.c,s=el.dataset.s,id=el.dataset.v||null; if(!st.roster.includes(cid)||!["w","a","acc"].includes(s)||G.sheetData.cid!==cid||G.sheetData.view!==`eq:${s}`) return; if(id&&(!Object.hasOwn(EQUIP,id)||EQUIP[id].slot!==s)) return; if(id){ const it=EQUIP[id], cur=charStats(st,cid,levelOf(st.xp)); if(it.job&&(it.job!==cur.job||cur.R<it.needR)) return toast("現在の職業と熟練度では装備できません。"); } if(id&&availableCount(st,id)<=0&&st.equip[cid][s]!==id) return toast("未装備の在庫がありません。"); st.equip[cid][s]=id; commit(); G.sheetData={cid,view:""}; render(); drawMiniSprites(); },
-  setSupport(el){ if(!canEditParty()||streamPending()) return; const v=el.dataset.v||null; if(v!==null&&v!=="PR01") return; if(v==="PR01"&&!(G.st.talked.akari&&G.st.quests.M01==="complete"&&G.st.quests.S01==="complete")) return toast("この地域支援はまだ使えません。"); G.st.support=v; commit(); render(); },
+  setSupport(el){ if(!canEditParty()||streamPending()) return; const v=el.dataset.v||null; if(v!==null&&!Object.hasOwn(SUPPORTS,v)) return; if(v==="PR01"&&!(G.st.talked.akari&&G.st.quests.M01==="complete"&&G.st.quests.S01==="complete")) return toast("この地域支援はまだ使えません。"); if(v==="PR02"&&!(G.st.talked.karatsuGuide&&G.st.quests.M03==="complete")) return toast("この地域支援はまだ使えません。"); G.st.support=v; commit(); render(); },
   dexNav(el){ const k=el.dataset.k, v=el.dataset.v; if(k==="area"){ G.sheetData={area:v,page:0}; } else if(k==="page"){ G.sheetData.page=+v; } else { G.sheetData.detail=v||null; } render(); drawMiniSprites(); const s=$(".sheet"); if(s) s.scrollTop=0; },
   shopTab(el){ if(G.sheet!=="shop"||!["buy","item","sell"].includes(el.dataset.v)) return; G.sheetData.tab=el.dataset.v; G.sheetData.item=null; render(); },
   shopItem(el){ if(G.sheet!=="shop") return; const id=el.dataset.v||null; if(id&&(!Object.hasOwn(ITEMS,id)&&!Object.hasOwn(EQUIP,id))) return; G.sheetData.item=id; G.sheetData.qty=1; render(); },

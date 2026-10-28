@@ -8,7 +8,7 @@ const core=files.map(f=>readFileSync(resolve(root,'src',f),'utf8')).join('\n');
 const ui=readFileSync(resolve(root,'src','ui.js'),'utf8');
 const section=ui.slice(ui.indexOf('const PENDING_BADGES='),ui.indexOf('function renderRecord(){'));
 const G={sheetData:{}};
-const catalog=runInNewContext(`${core}\n${section}\n({PENDING_BADGES,BADGE_GROUPS,renderBadgeRecord})`,{G,esc:s=>String(s)});
+const catalog=runInNewContext(`${core}\n${section}\n({PENDING_BADGES,BADGE_GROUPS,renderBadgeRecord,renderBattleChallenges})`,{G,esc:s=>String(s)});
 const ids=Array.from({length:100},(_,i)=>`B${String(i+1).padStart(3,'0')}`);
 const implemented={...runInNewContext(`${core}\n({ITEM_BADGES,GROWTH_BADGES,PARTY_BADGES,ACTION_BADGES,HEAL_BADGES,MP_BADGES,CHEER_BADGES,SPEED_BADGES,ATTACK_BADGES,GUARD_BADGES,DEFENSE_BADGES})`)};
 const all=new Set([...Object.keys(catalog.PENDING_BADGES),...Object.values(implemented).flatMap(Object.keys)]);
@@ -19,5 +19,14 @@ if(!full.includes('獲得2/100種')||!full.includes('B001')||!full.includes('B10
 G.sheetData.badgeOnlyUnowned=true;
 const missing=catalog.renderBadgeRecord(st);
 if(missing.includes('● 獲得済み B001')||!missing.includes('B100')||!missing.includes('すべて表示')) throw new Error('missing badge filter failed');
-console.log('Badge catalog: 100 IDs, 10 groups, pending status and filter OK');
+G.st={battleBadges:[],run:{kind:'field',turn:2,state:'input',A:0,kiraDone:false,party:[{cid:'hero',hp:10,maxHP:10,c:5}],itemHistory:[],itemHistoryComplete:true,actionFlags:{attackHit:true,actionCount:2,enemyAttacked:true,restUsed:false,cheerSpent:false},actionHistoryComplete:true}};
+let live=catalog.renderBattleChallenges();
+if(!live.includes('勝利で確定・B011')||!live.includes('今回達成不可・B001')||!live.includes('今回達成不可・B005')||!live.includes('対象外・B008')||!live.includes('制作中・B009')||!live.includes('速攻（今回の対象 8件）')) throw new Error('live challenge statuses failed');
+G.st.run.itemHistory=[{id:'IT01'}];
+live=catalog.renderBattleChallenges();
+if(!live.includes('今回達成不可・B081')||!live.includes('勝利で確定・B083')) throw new Error('item challenge statuses failed');
+G.st.run.actionHistoryComplete=false;
+live=catalog.renderBattleChallenges();
+if(live.includes('勝利で確定・B011')) throw new Error('incomplete action history must not confirm badge');
+console.log('Badge catalog: 100 IDs, 10 groups, record filter and live statuses OK');
 

@@ -2824,7 +2824,7 @@ function toResult(){
   if(res.levelAfter>res.levelBefore && Vof(res.levelAfter)>Vof(res.levelBefore)) res.notes.push("技能・装備の効果量が上昇（V"+Vof(res.levelAfter)+"）");
   const L0=res.levelBefore, L1=levelOf(st.xp);
   st.lastResult={seq:run.seq, kind:run.kind, bossId:run.bossId||null, turns:run.turn, ...res,
-    itemsUsed:clone(Array.isArray(run.itemHistory)?run.itemHistory:[]), newBadges,
+    itemsUsed:clone(Array.isArray(run.itemHistory)?run.itemHistory:[]), itemsUsedKnown:run.itemHistoryComplete===true, newBadges,
     enemies:run.enemies.map(e=>({name:e.display||e.name, boss:!!e.boss, rarity:e.rarity||0})),
     members:run.party.map(m=>({cid:m.cid, maxBefore:charStats(st,m.cid,L0).maxHP, maxAfter:charStats(st,m.cid,L1).maxHP}))};
   const back=run.returnPos; st.run=null;
@@ -2870,13 +2870,17 @@ function renderResult(){
     <div class="gauge rxp"><span>レベル${L}</span><span class="bar xp"><i style="width:${pct(xpNow,xpSpan)}%"></i></span><b>${L<999?`次まで${(xpSpan-xpNow).toLocaleString()}`:"最大"}</b></div>
     ${r.quest?`<div class="rquest done">依頼「${r.quest} ${esc(QUESTS[r.quest].name)}」完了！</div>`:r.kills&&r.killQuest?`<div class="rquest"><span>依頼 ${r.killQuest} 討伐</span><span class="bar"><i style="width:${pct(r.killNow,r.killNeed)}%"></i></span><b>${r.killNow}/${r.killNeed}</b></div>`:""}
     ${items.length||gifts.length?`<div class="rbox"><h3 class="label">手に入れたもの</h3><ul class="rlist">${[...items,...gifts].join("")}</ul></div>`:""}
-    ${usedItems.length?`<div class="rbox"><h3 class="label">この戦闘で使った道具（${usedItems.length}回）</h3><ul class="rlist">${usedItems.join("")}</ul></div>`:""}
+    ${renderUsedItemHistory(r,usedItems)}
     ${(r.newBadges||[]).length?`<div class="rbox"><h3 class="label">新しい戦闘バッジ</h3><ul class="rlist">${r.newBadges.map(id=>`<li>${id} ${esc(ITEM_BADGES[id]||GROWTH_BADGES[id]||PARTY_BADGES[id]||ACTION_BADGES[id]||HEAL_BADGES[id]||MP_BADGES[id]||CHEER_BADGES[id]||SPEED_BADGES[id]||ATTACK_BADGES[id]||GUARD_BADGES[id]||DEFENSE_BADGES[id]||id)}</li>`).join("")}</ul></div>`:""}
     <button class="btn" data-a="openSheet" data-k="record">戦闘バッジ一覧を見る</button>
     ${r.notes.filter(n=>!/効果量が上昇/.test(n)).map(n=>`<p class="good rnote">${esc(n)}</p>`).join("")}
     <h3 class="label">仲間</h3><div class="rmems">${mem}</div>
     ${anyLow?`<p class="small warn">体力が減っている仲間がいます。次の戦闘へ持ち越すので、道具や宿屋で回復しておこう。</p>`:""}
     <div class="rfoot"><button class="btn primary wide" data-a="resultDone">探索へ</button></div></section>`;
+}
+function renderUsedItemHistory(result,usedItems){
+  if(usedItems.length) return `<div class="rbox"><h3 class="label">この戦闘で使った道具（${usedItems.length}回）</h3><ul class="rlist">${usedItems.join("")}</ul>${result.itemsUsedKnown===true?"":`<p class="small">旧記録のため、使用履歴が一部欠けている可能性があります。</p>`}</div>`;
+  return `<div class="rbox"><h3 class="label">この戦闘で使った道具</h3><p class="small">${result.itemsUsedKnown===true?"道具は使いませんでした。":"使用記録がありません（旧保存または履歴が不完全な戦闘）。"}</p></div>`;
 }
 function resultDone(){
   const r=G.st.lastResult; G.screen="explore"; keepFlush(); render(); exploreBgm();
@@ -3394,7 +3398,10 @@ function migrate(s){
     else if(s.run.itemHistoryComplete!==true) s.run.itemHistoryComplete=false;
     if(s.run.actionHistoryComplete!==true || !s.run.actionFlags) s.run.actionHistoryComplete=false;
   }
-  if(s.lastResult&&!Array.isArray(s.lastResult.itemsUsed)) s.lastResult.itemsUsed=[];
+  if(s.lastResult){
+    if(!Array.isArray(s.lastResult.itemsUsed)) s.lastResult.itemsUsed=[];
+    if(s.lastResult.itemsUsedKnown!==true) s.lastResult.itemsUsedKnown=false;
+  }
   if(!Array.isArray(s.battleBadges)) s.battleBadges=[];
   if(s.settings&&s.settings.soundV!==2){ s.settings.sound=true; s.settings.soundV=2; }
   if(s.vitals===undefined) s.vitals=null;

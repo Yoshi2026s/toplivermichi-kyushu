@@ -692,6 +692,11 @@ function renderResult(){
     ...(r.itemsKept||[]).map(x=>`<li class="warn">${esc(ITEMS[x.id].name)} ×${x.n} は袋がいっぱいのため宿屋の預かり所へ</li>`),
     ...(r.itemsLost||[]).map(x=>`<li class="warn">${esc(ITEMS[x.id].name)} ×${x.n} は預かり所もいっぱいで受け取れず</li>`)];
   const gifts=r.gifts.map(g=>`<li class="ritem">専用品「${esc(EQUIP[g].name)}」を贈られた</li>`);
+  const usedItems=(r.itemsUsed||[]).map(x=>{
+    const effects=[x.hp>0?`体力＋${x.hp}`:"",x.c>0?`集中力＋${x.c}`:"",x.revives>0?`復帰${x.revives}人`:""].filter(Boolean);
+    const actor=x.actor==="hero"||CHARS[x.actor]?`${esc(charName(st,x.actor))}：`:"";
+    return `<li>${Number.isInteger(x.turn)&&x.turn>0?`${x.turn}ターン目・`:""}${actor}${esc(ITEMS[x.id]?.name||x.id)}${effects.length?`（${effects.join("・")}）`:""}</li>`;
+  });
   const anyLow=st.roster.some(c=>{const v=vitalOf(c),s=charStats(st,c,L); return v.hp<=0||isLow(v.hp,s.maxHP);});
   return `<section class="result" aria-labelledby="rtitle">
     <div class="rbanner ${r.kind==="boss"?"boss":""}"><h2 id="rtitle">${title}</h2><p>${sub}</p></div>
@@ -700,7 +705,7 @@ function renderResult(){
     <div class="gauge rxp"><span>レベル${L}</span><span class="bar xp"><i style="width:${pct(xpNow,xpSpan)}%"></i></span><b>${L<999?`次まで${(xpSpan-xpNow).toLocaleString()}`:"最大"}</b></div>
     ${r.quest?`<div class="rquest done">依頼「${r.quest} ${esc(QUESTS[r.quest].name)}」完了！</div>`:r.kills&&r.killQuest?`<div class="rquest"><span>依頼 ${r.killQuest} 討伐</span><span class="bar"><i style="width:${pct(r.killNow,r.killNeed)}%"></i></span><b>${r.killNow}/${r.killNeed}</b></div>`:""}
     ${items.length||gifts.length?`<div class="rbox"><h3 class="label">手に入れたもの</h3><ul class="rlist">${[...items,...gifts].join("")}</ul></div>`:""}
-    ${(r.itemsUsed||[]).length?`<div class="rbox"><h3 class="label">この戦闘で使った道具</h3><ul class="rlist">${r.itemsUsed.map(x=>`<li>${esc(ITEMS[x.id]?.name||x.id)}：体力＋${x.hp}・集中力＋${x.c}${x.revives?`・復帰${x.revives}人`:""}</li>`).join("")}</ul></div>`:""}
+    ${usedItems.length?`<div class="rbox"><h3 class="label">この戦闘で使った道具（${usedItems.length}回）</h3><ul class="rlist">${usedItems.join("")}</ul></div>`:""}
     ${r.notes.filter(n=>!/効果量が上昇/.test(n)).map(n=>`<p class="good rnote">${esc(n)}</p>`).join("")}
     <h3 class="label">仲間</h3><div class="rmems">${mem}</div>
     ${anyLow?`<p class="small warn">体力が減っている仲間がいます。次の戦闘へ持ち越すので、道具や宿屋で回復しておこう。</p>`:""}

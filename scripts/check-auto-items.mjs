@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 const root=resolve(import.meta.dirname,'..');
 const files=['data_enemies.js','data_saga_enemies.js','data_items.js','data_national.js','data.js','core.js'];
 const source=files.map(f=>readFileSync(resolve(root,'src',f),'utf8')).join('\n');
-const game=runInNewContext(`${source}\n({newGame,createFieldRun,aiCandidates,aiChoose,aiItemUseful,itemBattleBadges,applyAction})`);
+const game=runInNewContext(`${source}\n({newGame,createFieldRun,aiCandidates,aiChoose,aiItemUseful,itemBattleBadges,growthBattleBadges,applyAction})`);
 const fail=msg=>{throw new Error(msg)};
 const st=game.newGame('確認用','女性');
 st.bag=[{id:'IT001',n:1},{id:'IT057',n:1},{id:'IT071',n:1},{id:'IT058',n:1}];
@@ -22,6 +22,10 @@ if(Array.from(game.itemBattleBadges([],{...badgeRun,actionHistoryComplete:false}
 const guardActor=badgeRun.party[0];
 if(!game.applyAction(badgeRun,guardActor.pos,{type:'guard'}).ok||!badgeRun.actionFlags.guardUsed||!badgeRun.actionFlags.mpRestored) fail('confirmed guard action not recorded');
 if(game.applyAction(badgeRun,guardActor.pos,{type:'guard'}).ok!==false) fail('duplicate action should be rejected');
+const growth=run=>Array.from(game.growthBattleBadges(run)).join(',');
+if(growth(badgeRun)!=='B091'||growth({...badgeRun,kind:'boss',actionHistoryComplete:false})!=='B092') fail('victory kind badges failed');
+const growthRun={...badgeRun,actionFlags:{...badgeRun.actionFlags,actors:['hero','moe'],jobs:['J01','J02','J03'],revived:true}};
+if(growth(growthRun)!=='B091,B094,B095,B096'||growth({...growthRun,party:[{hp:0}]})!=='B091,B094,B095') fail('growth action badges failed');
 const actor=run.party.find(m=>m.hp>0);
 const fullHP=actor.maxHP;
 actor.maxHP=1000; actor.hp=500;
@@ -51,3 +55,4 @@ danger.enemies[0].cycle=[{t:'a',p:999}];
 const dangerousPick=game.aiChoose(danger);
 if(dangerousPick?.act.type==='item') fail('auto should not spend an item when the enemy immediately downs the party');
 console.log('Auto items: thresholds, purchasable recovery and immutable search OK');
+

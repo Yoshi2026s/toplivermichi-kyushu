@@ -72,6 +72,12 @@ if(!routeFn) fail('travel route guard missing');
 const can=runInNewContext(`${source}\n${routeFn}\nnationalRouteAvailable`);
 if(can({fukuokaClear:false},'KY02','KY03')||!can({fukuokaClear:true},'KY02','KY03')||!can({fukuokaClear:true},'KY03','KY02')||can({fukuokaClear:true},'KY01','KY03')) fail('Karatsu unlock or adjacency guard failed');
 if(can({quests:{M03:'locked'}},'KY03','KY04')||!can({quests:{M03:'complete'}},'KY03','KY04')||!can({quests:{M03:'complete'}},'KY04','KY03')) fail('Saga city unlock or return guard failed');
-console.log('National registry: 8 regions, 47 prefectures, 4 connected hubs, Saga city entry and return OK');
+const futureDef=data.match(/const FUTURE_HUBS = \[[^\n]+\];/)?.[0], worldFn=ui.match(/function renderWorld\(\)\{[\s\S]*?\n\}/)?.[0];
+if(!futureDef||!worldFn) fail('national map UI source missing');
+const future=runInNewContext(`${futureDef}\nFUTURE_HUBS`);
+const world=runInNewContext(`${source}\n${worldFn}\nrenderWorld()`,{G:{st:{visitedHubs:['KY01'],quests:{},fukuokaClear:false}},HUBS:hubs,FUTURE_HUBS:future,isSafe:()=>true,curHub:()=> 'KY01',nationalRouteAvailable:()=>false,esc:s=>String(s)});
+if((world.match(/<details>/g)||[]).length!==8||!world.includes('拠点ありは2/47都道府県')||!world.includes('JP40 福岡県：拠点あり（福岡市・北九州市）')||!world.includes('JP41 佐賀県：拠点あり（唐津市・佐賀市）')||!world.includes('JP42 長崎県：地理台帳のみ・移動不可')) fail('national directory must distinguish playable hubs from registry-only prefectures');
+console.log('National registry: 8 regions, 47 prefectures, 4 connected hubs, directory and Saga city route OK');
+
 
 

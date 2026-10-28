@@ -8,7 +8,7 @@ const core=files.map(f=>readFileSync(resolve(root,'src',f),'utf8')).join('\n');
 const ui=readFileSync(resolve(root,'src','ui.js'),'utf8');
 const section=ui.slice(ui.indexOf('const PENDING_BADGES='),ui.indexOf('function renderRecord(){'));
 const G={sheetData:{}};
-const catalog=runInNewContext(`${core}\n${section}\n({PENDING_BADGES,BADGE_GROUPS,renderBadgeRecord,renderBattleChallenges})`,{G,esc:s=>String(s)});
+const catalog=runInNewContext(`${core}\n${section}\n({PENDING_BADGES,BADGE_GROUPS,renderBadgeRecord,renderBattleChallenges,newGame,createFieldRun})`,{G,esc:s=>String(s)});
 const ids=Array.from({length:100},(_,i)=>`B${String(i+1).padStart(3,'0')}`);
 const implemented={...runInNewContext(`${core}\n({ITEM_BADGES,GROWTH_BADGES,PARTY_BADGES,ACTION_BADGES,HEAL_BADGES,MP_BADGES,CHEER_BADGES,SPEED_BADGES,ATTACK_BADGES,GUARD_BADGES,DEFENSE_BADGES})`)};
 const all=new Set([...Object.keys(catalog.PENDING_BADGES),...Object.values(implemented).flatMap(Object.keys)]);
@@ -38,5 +38,17 @@ if(!live.includes('すべて表示')||live.includes('獲得済み・B001')||live
 G.sheetData.onlyActionable=false;G.st.battleBadges=[];G.st.run.state='lost';
 live=catalog.renderBattleChallenges();
 if(!live.includes('今回達成不可・B011')||live.includes('勝利で確定・B011')||!live.includes('今おすすめできる未達成の条件はありません')) throw new Error('lost battle challenge status failed');
+const healState=catalog.newGame('確認用','女性');
+const healRun=catalog.createFieldRun(healState,'KY01-A1',{count:0,picks:[0,0]});
+healRun.party.forEach(m=>{m.job='J01';m.hp=Math.floor(m.maxHP/2);});
+healRun.A=0;healRun.bag=[];
+G.st={battleBadges:Object.keys({B001:1,B002:1,B007:1,B008:1,B011:1,B021:1,B023:1,B031:1,B061:1,B081:1}),run:healRun};
+live=catalog.renderBattleChallenges();
+if(live.slice(0,live.indexOf('速攻（')).includes('B041 癒やしの手：')) throw new Error('healing challenge recommended without a usable heal');
+healRun.A=40;
+const healBefore=JSON.stringify(healRun);
+live=catalog.renderBattleChallenges();
+if(!live.slice(0,live.indexOf('速攻（')).includes('B041 癒やしの手：')) throw new Error('usable family heal must enable healing recommendation');
+if(JSON.stringify(healRun)!==healBefore) throw new Error('recommendation search must not change battle state');
 console.log('Badge catalog: 100 IDs, 10 groups, live progress, recommendations and filter OK');
 

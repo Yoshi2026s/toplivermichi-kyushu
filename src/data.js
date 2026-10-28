@@ -127,8 +127,11 @@ const QUESTS = {
        goal:"奏太の応援のタイミングを整え、北九州市のA1～A3で通常敵を1体倒す。"}
 };
 
-/* 第15節：地域支援（福岡のみ収録） */
-const SUPPORTS = { PR01:{name:"福岡の声", text:"戦闘開始時のエール＋10", startA:10, npc:"akari"} };
+/* 第15節：地域支援 */
+const SUPPORTS = {
+  PR01:{name:"福岡の声", text:"戦闘開始時のエール＋10", startA:10, npc:"akari"},
+  PR02:{name:"佐賀の声", text:"戦闘開始時のエール＋12", startA:12, npc:"karatsuGuide"}
+};
 
 /* 第13・13A節：配信 */
 const STREAM_ACTS = {

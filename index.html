@@ -1334,6 +1334,11 @@ function aiChoose(run){
     if(a.hp<=0||a.acted) continue;
     for(const act of aiCandidates(run,a)){
       const p=planAction(run,a.pos,act); if(!p.ok) continue;
+      if(act.type==="item" && !p.heal.some(h=>h.revive)){
+        const usefulHP=p.heal.some(h=>h.amt>=Math.min(Math.ceil(run.party[h.pos].maxHP*0.03),run.party[h.pos].maxHP-run.party[h.pos].hp));
+        const usefulC=p.cgain.some(g=>g.amt>=Math.min(1,10-run.party[g.pos].c));
+        if(!usefulHP && !usefulC) continue;
+      }
       const sim=JSON.parse(JSON.stringify(run)); sim.log=[];
       const r=applyAction(sim,a.pos,act); if(!r.ok) continue;
       if(act.type==="item"&&sim.state!=="won"){

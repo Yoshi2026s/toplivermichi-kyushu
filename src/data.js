@@ -257,15 +257,18 @@ const MAPS = {
     ], zones:{"1":"KY03-A1","2":"KY03-A2","3":"KY03-A3"}
   },
   "KY04":{ hub:"KY04", name:"佐賀市", kind:"out", w:40, h:28, safeAnchor:[12,20],
-    tiles:buildMap(40,28,[[".",1,1,38,26],["T",2,3,7,9],["T",32,3,6,9],[",",1,20,37,1],[",",12,12,2,9],[",",12,12,22,2]]),
+    tiles:buildMap(40,28,[[".",1,1,38,26],["T",2,3,7,9],["T",32,3,6,9],["1",3,13,6,5],["2",30,13,6,5],["3",16,4,9,5],[",",1,20,37,1],[",",12,12,2,9],[",",12,12,22,2]]),
     objects:[
       {id:"gate_karatsu",x:1,y:20,type:"gate",label:"唐津市への道",to:"KY03",tx:46,ty:25},
       {id:"sagacity_guide",x:12,y:19,type:"npc",label:"佐賀市の案内人",npc:"sagaCityGuide"},
+      {id:"sagacity_sign1",x:9,y:15,type:"sign",label:"案内板（川沿いの道）",area:"KY04-A1"},
+      {id:"sagacity_sign2",x:29,y:15,type:"sign",label:"案内板（駅前の通り）",area:"KY04-A2"},
+      {id:"sagacity_sign3",x:20,y:9,type:"sign",label:"案内板（街灯の広場）",area:"KY04-A3"},
       {id:"sagacity_inn",x:20,y:18,type:"inn",label:"佐賀市の宿屋"},
       {id:"sagacity_rest",x:30,y:18,type:"rest",label:"休憩所（日付を進める）"},
       {id:"sagacity_board",x:26,y:13,type:"board",label:"編成ボード"},
       {id:"sagacity_record",x:33,y:13,type:"shelf",label:"旅の記録"}
-    ], zones:{}
+    ], zones:{"1":"KY04-A1","2":"KY04-A2","3":"KY04-A3"}
   }
 };
 const HUBS = {
@@ -299,7 +302,7 @@ const NPCS = {
     first:p=>[["美鈴","遊歩道の足元灯、点いたり消えたりしてるの。乱れのせいかしら。"]],
     normal:p=>[["美鈴","係留ロープの結び目って、きれいな形をしてるのよ。"]] },
   sagaCityGuide:{name:"佐賀市の案内人", hub:"KY04", sprite:[PAL.sand,PAL.coral],
-    first:p=>[["案内人",`${p}さん、佐賀市へようこそ。唐津での配信を聞きました。`],["案内人","この街から先の依頼は、まだ準備中です。宿屋や旅の記録を利用して、唐津へも戻れます。"]],
+    first:p=>[["案内人",`${p}さん、佐賀市へようこそ。唐津での配信を聞きました。`],["案内人","川沿いの道、駅前の通り、街灯の広場を調べられます。この街から先の依頼は、まだ準備中です。"]],
     normal:p=>[["案内人","唐津へは西の門から戻れます。この先の旅の準備を進めています。"]]},
   karatsuGuide:{name:"唐津の案内人", hub:"KY03", sprite:[PAL.sand,PAL.sea],
     first:p=>[["案内人",`${p}さん、唐津へようこそ。海辺の案内板から、この街の声を聞いてみてください。`],["案内人","見晴らし台の返事が乱れています。依頼帳でM03を受け、海辺の探索区域を調べてください。"]],
@@ -392,5 +395,6 @@ for(const [id,r] of Object.entries(ITEMS_RAW)){
 /* 店の道具：地域段階1（福岡）の購入可能品 */
 const SHOP_ITEMS = Object.values(ITEMS).filter(it=>(it.acq==="S"||it.acq==="SD")&&it.tier<=1).map(it=>it.id);
 const INITIAL_ITEMS = [["IT001",5],["IT033",3]];
+
 
 

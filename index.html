@@ -111,6 +111,7 @@ body.in-battle{padding-top:6px;padding-bottom:calc(var(--dockH) + 6px + env(safe
 .bhead{display:flex;justify-content:space-between;gap:6px;font-family:var(--f-dot);color:var(--gold);font-size:14px;flex-wrap:wrap}
 .gauge{display:grid;grid-template-columns:auto 1fr 2.2em;gap:6px;align-items:center;font-size:14px}
 .gauge b{text-align:right;font-variant-numeric:tabular-nums}
+.battle-support{margin:0;color:var(--gold);font-size:12px}
 .bar{display:block;height:7px;background:var(--ink);border:1px solid var(--mist);overflow:hidden}
 .bar i{display:block;height:100%;background:var(--aqua)}
 .bar.enemy i{background:var(--coral)}
@@ -2370,6 +2371,7 @@ function renderBattle(){
   return `<section class="battle">
     <div class="bhead"><span>ターン${run.turn}・${esc(DIFFICULTY[run.difficulty].name)}・${run.kind==="boss"?"地域ボス":esc(AREAS[run.areaId].name)}</span><span>コメント連携${run.B}・${chain}</span></div>
     <div class="gauge" aria-label="エール${run.A}"><span>エール</span><span class="bar ale"><i style="width:${run.A}%"></i></span><b>${run.A}</b></div>
+    ${run.support&&SUPPORTS[run.support]?`<p class="battle-support small">地域支援：${esc(SUPPORTS[run.support].name)}（${esc(SUPPORTS[run.support].text)}）</p>`:""}
     ${cueText(run)}
     <div class="enemies"><canvas class="stagebg" width="160" height="64" aria-hidden="true"></canvas>${enemies}</div>
     <div class="party">${run.party.map((m,i)=>partyCard(m,i,run)).join("")}</div>
@@ -2894,7 +2896,7 @@ function renderItems(){
 function qtyRow(q,max){ return `<div class="row3"><button class="btn" data-a="shopQty" data-v="${q-1}" ${q>1?"":"disabled"}>−</button><span class="qty">数量 ${q}個（最大${max}個）</span><button class="btn" data-a="shopQty" data-v="${q+1}" ${q<max?"":"disabled"}>＋</button></div>`; }
 function renderMoe(){
   const st=G.st; const r=MOE_RANKS[st.moeRank];
-  const line = st.moeRank===0?"まずは福岡の声を整えよう。放送塔の丘の奥で、大きな重なりが起きてるみたい。": st.moeRank===1?"北九州の港で、初めての採点配信をしたいな。準備、手伝ってくれる？":"福岡、ありがとう。次の街でも、一人ずつの声に返事をしていきたい。";
+  const line = st.moeRank===0?"まずは福岡の声を整えよう。放送塔の丘の奥で、大きな重なりが起きてるみたい。":st.moeRank===1?"北九州の港で、初めての採点配信をしたいな。準備、手伝ってくれる？":st.moeRank===2?"福岡、ありがとう。唐津でも、一人ずつの声に返事をしていきたい。":st.moeRank===3?"唐津の声を聞けたね。次は佐賀市で、街の声をつなごう。":"佐賀市の声も届けられたね。次の旅に向けて準備しよう。";
   const read=Object.keys(SCENES).filter(k=>st.scenes[k]);
   return `<div class="who"><canvas class="sprite-md" data-char="moe" width="16" height="24" aria-hidden="true"></canvas><div><b>雪餅羽もえ</b>（のわんもえ）<br><span class="small">メインライバー・シナリオ到達ランク ${r}</span></div></div>
     <p class="dlg-text">「${esc(line)}」</p>
@@ -2952,7 +2954,7 @@ const ACT = {
   acceptQuest(el){ if(!canManageQuests()) return; const st=G.st, id=el.dataset.v, q=QUESTS[id]; if(!q||st.quests[id]!=="available"||st.activeQuest||curHub()!==q.hub||!isSafe()) return toast("依頼の状態が変わりました。選び直してください。"); if(st.slots<2) return openSheet("rest",{reason:"受注には旅程枠2が必要です。"});
     el.disabled=true;
     st.slots-=2; st.quests[id]="active"; st.activeQuest=id; st.qprog[id]=st.qprog[id]||0; commit(); G.sheet=null; render();
-    say([["",`依頼「${id} ${QUESTS[id].name}」を受けた。`],["もえ",id==="M01"?"呼びかけと紹介の順番が重なってる……。始まりと返事の順番を取り戻そう。":id==="M02"?"港の声を、ひとつずつ届けたいな。":"一緒に考えよう。"],["",QUESTS[id].goal]]); },
+    say([["",`依頼「${id} ${QUESTS[id].name}」を受けた。`],["もえ",id==="M01"?"呼びかけと紹介の順番が重なってる……。始まりと返事の順番を取り戻そう。":id==="M02"?"港の声を、ひとつずつ届けたいな。":id==="M03"?"唐津の海辺で聞いた返事を、配信でも届けたいな。":id==="M04"?"佐賀市の川沿いと駅前で、街の声を集めよう。":"一緒に考えよう。"],["",QUESTS[id].goal]]); },
   abandonQuest(el){ if(!canManageQuests()) return; const st=G.st, id=el.dataset.v; if(!QUESTS[id]||st.activeQuest!==id||!["active","bossReady"].includes(st.quests[id])) return toast("依頼の状態が変わりました。選び直してください。"); el.disabled=true; st.quests[id]="available"; st.qprog[id]=0; st.activeQuest=null; commit(); render(); toast("依頼を放棄した。受注費は戻りません。"); },
   bossGo(el){ const st=G.st,bid=el.dataset.v,qid=Object.keys(QUESTS).find(k=>QUESTS[k].boss===bid); if(!st||G.readOnly||G.screen!=="explore"||G.sheet!=="boss"||G.sheetData.bid!==bid||G.dlg||st.run||G.walk.path.length||!qid||st.activeQuest!==qid||st.quests[qid]!=="bossReady"||st.bossDefeated[bid]||!nearbyObjects().some(o=>o.type==="boss"&&o.boss===bid)) return toast("ボスへの挑戦条件が変わりました。調べ直してください。"); el.disabled=true; startBattle(createBossRun(st,bid)); },
   pickActor(el){ const i=+el.dataset.i; const m=G.st.run.party[i]; if(m.hp<=0||m.acted) return; G.cmd={actor:i}; render(); },

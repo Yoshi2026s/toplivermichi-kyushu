@@ -98,7 +98,7 @@ function baseRun(st, kind){
     party: buildParty(st,L), enemies:[], turn:1, A:Math.min(100,A0), B:0,
     chain:{stage:0, members:[]}, kiraDone:false, firstKill:false,
     cue:null, log:[], itemHistory:[], itemHistoryComplete:true,
-    actionFlags:{cheerSpent:false,cheerPeak:Math.min(100,A0),commentLines:[],cheerAction:false,skillUsed:false,mpRestored:false,mpSpent:false,mpTargets:[],mpGuard:false,mpRest:false,mpSkill:false,mpItem:false,mpLow:false,guardUsed:false,guardActors:[],guardHit:false,wardHit:false,zeroHit:false,heavyGuardHit:false,criticalSurvive:false,actors:[],jobs:[],actionTypes:[],skills:[],healTargets:[],healMulti:false,familyHeal:false,itemHeal:false,selfHeal:false,otherHeal:false,fullHeal:false,revived:false,lowHeal:false,cueSolved:false,downSeen:false}, actionHistoryComplete:true,
+    actionFlags:{actionCount:0,enemyAttacked:false,restUsed:false,firstTurnDamage:false,cheerSpent:false,cheerPeak:Math.min(100,A0),commentLines:[],cheerAction:false,skillUsed:false,mpRestored:false,mpSpent:false,mpTargets:[],mpGuard:false,mpRest:false,mpSkill:false,mpItem:false,mpLow:false,guardUsed:false,guardActors:[],guardHit:false,wardHit:false,zeroHit:false,heavyGuardHit:false,criticalSurvive:false,actors:[],jobs:[],actionTypes:[],skills:[],healTargets:[],healMulti:false,familyHeal:false,itemHeal:false,selfHeal:false,otherHeal:false,fullHeal:false,revived:false,lowHeal:false,cueSolved:false,downSeen:false}, actionHistoryComplete:true,
     state:"input", rewardsApplied:false, bag:clone(st.bag||[]) };
 }
 function createFieldRun(st, areaId, rolls){ // rolls: {count:0|1, picks:[r0,r1]}
@@ -275,6 +275,8 @@ function applyAction(run, idx, act){
   const p = planAction(run, idx, act);
   if(!p.ok) return {ok:false, reason:p.reason};
   if(run.actionHistoryComplete===true && run.actionFlags){
+    if(Number.isInteger(run.actionFlags.actionCount)) run.actionFlags.actionCount++;
+    if(act.type==="rest") run.actionFlags.restUsed=true;
     if(p.cost.a>0) run.actionFlags.cheerSpent=true;
     if(act.type==="comment" && Array.isArray(run.actionFlags.commentLines) && !run.actionFlags.commentLines.includes(act.line)) run.actionFlags.commentLines.push(act.line);
     if(act.type==="family" || act.type==="meter") run.actionFlags.cheerAction=true;
@@ -321,6 +323,7 @@ function applyAction(run, idx, act){
   for(const d of p.dmg){
     const e = run.enemies.find(x=>x.slot===d.slot); if(!e||e.hp<=0) continue;
     const real = Math.min(d.raw, e.hp); e.hp -= real; log.push(`${e.display}に${real}ダメージ。`);
+    if(real>0 && run.turn===1 && run.actionHistoryComplete===true && run.actionFlags) run.actionFlags.firstTurnDamage=true;
     if(e.hp<=0){ killedNow++; log.push(`${e.display}を鎮めた。`); }
   }
   if(p.consumeB){ run.B=0; }
@@ -384,6 +387,7 @@ function enemyPhase(run){
   for(const e of run.enemies.filter(x=>x.hp>0).sort((x,y)=>x.slot-y.slot)){
     const act = enemyAction(run,e);
     if(act.type==="c"){ log.push(`${e.display}は力をためている。`); continue; }
+    if(run.actionHistoryComplete===true && run.actionFlags) run.actionFlags.enemyAttacked=true;
     const targets = act.type==="a" ? alive(run) : [run.party[act.target]].filter(Boolean);
     for(const t of targets){
       let inc = Math.max(0, act.power - run.V*(t.armorD + t.ward));
@@ -681,6 +685,23 @@ const ACTION_BADGES={B021:"多彩な作戦",B022:"引き出し豊富",B026:"技�
 const HEAL_BADGES={B041:"癒やしの手",B042:"仲間を気遣う",B043:"みんなを癒やす",B044:"立て直し",B045:"もう一度一緒に",B046:"ファミリーのぬくもり",B047:"道具で応急手当",B048:"自分も大切に",B049:"あなたを支える",B050:"元気いっぱい"};
 const MP_BADGES={B051:"守って補給",B052:"ひと息の価値",B053:"技能で補給",B054:"携帯補給",B055:"MPを分け合う",B056:"MPの余裕",B057:"息切れから復帰",B058:"明日への備え",B059:"自然な補給",B060:"MPを使い切らない"};
 const CHEER_BADGES={B061:"最初の声援",B062:"三つの言葉",B063:"挨拶から始まる",B064:"作戦を共有",B065:"感謝の気持ち",B066:"キラコメ完成",B067:"応援が届く",B068:"大きな応援",B069:"満場の応援",B070:"応援を行動に"};
+const SPEED_BADGES={B001:"開幕の決着",B002:"短期決着",B003:"安定した進行",B004:"一人一手の決着",B005:"先手必勝",B006:"止まらない攻勢",B007:"初手の一撃",B008:"決戦を駆ける",B010:"少ない手数"};
+function speedBattleBadges(run){
+  const out=[];
+  if(run.turn<=1) out.push("B001");
+  if(run.turn<=3) out.push("B002");
+  if(run.turn<=5) out.push("B003");
+  if(run.kind==="boss" && run.turn<=8) out.push("B008");
+  if(run.actionHistoryComplete===true && run.actionFlags){
+    const f=run.actionFlags;
+    if(Number.isInteger(f.actionCount) && f.actionCount<=run.party.length) out.push("B004");
+    if(f.enemyAttacked===false) out.push("B005");
+    if(f.restUsed===false) out.push("B006");
+    if(f.firstTurnDamage) out.push("B007");
+    if(Number.isInteger(f.actionCount) && f.actionCount<=6) out.push("B010");
+  }
+  return out.sort();
+}
 function cheerBattleBadges(run){
   const out=[];
   if(run.actionHistoryComplete===true && run.actionFlags){

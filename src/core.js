@@ -836,9 +836,10 @@ function aiChoose(run){
         if(!netGain||newDown) continue;
       }
       let sc=aiScore(run,sim);
+      const winning=sim.state==="won";
       if(act.type==="attack") sc+=0.5;            // 同点なら通常攻撃
       if(act.type==="item"){ const it=ITEMS[act.item]; sc -= 10 + 12*it.stars + Math.min(60,Math.max(it.price,it.sell,40)/4); } // 道具は数に限りがあるため控えめに（レアほど温存）
-      if(!best||sc>best.score) best={idx:a.pos, act, score:sc, label:actLabel(run,a,act), name:a.name};
+      if(!best||(winning&&!best.winning)||(winning===best.winning&&sc>best.score)) best={idx:a.pos, act, score:sc, winning, label:actLabel(run,a,act), name:a.name};
     }
   }
   return best;

@@ -98,7 +98,7 @@ function baseRun(st, kind){
     party: buildParty(st,L), enemies:[], turn:1, A:Math.min(100,A0), B:0,
     chain:{stage:0, members:[]}, kiraDone:false, firstKill:false,
     cue:null, log:[], itemHistory:[], itemHistoryComplete:true,
-    actionFlags:{cheerSpent:false,skillUsed:false,mpRestored:false,guardUsed:false,actors:[],jobs:[],actionTypes:[],skills:[],revived:false,lowHeal:false,cueSolved:false,downSeen:false}, actionHistoryComplete:true,
+    actionFlags:{cheerSpent:false,skillUsed:false,mpRestored:false,guardUsed:false,actors:[],jobs:[],actionTypes:[],skills:[],healTargets:[],healMulti:false,familyHeal:false,itemHeal:false,selfHeal:false,otherHeal:false,fullHeal:false,revived:false,lowHeal:false,cueSolved:false,downSeen:false}, actionHistoryComplete:true,
     state:"input", rewardsApplied:false, bag:clone(st.bag||[]) };
 }
 function createFieldRun(st, areaId, rolls){ // rolls: {count:0|1, picks:[r0,r1]}
@@ -285,6 +285,17 @@ function applyAction(run, idx, act){
     if(!run.actionFlags.jobs.includes(run.party[idx].job)) run.actionFlags.jobs.push(run.party[idx].job);
     if(p.heal.some(h=>h.revive)) run.actionFlags.revived=true;
     if(p.heal.some(h=>h.amt>0 && !h.revive && run.party[h.pos].hp>0 && run.party[h.pos].hp<=run.party[h.pos].maxHP*0.3)) run.actionFlags.lowHeal=true;
+    const healed=p.heal.filter(h=>h.amt>0);
+    if(Array.isArray(run.actionFlags.healTargets)) for(const h of healed){
+      const cid=run.party[h.pos].cid;
+      if(!run.actionFlags.healTargets.includes(cid)) run.actionFlags.healTargets.push(cid);
+    }
+    if(healed.length>=2) run.actionFlags.healMulti=true;
+    if(healed.length && act.type==="family") run.actionFlags.familyHeal=true;
+    if(healed.length && act.type==="item") run.actionFlags.itemHeal=true;
+    if(healed.some(h=>h.pos===idx)) run.actionFlags.selfHeal=true;
+    if(healed.some(h=>h.pos!==idx)) run.actionFlags.otherHeal=true;
+    if(healed.some(h=>h.amt>=run.party[h.pos].maxHP-run.party[h.pos].hp)) run.actionFlags.fullHeal=true;
   }
   const a = run.party[idx]; const log=[]; const nm=a.name;
   const label = actLabel(run,a,act);
@@ -632,6 +643,24 @@ function growthBattleBadges(run){
 const DEFENSE_BADGES={B036:"全員で帰還",B037:"余力を残す",B038:"万全の勝利"};
 const PARTY_BADGES={B023:"二人で進む",B024:"全員に出番",B025:"職業を合わせる"};
 const ACTION_BADGES={B021:"多彩な作戦",B022:"引き出し豊富",B026:"技を使い分ける",B027:"攻撃の二本柱",B028:"攻守の切り替え",B029:"声と技の共演"};
+const HEAL_BADGES={B041:"癒やしの手",B042:"仲間を気遣う",B043:"みんなを癒やす",B044:"立て直し",B045:"もう一度一緒に",B046:"ファミリーのぬくもり",B047:"道具で応急手当",B048:"自分も大切に",B049:"あなたを支える",B050:"元気いっぱい"};
+function healBattleBadges(run){
+  if(run.actionHistoryComplete!==true || !run.actionFlags) return [];
+  const f=run.actionFlags;
+  const targets=new Set(Array.isArray(f.healTargets)?f.healTargets:[]);
+  const out=[];
+  if(targets.size) out.push("B041");
+  if(targets.size>=2) out.push("B042");
+  if(f.healMulti) out.push("B043");
+  if(f.lowHeal) out.push("B044");
+  if(f.revived) out.push("B045");
+  if(f.familyHeal) out.push("B046");
+  if(f.itemHeal) out.push("B047");
+  if(f.selfHeal) out.push("B048");
+  if(f.otherHeal) out.push("B049");
+  if(f.fullHeal) out.push("B050");
+  return out;
+}
 function actionBattleBadges(run){
   if(run.actionHistoryComplete!==true || !run.actionFlags) return [];
   const types=new Set(Array.isArray(run.actionFlags.actionTypes)?run.actionFlags.actionTypes:[]);

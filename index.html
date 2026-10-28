@@ -3185,9 +3185,9 @@ function renderGoldVault(){
   const preview=d.preview;
   return `<p>手持ち ${st.gold.toLocaleString()}G／金庫 ${st.vaultGold.toLocaleString()}G</p><p class="small">全街共通。1G単位で預入・引出できます。手数料・利息なし。金庫残高は買物・敗北時の減額に使いません。</p>
     <div class="stack"><button class="btn ${mode==="deposit"?"on":""}" data-a="vaultMode" data-v="deposit" aria-pressed="${mode==="deposit"}" ${can?"":"disabled"}>預け入れ</button><button class="btn ${mode==="withdraw"?"on":""}" data-a="vaultMode" data-v="withdraw" aria-pressed="${mode==="withdraw"}" ${can?"":"disabled"}>引き出し</button></div>
-    <label class="label" for="vaultAmount">${mode==="deposit"?"預ける":"引き出す"}金額（G）</label><input id="vaultAmount" type="number" min="1" step="1" inputmode="numeric" value="${esc(d.amount||"")}" ${can?"":"disabled"}>
-    <div class="stack">${[100,1000,10000].map(n=>`<button class="btn" data-a="vaultAmount" data-v="${n}" ${can?"":"disabled"}>${n.toLocaleString()}G</button>`).join("")}<button class="btn" data-a="vaultAmount" data-v="half" ${can?"":"disabled"}>半分</button><button class="btn" data-a="vaultAmount" data-v="max" ${can?"":"disabled"}>最大（${from.toLocaleString()}G）</button></div>
-    ${preview?`<p class="small">${mode==="deposit"?"預入":"引出"} ${preview.amount.toLocaleString()}G：手持ち ${preview.afterGold.toLocaleString()}G／金庫 ${preview.afterVault.toLocaleString()}G</p><button class="btn primary" data-a="vaultCommit" data-token="${preview.token}" ${can?"":"disabled"}>送金を確定</button>`:`<button class="btn primary" data-a="vaultPreview" ${can?"":"disabled"}>金額を確認</button>`}
+    <label class="label" for="vaultAmount">${mode==="deposit"?"預ける":"引き出す"}金額（G）</label><input id="vaultAmount" type="number" min="1" step="1" inputmode="numeric" value="${esc(d.amount||"")}" ${can&&!preview?"":"disabled"}>
+    <div class="stack">${[100,1000,10000].map(n=>`<button class="btn" data-a="vaultAmount" data-v="${n}" ${can&&!preview?"":"disabled"}>${n.toLocaleString()}G</button>`).join("")}<button class="btn" data-a="vaultAmount" data-v="half" ${can&&!preview?"":"disabled"}>半分</button><button class="btn" data-a="vaultAmount" data-v="max" ${can&&!preview?"":"disabled"}>最大（${from.toLocaleString()}G）</button></div>
+    ${preview?`<p class="small">${mode==="deposit"?"預入":"引出"} ${preview.amount.toLocaleString()}G：手持ち ${preview.afterGold.toLocaleString()}G／金庫 ${preview.afterVault.toLocaleString()}G</p><button class="btn primary" data-a="vaultCommit" data-token="${preview.token}" ${can?"":"disabled"}>送金を確定</button><button class="btn" data-a="vaultEdit" ${can?"":"disabled"}>金額を修正する</button>`:`<button class="btn primary" data-a="vaultPreview" ${can?"":"disabled"}>金額を確認</button>`}
     <button class="btn" data-a="vaultBack">記録へ戻る</button>`;
 }
 function renderDex(){
@@ -3338,6 +3338,7 @@ const ACT = {
   vaultAmount(el){ if(!canEditVault()) return; const mode=G.sheetData.mode==="withdraw"?"withdraw":"deposit",from=mode==="deposit"?G.st.gold:G.st.vaultGold;
     const amount=el.dataset.v==="max"?from:el.dataset.v==="half"?Math.floor(from/2):Number(el.dataset.v);
     if(!Number.isSafeInteger(amount)||amount<1) return toast("送金できる残高がありません。"); G.sheetData.amount=String(amount); G.sheetData.preview=null; render(); },
+  vaultEdit(){ if(!canEditVault()||!G.sheetData.preview) return; G.sheetData.preview=null; render(); },
   vaultPreview(){ if(!canEditVault()) return; const d=G.sheetData,st=G.st,mode=d.mode==="withdraw"?"withdraw":"deposit",raw=$("#vaultAmount")?.value||"",from=mode==="deposit"?st.gold:st.vaultGold,to=mode==="deposit"?st.vaultGold:st.gold,amount=vaultAmountValue(raw,from,to);
     if(!amount) return toast("1G以上の整数を残高以内で入力してください。");
     const p={mode,amount,gold:st.gold,vault:st.vaultGold,gen:st.saveGeneration,afterGold:st.gold+(mode==="deposit"?-amount:amount),afterVault:st.vaultGold+(mode==="deposit"?amount:-amount)};

@@ -35,11 +35,21 @@ const actions=runInNewContext(`${checksumDef}\n${actDef}\nACT`,{G:uiState,$:()=>
 actions.vaultPreview();
 const preview=uiState.sheetData.preview;
 if(preview?.afterGold!==0||preview.afterVault!==35510) throw new Error('vault preview balance failed');
+actions.vaultEdit();
+if(uiState.sheetData.preview!==null||uiState.st.gold!==35510) throw new Error('editing preview changed balance');
+actions.vaultCommit({dataset:{token:preview.token},disabled:false});
+if(commits!==0) throw new Error('canceled confirmation transferred gold');
+actions.vaultPreview();
 input='35509';actions.vaultCommit({dataset:{token:preview.token},disabled:false});
 if(uiState.st.gold!==35510||commits!==0) throw new Error('changed input bypassed confirmation');
 input='35510';const button={dataset:{token:preview.token},disabled:false};actions.vaultCommit(button);
 if(uiState.st.gold!==0||uiState.st.vaultGold!==35510||commits!==1||!button.disabled) throw new Error('confirmed vault transfer failed');
 actions.vaultCommit({dataset:{token:preview.token},disabled:false});
 if(commits!==1||uiState.st.vaultGold!==35510) throw new Error('stale vault confirmation repeated transfer');
+const vaultViewFn=ui.match(/function renderGoldVault\(\)\{[\s\S]*?\n\}/)?.[0];
+if(!vaultViewFn) throw new Error('vault view missing');
+uiState.sheetData={mode:'withdraw',amount:'1000',preview:{amount:1000,afterGold:1000,afterVault:34510,token:'test'}};
+const view=runInNewContext(`${vaultViewFn}\nrenderGoldVault()`,{G:uiState,canEditVault:()=>true,esc:s=>String(s)});
+if(!view.includes('data-a="vaultEdit"')||!/<input id="vaultAmount"[^>]+disabled/.test(view)) throw new Error('confirmation view must lock amount and allow editing');
 console.log('Gold vault: full deposit, withdrawal, invalid amounts and legacy save OK');
 

@@ -659,7 +659,7 @@ function toResult(){
   if(res.levelAfter>res.levelBefore && Vof(res.levelAfter)>Vof(res.levelBefore)) res.notes.push("技能・装備の効果量が上昇（V"+Vof(res.levelAfter)+"）");
   const L0=res.levelBefore, L1=levelOf(st.xp);
   st.lastResult={seq:run.seq, kind:run.kind, bossId:run.bossId||null, turns:run.turn, ...res,
-    itemsUsed:clone(run.itemHistory||[]),
+    itemsUsed:clone(Array.isArray(run.itemHistory)?run.itemHistory:[]),
     enemies:run.enemies.map(e=>({name:e.display||e.name, boss:!!e.boss, rarity:e.rarity||0})),
     members:run.party.map(m=>({cid:m.cid, maxBefore:charStats(st,m.cid,L0).maxHP, maxAfter:charStats(st,m.cid,L1).maxHP}))};
   const back=run.returnPos; st.run=null;
@@ -1138,6 +1138,8 @@ function soundPref(){ try{ return localStorage.getItem("tlr-kyushu-sound")!=="0"
 function migrate(s){
   if(!s.itemsVersion){ s.bag=INITIAL_ITEMS.map(([id,n])=>({id,n})); s.keep=[]; s.itemsVersion=1; s.gameVersion=GAME_VERSION; }
   if(s.run&&!s.run.bag) s.run.bag=clone(s.bag);
+  if(s.run&&!Array.isArray(s.run.itemHistory)) s.run.itemHistory=[];
+  if(s.lastResult&&!Array.isArray(s.lastResult.itemsUsed)) s.lastResult.itemsUsed=[];
   if(s.settings&&s.settings.soundV!==2){ s.settings.sound=true; s.settings.soundV=2; }
   if(s.vitals===undefined) s.vitals=null;
   s.jobs.moe=s.jobs.moe||"J08"; s.jp.moe=s.jp.moe||{}; s.equip.moe=s.equip.moe||{w:null,a:null,acc:null};

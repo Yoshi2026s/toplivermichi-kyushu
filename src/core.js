@@ -97,7 +97,7 @@ function baseRun(st, kind){
   return { seq: st.runSeq+1, kind, L, V:Vof(L), difficulty:st.settings.difficulty, support:st.support,
     party: buildParty(st,L), enemies:[], turn:1, A:Math.min(100,A0), B:0,
     chain:{stage:0, members:[]}, kiraDone:false, firstKill:false,
-    cue:null, log:[], state:"input", rewardsApplied:false, bag:clone(st.bag||[]) };
+    cue:null, log:[], itemHistory:[], state:"input", rewardsApplied:false, bag:clone(st.bag||[]) };
 }
 function createFieldRun(st, areaId, rolls){ // rolls: {count:0|1, picks:[r0,r1]}
   const run = baseRun(st,"field"); const ar=AREAS[areaId]; const q=ar.q; const diff=DIFFICULTY[run.difficulty];
@@ -293,7 +293,7 @@ function applyAction(run, idx, act){
   if(p.guard){ a.guard=true; log.push(`${nm}は身構えた。`); }
   if(p.item){
     bagRemove(run.bag, p.item, 1);
-    run.itemHistory=run.itemHistory||[];
+    if(!Array.isArray(run.itemHistory)) run.itemHistory=[];
     run.itemHistory.push({id:p.item,actor:a.cid,turn:run.turn,
       hp:p.heal.reduce((n,h)=>n+h.amt,0), c:p.cgain.reduce((n,g)=>n+g.amt,0),
       revives:p.heal.filter(h=>h.revive).length});

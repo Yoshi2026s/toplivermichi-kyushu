@@ -98,7 +98,7 @@ function baseRun(st, kind){
     party: buildParty(st,L), enemies:[], turn:1, A:Math.min(100,A0), B:0,
     chain:{stage:0, members:[]}, kiraDone:false, firstKill:false,
     cue:null, log:[], itemHistory:[], itemHistoryComplete:true,
-    actionFlags:{cheerSpent:false,skillUsed:false,mpRestored:false,guardUsed:false,actors:[],jobs:[],actionTypes:[],skills:[],healTargets:[],healMulti:false,familyHeal:false,itemHeal:false,selfHeal:false,otherHeal:false,fullHeal:false,revived:false,lowHeal:false,cueSolved:false,downSeen:false}, actionHistoryComplete:true,
+    actionFlags:{cheerSpent:false,skillUsed:false,mpRestored:false,guardUsed:false,guardActors:[],guardHit:false,wardHit:false,zeroHit:false,heavyGuardHit:false,criticalSurvive:false,actors:[],jobs:[],actionTypes:[],skills:[],healTargets:[],healMulti:false,familyHeal:false,itemHeal:false,selfHeal:false,otherHeal:false,fullHeal:false,revived:false,lowHeal:false,cueSolved:false,downSeen:false}, actionHistoryComplete:true,
     state:"input", rewardsApplied:false, bag:clone(st.bag||[]) };
 }
 function createFieldRun(st, areaId, rolls){ // rolls: {count:0|1, picks:[r0,r1]}
@@ -279,6 +279,7 @@ function applyAction(run, idx, act){
     if(act.type==="skill") run.actionFlags.skillUsed=true;
     if(act.type!=="item" && p.cgain.some(g=>g.amt>0)) run.actionFlags.mpRestored=true;
     if(act.type==="guard") run.actionFlags.guardUsed=true;
+    if(act.type==="guard" && Array.isArray(run.actionFlags.guardActors) && !run.actionFlags.guardActors.includes(run.party[idx].cid)) run.actionFlags.guardActors.push(run.party[idx].cid);
     if(Array.isArray(run.actionFlags.actionTypes) && !run.actionFlags.actionTypes.includes(act.type)) run.actionFlags.actionTypes.push(act.type);
     if(act.type==="skill" && Array.isArray(run.actionFlags.skills) && !run.actionFlags.skills.includes(run.party[idx].job)) run.actionFlags.skills.push(run.party[idx].job);
     if(!run.actionFlags.actors.includes(run.party[idx].cid)) run.actionFlags.actors.push(run.party[idx].cid);
@@ -373,7 +374,15 @@ function enemyPhase(run){
     for(const t of targets){
       let inc = Math.max(0, act.power - run.V*(t.armorD + t.ward));
       if(t.guard) inc = Math.ceil(inc/2);
+      if(run.actionHistoryComplete===true && run.actionFlags){
+        const flags=run.actionFlags;
+        if(t.guard) flags.guardHit=true;
+        if(t.ward>0) flags.wardHit=true;
+        if(inc===0) flags.zeroHit=true;
+        if(act.heavy && t.guard) flags.heavyGuardHit=true;
+      }
       t.hp = Math.max(0, t.hp-inc);
+      if(inc>0 && t.hp>0 && t.hp<=t.maxHP*0.3 && run.actionHistoryComplete===true && run.actionFlags) run.actionFlags.criticalSurvive=true;
       if(t.hp===0 && run.actionHistoryComplete===true && run.actionFlags) run.actionFlags.downSeen=true;
       log.push(`${e.display}の${act.type==="a"?"全体攻撃":"攻撃"}。${t.name}に${inc}。`+(t.hp===0?` ${t.name}は戦闘不能。`:""));
     }
@@ -641,6 +650,18 @@ function growthBattleBadges(run){
   return out;
 }
 const DEFENSE_BADGES={B036:"全員で帰還",B037:"余力を残す",B038:"万全の勝利"};
+const GUARD_BADGES={B031:"守りの達人",B032:"交代で守る",B033:"防護がある安心",B034:"無傷の受け止め",B039:"強攻撃への備え",B040:"踏みとどまる"};
+function guardBattleBadges(run){
+  if(run.actionHistoryComplete!==true || !run.actionFlags) return [];
+  const f=run.actionFlags, out=[];
+  if(f.guardHit) out.push("B031");
+  if(Array.isArray(f.guardActors) && new Set(f.guardActors).size>=2) out.push("B032");
+  if(f.wardHit) out.push("B033");
+  if(f.zeroHit) out.push("B034");
+  if(f.heavyGuardHit) out.push("B039");
+  if(f.criticalSurvive) out.push("B040");
+  return out;
+}
 const PARTY_BADGES={B023:"二人で進む",B024:"全員に出番",B025:"職業を合わせる"};
 const ACTION_BADGES={B021:"多彩な作戦",B022:"引き出し豊富",B026:"技を使い分ける",B027:"攻撃の二本柱",B028:"攻守の切り替え",B029:"声と技の共演"};
 const HEAL_BADGES={B041:"癒やしの手",B042:"仲間を気遣う",B043:"みんなを癒やす",B044:"立て直し",B045:"もう一度一緒に",B046:"ファミリーのぬくもり",B047:"道具で応急手当",B048:"自分も大切に",B049:"あなたを支える",B050:"元気いっぱい"};

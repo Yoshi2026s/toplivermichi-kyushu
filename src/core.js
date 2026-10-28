@@ -98,7 +98,7 @@ function baseRun(st, kind){
     party: buildParty(st,L), enemies:[], turn:1, A:Math.min(100,A0), B:0,
     chain:{stage:0, members:[]}, kiraDone:false, firstKill:false,
     cue:null, log:[], itemHistory:[], itemHistoryComplete:true,
-    actionFlags:{cheerSpent:false,skillUsed:false,mpRestored:false,guardUsed:false,guardActors:[],guardHit:false,wardHit:false,zeroHit:false,heavyGuardHit:false,criticalSurvive:false,actors:[],jobs:[],actionTypes:[],skills:[],healTargets:[],healMulti:false,familyHeal:false,itemHeal:false,selfHeal:false,otherHeal:false,fullHeal:false,revived:false,lowHeal:false,cueSolved:false,downSeen:false}, actionHistoryComplete:true,
+    actionFlags:{cheerSpent:false,skillUsed:false,mpRestored:false,mpSpent:false,mpTargets:[],mpGuard:false,mpRest:false,mpSkill:false,mpItem:false,mpLow:false,guardUsed:false,guardActors:[],guardHit:false,wardHit:false,zeroHit:false,heavyGuardHit:false,criticalSurvive:false,actors:[],jobs:[],actionTypes:[],skills:[],healTargets:[],healMulti:false,familyHeal:false,itemHeal:false,selfHeal:false,otherHeal:false,fullHeal:false,revived:false,lowHeal:false,cueSolved:false,downSeen:false}, actionHistoryComplete:true,
     state:"input", rewardsApplied:false, bag:clone(st.bag||[]) };
 }
 function createFieldRun(st, areaId, rolls){ // rolls: {count:0|1, picks:[r0,r1]}
@@ -278,6 +278,17 @@ function applyAction(run, idx, act){
     if(p.cost.a>0) run.actionFlags.cheerSpent=true;
     if(act.type==="skill") run.actionFlags.skillUsed=true;
     if(act.type!=="item" && p.cgain.some(g=>g.amt>0)) run.actionFlags.mpRestored=true;
+    if(p.cost.c>0) run.actionFlags.mpSpent=true;
+    const restored=p.cgain.filter(g=>g.amt>0);
+    if(Array.isArray(run.actionFlags.mpTargets)) for(const g of restored){
+      const cid=run.party[g.pos].cid;
+      if(!run.actionFlags.mpTargets.includes(cid)) run.actionFlags.mpTargets.push(cid);
+    }
+    if(restored.length && act.type==="guard") run.actionFlags.mpGuard=true;
+    if(restored.length && act.type==="rest") run.actionFlags.mpRest=true;
+    if(restored.length && act.type==="skill") run.actionFlags.mpSkill=true;
+    if(restored.length && act.type==="item") run.actionFlags.mpItem=true;
+    if(restored.some(g=>run.party[g.pos].c-(g.pos===idx?p.cost.c:0)<=2)) run.actionFlags.mpLow=true;
     if(act.type==="guard") run.actionFlags.guardUsed=true;
     if(act.type==="guard" && Array.isArray(run.actionFlags.guardActors) && !run.actionFlags.guardActors.includes(run.party[idx].cid)) run.actionFlags.guardActors.push(run.party[idx].cid);
     if(Array.isArray(run.actionFlags.actionTypes) && !run.actionFlags.actionTypes.includes(act.type)) run.actionFlags.actionTypes.push(act.type);
@@ -665,6 +676,24 @@ function guardBattleBadges(run){
 const PARTY_BADGES={B023:"二人で進む",B024:"全員に出番",B025:"職業を合わせる"};
 const ACTION_BADGES={B021:"多彩な作戦",B022:"引き出し豊富",B026:"技を使い分ける",B027:"攻撃の二本柱",B028:"攻守の切り替え",B029:"声と技の共演"};
 const HEAL_BADGES={B041:"癒やしの手",B042:"仲間を気遣う",B043:"みんなを癒やす",B044:"立て直し",B045:"もう一度一緒に",B046:"ファミリーのぬくもり",B047:"道具で応急手当",B048:"自分も大切に",B049:"あなたを支える",B050:"元気いっぱい"};
+const MP_BADGES={B051:"守って補給",B052:"ひと息の価値",B053:"技能で補給",B054:"携帯補給",B055:"MPを分け合う",B056:"MPの余裕",B057:"息切れから復帰",B058:"明日への備え",B059:"自然な補給",B060:"MPを使い切らない"};
+function mpBattleBadges(run){
+  const out=[];
+  if(run.actionHistoryComplete===true && run.actionFlags){
+    const f=run.actionFlags;
+    if(f.mpGuard) out.push("B051");
+    if(f.mpRest) out.push("B052");
+    if(f.mpSkill) out.push("B053");
+    if(f.mpItem) out.push("B054");
+    if(Array.isArray(f.mpTargets) && new Set(f.mpTargets).size>=2) out.push("B055");
+    if(f.mpLow) out.push("B057");
+    if(f.mpRestored) out.push("B059");
+    if(f.mpSpent && run.party.every(m=>m.c>=1)) out.push("B060");
+  }
+  if(run.party.every(m=>m.c>=5)) out.push("B056");
+  if(run.party.every(m=>m.c>=3)) out.push("B058");
+  return out.sort();
+}
 function healBattleBadges(run){
   if(run.actionHistoryComplete!==true || !run.actionFlags) return [];
   const f=run.actionFlags;

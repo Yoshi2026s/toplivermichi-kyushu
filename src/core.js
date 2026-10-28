@@ -98,7 +98,7 @@ function baseRun(st, kind){
     party: buildParty(st,L), enemies:[], turn:1, A:Math.min(100,A0), B:0,
     chain:{stage:0, members:[]}, kiraDone:false, firstKill:false,
     cue:null, log:[], itemHistory:[], itemHistoryComplete:true,
-    actionFlags:{cheerSpent:false,skillUsed:false,mpRestored:false,mpSpent:false,mpTargets:[],mpGuard:false,mpRest:false,mpSkill:false,mpItem:false,mpLow:false,guardUsed:false,guardActors:[],guardHit:false,wardHit:false,zeroHit:false,heavyGuardHit:false,criticalSurvive:false,actors:[],jobs:[],actionTypes:[],skills:[],healTargets:[],healMulti:false,familyHeal:false,itemHeal:false,selfHeal:false,otherHeal:false,fullHeal:false,revived:false,lowHeal:false,cueSolved:false,downSeen:false}, actionHistoryComplete:true,
+    actionFlags:{cheerSpent:false,cheerPeak:Math.min(100,A0),commentLines:[],cheerAction:false,skillUsed:false,mpRestored:false,mpSpent:false,mpTargets:[],mpGuard:false,mpRest:false,mpSkill:false,mpItem:false,mpLow:false,guardUsed:false,guardActors:[],guardHit:false,wardHit:false,zeroHit:false,heavyGuardHit:false,criticalSurvive:false,actors:[],jobs:[],actionTypes:[],skills:[],healTargets:[],healMulti:false,familyHeal:false,itemHeal:false,selfHeal:false,otherHeal:false,fullHeal:false,revived:false,lowHeal:false,cueSolved:false,downSeen:false}, actionHistoryComplete:true,
     state:"input", rewardsApplied:false, bag:clone(st.bag||[]) };
 }
 function createFieldRun(st, areaId, rolls){ // rolls: {count:0|1, picks:[r0,r1]}
@@ -276,6 +276,8 @@ function applyAction(run, idx, act){
   if(!p.ok) return {ok:false, reason:p.reason};
   if(run.actionHistoryComplete===true && run.actionFlags){
     if(p.cost.a>0) run.actionFlags.cheerSpent=true;
+    if(act.type==="comment" && Array.isArray(run.actionFlags.commentLines) && !run.actionFlags.commentLines.includes(act.line)) run.actionFlags.commentLines.push(act.line);
+    if(act.type==="family" || act.type==="meter") run.actionFlags.cheerAction=true;
     if(act.type==="skill") run.actionFlags.skillUsed=true;
     if(act.type!=="item" && p.cgain.some(g=>g.amt>0)) run.actionFlags.mpRestored=true;
     if(p.cost.c>0) run.actionFlags.mpSpent=true;
@@ -357,6 +359,7 @@ function applyAction(run, idx, act){
   }
   // 初撃破のパチパチ
   if(killedNow>0 && !run.firstKill && !p.item){ run.firstKill=true; run.A=Math.min(100,run.A+10); log.push("パチパチ！ 拍手でエール＋10。"); }
+  if(run.actionHistoryComplete===true && run.actionFlags && Number.isFinite(run.actionFlags.cheerPeak)) run.actionFlags.cheerPeak=Math.max(run.actionFlags.cheerPeak,run.A);
   a.acted=true;
   if(p.valid || chainProg) a.valid++;
   // 勝敗
@@ -677,6 +680,26 @@ const PARTY_BADGES={B023:"二人で進む",B024:"全員に出番",B025:"職業�
 const ACTION_BADGES={B021:"多彩な作戦",B022:"引き出し豊富",B026:"技を使い分ける",B027:"攻撃の二本柱",B028:"攻守の切り替え",B029:"声と技の共演"};
 const HEAL_BADGES={B041:"癒やしの手",B042:"仲間を気遣う",B043:"みんなを癒やす",B044:"立て直し",B045:"もう一度一緒に",B046:"ファミリーのぬくもり",B047:"道具で応急手当",B048:"自分も大切に",B049:"あなたを支える",B050:"元気いっぱい"};
 const MP_BADGES={B051:"守って補給",B052:"ひと息の価値",B053:"技能で補給",B054:"携帯補給",B055:"MPを分け合う",B056:"MPの余裕",B057:"息切れから復帰",B058:"明日への備え",B059:"自然な補給",B060:"MPを使い切らない"};
+const CHEER_BADGES={B061:"最初の声援",B062:"三つの言葉",B063:"挨拶から始まる",B064:"作戦を共有",B065:"感謝の気持ち",B066:"キラコメ完成",B067:"応援が届く",B068:"大きな応援",B069:"満場の応援",B070:"応援を行動に"};
+function cheerBattleBadges(run){
+  const out=[];
+  if(run.actionHistoryComplete===true && run.actionFlags){
+    const f=run.actionFlags;
+    const lines=new Set(Array.isArray(f.commentLines)?f.commentLines:[]);
+    if(lines.size) out.push("B061");
+    if(["greet","plan","thanks"].every(x=>lines.has(x))) out.push("B062");
+    if(lines.has("greet")) out.push("B063");
+    if(lines.has("plan")) out.push("B064");
+    if(lines.has("thanks")) out.push("B065");
+    if(f.cheerAction) out.push("B070");
+  }
+  if(run.kiraDone) out.push("B066");
+  const peak=Math.max(run.A,run.actionFlags?.cheerPeak||0);
+  if(peak>=40) out.push("B067");
+  if(peak>=80) out.push("B068");
+  if(peak>=100) out.push("B069");
+  return out.sort();
+}
 function mpBattleBadges(run){
   const out=[];
   if(run.actionHistoryComplete===true && run.actionFlags){

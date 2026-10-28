@@ -50,6 +50,8 @@ for(const zone of ['1','2','3']){
   if(id!==`KY04-A${zone}`||!tile||!reachable(maps.KY04,maps.KY04.safeAnchor,tile)) fail(`Saga city zone ${zone} unreachable`);
   if(!maps.KY04.objects.some(o=>o.type==='sign'&&o.area===id)) fail(`Saga city zone ${zone} sign missing`);
 }
+const cityBoss=maps.KY04.objects.find(o=>o.type==='boss'&&o.boss==='B03');
+if(!cityBoss||!reachable(maps.KY04,maps.KY04.safeAnchor,[cityBoss.x,cityBoss.y])) fail('Saga city boss unreachable');
 const playable=new Set(Object.values(implemented).flat());
 const known=new Set([...playable,...[...data.matchAll(/\["(KY\d+)","[^"]+","[^"]+"\]/g)].map(m=>m[1])]);
 if(new Set(routes.map(r=>r.id)).size!==routes.length) fail('duplicate route ID');

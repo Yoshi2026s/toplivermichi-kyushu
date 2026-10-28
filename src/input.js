@@ -1,0 +1,149 @@
+/* ===== input: ジョイコントローラー（画面上のスティック＋決定/戻る、ゲームパッド、キーボード） ===== */
+const PAD = (()=>{
+  let dir=null, repeatT=0, lastMove=0;            // dir: 0下 1上 2左 3右
+  const VEC=[[0,1],[0,-1],[-1,0],[1,0]];
+  const isMoveMode=()=> G.screen==="explore" && !G.sheet && !G.dlg && G.st && !G.readOnly;
+
+  /* ---- 画面上のスティック ---- */
+  function mount(){
+    const dock=document.getElementById("dock"); if(!dock || dock.dataset.ready) return; dock.dataset.ready="1";
+    const base=dock.querySelector(".stick"), knob=dock.querySelector(".knob");
+    let pid=null;
+    const upd=e=>{
+      const r=base.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2, R=r.width*0.34;
+      let dx=e.clientX-cx, dy=e.clientY-cy; const d=Math.hypot(dx,dy);
+      if(d>R){ dx=dx/d*R; dy=dy/d*R; }
+      knob.style.transform=`translate(${dx}px,${dy}px)`;
+      const mag=Math.hypot(dx,dy)/R;
+      setDir(mag<0.35?null: Math.abs(dx)>Math.abs(dy)? (dx<0?2:3) : (dy<0?1:0), "stick");
+    };
+    base.addEventListener("pointerdown",e=>{ pid=e.pointerId; base.setPointerCapture(pid); base.classList.add("on"); SND.sfx("step"); upd(e); e.preventDefault(); });
+    base.addEventListener("pointermove",e=>{ if(e.pointerId===pid) upd(e); });
+    const end=e=>{ if(e.pointerId!==pid) return; pid=null; base.classList.remove("on"); knob.style.transform=""; setDir(null,"stick"); };
+    base.addEventListener("pointerup",end); base.addEventListener("pointercancel",end); base.addEventListener("lostpointercapture",end);
+    dock.querySelector("[data-pad=a]").addEventListener("click",()=>pressA());
+    dock.querySelector("[data-pad=b]").addEventListener("click",()=>pressB());
+    requestAnimationFrame(tick);
+  }
+  const sources={};
+  function setDir(d, src){
+    sources[src]=d;
+    const nd = ["key","gamepad","stick"].map(s=>sources[s]).find(x=>x!=null) ?? null;
+    if(nd===dir) return;
+    dir=nd; updateArrow();
+    if(dir==null){ if(isMoveMode() && G.walk.path.length>1) G.walk.path=G.walk.path.slice(0,1); return; }
+    if(!isMoveMode()){ moveCursor(dir); repeatT=performance.now()+380; }
+  }
+  function updateArrow(){ const a=document.querySelector("#dock .stick"); if(a) a.dataset.dir = dir==null?"":["下","上","左","右"][dir]; }
+
+  /* 毎フレーム：移動の継続、カーソルの連続移動、ゲームパッドの読み取り */
+  let prevBtn={};
+  function tick(now){
+    pollGamepad();
+    if(dir!=null){
+      if(isMoveMode()){
+        if(!G.walk.path.length){
+          const st=G.st, m=MAPS[st.mapId]; st.dir=dir; const nx=st.pos.x+VEC[dir][0], ny=st.pos.y+VEC[dir][1];
+          if(walkable(m,nx,ny)){ G.walk.path=[{x:nx,y:ny}]; G.walk.prog=0; G.walk.pending=null; }
+          else if(now-lastMove>400){ lastMove=now; const o=objAt(m,nx,ny); if(o){ refreshHere(); } }
+        }
+      } else if(now>repeatT){ moveCursor(dir); repeatT=now+170; }
+    }
+    requestAnimationFrame(tick);
+  }
+
+  /* ---- カーソル（▶）の移動：今見えている一番手前の画面の中だけで動く ---- */
+  function scope(){ const d=document.querySelector(".dlg-ov"); if(d) return d; const s=document.querySelector(".overlay"); if(s) return s; return document.getElementById("screen"); }
+  function focusables(sc){
+    return [...sc.querySelectorAll("button,input,textarea,[data-a]")].filter(el=>{
+      if(el.disabled||el.getAttribute("aria-disabled")==="true") return false;
+      if(el.closest("[hidden]")) return false; const r=el.getBoundingClientRect(); return r.width>0&&r.height>0;
+    });
+  }
+  function current(sc){ const k=sc.querySelector(".kfocus"); if(k) return k; const a=document.activeElement; return a&&sc.contains(a)&&a!==document.body?a:null; }
+  function setCursor(el){
+    document.querySelectorAll(".kfocus").forEach(x=>x.classList.remove("kfocus"));
+    if(!el) return; el.classList.add("kfocus");
+    try{ el.focus({preventScroll:true}); }catch(e){}
+    el.scrollIntoView({block:"nearest",inline:"nearest"});
+    G.cursorSig = sig(el);
+  }
+  function sig(el){ return [el.dataset.a,el.dataset.k,el.dataset.v,el.dataset.i,el.dataset.c,el.dataset.s,el.id].join("|"); }
+  function moveCursor(d){
+    const sc=scope(); if(!sc) return; const list=focusables(sc); if(!list.length) return;
+    const cur=current(sc);
+    if(!cur || !list.includes(cur)){
+      const pref = sc.querySelector(".cmd") ? list.find(el=>el.closest(".cmd")) : sc.querySelector(".sheet") ? list.find(el=>el.closest(".sheet")&&el.dataset.a!=="closeSheet") : null;
+      setCursor(pref||list[0]); SND.sfx("ok"); return; }
+    const r=cur.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2;
+    let best=null, bs=Infinity;
+    for(const el of list){ if(el===cur) continue; const q=el.getBoundingClientRect(), x=q.left+q.width/2, y=q.top+q.height/2;
+      const dx=x-cx, dy=y-cy; let main, side;
+      if(d===0){ main=dy; side=dx; } else if(d===1){ main=-dy; side=dx; } else if(d===2){ main=-dx; side=dy; } else { main=dx; side=dy; }
+      if(main<=4) continue; const s=main+Math.abs(side)*2.2; if(s<bs){ bs=s; best=el; } }
+    if(best){ setCursor(best); SND.sfx("step"); }
+  }
+  /* 再描画の後、同じボタンへカーソルを戻す */
+  function restore(){
+    if(!G.cursorSig || isMoveMode()) return;
+    const sc=scope(); if(!sc) return; const el=focusables(sc).find(e=>sig(e)===G.cursorSig);
+    if(el){ el.classList.add("kfocus"); try{ el.focus({preventScroll:true}); }catch(e){} } else G.cursorSig=null;
+  }
+
+  /* ---- 決定（A）と戻る（B） ---- */
+  function pressA(){
+    const sc=scope();
+    if(isMoveMode()){ const near=nearbyObjects(); if(!near.length) return toast("近くに調べられるものはありません。"); if(near.length===1) return interact(near[0]); return openSheet("nearby"); }
+    if(G.dlg){ const b=document.getElementById("dlgNext"); if(b) b.click(); return; }
+    const cur=sc&&current(sc);
+    if(cur && focusables(sc).includes(cur)){ cur.click(); return; }
+    moveCursor(0);
+  }
+  function pressB(){
+    if(G.dlg){ ACT.dlgSkip(); return; }
+    if(G.sheet){ const back=document.querySelector(".overlay [data-a=closeSheet]"); if(back) back.click(); return; }
+    if(G.screen==="battle"&&G.auto){ ACT.autoOff(); return; }
+    if(G.screen==="battle"&&G.st&&G.st.run&&G.st.run.state==="input"){ G.cmd={actor:G.cmd.actor}; G.cursorSig=null; render(); SND.sfx("cancel"); return; }
+    if(isMoveMode()){ G.walk.path=G.walk.path.slice(0,1); G.walk.pending=null; return; }
+    SND.sfx("cancel");
+  }
+
+  /* ---- ゲームパッド（Joy-Con・Proコントローラー・一般のコントローラー） ---- */
+  function pollGamepad(){
+    let pads=[]; try{ pads=navigator.getGamepads?[...navigator.getGamepads()].filter(Boolean):[]; }catch(e){}
+    if(!pads.length){ if(sources.gamepad!=null) setDir(null,"gamepad"); return; }
+    const gp=pads[0]; const b=i=>!!(gp.buttons[i]&&gp.buttons[i].pressed);
+    let d=null;
+    if(b(12)) d=1; else if(b(13)) d=0; else if(b(14)) d=2; else if(b(15)) d=3;
+    else { const x=gp.axes[0]||0, y=gp.axes[1]||0; if(Math.hypot(x,y)>0.5) d = Math.abs(x)>Math.abs(y)?(x<0?2:3):(y<0?1:0); }
+    setDir(d,"gamepad");
+    // 任天堂系は右ボタン(標準1番)が決定、それ以外は下ボタン(標準0番)が決定
+    const nin=/joy-?con|nintendo|pro controller|057e/i.test(gp.id||"");
+    const aIdx=nin?1:0, bIdx=nin?0:1;
+    const now={a:b(aIdx), b:b(bIdx), start:b(9)};
+    if(now.a&&!prevBtn.a) pressA();
+    if(now.b&&!prevBtn.b) pressB();
+    if(now.start&&!prevBtn.start&&isMoveMode()) openSheet("status");
+    prevBtn=now;
+  }
+  window.addEventListener("gamepadconnected",e=>toast(`コントローラーを接続しました（${(e.gamepad.id||"").slice(0,24)}）`));
+
+  /* ---- キーボード（パソコンでの確認用） ---- */
+  const KEYS={ArrowDown:0,ArrowUp:1,ArrowLeft:2,ArrowRight:3,s:0,w:1,a:2,d:3};
+  document.addEventListener("keydown",e=>{
+    const t=e.target; if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA")) return;
+    if(KEYS[e.key]!=null){ e.preventDefault(); if(!e.repeat) setDir(KEYS[e.key],"key"); return; }
+    if(e.key==="Enter"||e.key===" "||e.key==="z"){ e.preventDefault(); if(!e.repeat) pressA(); }
+    if(e.key==="Escape"||e.key==="x"||e.key==="Backspace"){ e.preventDefault(); if(!e.repeat) pressB(); }
+  });
+  document.addEventListener("keyup",e=>{ if(KEYS[e.key]!=null && sources.key===KEYS[e.key]) setDir(null,"key"); });
+  document.addEventListener("pointerdown",e=>{ if(!e.target.closest("#dock")){ document.querySelectorAll(".kfocus").forEach(x=>x.classList.remove("kfocus")); G.cursorSig=null; } },true);
+
+  /* BGMは初期ON：ブラウザの制限で、最初に画面へ触れた時に鳴らし始める */
+  function wantSound(){ if(G.soundWant!=null) return G.soundWant; if(G.st && G.st.settings && G.st.settings.sound===false) return false; return soundPref(); }
+  const unlock=()=>{ if(SND.on) return; if(wantSound()){ SND.setOn(true); } };
+  ["pointerdown","keydown","touchend"].forEach(ev=>document.addEventListener(ev,unlock,{capture:true,passive:true}));
+  return { mount, restore, pressA, pressB };
+})();
+
+if(window.claude&&window.claude.hot&&window.claude.hot.ready) window.claude.hot.ready(()=>boot()); else boot();

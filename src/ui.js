@@ -828,7 +828,8 @@ function renderWorld(){
     h+=`<div class="qcard"><div class="srow"><b>${id} ${esc(H.pref)}・${esc(H.name)}${H.home?"（故郷）":""}</b><span class="tag">${here?"現在地":visited?"訪問済み":"未訪問"}</span></div>
       ${here?"":`<button class="btn" data-a="worldGo" data-v="${id}" ${safe?"":"disabled"}>向かう（1枠）</button>`}</div>`;
   }
-  h+=`</div><h3 class="label">この先の拠点</h3><ul class="list dim">${FUTURE_HUBS.map(([id,n,p])=>`<li>${id} ${p}・${n}　${st.fukuokaClear&&p==="佐賀"?"解放済み（この版には未収録）":"未解放"}</li>`).join("")}</ul>`;
+  h+=`</div><h3 class="label">この先の拠点</h3><ul class="list dim">${FUTURE_HUBS.map(([id,n,p])=>`<li>${id} ${p}・${n}　${st.fukuokaClear&&p==="佐賀"?"解放済み（この版には未収録）":"未解放"}</li>`).join("")}</ul>
+    <h3 class="label">全国編の準備状況</h3><p class="small">${NATIONAL_REGIONS.length}地方・${NATIONAL_PREFECTURES.length}都道府県の地理台帳を準備中。現在遊べるのは福岡県の福岡市・北九州市です。他の都道府県への移動は、拠点と物語の実装後に追加します。</p>`;
   return h;
 }
 function renderParty(){

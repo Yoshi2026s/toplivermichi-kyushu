@@ -3,10 +3,10 @@
 ## 現在の状態
 
 - リポジトリ：`Yoshi2026s/toplivermichi-kyushu`
-- 公開版：v5.29。2026年10月29日にGitHub Pagesの配信成功とタイトル画面・VERSION.txtの版表示を確認。
+- 公開版：v5.29。2026年10月29日にGitHub Pagesの配信成功とタイトル画面・main の版表示を確認。ドラフトPRは v5.29-dev。
 - 公開URL：https://yoshi2026s.github.io/toplivermichi-kyushu/
 - 配信ワークフロー：https://github.com/Yoshi2026s/toplivermichi-kyushu/actions/runs/40747303279
-- 手元にある本体：v5.29の編集元と生成HTML。現行公開版の基点として配置し、比較資料も保持。
+- 手元にある本体：v5.29の編集元を基にした v5.29-dev と、その生成HTML。現行公開版の基点と比較資料も保持。
 - 旧公開版：v10.108までの更新・検証記録がある。最新版のソース一式は未取得。
 
 ## 次期版へ更新する前に必要な作業

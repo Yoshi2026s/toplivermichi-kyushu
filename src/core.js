@@ -17,7 +17,7 @@ function newGame(name, gender){
     visitedMaps:["KY01"], visitedHubs:["KY01"], xp:0,
     roster:["hero","moe"], party:["hero","moe"], vitals:null,
     jobs:{}, jp:{}, equip:{}, owned:{CW01:8, CA01:8}, favorite:{},
-    gold:0, tickets:200, gifts:{W:{},A:{}},
+    gold:0, vaultGold:0, tickets:200, gifts:{W:{},A:{}},
     bag:INITIAL_ITEMS.map(([id,n])=>({id,n})), keep:[], itemsVersion:1,
     quests:{M01:"available", M02:"locked", M03:"locked", M04:"locked", S01:"locked", S02:"locked"}, qprog:{}, activeQuest:null,
     talked:{}, boxes:{}, cards:[], bossDefeated:{}, seen:{}, killCount:{},
@@ -31,6 +31,17 @@ function newGame(name, gender){
   }
   for(const c of st.roster){ st.equip[c].w="CW01"; st.equip[c].a="CA01"; }
   return st;
+}
+
+function transferVaultGold(st,mode,amount){
+  if(!["deposit","withdraw"].includes(mode)||!Number.isSafeInteger(amount)||amount<1) return false;
+  if(!Number.isSafeInteger(st.gold)||st.gold<0||!Number.isSafeInteger(st.vaultGold)||st.vaultGold<0) return false;
+  const from=mode==="deposit"?st.gold:st.vaultGold;
+  const to=mode==="deposit"?st.vaultGold:st.gold;
+  if(amount>from||!Number.isSafeInteger(to+amount)) return false;
+  if(mode==="deposit"){st.gold-=amount;st.vaultGold+=amount;}
+  else {st.vaultGold-=amount;st.gold+=amount;}
+  return true;
 }
 
 /* ---- 能力の導出（第16E・16G・17A節） ---- */

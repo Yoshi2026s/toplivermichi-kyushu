@@ -775,7 +775,7 @@ function newGame(name, gender){
     visitedMaps:["KY01"], visitedHubs:["KY01"], xp:0,
     roster:["hero","moe"], party:["hero","moe"], vitals:null,
     jobs:{}, jp:{}, equip:{}, owned:{CW01:8, CA01:8}, favorite:{},
-    gold:0, tickets:200, gifts:{W:{},A:{}},
+    gold:0, vaultGold:0, tickets:200, gifts:{W:{},A:{}},
     bag:INITIAL_ITEMS.map(([id,n])=>({id,n})), keep:[], itemsVersion:1,
     quests:{M01:"available", M02:"locked", M03:"locked", M04:"locked", S01:"locked", S02:"locked"}, qprog:{}, activeQuest:null,
     talked:{}, boxes:{}, cards:[], bossDefeated:{}, seen:{}, killCount:{},
@@ -789,6 +789,17 @@ function newGame(name, gender){
   }
   for(const c of st.roster){ st.equip[c].w="CW01"; st.equip[c].a="CA01"; }
   return st;
+}
+
+function transferVaultGold(st,mode,amount){
+  if(!["deposit","withdraw"].includes(mode)||!Number.isSafeInteger(amount)||amount<1) return false;
+  if(!Number.isSafeInteger(st.gold)||st.gold<0||!Number.isSafeInteger(st.vaultGold)||st.vaultGold<0) return false;
+  const from=mode==="deposit"?st.gold:st.vaultGold;
+  const to=mode==="deposit"?st.vaultGold:st.gold;
+  if(amount>from||!Number.isSafeInteger(to+amount)) return false;
+  if(mode==="deposit"){st.gold-=amount;st.vaultGold+=amount;}
+  else {st.vaultGold-=amount;st.gold+=amount;}
+  return true;
 }
 
 /* ---- 能力の導出（第16E・16G・17A節） ---- */
@@ -2960,6 +2971,7 @@ function renderSheet(){
       ${can?"":`<p class="warn">ゴールドが足りません（あと${total-st.gold}）。通常敵を倒すとゴールドが手に入ります。</p>`}
       <div class="stack"><button class="btn primary" data-a="doInn" ${can?"":"disabled"}>泊まる（${total}ゴールド）</button><button class="btn" data-a="closeSheet">やめる</button></div>`); }
     case "record": return sheetWrap("記録", renderRecord());
+    case "goldVault": return sheetWrap("ゴールド金庫", renderGoldVault());
     case "battleChallenges": return sheetWrap("挑戦・戦闘バッジ", renderBattleChallenges());
     case "items": return sheetWrap("道具", renderItems());
     case "dex": return sheetWrap("ノイズ図鑑", renderDex());
@@ -3159,6 +3171,7 @@ function renderRecord(){
     <dt>もえのシナリオ到達ランク</dt><dd>${MOE_RANKS[st.moeRank]}</dd><dt>旅</dt><dd>${st.day}日目</dd></dl>
     <p class="small">もえのランクは物語上の到達記録です。レベル・熟練度・実際の応援ポイントとは別に表示します。</p>
     <ul class="list">${milestones.map(([r,c],i)=>`<li>${i<=st.moeRank?"●":"○"} ${r}：${c}</li>`).join("")}<li class="dim">…S6：M16完了（この版には未収録）</li></ul>
+    ${G.screen==="explore"&&isSafe()?`<h3 class="label">ゴールド金庫</h3><p class="small">全街共通・手数料と利息なし。金庫の残高は買物や敗北時の減額に使われません。</p><button class="btn" data-a="vaultOpen">金庫を開く（${(st.vaultGold||0).toLocaleString()}G）</button>`:""}
     <h3 class="label">仲間</h3><ul class="list">${st.roster.map(c=>{const s=charStats(st,c,L); return `<li>${esc(charName(st,c))}：${esc(JOBS[s.job].name)} 熟練度${s.R}・最大体力${s.maxHP}</li>`;}).join("")}</ul>
     <h3 class="label">九州アルバム</h3><ul class="list">${Object.entries(BOX_CARDS).map(([k,n])=>`<li>${st.cards.includes(k)?"● "+esc(n):"○ 未取得"}</li>`).join("")}</ul>
     <h3 class="label">訪れた拠点</h3><ul class="list">${Object.entries(HUBS).map(([id,h])=>`<li>${st.visitedHubs.includes(id)?"●":"○"} ${esc(h.pref)}・${esc(h.name)}</li>`).join("")}</ul>
@@ -3166,6 +3179,16 @@ function renderRecord(){
     <h3 class="label">配信記録</h3><p>福岡の最高得点：${st.streamBest.PR01!=null?st.streamBest.PR01+"点":"未配信"}／佐賀の最高得点：${st.streamBest.PR02!=null?st.streamBest.PR02+"点":"未配信"}</p>
     ${renderBadgeRecord(st)}
     ${st.lastResult?`<h3 class="label">直前の戦闘結果</h3><p class="small">経験値＋${st.lastResult.xp}・${st.lastResult.gold}ゴールド・${st.lastResult.jp.map(j=>`${esc(j.name)} 熟練度経験値＋${j.gain}`).join("、")}</p>`:""}`;
+}
+function renderGoldVault(){
+  const st=G.st,d=G.sheetData,mode=d.mode==="withdraw"?"withdraw":"deposit",from=mode==="deposit"?st.gold:st.vaultGold,can=canEditVault();
+  const preview=d.preview;
+  return `<p>手持ち ${st.gold.toLocaleString()}G／金庫 ${st.vaultGold.toLocaleString()}G</p><p class="small">全街共通。1G単位で預入・引出できます。手数料・利息なし。金庫残高は買物・敗北時の減額に使いません。</p>
+    <div class="stack"><button class="btn ${mode==="deposit"?"on":""}" data-a="vaultMode" data-v="deposit" aria-pressed="${mode==="deposit"}" ${can?"":"disabled"}>預け入れ</button><button class="btn ${mode==="withdraw"?"on":""}" data-a="vaultMode" data-v="withdraw" aria-pressed="${mode==="withdraw"}" ${can?"":"disabled"}>引き出し</button></div>
+    <label class="label" for="vaultAmount">${mode==="deposit"?"預ける":"引き出す"}金額（G）</label><input id="vaultAmount" type="number" min="1" step="1" inputmode="numeric" value="${esc(d.amount||"")}" ${can?"":"disabled"}>
+    <div class="stack">${[100,1000,10000].map(n=>`<button class="btn" data-a="vaultAmount" data-v="${n}" ${can?"":"disabled"}>${n.toLocaleString()}G</button>`).join("")}<button class="btn" data-a="vaultAmount" data-v="half" ${can?"":"disabled"}>半分</button><button class="btn" data-a="vaultAmount" data-v="max" ${can?"":"disabled"}>最大（${from.toLocaleString()}G）</button></div>
+    ${preview?`<p class="small">${mode==="deposit"?"預入":"引出"} ${preview.amount.toLocaleString()}G：手持ち ${preview.afterGold.toLocaleString()}G／金庫 ${preview.afterVault.toLocaleString()}G</p><button class="btn primary" data-a="vaultCommit" data-token="${preview.token}" ${can?"":"disabled"}>送金を確定</button>`:`<button class="btn primary" data-a="vaultPreview" ${can?"":"disabled"}>金額を確認</button>`}
+    <button class="btn" data-a="vaultBack">記録へ戻る</button>`;
 }
 function renderDex(){
   const st=G.st; const d=G.sheetData; const area=d.area||"KY01-A1"; const page=d.page||0;
@@ -3240,6 +3263,13 @@ function canTradeAtShop(d){ return !!G.st&&!G.readOnly&&G.screen==="explore"&&G.
 function itemText(it,V){ return it.text.replace(/(\d+)×V/g,(m,n)=>String(+n*V)).replace("−防御のダメージ","から敵の防御力を引いたダメージ"); }
 function keepFlush(){ const st=G.st; if(!st||G.readOnly||G.screen!=="explore"||G.sheet||G.dlg||st.run||!st.keep||!st.keep.length||!isSafe()) return 0; const n=flushKeep(st); if(n){ commit(); toast(`預かり所から道具を${n}個受け取った。`); } return n; }
 function canEditParty(){ return !!G.st&&!G.readOnly&&G.screen==="explore"&&G.sheet==="party"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&isSafe(); }
+function canEditVault(){ return !!G.st&&!G.readOnly&&G.screen==="explore"&&G.sheet==="goldVault"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&isSafe()&&!streamPending(); }
+function vaultAmountValue(raw,from,to){
+  const value=String(raw);
+  if(!/^[1-9][0-9]*$/.test(value)) return 0;
+  const amount=Number(value);
+  return Number.isSafeInteger(amount)&&Number.isSafeInteger(from)&&Number.isSafeInteger(to)&&amount<=from&&Number.isSafeInteger(to+amount)?amount:0;
+}
 function canEditItems(){ return !!G.st&&!G.readOnly&&G.screen==="explore"&&G.sheet==="items"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&!streamPending(); }
 function canManageQuests(){ return !!G.st&&!G.readOnly&&G.screen==="explore"&&G.sheet==="quests"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&!streamPending(); }
 function canTravelFrom(sheet){ return !!G.st&&!G.readOnly&&G.screen==="explore"&&G.sheet===sheet&&!G.dlg&&!G.st.run&&!G.walk.path.length&&isSafe(); }
@@ -3302,6 +3332,20 @@ const ACT = {
   openSheet(el){ openSheet(el.dataset.k); }, closeSheet(){ closeSheet(); },
   badgeFilter(){ if(G.sheet!=="record") return; G.sheetData.badgeOnlyUnowned=!G.sheetData.badgeOnlyUnowned; render(); },
   battleChallengeFilter(){ if(G.sheet!=="battleChallenges") return; G.sheetData.onlyActionable=!G.sheetData.onlyActionable; render(); },
+  vaultOpen(){ if(!G.st||G.screen!=="explore"||G.sheet!=="record"||G.dlg||G.st.run||!isSafe()||G.walk.path.length) return; openSheet("goldVault",{mode:"deposit",amount:"",preview:null}); },
+  vaultBack(){ if(G.sheet!=="goldVault") return; openSheet("record"); },
+  vaultMode(el){ if(!canEditVault()||!["deposit","withdraw"].includes(el.dataset.v)) return; G.sheetData={mode:el.dataset.v,amount:"",preview:null}; render(); },
+  vaultAmount(el){ if(!canEditVault()) return; const mode=G.sheetData.mode==="withdraw"?"withdraw":"deposit",from=mode==="deposit"?G.st.gold:G.st.vaultGold;
+    const amount=el.dataset.v==="max"?from:el.dataset.v==="half"?Math.floor(from/2):Number(el.dataset.v);
+    if(!Number.isSafeInteger(amount)||amount<1) return toast("送金できる残高がありません。"); G.sheetData.amount=String(amount); G.sheetData.preview=null; render(); },
+  vaultPreview(){ if(!canEditVault()) return; const d=G.sheetData,st=G.st,mode=d.mode==="withdraw"?"withdraw":"deposit",raw=$("#vaultAmount")?.value||"",from=mode==="deposit"?st.gold:st.vaultGold,to=mode==="deposit"?st.vaultGold:st.gold,amount=vaultAmountValue(raw,from,to);
+    if(!amount) return toast("1G以上の整数を残高以内で入力してください。");
+    const p={mode,amount,gold:st.gold,vault:st.vaultGold,gen:st.saveGeneration,afterGold:st.gold+(mode==="deposit"?-amount:amount),afterVault:st.vaultGold+(mode==="deposit"?amount:-amount)};
+    p.token=checksum(JSON.stringify(p)); d.amount=raw; d.preview=p; render(); },
+  vaultCommit(el){ if(!canEditVault()) return; const st=G.st,p=G.sheetData.preview,raw=$("#vaultAmount")?.value||"";
+    if(!p||el.dataset.token!==p.token||checksum(JSON.stringify({mode:p.mode,amount:p.amount,gold:p.gold,vault:p.vault,gen:p.gen,afterGold:p.afterGold,afterVault:p.afterVault}))!==p.token||G.sheetData.mode!==p.mode||raw!==String(p.amount)||st.saveGeneration!==p.gen||st.gold!==p.gold||st.vaultGold!==p.vault) return toast("残高か入力が変わりました。確認し直してください。");
+    if(!transferVaultGold(st,p.mode,p.amount)) return toast("送金できません。残高を確認してください。");
+    el.disabled=true; G.sheetData={mode:p.mode,amount:"",preview:null}; commit(); render(); toast(`${p.amount.toLocaleString()}Gを${p.mode==="deposit"?"預け入れました":"引き出しました"}。`); },
   itemView(el){ if(!canEditItems()) return; const id=el.dataset.v||null; if(id&&(!ITEMS[id]||bagCount(G.st.bag,id)<1)) return; G.sheetData={item:id}; render(); },
   itemUse(el){ if(!canEditItems()) return; const st=G.st, id=G.sheetData.item; if(!ITEMS[id]||bagCount(st.bag,id)<1) return toast("道具を選び直してください。"); const r=useItemField(st,id,el.dataset.c||null); if(!r.ok) return toast(r.reason); commit(); SND.sfx("heal"); if(bagCount(st.bag,id)<=0) G.sheetData={item:null}; render(); toast(r.log.join("・")); },
   itemDrop(){ if(!canEditItems()) return; const id=G.sheetData.item; if(!ITEMS[id]||bagCount(G.st.bag,id)<1) return toast("道具を選び直してください。"); G.sheetData.confirmDrop=true; render(); },
@@ -3385,12 +3429,14 @@ function drawMiniSprites(){
 function validateState(s){
   const okNum=v=>Number.isFinite(v)&&v>=0;
   if(!okNum(s.xp)||!okNum(s.gold)||!okNum(s.tickets)||!MAPS[s.mapId]||!Array.isArray(s.roster)||!Array.isArray(s.party)||s.party.length<1||s.party.length>4||new Set(s.party).size!==s.party.length||s.party.some(c=>!CHARS[c]||!s.roster.includes(c))) throw new Error("bad");
+  if(s.vaultGold!==undefined&&(!Number.isSafeInteger(s.vaultGold)||s.vaultGold<0)) throw new Error("bad vault");
   for(const c of s.party) if(!JOBS[s.jobs[c]]) throw new Error("bad job");
 }
 function padSide(){ const s=G.st?G.st.settings:G.tmpSettings; if(s&&(s.padSide==="left"||s.padSide==="right")) return s.padSide; try{ const v=localStorage.getItem("tlr-kyushu-pad"); if(v==="left"||v==="right") return v; }catch(e){} return "right"; }
 function soundIsOn(){ if(G.soundWant!=null) return G.soundWant; if(G.st&&G.st.settings) return G.st.settings.sound!==false; return soundPref(); }
 function soundPref(){ try{ return localStorage.getItem("tlr-kyushu-sound")!=="0"; }catch(e){ return true; } }
 function migrate(s){
+  if(s.vaultGold===undefined) s.vaultGold=0;
   if(!s.itemsVersion){ s.bag=INITIAL_ITEMS.map(([id,n])=>({id,n})); s.keep=[]; s.itemsVersion=1; s.gameVersion=GAME_VERSION; }
   if(s.run&&!s.run.bag) s.run.bag=clone(s.bag);
   if(s.run){
@@ -3417,7 +3463,7 @@ document.addEventListener("click",e=>{
   const el=e.target.closest("[data-a]"); if(!el||el.disabled) return;
   if(el.getAttribute("aria-disabled")==="true") return;
   const f=ACT[el.dataset.a]; if(!f) return;
-  if(G.readOnly && !["openSheet","closeSheet","dlgNext","dlgBack","dlgSkip","toTitle","dexNav","partyView","shopTab","shopItem"].includes(el.dataset.a)) return toast("別のタブで遊んでいるため、このタブは閲覧のみです。");
+  if(G.readOnly && !["openSheet","closeSheet","dlgNext","dlgBack","dlgSkip","toTitle","dexNav","partyView","shopTab","shopItem","vaultOpen","vaultBack"].includes(el.dataset.a)) return toast("別のタブで遊んでいるため、このタブは閲覧のみです。");
   f(el);
   if(el.dataset.a==="openSheet") drawMiniSprites();
 });

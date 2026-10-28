@@ -2695,10 +2695,10 @@ function renderShop(){
     const it=ITEMS[d.item]; const qty=d.qty||1; const own=bagCount(st.bag,d.item);
     if(tab==="item"){ const room=bagRoom(st.bag,d.item); const total=it.price*qty; const can=!locked&&qty<=room&&st.gold>=total;
       return head+`<p><b>${esc(it.name)}</b>（${esc(ITEM_RARITY[it.stars])}）</p><p>${esc(itemText(it,Vof(levelOf(st.xp))))}。${it.battleOnly?"戦闘中だけ使えます。":"戦闘中・移動中に使えます。"}</p><p>単価${it.price}ゴールド・所持${own}/${BAG_STACK}</p>${qtyRow(qty,Math.max(1,room))}<p>合計${total}ゴールド → 取引後${(st.gold-total).toLocaleString()}ゴールド</p>${can?"":`<p class="warn">${room<=0?(own?"1種類9個までです。":"道具袋が20種類でいっぱいです。"):qty>room?`あと${room}個までしか入りません。`:st.gold<total?"ゴールドが足りません。":""}</p>`}
-      <div class="stack"><button class="btn primary" data-a="shopDo" ${can?"":"disabled"}>${esc(it.name)}×${qty}を買う</button><button class="btn" data-a="shopItem" data-v="">一覧へ</button></div>`; }
+      <div class="stack"><button class="btn primary" data-a="shopDo" data-offer="${shopOfferToken(st,d)}" ${can?"":"disabled"}>${esc(it.name)}×${qty}を買う</button><button class="btn" data-a="shopItem" data-v="">一覧へ</button></div>`; }
     const unit=it.sell; const can=!locked&&unit>=0&&qty<=own;
     return head+`<p><b>${esc(it.name)}</b>　所持${own}</p>${unit<0?`<p class="warn">この道具は売れません（${esc(ITEM_ACQ[it.acq])}）。</p>`:`<p>買取単価${unit}ゴールド</p>${qtyRow(qty,Math.max(1,own))}<p>受取${unit*qty}ゴールド → 取引後${(st.gold+unit*qty).toLocaleString()}ゴールド</p>`}
-      <div class="stack"><button class="btn primary" data-a="shopDo" ${can?"":"disabled"}>${esc(it.name)}×${qty}を売る</button><button class="btn" data-a="shopItem" data-v="">一覧へ</button></div>`;
+      <div class="stack"><button class="btn primary" data-a="shopDo" data-offer="${shopOfferToken(st,d)}" ${can?"":"disabled"}>${esc(it.name)}×${qty}を売る</button><button class="btn" data-a="shopItem" data-v="">一覧へ</button></div>`;
   }
   if(tab==="item"){
     return head+`<div class="stack">${SHOP_ITEMS.map(id=>{const it=ITEMS[id]; return `<button class="btn dexrow" data-a="shopItem" data-v="${id}"><span>${esc(it.name)}　<span class="small">${"★".repeat(it.stars)}</span></span><span class="small">${it.price}ゴールド・${esc(itemText(it,Vof(levelOf(st.xp))))}・所持${bagCount(st.bag,id)}</span></button>`;}).join("")}</div><p class="small">道具袋は20種類まで、1種類9個まで。各県の店で品ぞろえが増えます（この版は福岡の品）。</p>`;
@@ -2707,10 +2707,10 @@ function renderShop(){
     const it=EQUIP[d.item]; const qty=d.qty||1; const own=st.owned[d.item]||0;
     if(tab==="buy"){ const total=it.price*qty; const can=!locked && own+qty<=8 && st.gold>=total;
       return head+`<p><b>${esc(it.name)}</b>：${esc(itemText(it,Vof(levelOf(st.xp))))}</p><p>単価${it.price}ゴールド・所持${own}/8</p>${qtyRow(qty,8-own)}<p>合計${total}ゴールド → 取引後${(st.gold-total).toLocaleString()}ゴールド</p>${can?"":`<p class="warn">${own+qty>8?"所持上限8を超えます。":st.gold<total?"ゴールドが足りません。":""}</p>`}
-      <div class="stack"><button class="btn primary" data-a="shopDo" ${can?"":"disabled"}>${esc(it.name)}×${qty}を買う</button><button class="btn" data-a="shopItem" data-v="">一覧へ</button></div>`; }
+      <div class="stack"><button class="btn primary" data-a="shopDo" data-offer="${shopOfferToken(st,d)}" ${can?"":"disabled"}>${esc(it.name)}×${qty}を買う</button><button class="btn" data-a="shopItem" data-v="">一覧へ</button></div>`; }
     const sellable=availableCount(st,d.item); const unit=Math.floor(it.price/2); const can=!locked&&qty<=sellable;
     return head+`<p><b>${esc(it.name)}</b>　所持${own}・装備中${equippedCount(st,d.item)}・売却可能${sellable}</p><p>買取単価${unit}ゴールド${unit===0?"（返却してもゴールドは増えません）":""}</p>${qtyRow(qty,Math.max(1,sellable))}<p>受取${unit*qty}ゴールド → 取引後${(st.gold+unit*qty).toLocaleString()}ゴールド</p>
-      <div class="stack"><button class="btn primary" data-a="shopDo" ${can&&sellable>0?"":"disabled"}>${esc(it.name)}×${qty}を売る</button><button class="btn" data-a="shopItem" data-v="">一覧へ</button></div>`;
+      <div class="stack"><button class="btn primary" data-a="shopDo" data-offer="${shopOfferToken(st,d)}" ${can&&sellable>0?"":"disabled"}>${esc(it.name)}×${qty}を売る</button><button class="btn" data-a="shopItem" data-v="">一覧へ</button></div>`;
   }
   if(tab==="buy"){
     const ex=[...JOB_IDS.filter(j=>st.gifts.W[j]).map(j=>"JW"+j.slice(1)), ...JOB_IDS.filter(j=>st.gifts.A[j]).map(j=>"JA"+j.slice(1))];
@@ -2720,6 +2720,23 @@ function renderShop(){
   return head+`<h3 class="label">装備</h3><div class="stack">${ids.map(id=>`<button class="btn dexrow" data-a="shopItem" data-v="${id}"><span>${esc(EQUIP[id].name)}</span><span class="small">所持${st.owned[id]}・売却可能${availableCount(st,id)}・買取${Math.floor(EQUIP[id].price/2)}ゴールド</span></button>`).join("")}</div>
     <h3 class="label">道具</h3><div class="stack">${st.bag.map(e=>{const it=ITEMS[e.id]; return `<button class="btn dexrow" data-a="shopItem" data-v="${e.id}"><span>${esc(it.name)}</span><span class="small">所持${e.n}・${it.sell<0?"売却不可":`買取${it.sell}ゴールド`}</span></button>`;}).join("")||`<p class="small">道具はありません。</p>`}</div>`;
 }
+function shopOffer(st,d){
+  if(!SHOPS[d.shop]||!["buy","item","sell"].includes(d.tab)||!Number.isSafeInteger(d.qty)||d.qty<1) return null;
+  const id=d.item, item=Object.hasOwn(ITEMS,id), equip=Object.hasOwn(EQUIP,id);
+  if(!item&&!equip) return null;
+  if(d.tab==="item"&&!item||d.tab==="buy"&&!equip) return null;
+  if(d.tab==="item"&&!SHOP_ITEMS.includes(id)) return null;
+  if(d.tab==="buy"){
+    const gifts=[...JOB_IDS.filter(j=>st.gifts.W[j]).map(j=>"JW"+j.slice(1)),...JOB_IDS.filter(j=>st.gifts.A[j]).map(j=>"JA"+j.slice(1))];
+    if(!SHOPS[d.shop].items.includes(id)&&!gifts.includes(id)) return null;
+  }
+  const own=item?bagCount(st.bag,id):(st.owned[id]||0);
+  const max=d.tab==="item"?bagRoom(st.bag,id):d.tab==="buy"?8-own:item?own:availableCount(st,id);
+  const unit=d.tab==="sell"?(item?ITEMS[id].sell:Math.floor(EQUIP[id].price/2)):(item?ITEMS[id].price:EQUIP[id].price);
+  return {shop:d.shop,tab:d.tab,item:id,qty:d.qty,unit,own,max,gold:st.gold};
+}
+function shopOfferToken(st,d){ const offer=shopOffer(st,d); return offer?checksum(JSON.stringify(offer)):""; }
+function canTradeAtShop(d){ return !!G.st&&!G.readOnly&&G.screen==="explore"&&G.sheet==="shop"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&!streamPending()&&isSafe()&&nearbyObjects().some(o=>o.type==="shop"&&o.shop===d.shop); }
 function itemText(it,V){ return it.text.replace(/(\d+)×V/g,(m,n)=>String(+n*V)).replace("−防御のダメージ","から敵の防御力を引いたダメージ"); }
 function keepFlush(){ const st=G.st; if(!st||G.readOnly||G.screen!=="explore"||G.sheet||G.dlg||st.run||!st.keep||!st.keep.length||!isSafe()) return 0; const n=flushKeep(st); if(n){ commit(); toast(`預かり所から道具を${n}個受け取った。`); } return n; }
 function canEditParty(){ return !!G.st&&!G.readOnly&&G.screen==="explore"&&G.sheet==="party"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&isSafe(); }
@@ -2738,7 +2755,7 @@ function renderItems(){
     <div class="stack">${st.bag.map(e=>{const it=ITEMS[e.id]; return `<button class="btn dexrow" data-a="itemView" data-v="${e.id}"><span>${esc(it.name)}　×${e.n}　<span class="small">${"★".repeat(it.stars)}</span></span><span class="small">${esc(itemText(it,Vof(levelOf(st.xp))))}${it.battleOnly?"（戦闘のみ）":""}</span></button>`;}).join("")||`<p>道具を持っていません。ショップで買えます。</p>`}</div>
     ${st.keep&&st.keep.length?`<h3 class="label">宿屋の預かり所（${st.keep.length}/${KEEP_MAX}）</h3><p class="small">袋に空きができると、安全な場所で自動的に受け取ります。</p><ul class="list">${st.keep.map(id=>`<li>${esc(ITEMS[id].name)}</li>`).join("")}</ul>`:""}`;
 }
-function qtyRow(q,max){ return `<div class="row3"><button class="btn" data-a="shopQty" data-v="${q-1}" ${q>1?"":"disabled"}>−</button><span class="qty">数量 ${q}</span><button class="btn" data-a="shopQty" data-v="${q+1}" ${q<max?"":"disabled"}>＋</button></div>`; }
+function qtyRow(q,max){ return `<div class="row3"><button class="btn" data-a="shopQty" data-v="${q-1}" ${q>1?"":"disabled"}>−</button><span class="qty">数量 ${q}個（最大${max}個）</span><button class="btn" data-a="shopQty" data-v="${q+1}" ${q<max?"":"disabled"}>＋</button></div>`; }
 function renderMoe(){
   const st=G.st; const r=MOE_RANKS[st.moeRank];
   const line = st.moeRank===0?"まずは福岡の声を整えよう。放送塔の丘の奥で、大きな重なりが起きてるみたい。": st.moeRank===1?"北九州の港で、初めての採点配信をしたいな。準備、手伝ってくれる？":"福岡、ありがとう。次の街でも、一人ずつの声に返事をしていきたい。";
@@ -2837,18 +2854,15 @@ const ACT = {
   setEquip(el){ if(!canEditParty()||streamPending()) return; const st=G.st,cid=el.dataset.c,s=el.dataset.s,id=el.dataset.v||null; if(!st.roster.includes(cid)||!["w","a","acc"].includes(s)||G.sheetData.cid!==cid||G.sheetData.view!==`eq:${s}`) return; if(id&&(!Object.hasOwn(EQUIP,id)||EQUIP[id].slot!==s)) return; if(id){ const it=EQUIP[id], cur=charStats(st,cid,levelOf(st.xp)); if(it.job&&(it.job!==cur.job||cur.R<it.needR)) return toast("現在の職業と熟練度では装備できません。"); } if(id&&availableCount(st,id)<=0&&st.equip[cid][s]!==id) return toast("未装備の在庫がありません。"); st.equip[cid][s]=id; commit(); G.sheetData={cid,view:""}; render(); drawMiniSprites(); },
   setSupport(el){ if(!canEditParty()||streamPending()) return; const v=el.dataset.v||null; if(v!==null&&v!=="PR01") return; if(v==="PR01"&&!(G.st.talked.akari&&G.st.quests.M01==="complete"&&G.st.quests.S01==="complete")) return toast("この地域支援はまだ使えません。"); G.st.support=v; commit(); render(); },
   dexNav(el){ const k=el.dataset.k, v=el.dataset.v; if(k==="area"){ G.sheetData={area:v,page:0}; } else if(k==="page"){ G.sheetData.page=+v; } else { G.sheetData.detail=v||null; } render(); drawMiniSprites(); const s=$(".sheet"); if(s) s.scrollTop=0; },
-  shopTab(el){ G.sheetData.tab=el.dataset.v; G.sheetData.item=null; render(); },
-  shopItem(el){ G.sheetData.item=el.dataset.v||null; G.sheetData.qty=1; render(); },
-  shopQty(el){ G.sheetData.qty=Math.max(1,+el.dataset.v); render(); },
-  shopDo(el){ el.disabled=true; const st=G.st, d=G.sheetData, q=d.qty||1;
-    if(ITEMS[d.item]){ const it=ITEMS[d.item];
-      if(d.tab==="sell"){ if(it.sell<0||bagCount(st.bag,d.item)<q) return toast("売却できません。"); bagRemove(st.bag,d.item,q); st.gold+=it.sell*q; keepFlush(); }
-      else { if(st.gold<it.price*q||bagRoom(st.bag,d.item)<q) return toast("購入できません。"); st.gold-=it.price*q; bagAdd(st.bag,d.item,q); }
-      SND.sfx("buy"); commit(); toast(`${it.name}×${q}を${d.tab==="sell"?"売った":"買った"}。`); d.item=null; render(); return; }
-    const it=EQUIP[d.item];
-    if(d.tab==="sell"){ if(availableCount(st,d.item)<q) return toast("売却できる数が足りません。"); st.owned[d.item]-=q; st.gold+=Math.floor(it.price/2)*q; }
-    else { if(st.gold<it.price*q||(st.owned[d.item]||0)+q>8) return toast("購入できません。"); st.gold-=it.price*q; st.owned[d.item]=(st.owned[d.item]||0)+q; }
-    SND.sfx("buy"); commit(); toast(`${it.name}×${q}を${d.tab==="sell"?"売った":"買った"}。`); d.item=null; render(); },
+  shopTab(el){ if(G.sheet!=="shop"||!["buy","item","sell"].includes(el.dataset.v)) return; G.sheetData.tab=el.dataset.v; G.sheetData.item=null; render(); },
+  shopItem(el){ if(G.sheet!=="shop") return; const id=el.dataset.v||null; if(id&&(!Object.hasOwn(ITEMS,id)&&!Object.hasOwn(EQUIP,id))) return; G.sheetData.item=id; G.sheetData.qty=1; render(); },
+  shopQty(el){ if(G.sheet!=="shop") return; const q=Number(el.dataset.v), offer=shopOffer(G.st,G.sheetData); if(!offer||!Number.isSafeInteger(q)||q<1||q>offer.max) return toast("数量を選び直してください。"); G.sheetData.qty=q; render(); },
+  shopDo(el){ const st=G.st,d=G.sheetData; if(!canTradeAtShop(d)) return toast("この場所では売買できません。"); const offer=shopOffer(st,d); if(!offer||!el.dataset.offer||el.dataset.offer!==shopOfferToken(st,d)||offer.max<offer.qty||offer.unit<0||!Number.isSafeInteger(offer.unit)||(offer.tab!=="sell"&&st.gold<offer.unit*offer.qty)) return toast("内容が変わりました。商品と数量を選び直してください。");
+    el.disabled=true; const q=offer.qty,id=offer.item,it=ITEMS[id]||EQUIP[id];
+    if(ITEMS[id]){ if(offer.tab==="sell"){ bagRemove(st.bag,id,q); st.gold+=offer.unit*q; } else { st.gold-=offer.unit*q; bagAdd(st.bag,id,q); } }
+    else if(offer.tab==="sell"){ st.owned[id]-=q; st.gold+=offer.unit*q; }
+    else { st.gold-=offer.unit*q; st.owned[id]=(st.owned[id]||0)+q; }
+    d.item=null; commit(); SND.sfx("buy"); render(); toast(`${it.name}×${q}を${offer.tab==="sell"?"売った":"買った"}。`); },
   replay(el){ G.sheet=null; playScene(el.dataset.v); },
   ssSet(el){ G.sheetData[el.dataset.k]=el.dataset.v; render(); },
   streamStart(){ const st=G.st, d=G.sheetData; st.stream=newStream(st,curHub(),d.host,d.theme,d.style); commit(); G.sheet=null; G.screen="stream"; SND.play("stream"); render(); },

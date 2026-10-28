@@ -482,6 +482,7 @@ function renderBattle(){
     <div class="enemies"><canvas class="stagebg" width="160" height="64" aria-hidden="true"></canvas>${enemies}</div>
     <div class="party">${run.party.map((m,i)=>partyCard(m,i,run)).join("")}</div>
     ${renderCommand(run)}
+    <button class="btn" data-a="openSheet" data-k="battleChallenges">挑戦・戦闘バッジ</button>
     <button class="log" data-a="openSheet" data-k="battleLog" aria-live="polite" aria-label="戦闘ログ（タップで直近6件）">${last.map(l=>`<span>${esc(l)}</span>`).join("")}</button>
   </section>`;
 }
@@ -710,7 +711,8 @@ function renderResult(){
     ${r.quest?`<div class="rquest done">依頼「${r.quest} ${esc(QUESTS[r.quest].name)}」完了！</div>`:r.kills&&r.killQuest?`<div class="rquest"><span>依頼 ${r.killQuest} 討伐</span><span class="bar"><i style="width:${pct(r.killNow,r.killNeed)}%"></i></span><b>${r.killNow}/${r.killNeed}</b></div>`:""}
     ${items.length||gifts.length?`<div class="rbox"><h3 class="label">手に入れたもの</h3><ul class="rlist">${[...items,...gifts].join("")}</ul></div>`:""}
     ${usedItems.length?`<div class="rbox"><h3 class="label">この戦闘で使った道具（${usedItems.length}回）</h3><ul class="rlist">${usedItems.join("")}</ul></div>`:""}
-    ${(r.newBadges||[]).length?`<div class="rbox"><h3 class="label">新しい戦闘バッジ</h3><ul class="rlist">${r.newBadges.map(id=>`<li>${id} ${esc(ITEM_BADGES[id]||GROWTH_BADGES[id]||PARTY_BADGES[id]||ACTION_BADGES[id]||HEAL_BADGES[id]||MP_BADGES[id]||CHEER_BADGES[id]||SPEED_BADGES[id]||ATTACK_BADGES[id]||GUARD_BADGES[id]||DEFENSE_BADGES[id]||id)}</li>`).join("")}</ul><button class="btn" data-a="openSheet" data-k="record">戦闘バッジ一覧を見る</button></div>`:""}
+    ${(r.newBadges||[]).length?`<div class="rbox"><h3 class="label">新しい戦闘バッジ</h3><ul class="rlist">${r.newBadges.map(id=>`<li>${id} ${esc(ITEM_BADGES[id]||GROWTH_BADGES[id]||PARTY_BADGES[id]||ACTION_BADGES[id]||HEAL_BADGES[id]||MP_BADGES[id]||CHEER_BADGES[id]||SPEED_BADGES[id]||ATTACK_BADGES[id]||GUARD_BADGES[id]||DEFENSE_BADGES[id]||id)}</li>`).join("")}</ul></div>`:""}
+    <button class="btn" data-a="openSheet" data-k="record">戦闘バッジ一覧を見る</button>
     ${r.notes.filter(n=>!/効果量が上昇/.test(n)).map(n=>`<p class="good rnote">${esc(n)}</p>`).join("")}
     <h3 class="label">仲間</h3><div class="rmems">${mem}</div>
     ${anyLow?`<p class="small warn">体力が減っている仲間がいます。次の戦闘へ持ち越すので、道具や宿屋で回復しておこう。</p>`:""}
@@ -794,6 +796,7 @@ function renderSheet(){
       ${can?"":`<p class="warn">ゴールドが足りません（あと${total-st.gold}）。通常敵を倒すとゴールドが手に入ります。</p>`}
       <div class="stack"><button class="btn primary" data-a="doInn" ${can?"":"disabled"}>泊まる（${total}ゴールド）</button><button class="btn" data-a="closeSheet">やめる</button></div>`); }
     case "record": return sheetWrap("記録", renderRecord());
+    case "battleChallenges": return sheetWrap("挑戦・戦闘バッジ", renderBattleChallenges());
     case "items": return sheetWrap("道具", renderItems());
     case "dex": return sheetWrap("ノイズ図鑑", renderDex());
     case "shop": return sheetWrap(SHOPS[d.shop].name, renderShop());
@@ -907,6 +910,21 @@ function renderParty(){
 function previewEquipFor(st,cid,job){ const e={...st.equip[cid]}; for(const s of ["w","a"]){ const it=e[s]&&EQUIP[e[s]]; if(it&&it.job&&it.job!==job) e[s]=null; } return e; }
 const PENDING_BADGES={B009:"締め前の余裕",B017:"会心の瞬間",B035:"ひらりと回避",B071:"ペットと共闘",B072:"小さな癒やし",B073:"頼れる補助役",B074:"二匹の力",B075:"ずっとそばに",B076:"ペットのMP補給",B077:"主人公を応援",B078:"もえを応援",B079:"息の合った攻撃",B080:"敵を足止め",B093:"実技を越える",B099:"固有必殺技",B100:"継承する技"};
 const BADGE_GROUPS=["速攻","攻撃","連携","防御","回復","集中力","応援","ペット","道具","成長"];
+function renderBattleChallenges(){
+  const run=G.st.run; if(!run) return "<p>戦闘中だけ確認できます。</p>";
+  const names={...ITEM_BADGES,...GROWTH_BADGES,...PARTY_BADGES,...ACTION_BADGES,...HEAL_BADGES,...MP_BADGES,...CHEER_BADGES,...SPEED_BADGES,...ATTACK_BADGES,...GUARD_BADGES,...DEFENSE_BADGES,...PENDING_BADGES};
+  const owned=new Set(G.st.battleBadges||[]), f=run.actionFlags||{};
+  const speedImpossible={B001:run.turn>1,B002:run.turn>3,B003:run.turn>5,B004:run.actionHistoryComplete===true&&f.actionCount>run.party.length,B005:run.actionHistoryComplete===true&&f.enemyAttacked===true,B006:run.actionHistoryComplete===true&&f.restUsed===true,B008:run.turn>8,B010:run.actionHistoryComplete===true&&f.actionCount>6};
+  const status=id=>{
+    if(owned.has(id)) return "獲得済み";
+    if(Object.hasOwn(PENDING_BADGES,id)) return "制作中";
+    if((id==="B008"||id==="B092")&&run.kind!=="boss" || id==="B091"&&run.kind!=="field") return "対象外";
+    if(speedImpossible[id]) return "今回達成不可";
+    return run.state==="won"?"勝利時に判定":"未達成";
+  };
+  const sections=BADGE_GROUPS.map((group,i)=>`<h3 class="label">${group}</h3><ul class="list">${Array.from({length:10},(_,n)=>{const id=`B${String(i*10+n+1).padStart(3,"0")}`;return `<li>${status(id)}・${id} ${esc(names[id])}</li>`;}).join("")}</ul>`).join("");
+  return `<p class="small">獲得は勝利結果で確定します。戦闘中の条件は変わるため、未確定の項目は未達成と表示します。</p>${sections}`;
+}
 function renderBadgeRecord(st){
   const implemented={...ITEM_BADGES,...GROWTH_BADGES,...PARTY_BADGES,...ACTION_BADGES,...HEAL_BADGES,...MP_BADGES,...CHEER_BADGES,...SPEED_BADGES,...ATTACK_BADGES,...GUARD_BADGES,...DEFENSE_BADGES};
   const names={...implemented,...PENDING_BADGES};

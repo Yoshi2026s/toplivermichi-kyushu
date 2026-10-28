@@ -15,3 +15,8 @@ const NATIONAL_PREFECTURES = [
 ].map(([id,name,regionId])=>({id,name,regionId}));
 /* 実際に遊べる拠点だけを列挙。未収録の県には移動先を作らない。 */
 const NATIONAL_IMPLEMENTED_HUBS = {JP40:["KY01","KY02"]};
+/* 経路は実装状態と解放条件を分ける。planned は地図の移動先にしない。 */
+const NATIONAL_ROUTES = [
+  {id:"RT-KY01-KY02",from:"KY01",to:"KY02",mode:"road",status:"playable",unlock:"always"},
+  {id:"RT-KY02-KY03",from:"KY02",to:"KY03",mode:"road",status:"planned",unlock:"fukuokaClear"}
+];

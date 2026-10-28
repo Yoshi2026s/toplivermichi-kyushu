@@ -657,7 +657,7 @@ function autoStep(){
 function toResult(){
   const st=G.st, run=st.run; const res=applyVictory(st,run);
   st.battleBadges=Array.isArray(st.battleBadges)?st.battleBadges:[];
-  const newBadges=run.itemHistoryComplete===true?itemBattleBadges(run.itemHistory).filter(id=>!st.battleBadges.includes(id)):[];
+  const newBadges=run.itemHistoryComplete===true?itemBattleBadges(run.itemHistory,run).filter(id=>!st.battleBadges.includes(id)):[];
   st.battleBadges.push(...newBadges);
   if(res.levelAfter>res.levelBefore && Vof(res.levelAfter)>Vof(res.levelBefore)) res.notes.push("技能・装備の効果量が上昇（V"+Vof(res.levelAfter)+"）");
   const L0=res.levelBefore, L1=levelOf(st.xp);
@@ -1145,6 +1145,7 @@ function migrate(s){
   if(s.run){
     if(!Array.isArray(s.run.itemHistory)){ s.run.itemHistory=[]; s.run.itemHistoryComplete=false; }
     else if(s.run.itemHistoryComplete!==true) s.run.itemHistoryComplete=false;
+    if(s.run.actionHistoryComplete!==true || !s.run.actionFlags) s.run.actionHistoryComplete=false;
   }
   if(s.lastResult&&!Array.isArray(s.lastResult.itemsUsed)) s.lastResult.itemsUsed=[];
   if(!Array.isArray(s.battleBadges)) s.battleBadges=[];

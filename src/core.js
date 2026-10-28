@@ -97,7 +97,9 @@ function baseRun(st, kind){
   return { seq: st.runSeq+1, kind, L, V:Vof(L), difficulty:st.settings.difficulty, support:st.support,
     party: buildParty(st,L), enemies:[], turn:1, A:Math.min(100,A0), B:0,
     chain:{stage:0, members:[]}, kiraDone:false, firstKill:false,
-    cue:null, log:[], itemHistory:[], itemHistoryComplete:true, state:"input", rewardsApplied:false, bag:clone(st.bag||[]) };
+    cue:null, log:[], itemHistory:[], itemHistoryComplete:true,
+    actionFlags:{cheerSpent:false,skillUsed:false,mpRestored:false,guardUsed:false}, actionHistoryComplete:true,
+    state:"input", rewardsApplied:false, bag:clone(st.bag||[]) };
 }
 function createFieldRun(st, areaId, rolls){ // rolls: {count:0|1, picks:[r0,r1]}
   const run = baseRun(st,"field"); const ar=AREAS[areaId]; const q=ar.q; const diff=DIFFICULTY[run.difficulty];
@@ -272,6 +274,12 @@ function planSkill(run,a,act,p,h){
 function applyAction(run, idx, act){
   const p = planAction(run, idx, act);
   if(!p.ok) return {ok:false, reason:p.reason};
+  if(run.actionHistoryComplete===true && run.actionFlags){
+    if(p.cost.a>0) run.actionFlags.cheerSpent=true;
+    if(act.type==="skill") run.actionFlags.skillUsed=true;
+    if(act.type!=="item" && p.cgain.some(g=>g.amt>0)) run.actionFlags.mpRestored=true;
+    if(act.type==="guard") run.actionFlags.guardUsed=true;
+  }
   const a = run.party[idx]; const log=[]; const nm=a.name;
   const label = actLabel(run,a,act);
   log.push(`${nm}の${label}！`);
@@ -579,8 +587,8 @@ function aiItemUseful(run,p){
   const usefulC=p.cgain.some(g=>g.amt>=1);
   return usefulHP||usefulC;
 }
-const ITEM_BADGES={B081:"道具を温存",B082:"一つだけの切り札",B083:"備えを生かす",B084:"道具を使い分ける",B085:"回復と補給の準備"};
-function itemBattleBadges(history){
+const ITEM_BADGES={B081:"道具を温存",B082:"一つだけの切り札",B083:"備えを生かす",B084:"道具を使い分ける",B085:"回復と補給の準備",B086:"応援を残す",B087:"声援を蓄える",B088:"技術で節約",B089:"自力で補給",B090:"備えと守り"};
+function itemBattleBadges(history,run){
   const used=Array.isArray(history)?history.filter(x=>x&&typeof x.id==="string"):[];
   const out=[];
   if(!used.length) out.push("B081");
@@ -588,6 +596,14 @@ function itemBattleBadges(history){
   if(used.length) out.push("B083");
   if(new Set(used.map(x=>x.id)).size>=2) out.push("B084");
   if(used.some(x=>x.hp>0)&&used.some(x=>x.c>0)) out.push("B085");
+  if(run?.actionHistoryComplete===true && run.actionFlags){
+    const f=run.actionFlags;
+    if(!f.cheerSpent) out.push("B086");
+    if(run.A>=80) out.push("B087");
+    if(!used.length && f.skillUsed) out.push("B088");
+    if(!used.length && f.mpRestored) out.push("B089");
+    if(used.length && f.guardUsed) out.push("B090");
+  }
   return out;
 }
 function aiChoose(run){

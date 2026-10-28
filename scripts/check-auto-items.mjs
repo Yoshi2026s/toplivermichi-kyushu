@@ -1,0 +1,23 @@
+import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
+import {resolve} from 'node:path';
+
+const root=resolve(import.meta.dirname,'..');
+const files=['data_enemies.js','data_saga_enemies.js','data_items.js','data_national.js','data.js','core.js'];
+const source=files.map(f=>readFileSync(resolve(root,'src',f),'utf8')).join('\n');
+const game=runInNewContext(`${source}\n({newGame,createFieldRun,aiCandidates,aiChoose})`);
+const fail=msg=>{throw new Error(msg)};
+const st=game.newGame('確認用','女性');
+st.bag=[{id:'IT001',n:1},{id:'IT057',n:1},{id:'IT071',n:1},{id:'IT058',n:1}];
+const run=game.createFieldRun(st,'KY01-A1',{count:0,picks:[0,0]});
+const actor=run.party.find(m=>m.hp>0);
+const items=()=>game.aiCandidates(run,actor).filter(a=>a.type==='item');
+if(items().length) fail('healthy party must not spend items');
+actor.hp=Math.floor(actor.maxHP*0.8);
+if(!items().some(a=>a.item==='IT001')||items().some(a=>['IT071','IT058'].includes(a.item))) fail('recovery candidate filter failed');
+const before=JSON.stringify(run);
+game.aiChoose(run);
+if(JSON.stringify(run)!==before) fail('candidate search mutated battle state');
+actor.hp=0;
+if(!items().some(a=>a.item==='IT057')||items().some(a=>a.item==='IT058')) fail('revival candidate filter failed');
+console.log('Auto items: thresholds, purchasable recovery and immutable search OK');

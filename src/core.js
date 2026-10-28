@@ -513,13 +513,15 @@ function aiCandidates(run, a){
   en.forEach(t=>out.push({type:"attack",target:t}));
   ["greet","plan","thanks"].forEach(l=>out.push({type:"comment",line:l}));
   out.push({type:"guard"},{type:"rest"},{type:"meter"},{type:"family"});
-  // 道具：持っている種類ごとに対象を試す
+  // オートでは購入可能な低レア回復品だけを検討する。所持品や乱数は候補探索中に変更しない。
   const downs=run.party.filter(m=>m.hp<=0).map(m=>m.pos);
-  for(const e of (run.bag||[])){ const it=ITEMS[e.id]; if(!it||e.n<=0) continue; const nd=itemNeeds(it);
-    if(nd==="enemy") en.forEach(t=>out.push({type:"item",item:e.id,target:t}));
-    else if(nd==="ally") al.forEach(p=>out.push({type:"item",item:e.id,ally:p}));
+  for(const e of (run.bag||[])){ const it=ITEMS[e.id]; if(!it||e.n<=0||it.stars>2||it.price<=0||!['S','SD'].includes(it.acq)||it.cat==="攻撃") continue;
+    const nd=itemNeeds(it), effect=it.eff[0];
+    const needsHelp=m=>m.hp>0&&((effect.includes('hp')&&m.hp/m.maxHP<=0.85)||(effect.includes('c')&&m.c/10<=0.7));
+    if(nd==="ally") run.party.filter(needsHelp).forEach(m=>out.push({type:"item",item:e.id,ally:m.pos}));
     else if(nd==="down") downs.forEach(p=>out.push({type:"item",item:e.id,ally:p}));
-    else out.push({type:"item",item:e.id}); }
+    else if(nd==="downAll"&&downs.length) out.push({type:"item",item:e.id});
+    else if(nd==="allyAll"&&run.party.some(needsHelp)) out.push({type:"item",item:e.id}); }
   const need={J01:"enemy",J02:"line",J03:"ally",J04:"mode",J05:"enemy",J06:"mode",J07:"none",J08:"ally",J09:"enemy",J10:"none",J11:"none",J12:"none",J13:"ally",J14:"none",J15:"enemy",J16:"enemy",J17:"none",J18:"ally",J19:"enemy",J20:"none",J21:"enemy",J22:"allyOther"}[a.job];
   if(need==="enemy") en.forEach(t=>out.push({type:"skill",target:t}));
   if(need==="ally") al.forEach(p=>out.push({type:"skill",ally:p}));

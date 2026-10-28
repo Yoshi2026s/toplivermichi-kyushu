@@ -1,0 +1,28 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+
+const code=await readFile(resolve(import.meta.dirname,'../src/ui.js'),'utf8');
+const start=code.indexOf('function shopOffer(st,d){');
+const end=code.indexOf('\nfunction canTradeAtShop(',start);
+assert.ok(start>=0&&end>start);
+const checksum=str=>{let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return(h>>>0).toString(16);};
+const ITEMS={HEAL:{price:10,sell:5}};
+const EQUIP={SWORD:{price:100}};
+const SHOPS={SHOP:{items:['SWORD']}};
+const SHOP_ITEMS=['HEAL'];
+const JOB_IDS=[];
+const bagCount=(bag,id)=>bag.find(x=>x.id===id)?.n||0;
+const bagRoom=(bag,id)=>9-bagCount(bag,id);
+const availableCount=(st,id)=>(st.owned[id]||0)-(st.equipped[id]||0);
+const {shopOffer,shopOfferToken}=new Function('ITEMS','EQUIP','SHOPS','SHOP_ITEMS','JOB_IDS','bagCount','bagRoom','availableCount','checksum',`${code.slice(start,end)};return {shopOffer,shopOfferToken};`)(ITEMS,EQUIP,SHOPS,SHOP_ITEMS,JOB_IDS,bagCount,bagRoom,availableCount,checksum);
+const st={gold:100,bag:[{id:'HEAL',n:3}],owned:{SWORD:2},equipped:{SWORD:1},gifts:{W:{},A:{}}};
+const sale={shop:'SHOP',tab:'sell',item:'SWORD',qty:1};
+assert.equal(shopOffer(st,sale).max,1);
+const token=shopOfferToken(st,sale);
+st.equipped.SWORD=2;
+assert.notEqual(shopOfferToken(st,sale),token);
+for(const qty of [0,-1,1.5,NaN,Infinity]) assert.equal(shopOffer(st,{...sale,qty}),null);
+assert.equal(shopOffer(st,{shop:'SHOP',tab:'item',item:'HEAL',qty:1}).max,6);
+assert.equal(shopOffer(st,{shop:'OTHER',tab:'item',item:'HEAL',qty:1}),null);
+console.log('Shop offer bounds and stale token OK');

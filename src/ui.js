@@ -917,7 +917,7 @@ function renderRecord(){
     <h3 class="label">訪れた拠点</h3><ul class="list">${Object.entries(HUBS).map(([id,h])=>`<li>${st.visitedHubs.includes(id)?"●":"○"} ${esc(h.pref)}・${esc(h.name)}</li>`).join("")}</ul>
     <h3 class="label">応援者帳</h3><ul class="list"><li>灯里（福岡市）：${st.talked.akari?"話を聞いた":"未会話"}</li><li>奏太（北九州市）：${st.talked.sota?"話を聞いた":"未会話"}</li><li>唐津の案内人：${st.talked.karatsuGuide?"話を聞いた":"未会話"}</li></ul>
     <h3 class="label">配信記録</h3><p>福岡の最高得点：${st.streamBest.PR01!=null?st.streamBest.PR01+"点":"未配信"}／佐賀の最高得点：${st.streamBest.PR02!=null?st.streamBest.PR02+"点":"未配信"}</p>
-    <h3 class="label">戦闘バッジ</h3><p class="small">実装済み15種のうち取得${Object.keys({...ITEM_BADGES,...GROWTH_BADGES}).filter(id=>(st.battleBadges||[]).includes(id)).length}種。残る85種は制作中です。</p>
+    <h3 class="label">戦闘バッジ</h3><p class="small">実装済み17種のうち取得${Object.keys({...ITEM_BADGES,...GROWTH_BADGES}).filter(id=>(st.battleBadges||[]).includes(id)).length}種。残る83種は制作中です。</p>
     <ul class="list">${Object.entries({...ITEM_BADGES,...GROWTH_BADGES}).map(([id,name])=>`<li>${(st.battleBadges||[]).includes(id)?"●":"○"} ${id} ${esc(name)}</li>`).join("")}</ul>
     ${st.lastResult?`<h3 class="label">直前の戦闘結果</h3><p class="small">経験値＋${st.lastResult.xp}・${st.lastResult.gold}ゴールド・${st.lastResult.jp.map(j=>`${esc(j.name)} 熟練度経験値＋${j.gain}`).join("、")}</p>`:""}`;
 }

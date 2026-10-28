@@ -98,7 +98,7 @@ function baseRun(st, kind){
     party: buildParty(st,L), enemies:[], turn:1, A:Math.min(100,A0), B:0,
     chain:{stage:0, members:[]}, kiraDone:false, firstKill:false,
     cue:null, log:[], itemHistory:[], itemHistoryComplete:true,
-    actionFlags:{cheerSpent:false,skillUsed:false,mpRestored:false,guardUsed:false,actors:[],jobs:[],revived:false}, actionHistoryComplete:true,
+    actionFlags:{cheerSpent:false,skillUsed:false,mpRestored:false,guardUsed:false,actors:[],jobs:[],revived:false,lowHeal:false,cueSolved:false}, actionHistoryComplete:true,
     state:"input", rewardsApplied:false, bag:clone(st.bag||[]) };
 }
 function createFieldRun(st, areaId, rolls){ // rolls: {count:0|1, picks:[r0,r1]}
@@ -282,6 +282,7 @@ function applyAction(run, idx, act){
     if(!run.actionFlags.actors.includes(run.party[idx].cid)) run.actionFlags.actors.push(run.party[idx].cid);
     if(!run.actionFlags.jobs.includes(run.party[idx].job)) run.actionFlags.jobs.push(run.party[idx].job);
     if(p.heal.some(h=>h.revive)) run.actionFlags.revived=true;
+    if(p.heal.some(h=>h.amt>0 && !h.revive && run.party[h.pos].hp>0 && run.party[h.pos].hp<=run.party[h.pos].maxHP*0.3)) run.actionFlags.lowHeal=true;
   }
   const a = run.party[idx]; const log=[]; const nm=a.name;
   const label = actLabel(run,a,act);
@@ -326,7 +327,7 @@ function applyAction(run, idx, act){
   // ボス対処
   if(p.cue && run.cue && !run.cue.bits.includes(a.cid)){
     run.cue.bits.push(a.cid);
-    if(run.cue.bits.length>=2){ run.cue.ready=true; log.push("対処成功！ 次の強攻撃が20%軽くなる。"); }
+    if(run.cue.bits.length>=2){ run.cue.ready=true; if(run.actionHistoryComplete===true && run.actionFlags) run.actionFlags.cueSolved=true; log.push("対処成功！ 次の強攻撃が20%軽くなる。"); }
   }
   // 初撃破のパチパチ
   if(killedNow>0 && !run.firstKill && !p.item){ run.firstKill=true; run.A=Math.min(100,run.A+10); log.push("パチパチ！ 拍手でエール＋10。"); }
@@ -609,7 +610,7 @@ function itemBattleBadges(history,run){
   }
   return out;
 }
-const GROWTH_BADGES={B091:"旅路の一勝",B092:"ライバルを越える",B094:"三職業の共演",B095:"二人の物語",B096:"復活から勝利へ"};
+const GROWTH_BADGES={B091:"旅路の一勝",B092:"ライバルを越える",B094:"三職業の共演",B095:"二人の物語",B096:"復活から勝利へ",B097:"逆境を乗り越える",B098:"対処成功"};
 function growthBattleBadges(run){
   const out=[];
   if(run.kind==="field") out.push("B091");
@@ -619,6 +620,8 @@ function growthBattleBadges(run){
     if(Array.isArray(f.jobs)&&new Set(f.jobs).size>=3) out.push("B094");
     if(Array.isArray(f.actors)&&f.actors.includes("hero")&&f.actors.includes("moe")) out.push("B095");
     if(f.revived && run.party.every(m=>m.hp>0)) out.push("B096");
+    if(f.lowHeal) out.push("B097");
+    if(run.kind==="boss" && f.cueSolved) out.push("B098");
   }
   return out;
 }

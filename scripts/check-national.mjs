@@ -152,6 +152,21 @@ gateState.sheetData.gateId='gate1';gateTravel();
 if(gateMoves) fail('stale gate ID bypassed first-arrival route');
 gateState.sheetData.gateId='gate_saga';gateTravel();
 if(gateMoves!==1||gateState.sheet!==null) fail('valid first-arrival gate was rejected');
+const core=['data_enemies.js','data_saga_enemies.js','data_items.js','data_national.js','data.js','core.js'].map(name=>readFileSync(resolve(root,'src',name),'utf8')).join('\n');
+const travelMapFn=ui.match(/function travelMap\(to,tx,ty\)\{[\s\S]*?\n\}/)?.[0],travelHubFn=ui.match(/function travelHub\(to,tx,ty\)\{[\s\S]*?\n\}/)?.[0];
+if(!travelMapFn||!travelHubFn) fail('hub travel implementation missing');
+let saved=0,dialogs=[];
+const journey=runInNewContext(`${core}\n${travelMapFn}\n${travelHubFn}\n({newGame,travelHub,G})`,{G:{st:null,walk:{path:[]},fol:null,sheet:null},commit:()=>{saved++;},render:()=>{},say:lines=>{dialogs.push(lines);},openSheet:()=>{throw new Error('unexpected rest sheet');}});
+const traveler=journey.newGame('旅人','女性');traveler.mapId='KY04';traveler.pos={x:37,y:20};traveler.visitedMaps.push('KY04');traveler.visitedHubs.push('KY04');traveler.quests.M04='complete';traveler.slots=2;journey.G.st=traveler;
+journey.travelHub('KY05',2,20);
+if(traveler.mapId!=='KY05'||traveler.pos.x!==2||traveler.pos.y!==20||traveler.slots!==1||!traveler.visitedHubs.includes('KY05')||!traveler.roster.includes('kayo')||!traveler.vitals.kayo||saved!==2||dialogs.length!==1) fail('Sasebo first arrival, save, or Kayo join failed');
+journey.travelHub('KY04',37,20);
+if(traveler.mapId!=='KY04'||traveler.slots!==0||traveler.roster.filter(cid=>cid==='kayo').length!==1||saved!==3) fail('Sasebo return duplicated join or lost travel state');
+const questViewFn=ui.match(/function renderQuests\(\)\{[\s\S]*?\n\}/)?.[0];
+if(!questViewFn) fail('quest UI missing');
+traveler.mapId='KY05';
+const saseboQuests=runInNewContext(`${core}\n${questViewFn}\nrenderQuests()`,{G:{st:traveler},curHub:()=> 'KY05',isSafe:()=>true,esc:s=>String(s)});
+if(!saseboQuests.includes('長崎編の依頼・探索区域・配信はまだ収録されていません')) fail('Sasebo quest board implied a playable Nagasaki chapter');
 console.log('National registry: 8 regions, 47 prefectures, 5 connected hubs, Sasebo safe hub and routes OK');
 
 

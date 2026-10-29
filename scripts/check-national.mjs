@@ -22,7 +22,7 @@ const data=readFileSync(resolve(root,'src/data.js'),'utf8');
 const match=data.match(/const HUBS = (\{[\s\S]*?\n\});/);
 if(!match) fail('HUBS not found');
 const hubs=runInNewContext(`(${match[1]})`);
-if(Object.keys(implemented).join(',')!=='JP40,JP41,JP42'||implemented.JP40.join(',')!=='KY01,KY02'||implemented.JP41.join(',')!=='KY03,KY04'||implemented.JP42.join(',')!=='KY05') fail('playable prefectures must match current game');
+if(Object.keys(implemented).join(',')!=='JP40,JP41,JP42'||implemented.JP40.join(',')!=='KY01,KY02'||implemented.JP41.join(',')!=='KY03,KY04'||implemented.JP42.join(',')!=='KY05,KY06') fail('playable prefectures must match current game');
 for(const ids of Object.values(implemented)) for(const id of ids) if(!hubs[id]) fail(`missing playable hub ${id}`);
 const {maps,joins}=runInNewContext(`${data.slice(0,data.indexOf('const NPCS'))}\n({maps:MAPS,joins:JOIN_PLAN})`);
 for(const route of routes.filter(r=>r.status==='playable'&&r.mode==='road')){
@@ -38,7 +38,7 @@ for(const route of routes.filter(r=>r.status==='playable'&&r.mode==='road')){
   const approaches=[[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>{const pos=[gate.x+dx,gate.y+dy];return walkable(from,...pos)&&reachable(from,from.safeAnchor,pos)});
   if(!approaches||!walkable(to,gate.tx,gate.ty)||!reachable(to,[gate.tx,gate.ty],to.safeAnchor)) fail(`${route.id} first-arrival gate has no safe path`);
 }
-for(const id of ['KY02','KY03','KY04','KY05']) if(!walkable(maps[id],...maps[id].safeAnchor)) fail(`${id} unsafe anchor`);
+for(const id of ['KY02','KY03','KY04','KY05','KY06']) if(!walkable(maps[id],...maps[id].safeAnchor)) fail(`${id} unsafe anchor`);
 const east=maps.KY02.objects.find(o=>o.id==='gate_saga'),west=maps.KY03.objects.find(o=>o.id==='gate_kitakyushu');
 if(!east||!west||east.to!=='KY03'||west.to!=='KY02'||east.tx!==2||east.ty!==24||west.tx!==45||west.ty!==24) fail('Karatsu gates are not reciprocal');
 if(!reachable(maps.KY02,maps.KY02.safeAnchor,[45,24])||!reachable(maps.KY03,[2,24],maps.KY03.safeAnchor)||!reachable(maps.KY03,maps.KY03.safeAnchor,[2,24])) fail('Karatsu gate or return path blocked');
@@ -73,12 +73,16 @@ for(const zone of ['1','2','3']){
   if(id!==`KY05-A${zone}`||!tile||!reachable(maps.KY05,maps.KY05.safeAnchor,tile)||!maps.KY05.objects.some(o=>o.type==='sign'&&o.area===id)) fail(`Sasebo exploration zone ${zone} is incomplete`);
 }
 if(!joins.some(j=>j.hub==='KY05'&&j.cid==='kayo')) fail('Sasebo join plan missing');
+const nagasakiGate=maps.KY05.objects.find(o=>o.id==='gate_nagasaki'),nagasakiReturn=maps.KY06.objects.find(o=>o.id==='gate_sasebo');
+if(!nagasakiGate||!nagasakiReturn||nagasakiGate.to!=='KY06'||nagasakiReturn.to!=='KY05'||nagasakiGate.tx!==2||nagasakiGate.ty!==20||nagasakiReturn.tx!==37||nagasakiReturn.ty!==20) fail('Nagasaki city gates are not reciprocal');
+if(!reachable(maps.KY06,[2,20],maps.KY06.safeAnchor)||!reachable(maps.KY06,maps.KY06.safeAnchor,[2,20])||Object.keys(maps.KY06.zones).length) fail('Nagasaki city safety or return path failed');
+for(const type of ['npc','inn','rest','board','shelf']) if(!maps.KY06.objects.some(o=>o.type===type)) fail(`Nagasaki city ${type} missing`);
 const playable=new Set(Object.values(implemented).flat());
 const known=new Set([...playable,...[...data.matchAll(/\["(KY\d+)","[^"]+","[^"]+"\]/g)].map(m=>m[1])]);
 if(new Set(routes.map(r=>r.id)).size!==routes.length) fail('duplicate route ID');
 for(const r of routes){
   if(r.from===r.to||!known.has(r.from)||!known.has(r.to)) fail(`invalid route endpoint ${r.id}`);
-  if(!['playable','planned'].includes(r.status)||!['always','fukuokaClear','karatsuClear','sagaCityClear'].includes(r.unlock)) fail(`invalid route state ${r.id}`);
+  if(!['playable','planned'].includes(r.status)||!['always','fukuokaClear','karatsuClear','sagaCityClear','saseboClear'].includes(r.unlock)) fail(`invalid route state ${r.id}`);
   if(r.status==='playable'&&(!playable.has(r.from)||!playable.has(r.to))) fail(`unimplemented playable route ${r.id}`);
 }
 const edges=routes.filter(r=>r.status==='playable');
@@ -94,6 +98,7 @@ const can=runInNewContext(`${source}\n${routeFn}\nnationalRouteAvailable`);
 if(can({fukuokaClear:false},'KY02','KY03')||!can({fukuokaClear:true},'KY02','KY03')||!can({fukuokaClear:true},'KY03','KY02')||can({fukuokaClear:true},'KY01','KY03')) fail('Karatsu unlock or adjacency guard failed');
 if(can({quests:{M03:'locked'}},'KY03','KY04')||!can({quests:{M03:'complete'}},'KY03','KY04')||!can({quests:{M03:'complete'}},'KY04','KY03')) fail('Saga city unlock or return guard failed');
 if(can({quests:{M04:'locked'}},'KY04','KY05')||!can({quests:{M04:'complete'}},'KY04','KY05')||!can({quests:{M04:'complete'}},'KY05','KY04')) fail('Sasebo unlock or return guard failed');
+if(can({quests:{M05:'locked'}},'KY05','KY06')||!can({quests:{M05:'complete'}},'KY05','KY06')||!can({quests:{M05:'complete'}},'KY06','KY05')) fail('Nagasaki city unlock or return guard failed');
 const futureDef=data.match(/const FUTURE_HUBS = \[[^\n]+\];/)?.[0], worldFn=ui.match(/function renderWorld\(\)\{[\s\S]*?\n\}/)?.[0], statusFn=ui.match(/function worldTravelStatus\(st,from,to,safe\)\{[\s\S]*?\n\}/)?.[0], itineraryFn=ui.match(/function nationalItinerary\(st,from,to\)\{[\s\S]*?\n\}/)?.[0], unlockFn=ui.match(/function nationalRouteUnlockReason\(from,to\)\{[\s\S]*?\n\}/)?.[0];
 if(!futureDef||!worldFn||!statusFn||!itineraryFn||!unlockFn) fail('national map UI source missing');
 const alternateRoutes=[
@@ -109,17 +114,17 @@ alternateRoutes[4].status='planned';
 if(routePlanner({fukuokaClear:false},'A','C').join(',')!=='A,B,C') fail('itinerary did not show a locked route when no open route exists');
 const future=runInNewContext(`${futureDef}\nFUTURE_HUBS`);
 const world=runInNewContext(`${source}\n${worldFn}\n${statusFn}\n${routeFn}\n${itineraryFn}\n${unlockFn}\nrenderWorld()`,{G:{st:{visitedHubs:['KY01'],quests:{},fukuokaClear:false,slots:6}},HUBS:hubs,FUTURE_HUBS:future,isSafe:()=>true,curHub:()=> 'KY01',esc:s=>String(s)});
-if((world.match(/<details>/g)||[]).length!==8||!world.includes('拠点ありは3/47都道府県')||!world.includes('訪問済みは実装済みの1/3県・1/5拠点')||!world.includes('JP40 福岡県：拠点あり（福岡市・北九州市）・訪問済み')||!world.includes('JP41 佐賀県：拠点あり（唐津市・佐賀市）・未訪問')||!world.includes('JP42 長崎県：拠点あり（佐世保市）・未訪問')) fail('national directory must distinguish playable hubs from registry-only prefectures');
+if((world.match(/<details>/g)||[]).length!==8||!world.includes('拠点ありは3/47都道府県')||!world.includes('訪問済みは実装済みの1/3県・1/6拠点')||!world.includes('JP40 福岡県：拠点あり（福岡市・北九州市）・訪問済み')||!world.includes('JP41 佐賀県：拠点あり（唐津市・佐賀市）・未訪問')||!world.includes('JP42 長崎県：拠点あり（佐世保市・長崎市）・未訪問')) fail('national directory must distinguish playable hubs from registry-only prefectures');
 if(!world.includes('福岡市 ↔ 北九州市：経路解放済み')||!world.includes('北九州市 ↔ 唐津市：福岡編の完了待ち')||!world.includes('唐津市 ↔ 佐賀市：唐津編M03の完了待ち')) fail('nationwide route directory did not show unlock conditions');
 if(!world.includes('初回：福岡市の東門')||!world.includes('初回：北九州の東門')||!world.includes('初回：唐津の東門')) fail('route directory did not show first-arrival entrances');
 if(!world.includes('福岡市 → 北九州市 → 唐津市（計2枠・未解放区間あり）')||!world.includes('福岡市 → 北九州市 → 唐津市 → 佐賀市（計3枠・未解放区間あり）')) fail('itinerary missing route or locked segment');
 if(!world.includes('北九州市→唐津市：福岡編の完了後に開きます。')||!world.includes('唐津市→佐賀市：唐津編M03の完了後に開きます。')) fail('itinerary did not identify locked legs');
 if(!world.includes('北九州市の初回到達：福岡市の東門から向かってください。')||!world.includes('唐津市の初回到達：北九州の東門から向かってください。')||!world.includes('佐賀市の初回到達：唐津の東門から向かってください。')) fail('itinerary did not show first-arrival gates');
-if(!world.includes('この先の拠点候補')||!world.includes('KY06 長崎・長崎市　未収録・移動不可')||world.includes('KY05 長崎・佐世保市　未収録')) fail('future hub directory mismatch');
+if(!world.includes('この先の拠点候補')||world.includes('KY06 長崎・長崎市　未収録・移動不可')||world.includes('KY05 長崎・佐世保市　未収録')) fail('future hub directory mismatch');
 const worldVisited=runInNewContext(`${source}\n${worldFn}\n${statusFn}\n${routeFn}\n${itineraryFn}\n${unlockFn}\nrenderWorld()`,{G:{st:{visitedHubs:['KY01','KY03'],quests:{},fukuokaClear:true,slots:6}},HUBS:hubs,FUTURE_HUBS:future,isSafe:()=>true,curHub:()=> 'KY03',esc:s=>String(s)});
-if(!worldVisited.includes('訪問済みは実装済みの2/3県・2/5拠点')||!worldVisited.includes('JP41 佐賀県：拠点あり（唐津市・佐賀市）・訪問済み')) fail('national visit count did not follow saved hubs');
+if(!worldVisited.includes('訪問済みは実装済みの2/3県・2/6拠点')||!worldVisited.includes('JP41 佐賀県：拠点あり（唐津市・佐賀市）・訪問済み')) fail('national visit count did not follow saved hubs');
 const worldSaga=runInNewContext(`${source}\n${worldFn}\n${statusFn}\n${routeFn}\n${itineraryFn}\n${unlockFn}\nrenderWorld()`,{G:{st:{visitedHubs:['KY01','KY02','KY03','KY04'],quests:{M03:'complete'},fukuokaClear:true,slots:3}},HUBS:hubs,FUTURE_HUBS:future,isSafe:()=>true,curHub:()=> 'KY04',esc:s=>String(s)});
-if(!worldSaga.includes('訪問済みは実装済みの2/3県・4/5拠点')) fail('Saga city visit did not update hub count');
+if(!worldSaga.includes('訪問済みは実装済みの2/3県・4/6拠点')) fail('Saga city visit did not update hub count');
 if(!worldSaga.includes('佐賀市 → 唐津市 → 北九州市 → 福岡市（計3枠）')) fail('unlocked itinerary missing');
 if(!worldSaga.includes('佐賀市 ↔ 佐世保市：佐賀市編M04の完了待ち')) fail('Sasebo route directory did not report locked leg');
 const worldLowSlots=runInNewContext(`${source}\n${worldFn}\n${statusFn}\n${routeFn}\n${itineraryFn}\n${unlockFn}\nrenderWorld()`,{G:{st:{visitedHubs:['KY01','KY02','KY03','KY04'],quests:{M03:'complete'},fukuokaClear:true,slots:1}},HUBS:hubs,FUTURE_HUBS:future,isSafe:()=>true,curHub:()=> 'KY04',esc:s=>String(s)});
@@ -136,6 +141,7 @@ if(!travelStatus({...base,fukuokaClear:true},'KY02','KY03',true).reason.includes
 const open={...base,fukuokaClear:true,visitedHubs:['KY01','KY02','KY03','KY04'],quests:{M03:'complete'}};
 if(!travelStatus(open,'KY03','KY04',true).available||!travelStatus(open,'KY03','KY04',false).reason.includes('安全地帯')||!travelStatus({...open,slots:0},'KY03','KY04',true).reason.includes('旅程枠')) fail('national map travel readiness failed');
 if(!travelStatus({...open,quests:{M04:'complete'}},'KY04','KY05',true).reason.includes('佐賀市の東門')||!travelStatus({...open,visitedHubs:[...open.visitedHubs,'KY05'],quests:{M04:'complete'}},'KY05','KY04',true).available) fail('Sasebo first arrival or return guard failed');
+if(!travelStatus({...open,quests:{M05:'complete'}},'KY05','KY06',true).reason.includes('佐世保市の東門')||!travelStatus({...open,visitedHubs:[...open.visitedHubs,'KY06'],quests:{M05:'complete'}},'KY06','KY05',true).available) fail('Nagasaki city first arrival or return guard failed');
 const actionDef=ui.match(/const ACT = \{[\s\S]*?\n\};/)?.[0],canTravelFn=ui.match(/function canTravelFrom\(sheet\)\{[^\n]+\}/)?.[0];
 if(!actionDef||!canTravelFn) fail('travel action missing');
 const actionState={st:{...base,fukuokaClear:true,visitedHubs:['KY01','KY02']},screen:'explore',sheet:'map',dlg:null,readOnly:false,walk:{path:[]}};
@@ -167,6 +173,12 @@ saseboGateState.sheetData.gateId='gate_sagacity';toSasebo();
 if(saseboMoves) fail('stale gate ID bypassed Sasebo first arrival');
 saseboGateState.sheetData.gateId='gate_sasebo';toSasebo();
 if(saseboMoves!==1) fail('valid Sasebo first-arrival gate was rejected');
+const nagasakiGateState={st:{...base,visitedHubs:['KY01','KY02','KY03','KY04','KY05'],quests:{M05:'locked'},slots:2},screen:'explore',sheet:'travel',sheetData:{to:'KY06',tx:2,ty:20,gateId:'gate_nagasaki'},dlg:null,readOnly:false,walk:{path:[]}};
+let nagasakiMoves=0;
+const toNagasaki=runInNewContext(`${source}\n${routeFn}\n${canTravelFn}\n${actionDef}\nACT.doTravel`,{G:nagasakiGateState,HUBS:hubs,curHub:()=> 'KY05',isSafe:()=>true,nearbyObjects:()=>[maps.KY05.objects.find(o=>o.id==='gate_nagasaki')],travelHub:()=>{nagasakiMoves++;},toast:()=>{}});
+toNagasaki();if(nagasakiMoves) fail('locked Nagasaki city gate opened');
+nagasakiGateState.st.quests.M05='complete';toNagasaki();
+if(nagasakiMoves!==1) fail('valid Nagasaki city first-arrival gate was rejected');
 const core=['data_enemies.js','data_saga_enemies.js','data_items.js','data_national.js','data.js','core.js'].map(name=>readFileSync(resolve(root,'src',name),'utf8')).join('\n');
 const areaDefs=runInNewContext(`${core}\nAREAS`);
 for(const zone of ['1','2','3']) if(!areaDefs[`KY05-A${zone}`]||areaDefs[`KY05-A${zone}`].list.length<1) fail(`Sasebo area ${zone} has no enemies`);
@@ -184,6 +196,13 @@ if(!questViewFn) fail('quest UI missing');
 traveler.mapId='KY05';
 const saseboQuests=runInNewContext(`${core}\n${questViewFn}\nrenderQuests()`,{G:{st:traveler},curHub:()=> 'KY05',isSafe:()=>true,esc:s=>String(s)});
 if(!saseboQuests.includes('佐世保市のM05と3区域を遊べます')||!saseboQuests.includes('M05 港から届く返事')) fail('Sasebo quest board did not show M05');
-console.log('National registry: 8 regions, 47 prefectures, 5 connected hubs, Sasebo exploration and routes OK');
+traveler.mapId='KY05';traveler.pos={x:37,y:20};traveler.slots=2;traveler.quests.M05='complete';
+journey.travelHub('KY06',2,20);
+if(traveler.mapId!=='KY06'||traveler.pos.x!==2||traveler.pos.y!==20||traveler.slots!==1||!traveler.visitedHubs.includes('KY06')||saved!==3||savedStates[2].mapId!=='KY06') fail('Nagasaki city arrival or save failed');
+const nagasakiQuests=runInNewContext(`${core}\n${questViewFn}\nrenderQuests()`,{G:{st:traveler},curHub:()=> 'KY06',isSafe:()=>true,esc:s=>String(s)});
+if(!nagasakiQuests.includes('依頼・探索・配信はまだ収録していません')) fail('Nagasaki city board did not identify unfinished content');
+journey.travelHub('KY05',37,20);
+if(traveler.mapId!=='KY05'||traveler.slots!==0||saved!==4) fail('Nagasaki city return failed');
+console.log('National registry: 8 regions, 47 prefectures, 6 connected hubs, Nagasaki city safe route OK');
 
 

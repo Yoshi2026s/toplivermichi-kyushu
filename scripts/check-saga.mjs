@@ -8,7 +8,7 @@ const source=files.map(f=>readFileSync(resolve(root,'src',f),'utf8')).join('\n')
 const ui=readFileSync(resolve(root,'src/ui.js'),'utf8');
 const migration=ui.match(/function migrate\(s\)\{[\s\S]*?\n\}/)?.[0];
 if(!migration) throw new Error('save migration missing');
-const game=runInNewContext(`${source}\nfunction soundPref(){return true}\n${migration}\n({newGame,completeQuest,createFieldRun,createBossRun,newStream,streamPlay,migrate,enemyDef,AREAS,QUESTS,SUPPORTS})`);
+const game=runInNewContext(`${source}\nfunction soundPref(){return true}\n${migration}\n({newGame,completeQuest,createFieldRun,createBossRun,applyVictory,newStream,streamPlay,migrate,enemyDef,AREAS,QUESTS,SUPPORTS})`);
 const fail=msg=>{throw new Error(msg)};
 
 const fresh=game.newGame('確認用','女性');
@@ -77,4 +77,22 @@ const saseboBefore=fresh.tickets;game.completeQuest(fresh,'M05',{xp:0,tickets:0}
 if(fresh.quests.M05!=='complete'||fresh.moeRank!==5||fresh.tickets<=saseboBefore) fail('M05 completion failed');
 const saseboOnce=fresh.tickets;game.completeQuest(fresh,'M05',{xp:0,tickets:0});
 if(fresh.tickets!==saseboOnce) fail('M05 reward duplicated');
+const flow=game.newGame('佐世保進行','女性');
+flow.quests.M04='complete';flow.quests.M05='active';flow.activeQuest='M05';
+for(let i=0;i<2;i++){
+  const field=game.createFieldRun(flow,'KY05-A1',{count:0,picks:[0,0]});
+  game.applyVictory(flow,field);
+}
+if(flow.qprog.M05!==2||flow.quests.M05!=='bossReady') fail('M05 field victories did not unlock boss');
+const flowBoss=game.createBossRun(flow,'B04');game.applyVictory(flow,flowBoss);
+if(!flow.bossDefeated.B04||flow.quests.M05!=='combatDone') fail('M05 boss victory did not unlock stream');
+const flowStream=game.newStream(flow,'KY05','hero','local','voice');
+for(const act of ['local','first','reply','thanks']) game.streamPlay(flowStream,act);
+if(!flowStream.done||flowStream.score<80) fail('M05 flow stream failed');
+game.completeQuest(flow,'M05',{xp:0,tickets:0});
+if(flow.quests.M05!=='complete'||flow.activeQuest!==null||flow.moeRank!==5) fail('M05 flow did not complete');
+if(game.SUPPORTS.PR03.startA!==14) fail('Nagasaki support bonus invalid');
+flow.support='PR03';
+const supportedSasebo=game.createFieldRun(flow,'KY05-A1',{count:0,picks:[0,0]});
+if(supportedSasebo.A!==game.createFieldRun({...flow,support:null},'KY05-A1',{count:0,picks:[0,0]}).A+14) fail('Nagasaki support battle bonus invalid');
 console.log('Saga and Sasebo M03-M05: old saves, battles, bosses, streams, ranks and rewards OK');

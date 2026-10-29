@@ -8,7 +8,9 @@ const ui=readFileSync(resolve(root,'src','ui.js'),'utf8');
 const checksum=ui.match(/function checksum\(str\)\{[^\n]+\}/)?.[0];
 const load=ui.match(/async function loadSave\(\)\{[\s\S]*?\n\}/)?.[0];
 const validate=ui.match(/function validateState\(s\)\{[\s\S]*?\n\}/)?.[0];
-if(!checksum||!load||!validate) throw new Error('save functions missing');
+const migrate=ui.match(/function migrate\(s\)\{[\s\S]*?\n\}/)?.[0];
+const actions=ui.match(/const ACT = \{[\s\S]*?\n\};/)?.[0];
+if(!checksum||!load||!validate||!migrate||!actions) throw new Error('save functions missing');
 const db={auto:null,'auto-prev':null},store={value:null};
 const game=runInNewContext(`${core}\n${checksum}\n${validate}\n${load}\n({newGame,checksum,loadSave})`,{
   DB:{get:async key=>db[key]},localStorage:{getItem:()=>store.value}
@@ -30,4 +32,17 @@ if(loaded.state.profile.name!=='古い記録'||!loaded.fromPrev) throw new Error
 store.value=JSON.stringify(makeRecord(newer,3));
 loaded=await game.loadSave();
 if(loaded.state.profile.name!=='新しい記録'||loaded.storage!=='local'||loaded.fromPrev) throw new Error('local save fallback failed');
-console.log('Save recovery: current, corrupt checksum, malformed JSON, invalid state, local fallback OK');
+const current=game.newGame('維持する記録','男性'),incoming=game.newGame('復元する記録','女性');
+const uiState={st:current,screen:'explore',sheet:'settings',readOnly:false,saveStatus:'保存済み',hasSave:true,walk:{path:[]},dlg:null,cmd:{}};
+let saveSucceeds=false,rendered=0,message='';
+const restore=runInNewContext(`${core}\n${validate}\n${migrate}\n${actions}\nACT.restore`,{
+  G:uiState,$:()=>({value:JSON.stringify({app:'toplivermichi-kyushu',state:incoming})}),
+  commit:async()=>{uiState.st.saveGeneration++;return saveSucceeds;},
+  setSave:value=>{uiState.saveStatus=value;},toast:value=>{message=value;},render:()=>{rendered++;},
+  soundPref:()=>true,clearTimeout:()=>{}
+});
+await restore();
+if(uiState.st!==current||uiState.screen!=='explore'||uiState.sheet!=='settings'||uiState.saveStatus!=='保存済み'||rendered||!message.includes('元の記録を維持')) throw new Error('failed backup restore replaced the current game');
+saveSucceeds=true; await restore();
+if(uiState.st.profile.name!=='復元する記録'||uiState.sheet!==null||uiState.screen!=='explore'||rendered!==1||!message.includes('読み込みました')) throw new Error('successful backup restore failed');
+console.log('Save recovery: current, corrupt checksum, malformed JSON, invalid state, local fallback, restore rollback OK');

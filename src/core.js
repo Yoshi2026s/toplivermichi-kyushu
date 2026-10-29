@@ -893,9 +893,15 @@ function giveItem(st,id,n,res,why){
     if(got) res.items.push({id,n:got,why}); if(vaulted) res.itemsVaulted.push({id,n:vaulted}); if(kept) res.itemsKept.push({id,n:kept}); if(rest) res.itemsLost.push({id,n:rest}); }
   return {got,vaulted,kept,lost:rest};
 }
-function flushKeep(st){ // 預かり所から袋へ（安全地帯で呼ぶ）
-  if(!st.keep||!st.keep.length) return 0; let moved=0; const left=[];
-  for(const id of st.keep){ if(bagAdd(st.bag,id,1)) moved++; else left.push(id); }
+function flushKeep(st){ // 預かり所から袋・金庫へ（安全地帯で呼ぶ）
+  const moved={bagged:0,vaulted:0};
+  if(!st.keep||!st.keep.length) return moved;
+  const left=[];
+  for(const id of st.keep){
+    if(bagAdd(st.bag,id,1)) moved.bagged++;
+    else if(itemVaultAdd(st,id,1)) moved.vaulted++;
+    else left.push(id);
+  }
   st.keep=left; return moved;
 }
 function itemAmount(it, k, maxHP, V, boost){

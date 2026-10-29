@@ -64,8 +64,12 @@ const cityBoss=maps.KY04.objects.find(o=>o.type==='boss'&&o.boss==='B03');
 if(!cityBoss||!reachable(maps.KY04,maps.KY04.safeAnchor,[cityBoss.x,cityBoss.y])) fail('Saga city boss unreachable');
 const saseboGate=maps.KY04.objects.find(o=>o.id==='gate_sasebo'),saseboReturn=maps.KY05.objects.find(o=>o.id==='gate_sagacity');
 if(!saseboGate||!saseboReturn||saseboGate.to!=='KY05'||saseboReturn.to!=='KY04'||saseboGate.tx!==2||saseboGate.ty!==20||saseboReturn.tx!==37||saseboReturn.ty!==20) fail('Sasebo gates are not reciprocal');
-if(Object.keys(maps.KY05.zones).length||!reachable(maps.KY05,maps.KY05.safeAnchor,[2,20])) fail('Sasebo must remain a safe hub without exploration zones');
+if(!reachable(maps.KY05,maps.KY05.safeAnchor,[2,20])) fail('Sasebo return path is blocked');
 for(const type of ['npc','inn','rest','board','shelf']) if(!maps.KY05.objects.some(o=>o.type===type)) fail(`Sasebo ${type} missing`);
+for(const zone of ['1','2','3']){
+  const id=maps.KY05.zones[zone],tile=maps.KY05.tiles.flatMap((row,y)=>row.map((value,x)=>value===zone?[x,y]:null)).find(Boolean);
+  if(id!==`KY05-A${zone}`||!tile||!reachable(maps.KY05,maps.KY05.safeAnchor,tile)||!maps.KY05.objects.some(o=>o.type==='sign'&&o.area===id)) fail(`Sasebo exploration zone ${zone} is incomplete`);
+}
 if(!joins.some(j=>j.hub==='KY05'&&j.cid==='kayo')) fail('Sasebo join plan missing');
 const playable=new Set(Object.values(implemented).flat());
 const known=new Set([...playable,...[...data.matchAll(/\["(KY\d+)","[^"]+","[^"]+"\]/g)].map(m=>m[1])]);
@@ -162,6 +166,8 @@ if(saseboMoves) fail('stale gate ID bypassed Sasebo first arrival');
 saseboGateState.sheetData.gateId='gate_sasebo';toSasebo();
 if(saseboMoves!==1) fail('valid Sasebo first-arrival gate was rejected');
 const core=['data_enemies.js','data_saga_enemies.js','data_items.js','data_national.js','data.js','core.js'].map(name=>readFileSync(resolve(root,'src',name),'utf8')).join('\n');
+const areaDefs=runInNewContext(`${core}\nAREAS`);
+for(const zone of ['1','2','3']) if(!areaDefs[`KY05-A${zone}`]||areaDefs[`KY05-A${zone}`].list.length<1) fail(`Sasebo area ${zone} has no enemies`);
 const travelMapFn=ui.match(/function travelMap\(to,tx,ty,save=true\)\{[\s\S]*?\n\}/)?.[0],travelHubFn=ui.match(/function travelHub\(to,tx,ty\)\{[\s\S]*?\n\}/)?.[0];
 if(!travelMapFn||!travelHubFn) fail('hub travel implementation missing');
 let saved=0,dialogs=[];const savedStates=[];
@@ -175,7 +181,7 @@ const questViewFn=ui.match(/function renderQuests\(\)\{[\s\S]*?\n\}/)?.[0];
 if(!questViewFn) fail('quest UI missing');
 traveler.mapId='KY05';
 const saseboQuests=runInNewContext(`${core}\n${questViewFn}\nrenderQuests()`,{G:{st:traveler},curHub:()=> 'KY05',isSafe:()=>true,esc:s=>String(s)});
-if(!saseboQuests.includes('長崎編の依頼・探索区域・配信はまだ収録されていません')) fail('Sasebo quest board implied a playable Nagasaki chapter');
+if(!saseboQuests.includes('佐世保市の3区域は探索できます')||!saseboQuests.includes('長崎編の依頼・地域ボス・配信はまだ収録されていません')) fail('Sasebo quest board overstated the playable Nagasaki chapter');
 console.log('National registry: 8 regions, 47 prefectures, 5 connected hubs, Sasebo safe hub and routes OK');
 
 

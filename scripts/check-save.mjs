@@ -9,15 +9,16 @@ const checksum=ui.match(/function checksum\(str\)\{[^\n]+\}/)?.[0];
 const load=ui.match(/async function loadSave\(\)\{[\s\S]*?\n\}/)?.[0];
 const validate=ui.match(/function validateState\(s\)\{[\s\S]*?\n\}/)?.[0];
 const migrate=ui.match(/function migrate\(s\)\{[\s\S]*?\n\}/)?.[0];
+const supportAvailable=ui.match(/function supportAvailable\(st,id\)\{[\s\S]*?\n\}/)?.[0];
 const actions=ui.match(/const ACT = \{[\s\S]*?\n\};/)?.[0];
-if(!checksum||!load||!validate||!migrate||!actions) throw new Error('save functions missing');
+if(!checksum||!load||!validate||!migrate||!supportAvailable||!actions) throw new Error('save functions missing');
 const db={auto:null,'auto-prev':null},store={value:null};
 const game=runInNewContext(`${core}\n${checksum}\n${validate}\n${load}\n({newGame,checksum,loadSave})`,{
   DB:{get:async key=>db[key]},localStorage:{getItem:()=>store.value}
 });
 const makeRecord=(state,gen=1)=>{const text=JSON.stringify({...state,saveGeneration:gen});return {state:text,sum:game.checksum(text),gen,time:gen};};
 const old=game.newGame('古い記録','男性'),newer=game.newGame('新しい記録','女性');
-const migrateVisit=runInNewContext(`${core}\n${migrate}\nmigrate`,{soundPref:()=>true});
+const migrateVisit=runInNewContext(`${core}\n${supportAvailable}\n${migrate}\nmigrate`,{soundPref:()=>true});
 const missingVisit=game.newGame('訪問記録','男性');
 missingVisit.mapId='KY03'; delete missingVisit.visitedMaps; delete missingVisit.visitedHubs;
 migrateVisit(missingVisit);
@@ -33,6 +34,12 @@ if(!saseboVisit.visitedHubs.includes('KY05')||saseboVisit.mapId!=='KY05'||sasebo
 if(!saseboVisit.roster.includes('kayo')||!saseboVisit.vitals.kayo) throw new Error('interrupted Sasebo arrival did not recover Kayo');
 migrateVisit(saseboVisit);
 if(saseboVisit.roster.filter(cid=>cid==='kayo').length!==1) throw new Error('Sasebo join recovery duplicated Kayo');
+const lockedSupport=game.newGame('未解放支援','女性');lockedSupport.support='PR03';migrateVisit(lockedSupport);
+if(lockedSupport.support!==null) throw new Error('locked Nagasaki support survived migration');
+const unlockedSupport=game.newGame('解放済支援','女性');unlockedSupport.talked.saseboGuide=true;unlockedSupport.quests.M05='complete';unlockedSupport.support='PR03';migrateVisit(unlockedSupport);
+if(unlockedSupport.support!=='PR03') throw new Error('unlocked Nagasaki support was lost');
+const unknownSupport=game.newGame('不明支援','女性');unknownSupport.support='PR99';migrateVisit(unknownSupport);
+if(unknownSupport.support!==null) throw new Error('unknown region support survived migration');
 const lostPosition=game.newGame('位置欠損','女性');lostPosition.mapId='KY05';delete lostPosition.pos;migrateVisit(lostPosition);
 if(lostPosition.pos.x!==12||lostPosition.pos.y!==20) throw new Error('missing Sasebo position was not recovered');
 const outsidePosition=game.newGame('範囲外','女性');outsidePosition.mapId='KY05';outsidePosition.pos={x:99,y:99};migrateVisit(outsidePosition);

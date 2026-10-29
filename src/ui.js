@@ -1095,7 +1095,7 @@ function canTradeAtShop(d){ return !!G.st&&!G.readOnly&&!G.shopSaving&&G.screen=
 function tradeSnapshot(st){ return {gold:st.gold,bag:clone(st.bag),itemVault:clone(st.itemVault),keep:clone(st.keep),owned:clone(st.owned)}; }
 function restoreTrade(st,snap){ Object.assign(st,snap); }
 function itemText(it,V){ return it.text.replace(/(\d+)×V/g,(m,n)=>String(+n*V)).replace("−防御のダメージ","から敵の防御力を引いたダメージ"); }
-function keepFlush(){ const st=G.st; if(!st||G.readOnly||G.screen!=="explore"||G.sheet||G.dlg||st.run||!st.keep||!st.keep.length||!isSafe()) return 0; const n=flushKeep(st); if(n){ commit(); toast(`預かり所から道具を${n}個受け取った。`); } return n; }
+function keepFlush(){ const st=G.st; if(!st||G.readOnly||G.screen!=="explore"||G.sheet||G.dlg||st.run||!st.keep||!st.keep.length||!isSafe()) return 0; const moved=flushKeep(st),n=moved.bagged+moved.vaulted; if(n){ commit(); toast(`預かり所から道具を${n}個受け取った。${moved.vaulted?`うち${moved.vaulted}個はアイテム金庫へ保管した。`:""}`); } return n; }
 function canEditParty(){ return !!G.st&&!G.readOnly&&G.screen==="explore"&&G.sheet==="party"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&isSafe(); }
 function canEditVault(){ return !!G.st&&!G.readOnly&&!G.vaultSaving&&G.screen==="explore"&&G.sheet==="goldVault"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&isSafe()&&!streamPending(); }
 function canViewItemVault(){ return !!G.st&&G.screen==="explore"&&G.sheet==="itemVault"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&isSafe(); }
@@ -1124,7 +1124,7 @@ function renderItems(){
   return `<p class="small">道具袋 ${st.bag.length}/${BAG_KINDS}種類（1種類${BAG_STACK}個まで）。回復・蘇生は移動中にも使えます。</p>
     <div class="stack">${st.bag.map(e=>{const it=ITEMS[e.id]; return `<button class="btn dexrow" data-a="itemView" data-v="${e.id}"><span>${esc(it.name)}　×${e.n}　<span class="small">${"★".repeat(it.stars)}</span></span><span class="small">${esc(itemText(it,Vof(levelOf(st.xp))))}${it.battleOnly?"（戦闘のみ）":""}</span></button>`;}).join("")||`<p>道具を持っていません。ショップで買えます。</p>`}</div>
     <h3 class="label">アイテム金庫（${itemVaultCount(st)}/${ITEM_VAULT_MAX}）</h3><p class="small">道具袋に入りきらない報酬を全街共通で保管します。</p>${st.itemVault.length?`<ul class="list">${st.itemVault.map(e=>`<li>${esc(ITEMS[e.id].name)} ×${e.n}</li>`).join("")}</ul>`:""}${G.screen==="explore"&&isSafe()?`<button class="btn" data-a="itemVaultOpen">金庫の${G.readOnly?"中身を見る":"道具を出し入れ"}</button>`:""}
-    ${st.keep&&st.keep.length?`<h3 class="label">宿屋の預かり所（${st.keep.length}/${KEEP_MAX}）</h3><p class="small">袋に空きができると、安全な場所で自動的に受け取ります。</p><ul class="list">${st.keep.map(id=>`<li>${esc(ITEMS[id].name)}</li>`).join("")}</ul>`:""}`;
+    ${st.keep&&st.keep.length?`<h3 class="label">宿屋の預かり所（${st.keep.length}/${KEEP_MAX}）</h3><p class="small">安全な場所で、袋またはアイテム金庫に空きがあれば自動的に受け取ります。</p><ul class="list">${st.keep.map(id=>`<li>${esc(ITEMS[id].name)}</li>`).join("")}</ul>`:""}`;
 }
 function renderItemVault(){
   const st=G.st,d=G.sheetData,mode=d.mode==="withdraw"?"withdraw":"deposit",source=mode==="deposit"?st.bag:st.itemVault,query=String(d.query||"").trim().toLocaleLowerCase(),filter=d.filter||"all",list=source.filter(e=>ITEMS[e.id]&&(filter==="all"||(filter==="event")===(ITEMS[e.id].acq==="E"))&&(!query||e.id.toLocaleLowerCase().includes(query)||ITEMS[e.id].name.toLocaleLowerCase().includes(query))),pages=Math.max(1,Math.ceil(list.length/10)),page=Math.max(0,Math.min(pages-1,d.page||0)),id=d.id||"",max=id?(mode==="deposit"?Math.min(bagCount(st.bag,id),ITEM_VAULT_MAX-itemVaultCount(st)):Math.min(bagCount(st.itemVault,id),bagRoom(st.bag,id))):0,qty=d.qty||1,can=canEditItemVault(),view=canViewItemVault(),p=d.preview;

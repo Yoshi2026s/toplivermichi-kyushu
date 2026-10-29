@@ -88,4 +88,12 @@ if(!readView.includes('>1個</button>')||readView.split('最大（1個）').leng
 ivState.st.bag.push({id:'IT017',n:1});ivState.sheetData={mode:'deposit',id:null,qty:1,preview:null,query:'',filter:'event',page:0};
 const eventView=runInNewContext(`${itemVaultViewFn}\nrenderItemVault()`,{G:ivState,ITEMS:runInNewContext(`${core}\nITEMS`),BAG_KINDS:20,ITEM_VAULT_MAX:999,itemVaultCount:game.itemVaultCount,bagCount:game.bagCount,bagRoom:(bag,id)=>9-game.bagCount(bag,id),canEditItemVault:()=>false,canViewItemVault:()=>true,esc:s=>String(s)});
 if(!eventView.includes('応援団の差し入れ箱')||eventView.includes('休憩カード')||!eventView.includes('イベント限定道具')) throw new Error('event item classification failed');
+const sheetDef=ui.match(/function openSheet\(k,data=\{\}\)\{[^\n]+\}\nfunction closeSheet\(\)\{[^\n]+\}/)?.[0];
+if(!sheetDef) throw new Error('sheet navigation missing');
+const navState={sheet:'itemVault',sheetData:{mode:'deposit'},walk:{path:[]},vaultSaving:true};
+const nav=runInNewContext(`${sheetDef}\n({openSheet,closeSheet})`,{G:navState,$:()=>null,render:()=>{}});
+nav.closeSheet();nav.openSheet('items');
+if(navState.sheet!=='itemVault') throw new Error('save pending allowed sheet navigation');
+navState.vaultSaving=false;nav.closeSheet();
+if(navState.sheet!==null) throw new Error('sheet remained locked after save');
 console.log('Gold and item vault: transfer, overflow, capacity and legacy save OK');

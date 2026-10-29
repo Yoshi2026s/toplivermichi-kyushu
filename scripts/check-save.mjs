@@ -30,6 +30,12 @@ const saseboVisit=game.newGame('佐世保の記録','女性');
 saseboVisit.mapId='KY05';saseboVisit.pos={x:12,y:20};saseboVisit.quests.M04='complete';saseboVisit.visitedMaps=['KY01','KY05'];saseboVisit.visitedHubs=['KY01'];
 migrateVisit(saseboVisit);
 if(!saseboVisit.visitedHubs.includes('KY05')||saseboVisit.mapId!=='KY05'||saseboVisit.pos.x!==12||saseboVisit.quests.M04!=='complete') throw new Error('Sasebo visit migration lost location or main quest');
+const lostPosition=game.newGame('位置欠損','女性');lostPosition.mapId='KY05';delete lostPosition.pos;migrateVisit(lostPosition);
+if(lostPosition.pos.x!==12||lostPosition.pos.y!==20) throw new Error('missing Sasebo position was not recovered');
+const outsidePosition=game.newGame('範囲外','女性');outsidePosition.mapId='KY05';outsidePosition.pos={x:99,y:99};migrateVisit(outsidePosition);
+if(outsidePosition.pos.x!==12||outsidePosition.pos.y!==20) throw new Error('out-of-bounds Sasebo position was not recovered');
+const blockedPosition=game.newGame('障害物','女性');blockedPosition.mapId='KY05';blockedPosition.pos={x:0,y:0};migrateVisit(blockedPosition);
+if(blockedPosition.pos.x!==12||blockedPosition.pos.y!==20) throw new Error('blocked Sasebo position was not recovered');
 const brokenLog=game.newGame('旧戦闘記録','男性');
 brokenLog.run={log:{text:'old'},bag:[]};migrateVisit(brokenLog);
 if(!Array.isArray(brokenLog.run.log)||brokenLog.run.log.length) throw new Error('malformed battle log was not repaired');
@@ -82,6 +88,15 @@ const resume=runInNewContext(`${actions}\nACT.continue`,{
 });
 await resume();
 if(resumeState.screen!=='explore'||resumeStatus!=='前の記録から復旧'||!resumeMessage.includes('前の世代')||resumeMessage.includes('壊れ')) throw new Error('previous-save resume notice was misleading');
+const positionState=game.newGame('位置復旧','女性');positionState.mapId='KY05';positionState.pos={x:99,y:99};
+let positionMessage='';
+const resumePosition=runInNewContext(`${core}\n${migrate}\n${actions}\nACT.continue`,{
+  G:{st:null,screen:'title',soundWant:null},loadSave:async()=>({state:positionState,storage:'indexeddb',fromPrev:false}),
+  setSave:()=>{},toast:value=>{positionMessage=value;},render:()=>{},soundPref:()=>true,
+  SND:{on:true,setOn:()=>{},play:()=>{}},exploreBgm:()=>{}
+});
+await resumePosition();
+if(positionState.pos.x!==12||positionState.pos.y!==20||!positionMessage.includes('保存位置を現在の地形')) throw new Error('position recovery was not explained on resume');
 const current=game.newGame('維持する記録','男性'),incoming=game.newGame('復元する記録','女性');
 const uiState={st:current,screen:'explore',sheet:'settings',readOnly:false,saveStatus:'保存済み',hasSave:true,walk:{path:[]},dlg:null,cmd:{}};
 let saveSucceeds=false,rendered=0,message='';
@@ -95,4 +110,13 @@ await restore();
 if(uiState.st!==current||uiState.screen!=='explore'||uiState.sheet!=='settings'||uiState.saveStatus!=='保存済み'||rendered||!message.includes('元の記録を維持')) throw new Error('failed backup restore replaced the current game');
 saveSucceeds=true; await restore();
 if(uiState.st.profile.name!=='復元する記録'||uiState.sheet!==null||uiState.screen!=='explore'||rendered!==1||!message.includes('読み込みました')) throw new Error('successful backup restore failed');
+const incomingPosition=game.newGame('位置を直す記録','女性');incomingPosition.mapId='KY05';incomingPosition.pos={x:99,y:99};
+const positionUi={st:current,screen:'explore',sheet:'settings',readOnly:false,saveStatus:'保存済み',hasSave:true,walk:{path:[]},dlg:null,cmd:{}};
+let restoredPositionMessage='';
+const restorePosition=runInNewContext(`${core}\n${validate}\n${migrate}\n${actions}\nACT.restore`,{
+  G:positionUi,$:()=>({value:JSON.stringify({app:'toplivermichi-kyushu',state:incomingPosition})}),
+  commit:async()=>true,setSave:()=>{},toast:value=>{restoredPositionMessage=value;},render:()=>{},soundPref:()=>true,clearTimeout:()=>{}
+});
+await restorePosition();
+if(positionUi.st.pos.x!==12||positionUi.st.pos.y!==20||!restoredPositionMessage.includes('保存位置を現在の地形')) throw new Error('backup restore did not explain position recovery');
 console.log('Save recovery: generation choice, corrupt checksum, malformed JSON, invalid state, local fallback, visit migration, restore rollback OK');

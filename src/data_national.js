@@ -17,7 +17,7 @@ const NATIONAL_PREFECTURES = [
 const NATIONAL_IMPLEMENTED_HUBS = {JP40:["KY01","KY02"],JP41:["KY03","KY04"]};
 /* 経路は実装状態と解放条件を分ける。planned は地図の移動先にしない。 */
 const NATIONAL_ROUTES = [
-  {id:"RT-KY01-KY02",from:"KY01",to:"KY02",mode:"road",status:"playable",unlock:"always"},
-  {id:"RT-KY02-KY03",from:"KY02",to:"KY03",mode:"road",status:"playable",unlock:"fukuokaClear"},
-  {id:"RT-KY03-KY04",from:"KY03",to:"KY04",mode:"road",status:"playable",unlock:"karatsuClear"}
+  {id:"RT-KY01-KY02",from:"KY01",to:"KY02",mode:"road",status:"playable",unlock:"always",firstArrival:"福岡市の東門"},
+  {id:"RT-KY02-KY03",from:"KY02",to:"KY03",mode:"road",status:"playable",unlock:"fukuokaClear",firstArrival:"北九州の東門"},
+  {id:"RT-KY03-KY04",from:"KY03",to:"KY04",mode:"road",status:"playable",unlock:"karatsuClear",firstArrival:"唐津の東門"}
 ];

@@ -1299,7 +1299,10 @@ const ACT = {
   copyBackup(){ const t=$("#backupOut"); try{ navigator.clipboard.writeText(t.value).then(()=>toast("コピーしました。メモ帳などへ貼り付けて保管してください。"),()=>{t.select();toast("文字列を選択しました。コピーしてください。");}); }catch(e){ t.select(); toast("文字列を選択しました。コピーしてください。"); } },
   async restore(){ if(G.readOnly||G.sheet!=="settings") return toast("この画面では復元できません。"); const t=$("#restoreIn"); if(!t) return toast("復元欄がありません。"); const raw=(t.value||"").trim(); if(raw.length>5000000) return toast("大きすぎます（上限5,000,000バイト）。");
     try{ const o=JSON.parse(raw); if(o.app!=="toplivermichi-kyushu"||!o.state||o.state.schemaVersion!==SCHEMA_VERSION||!o.state.profile) throw 0; validateState(o.state);
-      const next=migrate(o.state); G.auto=false; clearTimeout(G.autoT); G.walk={path:[],prog:0,pending:null}; G.dlg=null; G.cmd={}; G.st=next; await commit(); G.hasSave=true; G.sheet=null; G.screen=G.st.run?"battle":"explore"; render(); toast("記録を読み込みました。"); }
+      const next=migrate(o.state),previous=G.st,previousStatus=G.saveStatus; G.st=next;
+      let saved=false; try{ saved=await commit(); }catch(e){}
+      if(!saved){ G.st=previous; setSave(previousStatus); return toast("記録を保存できませんでした。元の記録を維持しています。バックアップの文字列を保管してください。"); }
+      G.auto=false; clearTimeout(G.autoT); G.walk={path:[],prog:0,pending:null}; G.dlg=null; G.cmd={}; G.hasSave=true; G.sheet=null; G.screen=G.st.run?"battle":"explore"; render(); toast("記録を読み込みました。"); }
     catch(e){ toast("読み込めませんでした。文字列が途中で切れていないか確認してください。"); } },
   partyView(el){ G.sheetData={cid:el.dataset.c||null, view:el.dataset.v||""}; render(); drawMiniSprites(); },
   partyUp(el){ if(!canEditParty()) return; const st=G.st,i=Number(el.dataset.v),c=el.dataset.c; if(!Number.isInteger(i)||i<1||i>=st.party.length||st.party[i]!==c) return toast("編成が変わりました。選び直してください。"); [st.party[i-1],st.party[i]]=[st.party[i],st.party[i-1]]; commit(); render(); },

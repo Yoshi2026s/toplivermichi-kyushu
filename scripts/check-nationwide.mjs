@@ -4,11 +4,11 @@ import {runInNewContext} from 'node:vm';
 
 const root=resolve(import.meta.dirname,'..');
 const read=name=>readFileSync(resolve(root,'src',name),'utf8');
-const data=['data_enemies.js','data_saga_enemies.js','data_items.js','data_national.js','data.js','data_nationwide.js'].map(read).join('\n');
+const data=['data_enemies.js','data_saga_enemies.js','data_items.js','data_national.js','data.js','data_nationwide.js','data_nationwide_story.js','data_maps.js'].map(read).join('\n');
 const ui=read('ui.js');
 const guard=ui.match(/function nationalRouteAvailable\(st,from,to\)\{[\s\S]*?\n\}/)?.[0];
 if(!guard) throw new Error('route guard missing');
-const {prefs,implemented,routes,hubs,maps,areas,can,order}=runInNewContext(`${data}\n${guard}\n({prefs:NATIONAL_PREFECTURES,implemented:NATIONAL_IMPLEMENTED_HUBS,routes:NATIONAL_ROUTES,hubs:HUBS,maps:MAPS,areas:AREAS,can:nationalRouteAvailable,order:NATIONWIDE_ORDER})`);
+const {prefs,implemented,routes,hubs,maps,areas,can,order,stories,quests,bosses}=runInNewContext(`${data}\n${guard}\n({prefs:NATIONAL_PREFECTURES,implemented:NATIONAL_IMPLEMENTED_HUBS,routes:NATIONAL_ROUTES,hubs:HUBS,maps:MAPS,areas:AREAS,can:nationalRouteAvailable,order:NATIONWIDE_ORDER,stories:NATIONWIDE_STORIES,quests:QUESTS,bosses:BOSSES})`);
 const assert=(ok,msg)=>{if(!ok)throw new Error(msg)};
 assert(prefs.length===47&&Object.keys(implemented).length===47,'47 prefectures need playable hubs');
 assert(order.length===43&&new Set(order).size===43,'new city registry missing or duplicated');
@@ -30,18 +30,28 @@ for(const p of prefs){
   for(const id of ids) assert(hubs[id]&&maps[id],`${id} missing hub or map`);
 }
 for(const n of order){
-  const id=`NW${String(n).padStart(2,'0')}`,m=maps[id];
+  const id=`NW${String(n).padStart(2,'0')}`,town=maps[id],m=maps[hubs[id].fieldMap],story=stories[id];
+  assert(town.kind==='town'&&Object.keys(town.zones).length===0&&m?.kind==='field',`${id} needs a safe town and separate field`);
+  assert(story&&quests[story.questId]?.boss===story.bossId&&bosses[story.bossId]?.hub===id,`${id} regional story/quest/boss missing`);
+  assert(town.objects.some(o=>o.type==='npc'&&o.npc===story.npcId)&&m.objects.some(o=>o.type==='boss'&&o.boss===story.bossId),`${id} guide or outdoor boss not placed`);
   assert(walkable(m,...m.safeAnchor),`${id} unsafe arrival`);
   assert(new Set(m.objects.map(o=>`${o.x},${o.y}`)).size===m.objects.length,`${id} overlapping objects`);
   for(let zone=1;zone<=3;zone++){
     const area=m.zones[zone];assert(areas[area]?.list.length===50,`${area} enemy list missing`);
     const point=m.tiles.flatMap((row,y)=>row.map((tile,x)=>tile===String(zone)?[x,y]:null)).find(Boolean);
     assert(point&&reachable(m,m.safeAnchor,point),`${area} unreachable`);
+    assert(m.objects.some(o=>o.type==='sign'&&o.area===area),`${area} sign missing in field`);
   }
 }
 const locked={quests:{M08:'locked'}},open={quests:{M08:'complete'}};
 assert(!can(locked,'KY08','NW44')&&can(open,'KY08','NW44'),'Aso completion gate failed');
 assert(can(open,'NW44','KY08')&&can(open,'NW01','NW02'),'reverse or final route failed');
+assert(Object.keys(stories).length===43&&new Set(Object.values(stories).map(s=>s.title)).size===43,'43 distinct regional story titles required');
+assert(new Set(Object.values(stories).map(s=>bosses[s.bossId].name)).size===43,'43 distinct regional boss names required');
+for(const route of routes.filter(r=>r.requiredQuest)){
+  assert(!can({quests:{}},route.from,route.to)&&can({quests:{[route.requiredQuest]:'complete'}},route.from,route.to),`${route.id} must open after its local boss quest`);
+  assert(can({quests:{}},route.to,route.from),`${route.id} must permit return travel`);
+}
 for(const r of routes){
   const fm=maps[r.from],tm=maps[r.to];assert(fm&&tm,`${r.id} missing map`);
   const forward=fm.objects.find(o=>o.id===r.firstGateId&&o.to===r.to);
@@ -56,5 +66,5 @@ for(const r of routes){
 const seen=new Set(['KY01']);let changed=true;
 while(changed){changed=false;for(const r of routes){if(seen.has(r.from)&&!seen.has(r.to)){seen.add(r.to);changed=true;}if(seen.has(r.to)&&!seen.has(r.from)){seen.add(r.from);changed=true;}}}
 assert(seen.size===51,'some hubs disconnected');
-console.log('Nationwide: 47 prefectures, 51 hubs, 50 connected routes, 129 new areas, gates and unlock OK');
+console.log('Nationwide: 47 prefectures, 51 town/field pairs, 43 unique stories/bosses, 50 connected routes, 129 new outdoor areas and regional locks OK');
 

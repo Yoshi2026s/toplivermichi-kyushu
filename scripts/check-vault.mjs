@@ -3,7 +3,7 @@ import {resolve} from 'node:path';
 import {runInNewContext} from 'node:vm';
 
 const root=resolve(import.meta.dirname,'..');
-const core=['data_enemies.js','data_saga_enemies.js','data_items.js','data_national.js','data.js','core.js'].map(name=>readFileSync(resolve(root,'src',name),'utf8')).join('\n');
+const core=['data_enemies.js','data_saga_enemies.js','data_items.js','data_national.js','data.js','data_nationwide.js','data_nationwide_story.js','data_maps.js','core.js'].map(name=>readFileSync(resolve(root,'src',name),'utf8')).join('\n');
 const ui=readFileSync(resolve(root,'src','ui.js'),'utf8');
 const game=runInNewContext(`${core}\n({newGame,transferVaultGold,giveItem,itemVaultCount,itemVaultAdd,transferVaultItem,bagCount,bagKindCount,bagRoom,flushKeep,availableCount,unequippedGearCount,giftCheck,claimPendingGift})`);
 const st=game.newGame('金庫確認','女性');

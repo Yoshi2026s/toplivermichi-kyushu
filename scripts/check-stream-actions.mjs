@@ -2,46 +2,62 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 import {resolve} from 'node:path';
 
-const ui=readFileSync(resolve(import.meta.dirname,'../src/ui.js'),'utf8');
+const root=resolve(import.meta.dirname,'..');
+const read=name=>readFileSync(resolve(root,'src',name),'utf8');
+const ui=read('ui.js'),core=read('core.js');
+const assert=(ok,message)=>{if(!ok)throw new Error(message)};
 const actions=ui.match(/const ACT = \{[\s\S]*?\n\};/)?.[0];
-if(!actions) throw new Error('stream actions missing');
-const savedStream=ui.match(/function savedStreamUsable\(s,st\)\{[\s\S]*?\n\}/)?.[0];
-const streamPending=ui.match(/function streamPending\(\)\{[\s\S]*?\n\}/)?.[0];
-if(!savedStream||!streamPending||!ui.includes('if(s.stream&&!savedStreamUsable(s.stream,s)) s.stream=null;')) throw new Error('saved stream migration guard missing');
-if(!ui.includes('if(hadStream&&!G.st.stream) notices.push("配信記録に欠損があったため解除しました。依頼帳で状態を確認してください。")')) throw new Error('discarded stream recovery notice missing');
-const core=['data_enemies.js','data_saga_enemies.js','data_items.js','data_national.js','data.js','core.js'].map(name=>readFileSync(resolve(import.meta.dirname,'../src',name),'utf8')).join('\n');
-const streamGame=runInNewContext(`${core}\n${savedStream}\n({newGame,newStream,streamPlay,savedStreamUsable})`);
-const pending=streamGame.newGame('配信再開','女性');pending.quests.M05='combatDone';
-const saved=streamGame.newStream(pending,'KY05','moe','local','voice');
-streamGame.streamPlay(saved,'local');
-if(!streamGame.savedStreamUsable(saved,pending)) throw new Error('valid Nagasaki saved stream rejected');
-const finished=structuredClone(saved);for(const act of ['first','reply','thanks']) streamGame.streamPlay(finished,act);
-if(!streamGame.savedStreamUsable(finished,pending)) throw new Error('completed Nagasaki saved stream rejected');
-if(streamGame.savedStreamUsable(saved,{...pending,activeQuest:'M04'})) throw new Error('stream from another active quest accepted');
-const pendingFor=st=>runInNewContext(`${streamPending}\nstreamPending()`,{G:{st},QUESTS:{M04:{},M05:{}}});
-if(pendingFor({...pending,activeQuest:'M05',quests:{M04:'combatDone',M05:'combatDone'}})!=='M05') throw new Error('active stream quest not preferred');
-if(pendingFor({...pending,activeQuest:null,quests:{M04:'combatDone',M05:'combatDone'}})!==null) throw new Error('ambiguous stream quest accepted');
-if(pendingFor({...pending,activeQuest:null,quests:{M04:'complete',M05:'combatDone'}})!=='M05') throw new Error('legacy unique stream quest lost');
-const usable=streamGame.savedStreamUsable;
-if(usable({...saved,hand:4},pending)||usable({...saved,requestIds:['first','local','reply','thanks']},pending)||usable({...saved,score:saved.score+20},pending)||usable({...saved,host:'unknown'},pending)||usable({...saved,picks:[]},pending)||usable(saved,{...pending,quests:{M05:'complete'}})) throw new Error('broken or orphaned saved stream accepted');
-const state={st:{stream:{hand:0,score:0,done:false,used:[],picks:[],themeBonusUsed:false}},screen:'stream',sheet:null,dlg:null,readOnly:false};
-let plays=0,saves=0;
-const act=runInNewContext(`${actions}\nACT`,{G:state,STREAM_ACTS:{first:{}},streamAct:()=>{plays++;},commit:()=>{saves++;},render:()=>{},exploreBgm:()=>{}});
-act.streamAct({dataset:{v:'first'}});
-if(plays!==1) throw new Error('valid stream action rejected');
-state.dlg={};act.streamAct({dataset:{v:'first'}});state.dlg=null;
-act.streamAct({dataset:{v:'unknown'}});
-state.st.stream.done=true;act.streamAct({dataset:{v:'first'}});
-if(plays!==1) throw new Error('stale or repeated stream action accepted');
-state.st.stream.score=79;state.st.stream.hand=4;state.st.stream.used=['first'];
-state.screen='explore';act.streamRetry();
-if(saves) throw new Error('retry outside stream changed the save');
-state.screen='stream';act.streamRetry();
-if(saves!==1||state.st.stream.done||state.st.stream.hand!==0||state.st.stream.used.length) throw new Error('valid retry failed');
-state.st.stream.done=true;state.st.stream.score=80;act.streamLeave();
-if(saves!==1||state.st.stream===null) throw new Error('successful stream could be abandoned by stale button');
-state.st.stream.score=79;state.dlg={};act.streamLeave();
-if(saves!==1) throw new Error('stream left during dialogue');
-state.dlg=null;act.streamLeave();
-if(saves!==2||state.st.stream!==null||state.screen!=='explore') throw new Error('valid failed stream exit rejected');
-console.log('Stream actions: active turn, stale buttons, retry, exit and saved-state guards OK');
+assert(actions,'UI action table missing');
+const act=runInNewContext(`${actions}\nACT`);
+assert(!Object.keys(act).some(key=>/^stream/.test(key)),'removed stream actions remain callable');
+for(const name of ['renderStream','renderStreamSetup','streamPending','streamFinish','savedStreamUsable'])assert(!new RegExp(`function ${name}\\(`).test(ui),`removed ${name} remains in UI`);
+for(const name of ['newStream','streamPlay','streamGrade'])assert(!new RegExp(`function ${name}\\(`).test(core),`removed ${name} remains in core`);
+assert(!ui.includes('data-k="streamSetup"')&&!ui.includes('data-a="streamStart"'),'stream entry point remains');
+assert(ui.includes('配信イベントの廃止に伴い'),'legacy migration notice missing');
+
+const data=['data_enemies.js','data_saga_enemies.js','data_items.js','data_national.js','data.js','data_nationwide.js','data_nationwide_story.js','data_maps.js'].map(read).join('\n');
+const extract=name=>ui.match(new RegExp(`function ${name}\\([^]*?\\n\\}`))?.[0];
+const migrate=extract('migrate'),supportAvailable=extract('supportAvailable');
+assert(migrate&&supportAvailable,'legacy save migration missing');
+const game=runInNewContext(`${data}\n${core}\nfunction soundPref(){return true}\n${supportAvailable}\n${migrate}\n({newGame,migrate,QUESTS,MAPS})`);
+assert(Object.values(game.QUESTS).every(q=>q.stream!==true),'main quest still requires a stream');
+const copy=st=>JSON.parse(JSON.stringify(st));
+const stats=st=>JSON.stringify({xp:st.xp,gold:st.gold,tickets:st.tickets,bag:st.bag,quests:st.quests,rank:st.moeRank});
+assert(!('stream' in game.newGame('新規','女性')),'fresh save has stream state');
+
+for(const id of ['M02','M03','M04','M05','M06','M07','M08']){
+  const st=game.newGame('配信待ち','女性'),q=game.QUESTS[id];
+  st.quests[id]='combatDone';st.activeQuest=id;st.bossDefeated[q.boss]=true;
+  st.stream={hub:q.hub,hand:2,score:60,done:false};
+  const tickets=st.tickets,next=game.migrate(copy(st));
+  assert(!('stream' in next)&&next.quests[id]==='complete'&&next.activeQuest===null,`${id} pending save did not complete`);
+  assert(next.tickets===tickets+200&&next.moeRank>=Number(id.slice(1)),`${id} migrated rewards or rank missing`);
+  const again=game.migrate(copy(next));
+  assert(stats(again)===stats(next),`${id} migration duplicated rewards`);
+}
+
+// A partially missing save can recover from the persisted boss-defeated flag.
+const defeated=game.newGame('討伐済み','男性');
+defeated.bossDefeated.B07=true;delete defeated.quests.M08;
+const recovered=game.migrate(copy(defeated));
+assert(recovered.quests.M08==='complete'&&recovered.quests.N44==='available','defeated flag did not recover national unlock');
+
+// Orphaned or malformed stream data does not complete a still-active battle quest.
+const orphan=game.newGame('孤立記録','女性');orphan.quests.M03='active';orphan.activeQuest='M03';orphan.stream={hub:'unknown',score:999};
+const orphaned=game.migrate(copy(orphan));
+assert(!('stream' in orphaned)&&orphaned.quests.M03==='active'&&orphaned.activeQuest==='M03'&&orphaned.tickets===orphan.tickets,'orphaned stream granted unearned rewards');
+
+// Migrating one old pending quest preserves an unrelated active quest.
+const mixed=game.newGame('混在記録','女性');mixed.quests.M03='combatDone';mixed.quests.M04='active';mixed.activeQuest='M04';
+const repaired=game.migrate(copy(mixed));
+assert(repaired.quests.M03==='complete'&&repaired.quests.M04==='active'&&repaired.activeQuest==='M04','migration abandoned another active quest');
+
+const multiple=game.newGame('複数待機','女性');multiple.quests.M03='combatDone';multiple.quests.M04='combatDone';
+const multipleNext=game.migrate(copy(multiple));
+assert(multipleNext.quests.M03==='complete'&&multipleNext.quests.M04==='complete'&&multipleNext.tickets===multiple.tickets+400,'migration lost a second pending quest');
+assert(stats(game.migrate(copy(multipleNext)))===stats(multipleNext),'multiple pending quests rewarded twice');
+
+const finished=game.newGame('完了記録','男性');finished.quests.M05='complete';finished.stream={done:true,score:100};
+const finishedNext=game.migrate(copy(finished));
+assert(finishedNext.tickets===finished.tickets&&!('stream' in finishedNext),'completed quest rewarded again while dropping old stream');
+console.log('Removed stream feature: no live actions/screens, pending saves complete once, orphaned saves preserve earned progress OK');

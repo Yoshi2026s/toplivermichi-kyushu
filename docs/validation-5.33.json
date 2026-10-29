@@ -1,0 +1,163 @@
+{
+  "version": "5.33",
+  "generatedAtUTC": "2026-10-29T19:37:07.820Z",
+  "checks": [
+    {
+      "name": "check-audio-duck.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 405,
+      "stdout": "Audio: short duck, overlapping effects, stop reset, mute/unmute gain OK\nAudio: repeated settings and jingle cancellation OK\nAudio: visibility resume is idempotent OK",
+      "stderr": ""
+    },
+    {
+      "name": "check-auto-items.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 282,
+      "stdout": "Auto items: thresholds, purchasable recovery and immutable search OK",
+      "stderr": ""
+    },
+    {
+      "name": "check-badge-list.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 934,
+      "stdout": "Badge catalog: 100 IDs, 10 groups, live progress, recommendations and filter OK",
+      "stderr": ""
+    },
+    {
+      "name": "check-battle-log.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 170,
+      "stdout": "Battle log: 80-entry retention, newest/oldest pages, empty state OK",
+      "stderr": ""
+    },
+    {
+      "name": "check-merged-instructions.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 172,
+      "stdout": "Merged instructions: URL sharing, fallback/cancel/read-only, reduced motion, 12px minimum passed\nLow HP: 30% boundary, healthy and KO labels passed",
+      "stderr": ""
+    },
+    {
+      "name": "check-national-story.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 1176,
+      "stdout": "National story: 51 main quests, 43 local stories/bosses, 6 boss patterns, 146 outdoor encounter victories; complete UI progression, old-save migration, rewards, ending/replay and chapter caps passed",
+      "stderr": ""
+    },
+    {
+      "name": "check-national.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 766,
+      "stdout": "National: 8 regions, 47 prefectures, 51 town/field hubs, 50 guarded routes, progression locks, safe travel, 7 atomic joins and directory OK",
+      "stderr": ""
+    },
+    {
+      "name": "check-nationwide.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 843,
+      "stdout": "Nationwide: 47 prefectures, 51 town/field pairs, 43 unique stories/bosses, 50 connected routes, 129 new outdoor areas and regional locks OK",
+      "stderr": ""
+    },
+    {
+      "name": "check-saga.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 441,
+      "stdout": "Kyushu M01–M08: save compatibility, battles, direct boss completion, ranks, rewards and stale-result guards OK",
+      "stderr": ""
+    },
+    {
+      "name": "check-save.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 2376,
+      "stdout": "Save recovery: generation choice, corrupt checksum, malformed JSON, invalid state, local fallback, visit migration, restore rollback OK",
+      "stderr": ""
+    },
+    {
+      "name": "check-selected-fixes.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 1184,
+      "stdout": "Selected changes: chapter gating, over-cap legacy saves, 300 gear kinds, 8-copy cap, boss settlement, waiting JP, names and MP labels OK",
+      "stderr": ""
+    },
+    {
+      "name": "check-shop.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 202,
+      "stdout": "Shop offer bounds and stale token OK",
+      "stderr": ""
+    },
+    {
+      "name": "check-split-maps.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 599,
+      "stdout": "Split maps: 51 distinct safe towns, 51 distinct outdoor maps, every zone/object/exit reachable",
+      "stderr": ""
+    },
+    {
+      "name": "check-stream-actions.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 480,
+      "stdout": "Removed stream feature: no live actions/screens, pending saves complete once, orphaned saves preserve earned progress OK",
+      "stderr": ""
+    },
+    {
+      "name": "check-target.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 199,
+      "stdout": "Target weighting and KO exclusion OK",
+      "stderr": ""
+    },
+    {
+      "name": "check-vault.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 3297,
+      "stdout": "Gold and item vault: transfer, overflow, capacity and legacy save OK",
+      "stderr": ""
+    }
+  ],
+  "sourceHashes": {
+    "src/art.js": "1e00fcb40115c77ab9083a7447a6e3c23f84fdd6b35798b0cd4c80856ab5de8b",
+    "src/audio.js": "d59daa74058c3f3c7cf078952f7db68a9f899892a9519f9a8aac43a995b31e7f",
+    "src/core.js": "248f30c6d5bda26029cdac913413ec1bc64c3861d58dbdea2647304e330099ae",
+    "src/data.js": "873f1ff1e2e094c8a149e0c60e5b866beed1930be1fccbbed1fbee5fe43a233f",
+    "src/data_enemies.js": "50c2c2aa3e6cd53f0cb8e237129a24efc1908cfaae40a29917e152a9e0f3127b",
+    "src/data_items.js": "6000d53ee1b8faef56b6bf37ec96cf11a5c6e3b303e7020dad4bd5b324630bf2",
+    "src/data_maps.js": "36d766bd1fadf87507e21bb3301d38252edc2d229114dab01c3ca585fe9271eb",
+    "src/data_national.js": "ba82df0b3b4a007b54df1407a80288833110caa9d799faca64c4c397ec059833",
+    "src/data_nationwide.js": "183bcf4b4d2faabfe1e59006b68339b096a2069510b037b026776e35fda2773b",
+    "src/data_nationwide_story.js": "8b76f798a172fdaec2ea5930f2fb732710b1630bab4ced65901bc35432ed6566",
+    "src/data_saga_enemies.js": "ad2b6c67bf4c929acd53268df4f4295a8cb717d7ca7a6a5e97a533526e88cc9c",
+    "src/input.js": "0ddb4eff90a7c04d979694e61057335a77ba982b596beb926771d477d3bceef6",
+    "src/share.js": "24f93403ce5da25aade5d44a56374d74301cd489368757c7a4321c1af14745c5",
+    "src/shell.html": "7df45908a37782a906adf29f9fdfdfe8eefa6559fc5a8b108a8c515d922dc3c4",
+    "src/ui.js": "0fc4085d6968069e9f8e94e6e083237af34a7c6ad97bf14fa8eb979eb20025a5"
+  },
+  "passed": true,
+  "browser": {
+    "checked": "2026-10-30",
+    "origin": "http://localhost:8765/",
+    "steps": [
+      "title renders national edition",
+      "new game and intro",
+      "town quest board accepts M01",
+      "guide path walks through physical exit to distinct field map"
+    ],
+    "scope": "Desktop browser smoke; smartphone hardware not tested"
+  }
+}

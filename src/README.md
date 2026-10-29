@@ -1,4 +1,4 @@
-# v5.31 編集元（全国探索版）
+# v5.33 編集元（全国編）
 
 `src/` は2026年10月22日の `toplivermichi_kyushu_source.zip` から取得した編集元を更新したものです。公開用の `index.html` は `node scripts/build.mjs` で再生成します。
 

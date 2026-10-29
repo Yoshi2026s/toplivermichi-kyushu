@@ -47,15 +47,16 @@ const charName = (st,cid) => cid==="hero" ? st.profile.name : CHARS[cid].name;
 function newGame(name, gender){
   const st = {
     schemaVersion:SCHEMA_VERSION, gameVersion:GAME_VERSION, saveGeneration:0,
-    profile:{name, gender}, day:1, growthVersion:1, legacyGrowth:{level:1,jobs:{}}, mapId:"KY01", pos:{x:19,y:19}, dir:0,
+    mapLayoutVersion:typeof MAP_LAYOUT_VERSION==="undefined"?0:MAP_LAYOUT_VERSION,
+    profile:{name, gender}, day:1, growthVersion:1, legacyGrowth:{level:1,jobs:{}}, mapId:"KY01", pos:{x:MAPS.KY01.safeAnchor[0],y:MAPS.KY01.safeAnchor[1]}, dir:0,
     visitedMaps:["KY01"], visitedHubs:["KY01"], xp:0,
     roster:["hero","moe"], party:["hero","moe"], vitals:null,
     jobs:{}, jp:{}, equip:{}, owned:{CW01:8, CA01:8}, pendingGifts:[], favorite:{},
     gold:0, vaultGold:0, tickets:200, gifts:{W:{},A:{}},
     bag:INITIAL_ITEMS.map(([id,n])=>({id,n})), keep:[], itemVault:[], itemsVersion:1,
-    quests:{M01:"available", M02:"locked", M03:"locked", M04:"locked", M05:"locked", M06:"locked", M07:"locked", M08:"locked", S01:"locked", S02:"locked"}, qprog:{}, activeQuest:null,
+    quests:Object.fromEntries(Object.keys(QUESTS).map(id=>[id,id==="M01"?"available":"locked"])), qprog:{}, activeQuest:null,
     talked:{}, boxes:{}, cards:[], bossDefeated:{}, seen:{}, killCount:{},
-    moeRank:0, run:null, runSeq:0, stream:null, lastResult:null, streamBest:{},
+    moeRank:0, run:null, runSeq:0, lastResult:null,
     support:null, scenes:{}, fukuokaClear:false,
     settings:{difficulty:"std", sound:true, soundV:2, reduceMotion:false, follow:false}
   };
@@ -168,7 +169,7 @@ function createBossRun(st, bossId){
   run.partyScale = ps;
   const hp = Math.ceil((100+36*q)*diff.hp*ps.hp);
   run.enemies.push({ slot:0, id:bossId, name:b.name, display:b.name, boss:true, maxHP:hp, hp, def:3+Math.floor(q/10),
-    cycle:[{t:"s",p:12+q},{t:"a",p:6+Math.floor(q/2)},{t:"c",p:0},{t:"a",p:10+3*q,heavy:true}], atkMult:diff.atk*ps.atk });
+    cycle:b.cycle?b.cycle.map(step=>({...step})):[{t:"s",p:12+q},{t:"a",p:6+Math.floor(q/2)},{t:"c",p:0},{t:"a",p:10+3*q,heavy:true}], atkMult:diff.atk*ps.atk });
   run.cue = {kind:b.cue, bits:[], ready:false, active:false};
   return run;
 }
@@ -197,7 +198,8 @@ function enemyAction(run, e){
 function telegraph(run){ return run.enemies.filter(e=>e.hp>0).map(e=>({slot:e.slot, ...enemyAction(run,e)})); }
 function startTurnCue(run){
   if(!run.cue) return;
-  if(run.turn%4===3){ run.cue.active=true; run.cue.bits=[]; run.cue.ready=false; }
+  const boss=run.enemies.find(e=>e.boss);
+  if(boss&&boss.cycle[(run.turn-1)%boss.cycle.length].t==="c"){ run.cue.active=true; run.cue.bits=[]; run.cue.ready=false; }
   else run.cue.active=false;
 }
 
@@ -471,7 +473,7 @@ function enemyPhase(run){
     }
     if(alive(run).length===0){ run.state="lost"; log.push("全員が戦闘不能になった……"); return log; }
   }
-  if(run.cue && run.turn%4===0){ run.cue.bits=[]; run.cue.ready=false; }
+  if(run.cue&&run.enemies.some(e=>e.boss&&e.cycle[(run.turn-1)%e.cycle.length].heavy)){ run.cue.bits=[]; run.cue.ready=false; }
   for(const m of run.party){ m.guard=false; m.ward=0; m.acted=false; }
   run.turn++; run.chain={stage:0,members:[]};
   startTurnCue(run);
@@ -521,10 +523,7 @@ function applyVictory(st, run){
   if(run.kind==="boss"){
     st.bossDefeated[run.bossId]=true;
     const qid = Object.keys(QUESTS).find(k=>QUESTS[k].boss===run.bossId);
-    if(qid && st.quests[qid]==="bossReady"){
-      if(QUESTS[qid].stream){ st.quests[qid]="combatDone"; res.notes.push("配信の準備が整った。"); }
-      else completeQuest(st,qid,res);
-    }
+    if(qid && st.quests[qid]==="bossReady") completeQuest(st,qid,res);
   }
   res.levelAfter = levelOf(st.xp,st);
   // レベルが上がった分だけ現在の体力も増やす（戦闘不能のままは増やさない）
@@ -550,21 +549,35 @@ function claimPendingGift(st,id){
   return destination;
 }
 function completeQuest(st, qid, res){
-  if(st.quests[qid]==="complete") return;
-  const Q=QUESTS[qid]; st.quests[qid]="complete"; st.activeQuest=null;
-  const xp = addExperience(st,Q.main?40:10), tk = Q.main?200:80;
+  const Q=QUESTS[qid];
+  if(!Q||st.quests[qid]==="complete") return;
+  st.quests[qid]="complete";
+  if(st.activeQuest===qid) st.activeQuest=null;
+  const xp = addExperience(st,Q.reward?.xp??(Q.main?40:10)), tk = Q.reward?.tickets??(Q.main?200:80), gold=Q.reward?.gold||0;
   const ev = ITEM_EVENTS[qid]; if(ev) giveItem(st, ev[0], ev[1], res, `依頼${qid}の達成`);
-  st.tickets+=tk;
-  if(res){ res.xp+=xp; res.tickets+=tk; res.quest=qid; }
-  if(qid==="M01"){ st.moeRank=Math.max(st.moeRank,1); st.quests.M02="available"; }
-  if(qid==="M02"){ st.moeRank=Math.max(st.moeRank,2); st.fukuokaClear=true; st.quests.M03="available"; }
-  if(qid==="M03"){ st.moeRank=Math.max(st.moeRank,3); st.quests.M04="available"; }
-  if(qid==="M04"){ st.moeRank=Math.max(st.moeRank,4); st.quests.M05="available"; }
-  if(qid==="M05"){ st.moeRank=Math.max(st.moeRank,5); st.quests.M06="available"; }
-  if(qid==="M06"){ st.moeRank=Math.max(st.moeRank,6); st.quests.M07="available"; }
-  if(qid==="M07"){ st.moeRank=Math.max(st.moeRank,7); st.quests.M08="available"; }
+  st.tickets+=tk; st.gold+=gold;
+  if(res){ res.xp=(res.xp||0)+xp; res.tickets=(res.tickets||0)+tk; res.gold=(res.gold||0)+gold; res.quest=qid; }
+  const unlock=id=>{if(!st.quests[id]||st.quests[id]==="locked") st.quests[id]="available";};
+  if(qid==="M01"){ st.moeRank=Math.max(st.moeRank,1); unlock("M02"); }
+  if(qid==="M02"){ st.moeRank=Math.max(st.moeRank,2); st.fukuokaClear=true; unlock("M03"); }
+  if(qid==="M03"){ st.moeRank=Math.max(st.moeRank,3); unlock("M04"); }
+  if(qid==="M04"){ st.moeRank=Math.max(st.moeRank,4); unlock("M05"); }
+  if(qid==="M05"){ st.moeRank=Math.max(st.moeRank,5); unlock("M06"); }
+  if(qid==="M06"){ st.moeRank=Math.max(st.moeRank,6); unlock("M07"); }
+  if(qid==="M07"){ st.moeRank=Math.max(st.moeRank,7); unlock("M08"); }
   if(qid==="M08") st.moeRank=Math.max(st.moeRank,8);
+  if(Number.isInteger(Q.rank)) st.moeRank=Math.max(st.moeRank,Math.min(MOE_RANKS.length-1,Q.rank));
+  refreshMainQuests(st);
   unlockSide(st);
+}
+function refreshMainQuests(st){
+  st.quests=st.quests||{};
+  for(const [id,q] of Object.entries(QUESTS)){
+    if(!st.quests[id]) st.quests[id]=id==="M01"?"available":"locked";
+    const requires=Array.isArray(q.requires)?q.requires:q.requires?[q.requires]:[];
+    if(q.main&&st.quests[id]==="locked"&&requires.length&&requires.every(previous=>st.quests[previous]==="complete")) st.quests[id]="available";
+  }
+  if(typeof NATIONWIDE_QUEST_ORDER!=="undefined"&&NATIONWIDE_QUEST_ORDER.every(id=>st.quests[id]==="complete")) st.nationalClear=true;
 }
 /* ---- 体力・MPの持ち越し（ユーザー指定：戦闘後も残り、宿屋で全回復） ---- */
 function ensureVitals(st){
@@ -601,22 +614,6 @@ function equipmentSetFits(st,cid,equip){
   return unequippedGearCount(candidate)<=Math.max(UNEQUIPPED_GEAR_MAX,unequippedGearCount(st));
 }
 function equipmentChangeFits(st,cid,slot,id){ return equipmentSetFits(st,cid,{...st.equip[cid],[slot]:id}); }
-
-/* ---- 配信（第13・13A節） ---- */
-function newStream(st, hub, host, theme, style){
-  return { hub, prefId:HUBS[hub].prefId, requestIds:STREAM_REQ[HUBS[hub].prefId].slice(), host, theme, style,
-    hand:0, score:0, used:[], themeBonusUsed:false, picks:[], done:false };
-}
-function streamPlay(s, act){
-  const gain = { first:0, match:0, theme:0 };
-  if(!s.used.includes(act)){ gain.first=20; if(s.requestIds[s.hand]===act) gain.match=20;
-    if(!s.themeBonusUsed && STREAM_THEMES[s.theme].act===act){ gain.theme=10; s.themeBonusUsed=true; }
-    s.used.push(act); }
-  const total=gain.first+gain.match+gain.theme; s.score+=total; s.picks.push({act,total}); s.hand++;
-  if(s.hand>=4) s.done=true;
-  return {gain,total};
-}
-function streamGrade(score){ return score>=160?"大盛況":score>=120?"好評":score>=80?"目標達成":score>=60?"温かな反応":"もう一歩"; }
 
 /* ---- 名前の検証（第06E節。文字数はユーザー指定で1～12文字） ---- */
 const NAME_MAX = 12;

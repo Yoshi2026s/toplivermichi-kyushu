@@ -3,7 +3,7 @@ import {resolve} from 'node:path';
 import {runInNewContext} from 'node:vm';
 
 const root=resolve(import.meta.dirname,'..');
-const core=['data_enemies.js','data_saga_enemies.js','data_items.js','data_national.js','data.js','core.js'].map(name=>readFileSync(resolve(root,'src',name),'utf8')).join('\n');
+const core=['data_enemies.js','data_saga_enemies.js','data_items.js','data_national.js','data.js','data_nationwide.js','data_nationwide_story.js','data_maps.js','core.js'].map(name=>readFileSync(resolve(root,'src',name),'utf8')).join('\n');
 const ui=readFileSync(resolve(root,'src','ui.js'),'utf8');
 const checksum=ui.match(/function checksum\(str\)\{[^\n]+\}/)?.[0];
 const load=ui.match(/async function loadSave\(\)\{[\s\S]*?\n\}/)?.[0];
@@ -13,10 +13,11 @@ const supportAvailable=ui.match(/function supportAvailable\(st,id\)\{[\s\S]*?\n\
 const actions=ui.match(/const ACT = \{[\s\S]*?\n\};/)?.[0];
 if(!checksum||!load||!validate||!migrate||!supportAvailable||!actions) throw new Error('save functions missing');
 const db={auto:null,'auto-prev':null},store={value:null};
-const game=runInNewContext(`${core}\n${checksum}\n${validate}\n${load}\n({newGame,checksum,loadSave})`,{
+const game=runInNewContext(`${core}\n${checksum}\n${validate}\n${load}\n({newGame,checksum,loadSave,maps:MAPS})`,{
   DB:{get:async key=>db[key]},localStorage:{getItem:()=>store.value}
 });
 const makeRecord=(state,gen=1)=>{const text=JSON.stringify({...state,saveGeneration:gen});return {state:text,sum:game.checksum(text),gen,time:gen};};
+const atAnchor=(state,id)=>state.pos.x===game.maps[id].safeAnchor[0]&&state.pos.y===game.maps[id].safeAnchor[1];
 const old=game.newGame('古い記録','男性'),newer=game.newGame('新しい記録','女性');
 const migrateVisit=runInNewContext(`${core}\n${supportAvailable}\n${migrate}\nmigrate`,{soundPref:()=>true});
 const missingVisit=game.newGame('訪問記録','男性');
@@ -28,15 +29,15 @@ partialVisit.mapId='KY04'; partialVisit.visitedMaps=['KY01','KY02','KY03']; part
 migrateVisit(partialVisit);
 if(!partialVisit.visitedMaps.includes('KY04')||!['KY01','KY02','KY03','KY04'].every(id=>partialVisit.visitedHubs.includes(id))) throw new Error('partial visit history was not repaired');
 const saseboVisit=game.newGame('佐世保の記録','女性');
-saseboVisit.mapId='KY05';saseboVisit.pos={x:12,y:20};saseboVisit.quests.M04='complete';saseboVisit.visitedMaps=['KY01','KY05'];saseboVisit.visitedHubs=['KY01'];
+saseboVisit.mapId='KY05';saseboVisit.pos={x:game.maps.KY05.safeAnchor[0],y:game.maps.KY05.safeAnchor[1]};saseboVisit.quests.M04='complete';saseboVisit.visitedMaps=['KY01','KY05'];saseboVisit.visitedHubs=['KY01'];
 migrateVisit(saseboVisit);
-if(!saseboVisit.visitedHubs.includes('KY05')||saseboVisit.mapId!=='KY05'||saseboVisit.pos.x!==12||saseboVisit.quests.M04!=='complete') throw new Error('Sasebo visit migration lost location or main quest');
+if(!saseboVisit.visitedHubs.includes('KY05')||saseboVisit.mapId!=='KY05'||!atAnchor(saseboVisit,'KY05')||saseboVisit.quests.M04!=='complete') throw new Error('Sasebo visit migration lost location or main quest');
 if(!saseboVisit.roster.includes('kayo')||!saseboVisit.vitals.kayo) throw new Error('interrupted Sasebo arrival did not recover Kayo');
 migrateVisit(saseboVisit);
 if(saseboVisit.roster.filter(cid=>cid==='kayo').length!==1) throw new Error('Sasebo join recovery duplicated Kayo');
-const nagasakiVisit=game.newGame('長崎市の記録','女性');nagasakiVisit.mapId='KY06';nagasakiVisit.pos={x:12,y:20};nagasakiVisit.quests.M05='complete';nagasakiVisit.visitedMaps=['KY01','KY06'];nagasakiVisit.visitedHubs=['KY01'];
+const nagasakiVisit=game.newGame('長崎市の記録','女性');nagasakiVisit.mapId='KY06';nagasakiVisit.pos={x:game.maps.KY06.safeAnchor[0],y:game.maps.KY06.safeAnchor[1]};nagasakiVisit.quests.M05='complete';nagasakiVisit.visitedMaps=['KY01','KY06'];nagasakiVisit.visitedHubs=['KY01'];
 migrateVisit(nagasakiVisit);
-if(!nagasakiVisit.visitedHubs.includes('KY06')||nagasakiVisit.mapId!=='KY06'||nagasakiVisit.pos.x!==12||nagasakiVisit.quests.M05!=='complete') throw new Error('Nagasaki city visit migration lost location or quest');
+if(!nagasakiVisit.visitedHubs.includes('KY06')||nagasakiVisit.mapId!=='KY06'||!atAnchor(nagasakiVisit,'KY06')||nagasakiVisit.quests.M05!=='complete') throw new Error('Nagasaki city visit migration lost location or quest');
 const lockedSupport=game.newGame('未解放支援','女性');lockedSupport.support='PR03';migrateVisit(lockedSupport);
 if(lockedSupport.support!==null) throw new Error('locked Nagasaki support survived migration');
 const unlockedSupport=game.newGame('解放済支援','女性');unlockedSupport.talked.saseboGuide=true;unlockedSupport.quests.M05='complete';unlockedSupport.support='PR03';migrateVisit(unlockedSupport);
@@ -44,11 +45,11 @@ if(unlockedSupport.support!=='PR03') throw new Error('unlocked Nagasaki support 
 const unknownSupport=game.newGame('不明支援','女性');unknownSupport.support='PR99';migrateVisit(unknownSupport);
 if(unknownSupport.support!==null) throw new Error('unknown region support survived migration');
 const lostPosition=game.newGame('位置欠損','女性');lostPosition.mapId='KY05';delete lostPosition.pos;migrateVisit(lostPosition);
-if(lostPosition.pos.x!==12||lostPosition.pos.y!==20) throw new Error('missing Sasebo position was not recovered');
+if(!atAnchor(lostPosition,'KY05')) throw new Error('missing Sasebo position was not recovered');
 const outsidePosition=game.newGame('範囲外','女性');outsidePosition.mapId='KY05';outsidePosition.pos={x:99,y:99};migrateVisit(outsidePosition);
-if(outsidePosition.pos.x!==12||outsidePosition.pos.y!==20) throw new Error('out-of-bounds Sasebo position was not recovered');
+if(!atAnchor(outsidePosition,'KY05')) throw new Error('out-of-bounds Sasebo position was not recovered');
 const blockedPosition=game.newGame('障害物','女性');blockedPosition.mapId='KY05';blockedPosition.pos={x:0,y:0};migrateVisit(blockedPosition);
-if(blockedPosition.pos.x!==12||blockedPosition.pos.y!==20) throw new Error('blocked Sasebo position was not recovered');
+if(!atAnchor(blockedPosition,'KY05')) throw new Error('blocked Sasebo position was not recovered');
 const brokenLog=game.newGame('旧戦闘記録','男性');
 brokenLog.run={log:{text:'old'},bag:[]};migrateVisit(brokenLog);
 if(!Array.isArray(brokenLog.run.log)||brokenLog.run.log.length) throw new Error('malformed battle log was not repaired');
@@ -109,7 +110,7 @@ const resumePosition=runInNewContext(`${core}\n${migrate}\n${actions}\nACT.conti
   SND:{on:true,setOn:()=>{},play:()=>{}},exploreBgm:()=>{}
 });
 await resumePosition();
-if(positionState.pos.x!==12||positionState.pos.y!==20||!positionMessage.includes('保存位置を現在の地形')) throw new Error('position recovery was not explained on resume');
+if(!atAnchor(positionState,'KY05')||!positionMessage.includes('保存位置を現在の地形')) throw new Error('position recovery was not explained on resume');
 const current=game.newGame('維持する記録','男性'),incoming=game.newGame('復元する記録','女性');
 const uiState={st:current,screen:'explore',sheet:'settings',readOnly:false,saveStatus:'保存済み',hasSave:true,walk:{path:[]},dlg:null,cmd:{}};
 let saveSucceeds=false,rendered=0,message='';
@@ -131,5 +132,5 @@ const restorePosition=runInNewContext(`${core}\n${validate}\n${migrate}\n${actio
   commit:async()=>true,setSave:()=>{},toast:value=>{restoredPositionMessage=value;},render:()=>{},soundPref:()=>true,clearTimeout:()=>{}
 });
 await restorePosition();
-if(positionUi.st.pos.x!==12||positionUi.st.pos.y!==20||!restoredPositionMessage.includes('保存位置を現在の地形')) throw new Error('backup restore did not explain position recovery');
+if(!atAnchor(positionUi.st,'KY05')||!restoredPositionMessage.includes('保存位置を現在の地形')) throw new Error('backup restore did not explain position recovery');
 console.log('Save recovery: generation choice, corrupt checksum, malformed JSON, invalid state, local fallback, visit migration, restore rollback OK');

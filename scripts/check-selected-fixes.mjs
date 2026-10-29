@@ -4,7 +4,7 @@ import {resolve} from 'node:path';
 import {runInNewContext} from 'node:vm';
 
 const root=resolve(import.meta.dirname,'..');
-const files=['data_enemies.js','data_saga_enemies.js','data_items.js','data_national.js','data.js','data_nationwide.js','core.js'];
+const files=['data_enemies.js','data_saga_enemies.js','data_items.js','data_national.js','data.js','data_nationwide.js','data_nationwide_story.js','data_maps.js','core.js'];
 const source=files.map(f=>readFileSync(resolve(root,'src',f),'utf8')).join('\n');
 const ui=readFileSync(resolve(root,'src/ui.js'),'utf8');
 const context=runInNewContext(`${source}\n({newGame,chapterCap,levelOf,levelLimit,rankOf,jobLimit,migrateGrowth,addExperience,xpFor,jpFor,charStats,createBossRun,applyVictory,bossReward,completeQuest,gearReceiveRoom,unequippedGearCount,transferVaultItem,equipmentChangeFits,validateName,QUESTS,STORY_CHAPTERS,EQUIP,BOSSES})`);
@@ -26,13 +26,14 @@ assert.equal(g.chapterCap(fresh),100,'unregistered save flags cannot unlock chap
 
 // Only a registered real main-story finale can open the next chapter.
 const future=g.newGame('将来の章','女性');
+const realFinales=g.STORY_CHAPTERS.map(chapter=>chapter.completionQuest);
 for(let i=0;i<g.STORY_CHAPTERS.length-1;i++){
  const id='FUTURE_END_'+i;g.STORY_CHAPTERS[i].completionQuest=id;
  g.QUESTS[id]={main:true};future.quests[id]='active';
  assert.equal(g.chapterCap(future),100*(i+1));
  future.quests[id]='complete';assert.equal(g.chapterCap(future),100*(i+2));
 }
-for(let i=0;i<g.STORY_CHAPTERS.length-1;i++)g.STORY_CHAPTERS[i].completionQuest=null;
+for(let i=0;i<g.STORY_CHAPTERS.length-1;i++)g.STORY_CHAPTERS[i].completionQuest=realFinales[i];
 
 const old=g.newGame('既存の冒険','女性');
 delete old.growthVersion;delete old.legacyGrowth;old.slots=0;
@@ -88,7 +89,8 @@ const cappedResult=g.applyVictory(capped,battle);
 assert.equal(cappedResult.xp,0);assert.equal(cappedResult.gold,108);assert.equal(capped.jp.hero.J22,g.jpFor(100));
 const quest=g.newGame('別々の報酬','女性');quest.quests.M02='bossReady';
 const run=g.createBossRun(quest,'B01');run.state='won';run.enemies[0].hp=0;
-const reward=g.applyVictory(quest,run);assert.equal(reward.xp,96);assert.equal(quest.quests.M02,'combatDone');
+const reward=g.applyVictory(quest,run);assert.equal(reward.xp,136);assert.equal(quest.quests.M02,'complete');
+assert.equal(quest.xp,136);assert.equal(quest.gold,108);assert.equal(quest.quests.M03,'available');
 g.completeQuest(quest,'M02',reward);assert.equal(reward.xp,136);assert.equal(quest.xp,136);assert.equal(quest.gold,108);
 g.completeQuest(quest,'M02',reward);assert.equal(quest.xp,136);
 

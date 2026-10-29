@@ -63,31 +63,20 @@ function curHub(){ return hubOf(G.st.mapId); }
 function tileAt(m,x,y){ return (m.tiles[y]&&m.tiles[y][x])||"T"; }
 function objAt(m,x,y){ return m.objects.find(o=>o.x===x&&o.y===y); }
 function walkable(m,x,y){ const o=objAt(m,x,y); if(o) return !!o.walk; return ".,123w=".includes(tileAt(m,x,y)); }
-function zoneAt(m,x,y){ const o=objAt(m,x,y); if(o&&o.walk) return null; return m.zones[tileAt(m,x,y)]||null; }
-function isSafe(){ return !zoneAt(MAPS[G.st.mapId],G.st.pos.x,G.st.pos.y); }
+function zoneAt(m,x,y){ if(m.kind!=="field") return null; const o=objAt(m,x,y); if(o&&o.walk) return null; return m.zones[tileAt(m,x,y)]||null; }
+function isSafe(){ return MAPS[G.st.mapId].kind!=="field"; }
 function busyReason(){ const st=G.st; if(st.run) return "戦闘中です。"; return null; }
-function streamPending(){
-  const st=G.st, active=st?.activeQuest;
-  if(active&&st.quests[active]==="combatDone") return active;
-  const pending=Object.keys(QUESTS).filter(k=>st.quests[k]==="combatDone");
-  return pending.length===1&&!active?pending[0]:null;
-}
 function objective(){
-  const st=G.st; const q=st.activeQuest;
-  if(streamPending()) return `${streamPending()}：配信で80点以上を目指す（依頼帳から開始）`;
-  if(q){ const Q=QUESTS[q]; if(st.quests[q]==="bossReady") return `${q}：${BOSSES[Q.boss].name}に挑む（${MAPS[Q.hub].name}の奥地）`; return `${q}：通常敵 ${st.qprog[q]||0}/${Q.kills}体（${HUBS[Q.hub].name}のA1～A3）`; }
-  const avail=["M01","M02","M03","M04","M05","M06","M07","M08"].find(k=>st.quests[k]==="available"); if(avail) return `依頼帳で「${avail} ${QUESTS[avail].name}」を受ける`;
-  if(st.quests.M08==="complete"){
-    const visited=NATIONAL_PREFECTURES.filter(p=>(NATIONAL_IMPLEMENTED_HUBS[p.id]||[]).some(id=>st.visitedHubs?.includes(id))).length;
-    return visited===47?"全国47都道府県を踏破しました！":`全国の旅：${visited}/47都道府県を訪問。地図で次の交通路を確認しよう`;
+  const st=G.st,q=st.activeQuest,Q=QUESTS[q];
+  if(Q){
+    const field=MAPS[HUBS[Q.hub].fieldMap];
+    if(st.quests[q]==="bossReady") return q+"："+BOSSES[Q.boss].name+"に挑む（"+field.name+"の奥地）";
+    return q+"：街の出口から街外へ。通常敵 "+(st.qprog[q]||0)+"/"+Q.kills+"体";
   }
-  if(st.quests.M07==="complete") return curHub()==="KY08"?"阿蘇市でM08を受け、風の声を届けよう":"熊本市編クリア！ 東門から阿蘇市へ進めます";
-  if(st.quests.M06==="complete") return curHub()==="KY07"?"熊本市でM07を受け、街の声を届けよう":"長崎市編クリア！ 東門から熊本市へ進めます";
-  if(st.quests.M05==="complete") return curHub()==="KY06"?"長崎市でM06を受け、街の声を届けよう":"佐世保市編クリア！ 東門から長崎市へ進めます";
-  if(st.quests.M04==="complete") return curHub()==="KY05"?"佐世保市でM05を受け、港の声を集めよう":"佐賀市編クリア！ 東門から佐世保市へ進めます";
-  if(st.quests.M03==="complete") return curHub()==="KY03"?"唐津編クリア！ 東門から佐賀市へ進めます":"佐賀市でM04を受け、街の声を集めよう";
-  if(st.fukuokaClear) return curHub()==="KY03"?"唐津でM03を受け、海辺の探索区域へ進もう":"福岡編クリア！ 北九州の東門から唐津へ進めます";
-  return "探索して仲間を育てよう";
+  if(st.nationalClear) return "全国編クリア！ 47都道府県の声がつながりました。記録から物語を振り返れます";
+  const next=NATIONWIDE_QUEST_ORDER.find(id=>st.quests[id]==="available");
+  if(next) return HUBS[QUESTS[next].hub].name+"で「"+QUESTS[next].name+"」を受注しよう";
+  return "街で依頼を受け、出口から街外へ進もう";
 }
 
 /* ===== 画面の描画 ===== */
@@ -101,7 +90,6 @@ function render(){
   else if(s==="explore") html=renderExplore();
   else if(s==="battle") html=renderBattle();
   else if(s==="result") html=renderResult();
-  else if(s==="stream") html=renderStream();
   root.innerHTML = html + renderSheet() + renderDialog() + `<div id="toast" class="toast" role="status" hidden></div>`;
   if(s==="explore") mountCanvas();
   document.body.classList.toggle("in-battle", s==="battle"); document.body.classList.toggle("in-explore", s==="explore");
@@ -131,7 +119,7 @@ function statusBar(){
 function renderTitle(){
   return `<section class="title-screen">
     <canvas id="titleArt" width="160" height="64" aria-hidden="true"></canvas>
-    <h1 class="logo"><span class="main">ポコチャクエスト</span><span class="sub">全国探索版</span></h1>
+    <h1 class="logo"><span class="main">ポコチャクエスト</span><span class="sub">全国編</span></h1>
     <p class="lead">元アイドルのもえをS6へ導く、昭和風ドットRPG。</p>
     <div class="menu">
       <button class="btn primary" data-a="newGame">はじめから</button>
@@ -141,7 +129,7 @@ function renderTitle(){
       <button class="btn" data-a="openSheet" data-k="share">友だちに教える（URLを共有）</button>
     </div>
     <p class="note">配信文化を参考にした非公式の創作ゲームです。実在のサービス・アカウントとは連携しません。BGMと効果音は最初からONです（画面に触れると鳴り始めます。設定で消音にできます）。</p>
-    <p class="note">この公開版はM01～M08に加え、47都道府県を訪問・探索できます。全国の追加拠点と交通路は本版の新規制作です。M09以降の本編と参照版v10.108の再現は制作中です。</p>
+    <p class="note">全47都道府県・51拠点に物語と地域ボスを収録。街は安全地帯です。街の出口から街外へ進むと、探索と戦闘が始まります。ボス討伐で依頼が完了し、次の地域へ進めます。</p>
   </section>`;
 }
 function drawTitleArt(){
@@ -242,7 +230,7 @@ function renderExplore(){
       <div class="xsave small" aria-live="polite">保存：<span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（閲覧のみ）":""}</div>
     </header>
     <div class="mapwrap"><canvas id="map" aria-label="${esc(m.name)}の地図。地面をタップすると移動します。"></canvas></div>
-    <div class="here">${ar?`<span class="tag danger">遭遇エリア</span> ${esc(ar.name)}（推奨レベル${ar.q}）`:`<span class="tag safe">安全地帯</span> ${esc(m.name)}`}${near.length?`<span class="small">／近く：${near.map(o=>esc(o.label)).join("・")}</span>`:""}</div>
+    <div class="here">${ar?`<span class="tag danger">遭遇エリア</span> ${esc(ar.name)}（推奨レベル${ar.q}）`:`<span class="tag ${m.kind==="field"?"danger":"safe"}">${m.kind==="field"?"街外の道":"安全な街・室内"}</span> ${esc(m.name)}`}${near.length?`<span class="small">／近く：${near.map(o=>esc(o.label)).join("・")}</span>`:""}</div>
     ${partyStrip()}
     <nav class="menu-grid" aria-label="メニュー">
       <button class="btn" data-a="openSheet" data-k="quests">依頼帳</button>
@@ -298,7 +286,7 @@ function drawMap(){
     else if(o.type==="inn"){ sprites.push({y:o.y-0.1,img:ART.object("inn",f),x:o.x}); img=ART.person("innkeeper",PAL.slate,PAL.navy,0,f2*2); }
     else if(o.type==="box") img=ART.object(st.boxes[o.box]?"boxOpen":"box",f);
     else if(o.type==="boss"){ if(st.bossDefeated[o.boss]) continue; img=ART.object("boss",f); }
-    else img=ART.object(o.type,f);
+    else img=ART.object(o.fieldExit?"gate":o.type,f);
     sprites.push({y:o.y,x:o.x,img});
   }
   const moving=G.walk.path.length>0; const wf=moving?Math.floor(now/166)%4:0;
@@ -356,8 +344,8 @@ function onMapTap(e){
 }
 function arrive(){
   const st=G.st, m=MAPS[st.mapId]; const zone=zoneAt(m,st.pos.x,st.pos.y);
-  if(SND.current!==(zone?"field":"fukuoka")) exploreBgm();
-  if(zone){
+  if(SND.current!==(m.kind==="field"?"field":"fukuoka")) exploreBgm();
+  if(m.kind==="field" && zone){
     // 第07A・23G節：危険タイル到着ごとに1/24の独立抽選（戦えるメンバーがいない時は抽選しない）
     const canFight = st.party.some(c=>vitalOf(c).hp>0);
     if(canFight && randInt(24)===0){
@@ -376,12 +364,12 @@ function arrive(){
   } else if(o&&o.walk&&(o.type==="door")){ G.walk.path=[]; interact(o); }
   else if(!zone) refreshHere();
 }
-function exploreBgm(){ const st=G.st; if(!st) return SND.play("title"); const m=MAPS[st.mapId]; SND.play(zoneAt(m,st.pos.x,st.pos.y)?"field":"fukuoka"); }
+function exploreBgm(){ const st=G.st; if(!st) return SND.play("title"); const m=MAPS[st.mapId]; SND.play(m.kind==="field"?"field":"fukuoka"); }
 function refreshHere(){ if(G.screen==="explore" && !G.sheet){ const el=$(".here"); if(el){ const tmp=document.createElement("div"); tmp.innerHTML=renderExplore(); const n=tmp.querySelector(".here"); el.innerHTML=n.innerHTML; } const g=$(".goal"); if(g) g.textContent=objective(); } }
 
 /* ---- 調べる・会話 ---- */
 function interact(o){
-  const st=G.st; G.walk.path=[];
+  const st=G.st; if(!o||G.readOnly||G.screen!=="explore"||st.run) return; G.walk.path=[]; G.walk.pending=null;
   const face=()=>{ const dx=o.x-st.pos.x, dy=o.y-st.pos.y; if(dx||dy) st.dir = Math.abs(dy)>=Math.abs(dx)?(dy>0?0:1):(dx<0?2:3); };
   face();
   switch(o.type){
@@ -410,6 +398,7 @@ function talkNpc(id){
     if(n.rep) lines.push(["",`${n.name}と話した。応援者帳に記録された（親密度1）。`]); }
   else if(n.after && ((id==="akari"&&st.quests.S01==="complete")||(id==="sota"&&st.quests.S02==="complete"))) lines=n.after(p);
   else lines=n.normal(p);
+  if(n.questId){ const q=QUESTS[n.questId]; lines=st.quests[n.questId]==="complete"?[[n.name,NATIONWIDE_STORIES[q.hub].resolution]]:[...lines,["",`依頼帳「${q.name}」で街外の調査を受けられます。`]]; }
   commit(); say(lines);
 }
 function openBox(o){
@@ -425,7 +414,7 @@ function openBox(o){
   say([["",`応援箱を開けた！ チケット＋40、記念カード「${BOX_CARDS[o.box]}」を手に入れた。`],...extra]);
 }
 function bossPrompt(bid){
-  const st=G.st, b=BOSSES[bid]; const qid=Object.keys(QUESTS).find(k=>QUESTS[k].boss===bid);
+  const st=G.st, b=BOSSES[bid]; if(MAPS[st.mapId].kind!=="field"||!b) return; const qid=Object.keys(QUESTS).find(k=>QUESTS[k].boss===bid);
   if(st.bossDefeated[bid]) return say([["","乱れは静まっている。図鑑から記録を見られます。"]]);
   if(st.quests[qid]!=="bossReady") return say([["",`奥から大きな重なりを感じる（${b.name}・推奨レベル${b.q}）。依頼「${qid}」を受けて通常敵を倒すと挑戦できます。`]]);
   openSheet("boss",{bid});
@@ -448,7 +437,7 @@ function travelMap(to,tx,ty,save=true){
   const st=G.st; st.mapId=to; st.pos={x:tx,y:ty}; G.walk.path=[]; G.fol={x:tx,y:ty};
   if(!st.visitedMaps.includes(to)) st.visitedMaps.push(to);
   const hub=MAPS[to].hub; if(!st.visitedHubs.includes(hub)) st.visitedHubs.push(hub);
-  if(save) commit(); G.sheet=null; render();
+  if(save) commit(); G.sheet=null; exploreBgm(); render();
 }
 function travelHub(to,tx,ty){
   const st=G.st; const first=!st.visitedHubs.includes(to);
@@ -463,7 +452,7 @@ function travelHub(to,tx,ty){
 /* ---- 戦闘 ---- */
 function startBattle(run){
   G.auto=false; clearTimeout(G.autoT); G.autoLast=null; G.logExpanded=false;
-  const st=G.st; st.run=run; st.runSeq=run.seq;
+  const st=G.st; if(!run||MAPS[st.mapId].kind!=="field") return; st.run=run; st.runSeq=run.seq;
   for(const e of run.enemies) if(!e.boss) st.seen[e.id]=true;
   run.log=[`${run.enemies.map(e=>e.display).join("と")}が現れた！`];
   G.cmd={}; G.sheet=null;
@@ -486,8 +475,9 @@ function cueText(run){
   if(!run.cue) return "";
   const kindName={guard:"2人がガード",comment:"2人が応援コメント",damage:"2人が攻撃"}[run.cue.kind];
   if(run.cue.active) return `<div class="cue on">ため中：${kindName} ${run.cue.bits.length}/2 → 強攻撃20%減</div>`;
-  if(run.turn%4===0) return `<div class="cue on">${run.cue.ready?"対処成功：強攻撃20%軽減":"対処未達：強攻撃そのまま"}</div>`;
-  return `<div class="cue">対処：${kindName}（3・7・11…ターン）</div>`;
+  const boss=run.enemies.find(e=>e.boss),step=boss?.cycle[(run.turn-1)%boss.cycle.length];
+  if(step?.heavy) return `<div class="cue on">${run.cue.ready?"対処成功：強攻撃20%軽減":"対処未達：強攻撃そのまま"}</div>`;
+  return `<div class="cue">対処：${kindName}（ため予告のターン）</div>`;
 }
 function renderBattle(){
   const st=G.st, run=st.run; if(!run) return "";
@@ -762,65 +752,19 @@ function renderUsedItemHistory(result,usedItems){
   return `<div class="rbox"><h3 class="label">この戦闘で使った道具</h3><p class="small">${result.itemsUsedKnown===true?"道具は使いませんでした。":"使用記録がありません（旧保存または履歴が不完全な戦闘）。"}</p></div>`;
 }
 function resultDone(){
-  const r=G.st.lastResult; G.screen="explore"; keepFlush(); render(); exploreBgm();
-  if(r && r.quest==="M01" && !G.st.scenes.RANK_D1) playScene("RANK_D1");
-  else if(r && r.quest==="S01" && !G.st.scenes.S01_DONE) playScene("S01_DONE");
-  else if(r && r.quest==="S02" && !G.st.scenes.S02_DONE) playScene("S02_DONE");
-  else if(r && r.bossId==="B01" && !G.st.scenes.M02_BOSS) playScene("M02_BOSS");
-  else if(r && r.bossId==="B02" && !G.st.scenes.M03_BOSS) playScene("M03_BOSS");
-  else if(r && r.bossId==="B03" && !G.st.scenes.M04_BOSS) playScene("M04_BOSS");
-  else if(r && r.bossId==="B04" && !G.st.scenes.M05_BOSS) playScene("M05_BOSS");
-  else if(r && r.bossId==="B05" && !G.st.scenes.M06_BOSS) playScene("M06_BOSS");
-  else if(r && r.bossId==="B06" && !G.st.scenes.M07_BOSS) playScene("M07_BOSS");
-  else if(r && r.bossId==="B07" && !G.st.scenes.M08_BOSS) playScene("M08_BOSS");
-}
-
-/* ---- 配信（第13・14節） ---- */
-function renderStream(){
-  const st=G.st, s=st.stream; if(!s) return "";
-  const req=s.requestIds;
-  const theme=STREAM_THEMES[s.theme];
-  if(s.done){
-    const pass=s.score>=80;
-    return statusBar()+`<section class="win stream">
-      <h2 class="label">22時00分　締め</h2><p class="big">${s.score}点・${esc(streamGrade(s.score))}</p>
-      <div class="meter"><i style="width:${Math.min(100,s.score/170*100)}%"></i><span class="line" style="left:${80/170*100}%"></span></div>
-      <p>${pass?"目標80点を達成！":"80点に届かなかった。要望に合う行動を、まだ使っていない順に選ぶと点が伸びます。"}</p>
-      <div class="stack">${pass?`<button class="btn primary" data-a="streamFinish">配信を終える</button>`:`<button class="btn primary" data-a="streamRetry">同じ配信に再挑戦</button><button class="btn" data-a="streamLeave">いったん終える（配信待ちを保持）</button>`}</div></section>`;
+  const st=G.st,r=st.lastResult; G.screen="explore"; keepFlush(); render(); exploreBgm();
+  const ids=[];
+  if(r?.quest){
+    const Q=QUESTS[r.quest];
+    if(Q.completeScene) ids.push(Q.completeScene);
+    else {
+      const legacy={M01:["RANK_D1"],M02:["M02_BOSS","RANK_D2"],M03:["M03_BOSS","RANK_D3"],M04:["M04_BOSS","RANK_C1"],M05:["M05_BOSS","RANK_C2"],M06:["M06_BOSS","RANK_C3"],M07:["M07_BOSS","RANK_B1"],M08:["M08_BOSS","RANK_B2"],S01:["S01_DONE"],S02:["S02_DONE"]};
+      ids.push(...(legacy[r.quest]||[]));
+    }
   }
-  const comments = [`初見です！ ${STREAM_ACTS[req[s.hand]].req}`, "こんばんは〜", s.hand>0?`${STREAM_ACTS[s.picks[s.hand-1].act].name}よかった！`:s.hub==="KY08"?"阿蘇市から見てます":s.hub==="KY07"?"熊本市から見てます":s.hub==="KY06"?"長崎市から見てます":s.prefId==="PR03"?"佐世保から見てます":s.hub==="KY04"?"佐賀市から見てます":s.prefId==="PR02"?"唐津から見てます":"港から見てます"];
-  return statusBar()+`<section class="win stream">
-    <div class="srow"><span class="label">${s.hub==="KY08"?"阿蘇市の声便":s.hub==="KY07"?"熊本市の声便":s.hub==="KY06"?"長崎市の声便":s.prefId==="PR03"?"佐世保の声便":s.hub==="KY04"?"佐賀市の声便":s.prefId==="PR02"?"唐津の声便":"九州エール便"}</span><span>${STREAM_TIMES[s.hand]}（${s.hand+1}／4手番）</span></div>
-    <p class="small">メインライバー：もえ　配信サポート：${esc(charName(st,s.host))}　テーマ：${esc(theme.name)}　${s.style==="voice"?"声中心":"映像あり"}</p>
-    <div class="meter" aria-label="得点${s.score}"><i style="width:${Math.min(100,s.score/170*100)}%"></i><span class="line" style="left:${80/170*100}%"></span></div>
-    <div class="srow small"><span>得点 ${s.score}</span><span>目標 80</span></div>
-    <div class="comments">${comments.map(c=>`<div class="cmt">${esc(c)}</div>`).join("")}</div>
-    <p class="req">要望：「${esc(STREAM_ACTS[req[s.hand]].req)}」</p>
-    <div class="stack">${Object.entries(STREAM_ACTS).map(([k,v])=>{ const used=s.used.includes(k); const pts = used?0:20+(req[s.hand]===k?20:0)+(!s.themeBonusUsed&&theme.act===k?10:0);
-      return `<button class="btn opt" data-a="streamAct" data-v="${k}">${esc(v.name)}${used?"（使用済み・0点）":`（＋${pts}点）`}</button>`; }).join("")}</div>
-  </section>`;
-}
-function streamAct(k){
-  const st=G.st, s=st.stream; const r=streamPlay(s,k);
-  const lines=s.hub==="KY08"?{first:"はじめまして。今日は阿蘇市から配信しています。",local:"草地の道と風の通りを歩き、稜線の広場へ来ました。",reply:"質問ありがとう。皆さんの好きな景色も聞かせてください。",thanks:"阿蘇市から届いた声を、大切にします。ありがとう。",like:"いいねの光が草地まで続いているね。",kira:"キラコメが風に乗って届いたよ。ありがとう。"}:s.hub==="KY07"?{first:"はじめまして。今日は熊本市から配信しています。",local:"川辺の小径と街路の通りを歩き、石垣の広場へ来ました。",reply:"質問ありがとう。街の好きな場所も聞かせてください。",thanks:"熊本市から届いた声を、大切にします。ありがとう。",like:"いいねの光が川辺に映っているね。",kira:"キラコメが石垣の先まで届いたよ。ありがとう。"}:s.hub==="KY06"?{first:"はじめまして。今日は長崎市から配信しています。",local:"港の小径と坂道の路地を歩き、丘から街を眺めています。",reply:"質問ありがとう。皆さんが見たい街の景色も教えてください。",thanks:"長崎市から届いた声を、大切にします。ありがとう。",like:"いいねの光が、坂道の先まで続いているね。",kira:"キラコメが丘の眺めに重なったよ。ありがとう。"}:s.prefId==="PR03"?{first:"はじめまして。今日は佐世保市から配信しています。",local:"港沿いの道と坂の通りを歩き、展望広場まで来ました。",reply:"質問ありがとう。皆さんが聞きたい街の声も教えてください。",thanks:"佐世保市から届いた返事を、大切にします。ありがとう。",like:"いいねの光が港へ続いていくね。",kira:"キラコメが展望広場まで届いたよ。ありがとう。"}:s.hub==="KY04"?{first:"はじめまして。今日は佐賀市から配信しています。",local:"川沿いの道と駅前を歩き、街灯の広場まで来ました。",reply:"質問ありがとう。佐賀市の好きな景色も教えてください。",thanks:"街で聞いた声を、これからも大切にします。ありがとう。",like:"いいねの光が、街灯と並んで見えるよ。",kira:"キラコメが広場に届いたみたい。ありがとう。"}:s.prefId==="PR02"?{first:"はじめまして。今日は唐津の海辺から配信しています。",local:"海辺の小径と見晴らし台を歩いてきました。潮風が心地いいです。",reply:"質問ありがとう。皆さんが見たい景色も教えてください。",thanks:"唐津から届いた返事、ひとつずつ覚えておきます。ありがとう。",like:"いいねの光、海辺まで届いてるよ。",kira:"キラコメが波に映るみたい。ありがとう。"}:{first:"はじめましての人も、ゆっくりしていってね。今日は港の話をするよ。",local:"北九州の港は、夜になると灯りが波に映ってきれいなんです。",reply:"質問ありがとう！ 好きな場所は……灯台の段丘かな。",thanks:"今日来てくれた人、本当にありがとう。全部の声、覚えておくね。",like:"いいねの光、順番に灯っていくね！",kira:"キラコメ、届いてる！ 光の文字がきれい。"};
-  SND.sfx(r.total?"ok":"cancel");
-  if(s.done){ s.best=Math.max(st.streamBest[s.prefId]||0,s.score); st.streamBest[s.prefId]=s.best; }
-  commit(); say([["もえ",lines[k]],["",`${STREAM_ACTS[k].name}：初使用${r.gain.first}＋要望一致${r.gain.match}＋テーマ${r.gain.theme}＝${r.total}点`]]);
-}
-function streamFinish(){
-  const st=G.st; const qid=streamPending();
-  if(!st||G.readOnly||G.screen!=="stream"||G.sheet||G.dlg||!st.stream?.done||st.stream.score<80||!qid||st.quests[qid]!=="combatDone"||QUESTS[qid].hub!==st.stream.hub) return toast("配信の状態が変わりました。依頼帳を確認してください。");
-  st.stream=null;
-  const res={xp:0,tickets:0}; completeQuest(st,qid,res);
-  commit(); G.screen="explore"; exploreBgm(); render();
-  toast(`${qid}完了：経験値＋${res.xp}・チケット＋${res.tickets}`);
-  if(qid==="M02") playScene("RANK_D2");
-  if(qid==="M03") playScene("RANK_D3");
-  if(qid==="M04") playScene("RANK_C1");
-  if(qid==="M05") playScene("RANK_C2");
-  if(qid==="M06") playScene("RANK_C3");
-  if(qid==="M07") playScene("RANK_B1");
-  if(qid==="M08") playScene("RANK_B2");
+  if(st.nationalClear) ids.push("NATIONWIDE_END");
+  const pending=ids.filter(id=>SCENES[id]&&!st.scenes[id]);
+  const next=()=>{const id=pending.shift(); if(id) playScene(id,next);}; next();
 }
 
 /* ---- シート（メニュー） ---- */
@@ -855,8 +799,7 @@ function renderSheet(){
     case "dex": return sheetWrap("ノイズ図鑑", renderDex());
     case "shop": return sheetWrap(SHOPS[d.shop].name, renderShop());
     case "moe": return sheetWrap("もえ", renderMoe());
-    case "boss": { const b=BOSSES[d.bid]; const ps=bossScale(d.bid, st.party.length); const df=DIFFICULTY[st.settings.difficulty]; const pw=x=>Math.ceil(x*df.atk*ps.atk); return sheetWrap("地域ボス", `<p><b>${esc(b.name)}</b>（${d.bid}）　強度q${b.q}・推奨レベル${b.q}。現在レベル${levelOf(st.xp,st)}。</p><p class="small">体力${Math.ceil((100+36*b.q)*df.hp*ps.hp)}（${df.name}）。${st.party.length<4&&(ps.hp<1||ps.atk<1)?`戦闘メンバー${st.party.length}人のため、体力×${ps.hp}・攻撃×${ps.atk}の少人数補正（挑戦時の人数で固定）。`:""}</p><p class="small">行動周期：1人へ攻撃${pw(12+b.q)} → 全員へ攻撃${pw(6+Math.floor(b.q/2))} → ため → 全員へ強攻撃${pw(10+3*b.q)}。ため予告中に<b>異なる2人がガード</b>すると、直後の強攻撃が20%減ります（静観型）。</p><p class="small">報酬：経験値${bossReward(d.bid).xp}・${bossReward(d.bid).gold}ゴールド（経験値は現在の上限まで）。依頼達成報酬は別です。</p><p class="small">敗北・撤退しても受注と討伐数は保持され、再挑戦できます。</p><div class="stack"><button class="btn primary" data-a="bossGo" data-v="${d.bid}">挑戦する</button><button class="btn" data-a="closeSheet">準備する</button></div>`); }
-    case "streamSetup": return sheetWrap("配信の準備", renderStreamSetup());
+    case "boss": { const b=BOSSES[d.bid]; const ps=bossScale(d.bid, st.party.length); const df=DIFFICULTY[st.settings.difficulty]; const pw=x=>Math.ceil(x*df.atk*ps.atk); return sheetWrap("地域ボス", `<p><b>${esc(b.name)}</b>（${d.bid}）　強度q${b.q}・推奨レベル${b.q}。現在レベル${levelOf(st.xp,st)}。</p><p class="small">体力${Math.ceil((100+36*b.q)*df.hp*ps.hp)}（${df.name}）。${st.party.length<4&&(ps.hp<1||ps.atk<1)?`戦闘メンバー${st.party.length}人のため、体力×${ps.hp}・攻撃×${ps.atk}の少人数補正（挑戦時の人数で固定）。`:""}</p><p class="small">行動周期：${(b.cycle||[["s",12+b.q],["a",6+Math.floor(b.q/2)],["c",0],["a",10+3*b.q]]).map(step=>{const t=step.t||step[0],p=step.p??step[1]; return t==="c"?"ため":(t==="s"?"単体攻撃":"全体攻撃")+pw(p);}).join(" → ")}。ため予告中に<b>${b.cue==="damage"?"異なる2人がダメージを与える":b.cue==="comment"?"異なる2人が応援コメント":"異なる2人がガード"}</b>すると、直後の強攻撃が20%減ります。</p><p class="small">報酬：経験値${bossReward(d.bid).xp}・${bossReward(d.bid).gold}ゴールド（経験値は現在の上限まで）。依頼達成報酬は別です。</p><p class="small">敗北・撤退しても受注と討伐数は保持され、再挑戦できます。</p><div class="stack"><button class="btn primary" data-a="bossGo" data-v="${d.bid}">挑戦する</button><button class="btn" data-a="closeSheet">準備する</button></div>`); }
     case "battleLog": return sheetWrap("戦闘ログ", renderBattleLog());
     case "pause": return sheetWrap("休止中", `<p>戦闘はターン${st.run.turn}の入力待ちで保存されています。再開しても撤退・回復・報酬は発生しません。</p><div class="stack"><button class="btn primary" data-a="closeSheet">再開する</button></div>`);
     case "retreat": return sheetWrap("撤退", `<p>撤退は必ず成功します。この戦闘の報酬は0です。遭遇した位置へ戻ります。</p><div class="stack"><button class="btn primary" data-a="doRetreat">撤退する</button><button class="btn" data-a="closeSheet">戦闘を続ける</button></div>`);
@@ -898,19 +841,21 @@ function renderSettings(){
     <h3 class="label">共有</h3><button class="btn" data-a="openSheet" data-k="share">友だちに教える（URLを共有）</button>`;
 }
 function renderQuests(){
-  const st=G.st; const hub=curHub(); const safe=isSafe();
-  const stat={locked:"未解放",available:"受注できる",active:"受注中",bossReady:"ボスに挑戦できる",combatDone:"配信待ち",complete:"完了"};
-  let h=`<p class="small">受注は同時に1件です。</p>${hub==="KY05"?'<p class="note">佐世保市のM05と3区域を遊べます。M05完了後は東門から長崎市へ進めます。</p>':hub==="KY06"?'<p class="note">長崎市のM06と3区域を遊べます。M06完了後は東門から熊本市へ進めます。</p>':hub==="KY07"?'<p class="note">熊本市のM07と3区域を遊べます。M07完了後は東門から阿蘇市へ進めます。</p>':hub==="KY08"?'<p class="note">阿蘇市のM08完了後、交通路から全国へ進めます。</p>':hub.startsWith("NW")?'<p class="note">この地域は訪問・探索ができます。本編依頼と固有物語は制作中です。</p>':""}`;
-  for(const [id,Q] of Object.entries(QUESTS)){
-    const s=st.quests[id]; const prog = ["active","bossReady","combatDone","complete"].includes(s)?`討伐 ${st.qprog[id]||0}/${Q.kills}`:"";
+  const st=G.st,hub=curHub(),safe=isSafe();
+  const stat={locked:"未解放",available:"受注できる",active:"受注中",bossReady:"ボスに挑戦できる",complete:"完了"};
+  const card=([id,Q])=>{
+    const s=st.quests[id]||"locked",progress=["active","bossReady","complete"].includes(s)?'討伐 '+(st.qprog[id]||0)+'/'+Q.kills:'';
     let btn="";
-    if(s==="available"){ const can = !st.activeQuest && hub===Q.hub && safe; btn=`<button class="btn primary" data-a="acceptQuest" data-v="${id}" ${can?"":"disabled"}>受注する</button>${can?"":`<p class="small">${st.activeQuest?"ほかの依頼を受注中です。":`${HUBS[Q.hub].name}の安全地帯で受注できます。`}</p>`}`; }
-    if(s==="active"||s==="bossReady") btn=`<button class="btn" data-a="abandonQuest" data-v="${id}">放棄する</button>`;
-    if(s==="combatDone") btn=`<button class="btn primary" data-a="openSheet" data-k="streamSetup" ${hub===Q.hub&&safe?"":"disabled"}>配信を始める</button>${hub===Q.hub?"":`<p class="small">${HUBS[Q.hub].name}で始められます。</p>`}`;
-    const lockNote = s==="locked"? (Q.main?"前の本編依頼の完了で解放":`代表の住民（${NPCS[Q.npc].name}）と初めて話すと解放`):"";
-    h+=`<div class="qcard ${s}"><div class="srow"><b>${id} ${esc(Q.name)}</b><span class="tag">${stat[s]}</span></div><p class="small">${esc(HUBS[Q.hub].name)}・${Q.main?"本編":"任意"}　${prog}</p><p>${esc(Q.goal)}</p>${lockNote?`<p class="small">${lockNote}</p>`:""}${btn}</div>`;
-  }
-  return h;
+    if(s==="available"){
+      const can=!st.activeQuest&&hub===Q.hub&&safe;
+      btn='<button class="btn primary" data-a="acceptQuest" data-v="'+id+'" '+(can?'':'disabled')+'>受注する</button>'+(can?'':'<p class="small">'+(st.activeQuest?'ほかの依頼を受注中です。':HUBS[Q.hub].name+'の街で受注できます。')+'</p>');
+    }
+    if(s==="active"||s==="bossReady") btn='<button class="btn" data-a="abandonQuest" data-v="'+id+'">放棄する</button>';
+    const lock=s==="locked"?(Q.requires?'「'+QUESTS[Q.requires].name+'」の完了で解放':Q.main?'前の本編依頼の完了で解放':'街の代表と話すと解放'):'';
+    return '<div class="qcard '+s+'"><div class="srow"><b>'+id+' '+esc(Q.name)+'</b><span class="tag">'+stat[s]+'</span></div><p class="small">'+esc(HUBS[Q.hub].name)+'・'+(Q.main?'本編':'任意')+' '+progress+'</p><p>'+esc(Q.goal)+'</p>'+(lock?'<p class="small">'+esc(lock)+'</p>':'')+btn+'</div>';
+  };
+  const entries=Object.entries(QUESTS),local=entries.filter(([id,q])=>q.hub===hub||id===st.activeQuest),other=entries.filter(([id,q])=>q.hub!==hub&&id!==st.activeQuest);
+  return '<p class="small">受注は同時に1件。街で依頼を受け、出口から街外へ。地域ボスの討伐で依頼完了・報酬獲得になります。</p>'+local.map(card).join('')+'<details><summary>他の地域の依頼（'+other.length+'件）</summary>'+other.map(card).join('')+'</details>';
 }
 function renderWorld(){
   const st=G.st; const safe=isSafe();
@@ -947,7 +892,7 @@ function renderWorld(){
   }).join("");
   const routeDirectory=NATIONAL_ROUTES.filter(r=>r.status==="playable").map(r=>`<li>${esc(HUBS[r.from].name)} ↔ ${esc(HUBS[r.to].name)}：${nationalRouteAvailable(st,r.from,r.to)?"経路解放済み":esc(nationalRouteUnlockReason(r.from,r.to))}${!st.visitedHubs.includes(r.to)&&r.firstArrival?`（初回：${esc(r.firstArrival)}）`:""}</li>`).join("");
   h+=`</div><details><summary>実装済みの経路（${NATIONAL_ROUTES.length}）</summary><ul class="list">${routeDirectory}</ul></details><p class="small">初回到達は街の門・交通路から向かいます。訪問後に地図から移動できます。</p>
-    <h3 class="label">全国編の収録状況</h3><p class="small">${NATIONAL_REGIONS.length}地方・${NATIONAL_PREFECTURES.length}都道府県の拠点と探索区域を収録。M01～M08の本編後、交通路から全国を巡れます。追加拠点の固有物語・本編は制作中です。</p>
+    <h3 class="label">全国編の収録状況</h3><p class="small">${NATIONAL_REGIONS.length}地方・${NATIONAL_PREFECTURES.length}都道府県、全51拠点の固有物語と地域ボスを収録。各街の出口から街外へ進み、ボスを鎮めて次の地域へ。全51本の本編依頼で全国編エンディングに到達します。</p>
     <h3 class="label">全国の都道府県</h3><p class="small">拠点ありは${playablePrefs.length}/${NATIONAL_PREFECTURES.length}都道府県。訪問済みは${visitedPrefs.length}/${playablePrefs.length}県・${visitedHubCount}/${playableHubIds.length}拠点。${visitedPrefs.length===47?"全国踏破達成！":"全県を巡ると全国踏破です。"}</p>${regionDirectory}`;
   return h;
 }
@@ -961,10 +906,11 @@ function worldTravelStatus(st,from,to,safe){
 }
 function nationalRouteUnlockReason(from,to){
   const route=NATIONAL_ROUTES.find(r=>r.status==="playable"&&((r.from===from&&r.to===to)||(r.from===to&&r.to===from)));
+  if(route?.from===from&&route.requiredQuest) return `「${QUESTS[route.requiredQuest].name}」の地域ボス討伐で開きます。`;
   return route?.unlock==="fukuokaClear"?"福岡編の完了後に開きます。":route?.unlock==="karatsuClear"?"唐津編M03の完了後に開きます。":route?.unlock==="sagaCityClear"?"佐賀市編M04の完了後に開きます。":route?.unlock==="saseboClear"?"佐世保市編M05の完了後に開きます。":route?.unlock==="nagasakiClear"?"長崎市編M06の完了後に開きます。":route?.unlock==="kumamotoClear"?"熊本市編M07の完了後に開きます。":route?.unlock==="asoClear"?"阿蘇市編M08の完了後に開きます。":"この先の道はまだ開いていません。";
 }
 function nationalRouteAvailable(st,from,to){
-  return NATIONAL_ROUTES.some(r=>r.status==="playable"&&((r.from===from&&r.to===to)||(r.from===to&&r.to===from))&&(r.unlock==="always"||r.unlock==="fukuokaClear"&&!!st.fukuokaClear||r.unlock==="karatsuClear"&&st.quests?.M03==="complete"||r.unlock==="sagaCityClear"&&st.quests?.M04==="complete"||r.unlock==="saseboClear"&&st.quests?.M05==="complete"||r.unlock==="nagasakiClear"&&st.quests?.M06==="complete"||r.unlock==="kumamotoClear"&&st.quests?.M07==="complete"||r.unlock==="asoClear"&&st.quests?.M08==="complete"));
+  return NATIONAL_ROUTES.some(r=>r.status==="playable"&&((r.from===from&&r.to===to)||(r.from===to&&r.to===from))&&(!(r.from===from&&r.requiredQuest)||st.quests?.[r.requiredQuest]==="complete")&&(r.unlock==="always"||r.unlock==="fukuokaClear"&&!!st.fukuokaClear||r.unlock==="karatsuClear"&&st.quests?.M03==="complete"||r.unlock==="sagaCityClear"&&st.quests?.M04==="complete"||r.unlock==="saseboClear"&&st.quests?.M05==="complete"||r.unlock==="nagasakiClear"&&st.quests?.M06==="complete"||r.unlock==="kumamotoClear"&&st.quests?.M07==="complete"||r.unlock==="asoClear"&&st.quests?.M08==="complete"));
 }
 function nationalItinerary(st,from,to){
   if(!Object.hasOwn(HUBS,from)||!Object.hasOwn(HUBS,to)) return null;
@@ -984,8 +930,8 @@ function nationalItinerary(st,from,to){
 }
 function renderParty(){
   const st=G.st; const d=G.sheetData; const L=levelOf(st.xp,st);
-  const locked = !!st.run || !isSafe() || !!streamPending();
-  const lockMsg = st.run?"戦闘中は変更できません。":!isSafe()?"安全地帯でのみ変更できます。":streamPending()?"配信待ちの間はジョブと装備を変更できません。":"";
+  const locked = !!st.run || !isSafe();
+  const lockMsg = st.run?"戦闘中は変更できません。":!isSafe()?"街でのみ変更できます。":"";
   if(d.cid){
     const cid=d.cid; const cur=charStats(st,cid,L);
     if(d.view==="job"){
@@ -1098,13 +1044,13 @@ function renderRecord(){
   return `<dl class="kv"><dt>共通レベル</dt><dd>${L}（経験値 ${st.xp.toLocaleString()}${L<levelLimit(st)?`・次まで${Math.max(0,xpFor(L+1)-st.xp).toLocaleString()}`:"・最大"}）</dd>
     <dt>もえのシナリオ到達ランク</dt><dd>${MOE_RANKS[st.moeRank]}</dd><dt>旅</dt><dd>${st.day}日目</dd></dl>
     <p class="small">もえのランクは物語上の到達記録です。レベル・熟練度・実際の応援ポイントとは別に表示します。</p>
-    <ul class="list">${milestones.map(([r,c],i)=>`<li>${i<=st.moeRank?"●":"○"} ${r}：${c}</li>`).join("")}<li class="dim">…S6：M16完了（この版には未収録）</li></ul>
+    <ul class="list">${milestones.map(([r,c],i)=>`<li>${i<=st.moeRank?"●":"○"} ${r}：${c}</li>`).join("")}<li>全国の依頼を進めてS6へ。全51本編依頼完了で全国編エンディング。</li></ul>
     ${G.screen==="explore"&&isSafe()?`<h3 class="label">ゴールド金庫</h3><p class="small">全街共通・手数料と利息なし。金庫の残高は買物や敗北時の減額に使われません。</p><button class="btn" data-a="vaultOpen">金庫を開く（${(st.vaultGold||0).toLocaleString()}G）</button>`:""}
     <h3 class="label">仲間</h3><ul class="list">${st.roster.map(c=>{const s=charStats(st,c,L); return `<li>${esc(charName(st,c))}：${esc(JOBS[s.job].name)} 熟練度${s.R}・最大体力${s.maxHP}</li>`;}).join("")}</ul>
     <h3 class="label">九州アルバム</h3><ul class="list">${Object.entries(BOX_CARDS).map(([k,n])=>`<li>${st.cards.includes(k)?"● "+esc(n):"○ 未取得"}</li>`).join("")}</ul>
     <h3 class="label">訪れた拠点</h3><ul class="list">${Object.entries(HUBS).map(([id,h])=>`<li>${st.visitedHubs.includes(id)?"●":"○"} ${esc(h.pref)}・${esc(h.name)}</li>`).join("")}</ul>
     <h3 class="label">応援者帳</h3><ul class="list"><li>灯里（福岡市）：${st.talked.akari?"話を聞いた":"未会話"}</li><li>奏太（北九州市）：${st.talked.sota?"話を聞いた":"未会話"}</li><li>唐津の案内人：${st.talked.karatsuGuide?"話を聞いた":"未会話"}</li><li>佐賀市の案内人：${st.talked.sagaCityGuide?"話を聞いた":"未会話"}</li><li>佐世保市の案内人：${st.talked.saseboGuide?"話を聞いた":"未会話"}</li></ul>
-    <h3 class="label">配信記録</h3><p>福岡の最高得点：${st.streamBest.PR01!=null?st.streamBest.PR01+"点":"未配信"}／佐賀の最高得点：${st.streamBest.PR02!=null?st.streamBest.PR02+"点":"未配信"}／長崎の最高得点：${st.streamBest.PR03!=null?st.streamBest.PR03+"点":"未配信"}</p>
+    <h3 class="label">全国の物語</h3><p>本編 ${NATIONWIDE_QUEST_ORDER.filter(id=>st.quests[id]==="complete").length} / ${NATIONWIDE_QUEST_ORDER.length} 完了</p>${st.nationalClear?'<button class="btn primary" data-a="replayStory" data-v="NATIONWIDE_END">全国編エンディングを振り返る</button>':""}<div class="stack">${Object.values(NATIONWIDE_STORIES).filter(s=>st.quests[s.questId]==="complete").map(s=>`<button class="btn" data-a="replayStory" data-v="${QUESTS[s.questId].completeScene}">${esc(HUBS[QUESTS[s.questId].hub].pref)}：${esc(s.title)}</button>`).join("")}</div>
     ${renderBadgeRecord(st)}
     ${st.lastResult?`<h3 class="label">直前の戦闘結果</h3><p class="small">経験値＋${st.lastResult.xp}・${st.lastResult.gold}ゴールド・${st.lastResult.jp.map(j=>`${esc(j.name)} 熟練度経験値＋${j.gain}`).join("、")}</p>`:""}`;
 }
@@ -1140,8 +1086,8 @@ function renderDex(){
 }
 function renderShop(){
   const st=G.st; const d=G.sheetData; const S=SHOPS[d.shop]; const tab=d.tab||"buy";
-  const locked = !!st.run || !!streamPending() || !!G.shopSaving;
-  const head=`<p>所持 ${st.gold.toLocaleString()}ゴールド・道具袋 通常${bagKindCount(st.bag,false)}/${BAG_KINDS}種類・イベント${bagKindCount(st.bag,true)}/${EVENT_KINDS}種類</p><div class="row3"><button class="btn ${tab==="buy"?"on":""}" data-a="shopTab" data-v="buy">装備を買う</button><button class="btn ${tab==="item"?"on":""}" data-a="shopTab" data-v="item">道具を買う</button><button class="btn ${tab==="sell"?"on":""}" data-a="shopTab" data-v="sell">売る</button></div>${locked?`<p class="warn">配信待ちの間は売買できません。</p>`:""}`;
+  const locked = !!st.run || !!G.shopSaving;
+  const head=`<p>所持 ${st.gold.toLocaleString()}ゴールド・道具袋 通常${bagKindCount(st.bag,false)}/${BAG_KINDS}種類・イベント${bagKindCount(st.bag,true)}/${EVENT_KINDS}種類</p><div class="row3"><button class="btn ${tab==="buy"?"on":""}" data-a="shopTab" data-v="buy">装備を買う</button><button class="btn ${tab==="item"?"on":""}" data-a="shopTab" data-v="item">道具を買う</button><button class="btn ${tab==="sell"?"on":""}" data-a="shopTab" data-v="sell">売る</button></div>${locked?`<p class="warn">現在は売買できません。</p>`:""}`;
   if(d.item && ITEMS[d.item]){
     const it=ITEMS[d.item]; const qty=d.qty||1; const own=bagCount(st.bag,d.item);
     if(tab==="item"){ const room=itemPurchaseRoom(st,d.item),bagSpace=bagRoom(st.bag,d.item); const total=it.price*qty; const can=!locked&&qty<=room&&st.gold>=total;
@@ -1188,7 +1134,7 @@ function shopOffer(st,d){
   return {shop:d.shop,tab:d.tab,item:id,qty:d.qty,unit,own,max,gold:st.gold};
 }
 function shopOfferToken(st,d){ const offer=shopOffer(st,d); return offer?checksum(JSON.stringify(offer)):""; }
-function canTradeAtShop(d){ return !!G.st&&!G.readOnly&&!G.shopSaving&&G.screen==="explore"&&G.sheet==="shop"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&!streamPending()&&isSafe()&&nearbyObjects().some(o=>o.type==="shop"&&o.shop===d.shop); }
+function canTradeAtShop(d){ return !!G.st&&!G.readOnly&&!G.shopSaving&&G.screen==="explore"&&G.sheet==="shop"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&isSafe()&&nearbyObjects().some(o=>o.type==="shop"&&o.shop===d.shop); }
 function tradeSnapshot(st){ return {gold:st.gold,bag:clone(st.bag),itemVault:clone(st.itemVault),keep:clone(st.keep),owned:clone(st.owned)}; }
 function restoreTrade(st,snap){ Object.assign(st,snap); }
 function itemText(it,V){ return it.text.replace(/(\d+)×V/g,(m,n)=>String(+n*V)).replace("−防御のダメージ","から敵の防御力を引いたダメージ"); }
@@ -1209,17 +1155,17 @@ function keepFlush(){
   return n;
 }
 function canEditParty(){ return !!G.st&&!G.readOnly&&G.screen==="explore"&&G.sheet==="party"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&isSafe(); }
-function canEditVault(){ return !!G.st&&!G.readOnly&&!G.vaultSaving&&G.screen==="explore"&&G.sheet==="goldVault"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&isSafe()&&!streamPending(); }
+function canEditVault(){ return !!G.st&&!G.readOnly&&!G.vaultSaving&&G.screen==="explore"&&G.sheet==="goldVault"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&isSafe(); }
 function canViewItemVault(){ return !!G.st&&G.screen==="explore"&&G.sheet==="itemVault"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&isSafe(); }
-function canEditItemVault(){ return canViewItemVault()&&!G.readOnly&&!G.vaultSaving&&!streamPending(); }
+function canEditItemVault(){ return canViewItemVault()&&!G.readOnly&&!G.vaultSaving; }
 function vaultAmountValue(raw,from,to){
   const value=String(raw);
   if(!/^[1-9][0-9]*$/.test(value)) return 0;
   const amount=Number(value);
   return Number.isSafeInteger(amount)&&Number.isSafeInteger(from)&&Number.isSafeInteger(to)&&amount<=from&&Number.isSafeInteger(to+amount)?amount:0;
 }
-function canEditItems(){ return !!G.st&&!G.readOnly&&G.screen==="explore"&&G.sheet==="items"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&!streamPending(); }
-function canManageQuests(){ return !!G.st&&!G.readOnly&&G.screen==="explore"&&G.sheet==="quests"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&!streamPending(); }
+function canEditItems(){ return !!G.st&&!G.readOnly&&G.screen==="explore"&&G.sheet==="items"&&!G.dlg&&!G.st.run&&!G.walk.path.length; }
+function canManageQuests(){ return !!G.st&&!G.readOnly&&G.screen==="explore"&&G.sheet==="quests"&&!G.dlg&&!G.st.run&&!G.walk.path.length; }
 function canTravelFrom(sheet){ return !!G.st&&!G.readOnly&&G.screen==="explore"&&G.sheet===sheet&&!G.dlg&&!G.st.run&&!G.walk.path.length&&isSafe(); }
 function dropToken(st,id){ return ITEMS[id]?checksum(JSON.stringify([id,bagCount(st.bag,id),st.bag.length])):""; }
 function renderItems(){
@@ -1264,26 +1210,12 @@ function renderItemVault(){
 function qtyRow(q,max){ return `<div class="row3"><button class="btn" data-a="shopQty" data-v="${q-1}" ${q>1?"":"disabled"}>−</button><span class="qty">数量 ${q}個（最大${max}個）</span><button class="btn" data-a="shopQty" data-v="${q+1}" ${q<max?"":"disabled"}>＋</button></div>`; }
 function renderMoe(){
   const st=G.st; const r=MOE_RANKS[st.moeRank];
-  const line = st.moeRank===0?"まずは福岡の声を整えよう。放送塔の丘の奥で、大きな重なりが起きてるみたい。":st.moeRank===1?"北九州の港で、初めての採点配信をしたいな。準備、手伝ってくれる？":st.moeRank===2?"福岡、ありがとう。唐津でも、一人ずつの声に返事をしていきたい。":st.moeRank===3?"唐津の声を聞けたね。次は佐賀市で、街の声をつなごう。":st.moeRank===4?"佐賀市の声も届けられたね。次は佐世保市で港からの返事を聞こう。":"佐世保市の返事も届けられたね。次の旅に向けて準備しよう。";
+  const line = st.moeRank===0?"まずは福岡の声を整えよう。放送塔の丘の奥で、大きな重なりが起きてるみたい。":st.moeRank===1?"北九州の街外へ行こう。港に響く声の乱れを、一緒に鎮めたいな。":st.moeRank===2?"福岡、ありがとう。唐津でも、一人ずつの声に返事をしていきたい。":st.moeRank===3?"唐津の声を聞けたね。次は佐賀市で、街の声をつなごう。":st.moeRank===4?"佐賀市の声も届けられたね。次は佐世保市で港からの返事を聞こう。":"佐世保市の返事も届けられたね。次の旅に向けて準備しよう。";
   const read=Object.keys(SCENES).filter(k=>st.scenes[k]);
   return `<div class="who"><canvas class="sprite-md" data-char="moe" width="16" height="24" aria-hidden="true"></canvas><div><b>雪餅羽もえ</b>（のわんもえ）<br><span class="small">メインライバー・シナリオ到達ランク ${r}</span></div></div>
     <p class="dlg-text">「${esc(line)}」</p>
     <h3 class="label">物語を読み返す</h3><div class="stack">${read.length?read.map(k=>`<button class="btn" data-a="replay" data-v="${k}">${esc(SCENES[k].title)}</button>`).join(""):`<p class="small">まだありません。</p>`}</div>`;
 }
-function renderStreamSetup(){
-  const st=G.st; const d=G.sheetData;
-  const hosts=st.roster.filter(c=>c!=="moe");
-  d.host=d.host||hosts[0]; d.theme=d.theme||"newbie"; d.style=d.style||"video";
-  const req=STREAM_REQ[HUBS[curHub()].prefId];
-  return `<p>メインライバーはもえ。配信サポート担当とテーマを選びます。人物・ジョブによる得点差はありません。</p>
-    <h3 class="label">配信サポート担当</h3><div class="opts">${hosts.map(c=>`<button class="btn opt ${d.host===c?"on":""}" data-a="ssSet" data-k="host" data-v="${c}">${d.host===c?"▶ ":""}${esc(charName(st,c))}</button>`).join("")}</div>
-    <h3 class="label">番組テーマ</h3><div class="opts">${Object.entries(STREAM_THEMES).map(([k,t])=>`<button class="btn opt ${d.theme===k?"on":""}" data-a="ssSet" data-k="theme" data-v="${k}">${d.theme===k?"▶ ":""}${t.name}（${STREAM_ACTS[t.act].name}の初回に＋10）</button>`).join("")}</div>
-    <h3 class="label">スタイル</h3><div class="opts">${[["video","映像あり"],["voice","声中心"]].map(([k,n])=>`<button class="btn opt ${d.style===k?"on":""}" data-a="ssSet" data-k="style" data-v="${k}">${d.style===k?"▶ ":""}${n}</button>`).join("")}</div>
-    <h3 class="label">4手番の予定</h3><ol class="list">${req.map((r,i)=>`<li>${STREAM_TIMES[i]}：「${esc(STREAM_ACTS[r].req)}」→ ${esc(STREAM_ACTS[r].name)}</li>`).join("")}</ol>
-    <p class="small">得点：初めて使う行動20点＋要望に合えば20点＋テーマ初回10点。最大170点、80点で達成。</p>
-    <button class="btn primary wide" data-a="streamStart">配信を始める</button>`;
-}
-
 /* ===== 操作の受付 ===== */
 const ACT = {
   shareCopy(el){ return SHARE.copy(el.dataset.v==="intro"); },
@@ -1303,9 +1235,9 @@ const ACT = {
     await commit(); G.starting=false; G.hasSave=true;
     G.screen="explore"; exploreBgm(); render(); playScene("HS00");
   },
-  async continue(){ const s=await loadSave(); if(!s) return toast("記録が見つかりません。"); const hadStream=!!s.state.stream,oldPos=s.state.pos&&{x:s.state.pos.x,y:s.state.pos.y}; G.st=migrate(s.state); G.soundWant=null; setSave(s.fromPrev?"前の記録から復旧":s.storage==="local"?"保存済み（簡易保存）":"保存済み"); if(G.st.settings.sound===false&&SND.on) SND.setOn(false); else if(G.st.settings.sound!==false&&!SND.on) SND.setOn(true);
-    if(G.st.run){ G.screen="battle"; SND.play(G.st.run.kind==="boss"?"boss":"battle"); } else if(G.st.stream){ G.screen="stream"; SND.play("stream"); } else { G.screen="explore"; exploreBgm(); }
-    render(); const notices=[]; if(s.fromPrev) notices.push("前の世代の記録から再開しました。設定からバックアップを確認できます。"); if(hadStream&&!G.st.stream) notices.push("配信記録に欠損があったため解除しました。依頼帳で状態を確認してください。"); if(!oldPos||oldPos.x!==G.st.pos.x||oldPos.y!==G.st.pos.y) notices.push("保存位置を現在の地形に合わせて拠点の安全地帯へ戻しました。"); if(notices.length) toast(notices.join(" ")); },
+  async continue(){ const s=await loadSave(); if(!s) return toast("記録が見つかりません。"); const hadStream=!!s.state.stream||Object.values(s.state.quests||{}).includes("combatDone"),oldPos=s.state.pos&&{x:s.state.pos.x,y:s.state.pos.y}; G.st=migrate(s.state); G.soundWant=null; setSave(s.fromPrev?"前の記録から復旧":s.storage==="local"?"保存済み（簡易保存）":"保存済み"); if(G.st.settings.sound===false&&SND.on) SND.setOn(false); else if(G.st.settings.sound!==false&&!SND.on) SND.setOn(true);
+    if(G.st.run){ G.screen="battle"; SND.play(G.st.run.kind==="boss"?"boss":"battle"); } else { G.screen="explore"; exploreBgm(); }
+    render(); const notices=[]; if(s.fromPrev) notices.push("前の世代の記録から再開しました。設定からバックアップを確認できます。"); if(hadStream&&!G.st.stream) notices.push("配信イベントの廃止に伴い、討伐済みの依頼を完了しました。報酬と進行は引き継いでいます。"); if(!oldPos||oldPos.x!==G.st.pos.x||oldPos.y!==G.st.pos.y) notices.push("保存位置を現在の地形に合わせて拠点の安全地帯へ戻しました。"); if(notices.length) toast(notices.join(" ")); },
   toTitle(){ G.sheet=null; G.screen="title"; G.dlg=null; SND.play("title"); render(); },
   openSheet(el){ openSheet(el.dataset.k); }, closeSheet(){ closeSheet(); },
   badgeFilter(){ if(G.sheet!=="record") return; G.sheetData.badgeOnlyUnowned=!G.sheetData.badgeOnlyUnowned; render(); },
@@ -1374,9 +1306,10 @@ const ACT = {
   acceptQuest(el){ if(!canManageQuests()) return; const st=G.st, id=el.dataset.v, q=QUESTS[id]; if(!q||st.quests[id]!=="available"||st.activeQuest||curHub()!==q.hub||!isSafe()) return toast("依頼の状態が変わりました。選び直してください。");
     el.disabled=true;
     st.quests[id]="active"; st.activeQuest=id; st.qprog[id]=st.qprog[id]||0; commit(); G.sheet=null; render();
-    say([["",`依頼「${id} ${QUESTS[id].name}」を受けた。`],["もえ",id==="M01"?"呼びかけと紹介の順番が重なってる……。始まりと返事の順番を取り戻そう。":id==="M02"?"港の声を、ひとつずつ届けたいな。":id==="M03"?"唐津の海辺で聞いた返事を、配信でも届けたいな。":id==="M04"?"佐賀市の川沿いと駅前で、街の声を集めよう。":id==="M05"?"佐世保市の港沿いと坂道で、届いた返事を集めよう。":id==="M06"?"長崎市の港と丘で、街の声を届けよう。":id==="M07"?"熊本市の川辺と石垣で、届いた声を集めよう。":id==="M08"?"阿蘇市の風の中で、返事を集めよう。":"一緒に考えよう。"],["",QUESTS[id].goal]]); },
+    if(q.introScene) return playScene(q.introScene);
+    say([["",`依頼「${id} ${QUESTS[id].name}」を受けた。`],["もえ",id==="M01"?"呼びかけと紹介の順番が重なってる……。始まりと返事の順番を取り戻そう。":id==="M02"?"港の声を、ひとつずつ届けたいな。":id==="M03"?"唐津の海辺で聞いた返事を、街に届けたいな。":id==="M04"?"佐賀市の川沿いと駅前で、街の声を集めよう。":id==="M05"?"佐世保市の港沿いと坂道で、届いた返事を集めよう。":id==="M06"?"長崎市の港と丘で、街の声を届けよう。":id==="M07"?"熊本市の川辺と石垣で、届いた声を集めよう。":id==="M08"?"阿蘇市の風の中で、返事を集めよう。":"一緒に考えよう。"],["",QUESTS[id].goal]]); },
   abandonQuest(el){ if(!canManageQuests()) return; const st=G.st, id=el.dataset.v; if(!QUESTS[id]||st.activeQuest!==id||!["active","bossReady"].includes(st.quests[id])) return toast("依頼の状態が変わりました。選び直してください。"); el.disabled=true; st.quests[id]="available"; st.qprog[id]=0; st.activeQuest=null; commit(); render(); toast("依頼を放棄した。受注費は戻りません。"); },
-  bossGo(el){ const st=G.st,bid=el.dataset.v,qid=Object.keys(QUESTS).find(k=>QUESTS[k].boss===bid); if(!st||G.readOnly||G.screen!=="explore"||G.sheet!=="boss"||G.sheetData.bid!==bid||G.dlg||st.run||G.walk.path.length||!qid||st.activeQuest!==qid||st.quests[qid]!=="bossReady"||st.bossDefeated[bid]||!nearbyObjects().some(o=>o.type==="boss"&&o.boss===bid)) return toast("ボスへの挑戦条件が変わりました。調べ直してください。"); el.disabled=true; startBattle(createBossRun(st,bid)); },
+  bossGo(el){ const st=G.st,bid=el.dataset.v,qid=Object.keys(QUESTS).find(k=>QUESTS[k].boss===bid); if(!st||G.readOnly||G.screen!=="explore"||G.sheet!=="boss"||G.sheetData.bid!==bid||G.dlg||st.run||G.walk.path.length||!qid||st.activeQuest!==qid||st.quests[qid]!=="bossReady"||st.bossDefeated[bid]||MAPS[st.mapId].kind!=="field"||!nearbyObjects().some(o=>o.type==="boss"&&o.boss===bid)) return toast("ボスへの挑戦条件が変わりました。調べ直してください。"); el.disabled=true; startBattle(createBossRun(st,bid)); },
   pickActor(el){ const i=+el.dataset.i; const m=G.st.run.party[i]; if(m.hp<=0||m.acted) return; G.cmd={actor:i}; render(); },
   cmdType(el){ const t=el.dataset.v; G.cmd={actor:G.cmd.actor, type:t}; render(); },
   cmdSet(el){ const k=el.dataset.k; let v=el.dataset.v; if(k==="target"||k==="ally") v=+v; G.cmd[k]=v; if(k==="mode"||k==="item"){ delete G.cmd.ally; } render(); },
@@ -1385,7 +1318,8 @@ const ACT = {
   autoOff(){ G.auto=false; clearTimeout(G.autoT); G.autoLast=null; G.cmd={}; G.cursorSig=null; render(); SND.sfx("cancel"); toast("オートを中断しました。手動で操作できます。"); },
   toResult(){ toResult(); },
   resultDone(){ resultDone(); },
-  defeatReturn(){ const st=G.st; const run=st.run; if(run.bag) st.bag=clone(run.bag); st.run=null; const m=MAPS[run.returnPos.map]; st.mapId=run.returnPos.map; st.pos={x:m.safeAnchor[0],y:m.safeAnchor[1]}; G.fol={...st.pos};
+  replayStory(el){ const id=el.dataset.v,st=G.st; if(G.screen!=="explore"||G.sheet!=="record"||G.dlg||st.run||!SCENES[id]) return; const q=Object.values(QUESTS).find(q=>q.completeScene===id); if(id==="NATIONWIDE_END"?!st.nationalClear:!q||st.quests[Object.keys(QUESTS).find(k=>QUESTS[k]===q)]!=="complete") return; G.sheet=null; say([["",SCENES[id].title],...SCENES[id].lines(st.profile.name)]); },
+  defeatReturn(){ const st=G.st; const run=st.run; if(run.bag) st.bag=clone(run.bag); st.run=null; const m=MAPS[MAPS[run.returnPos.map].hub]; st.mapId=m.hub; st.pos={x:m.safeAnchor[0],y:m.safeAnchor[1]}; G.fol={...st.pos};
     const lost=Math.floor(st.gold/2); st.gold-=lost; restoreAll(st); commit(); G.screen="explore"; exploreBgm(); render(); say([["",`安全な場所へ運ばれた。所持ゴールドの半分（${lost}）を失った。`],["","全員の体力とMPが回復した。"]]); },
   retreat(){ openSheet("retreat"); },
   doRetreat(){ const st=G.st; const run=st.run; storeVitals(st,run); if(run.bag) st.bag=clone(run.bag); st.run=null; st.mapId=run.returnPos.map; st.pos={x:run.returnPos.x,y:run.returnPos.y}; G.sheet=null; commit(); G.screen="explore"; exploreBgm(); render(); toast("撤退した。"); },
@@ -1410,11 +1344,11 @@ const ACT = {
   partyLeave(el){ if(!canEditParty()) return; const st=G.st,i=Number(el.dataset.v),c=el.dataset.c; if(!Number.isInteger(i)||i<0||i>=st.party.length||st.party[i]!==c) return toast("編成が変わりました。選び直してください。"); if(st.party.length<=1) return toast("最後の1人は待機にできません。"); st.party.splice(i,1); commit(); render(); toast(`${charName(st,c)}を待機にした。`); },
   partyIn(el){ if(!canEditParty()) return; const st=G.st,c=el.dataset.v; if(!st.roster.includes(c)||st.party.includes(c)||st.party.length>=4) return toast("この仲間は追加できません。編成を確認してください。"); st.party.push(c); commit(); render(); toast(`${charName(st,c)}を戦闘メンバーに入れた。`); },
   partySwap(el){ if(!canEditParty()) return; const st=G.st,c=el.dataset.v,i=Number(el.dataset.i),old=el.dataset.c; if(!Number.isInteger(i)||i<0||i>=st.party.length||st.party[i]!==old||!st.roster.includes(c)||st.party.includes(c)) return toast("編成が変わりました。選び直してください。"); st.party[i]=c; commit(); render(); toast(`${charName(st,old)}と${charName(st,c)}を入れ替えた。`); },
-  setJob(el){ if(!canEditParty()||streamPending()) return; const st=G.st,cid=el.dataset.c,j=el.dataset.v; if(!st.roster.includes(cid)||!Object.hasOwn(JOBS,j)||G.sheetData.cid!==cid||G.sheetData.view!=="job") return; const nextEquip=previewEquipFor(st,cid,j); if(!equipmentSetFits(st,cid,nextEquip)) return toast("未装備品が300種類を超えます。金庫へ預けてください。"); st.jobs[cid]=j; st.equip[cid]=nextEquip;
+  setJob(el){ if(!canEditParty()) return; const st=G.st,cid=el.dataset.c,j=el.dataset.v; if(!st.roster.includes(cid)||!Object.hasOwn(JOBS,j)||G.sheetData.cid!==cid||G.sheetData.view!=="job") return; const nextEquip=previewEquipFor(st,cid,j); if(!equipmentSetFits(st,cid,nextEquip)) return toast("未装備品が300種類を超えます。金庫へ預けてください。"); st.jobs[cid]=j; st.equip[cid]=nextEquip;
     for(const [s,id] of [["w","CW01"],["a","CA01"]]) if(!st.equip[cid][s]&&availableCount(st,id)>0) st.equip[cid][s]=id;
     commit(); G.sheetData={cid,view:""}; render(); drawMiniSprites(); toast(`${charName(st,cid)}のジョブを${JOBS[j].name}にした。`); },
-  setEquip(el){ if(!canEditParty()||streamPending()) return; const st=G.st,cid=el.dataset.c,s=el.dataset.s,id=el.dataset.v||null; if(!st.roster.includes(cid)||!["w","a","acc"].includes(s)||G.sheetData.cid!==cid||G.sheetData.view!==`eq:${s}`) return; if(id&&(!Object.hasOwn(EQUIP,id)||EQUIP[id].slot!==s)) return; if(id){ const it=EQUIP[id], cur=charStats(st,cid,levelOf(st.xp,st)); if(it.job&&(it.job!==cur.job||cur.R<it.needR)) return toast("現在の職業と熟練度では装備できません。"); } if(id&&availableCount(st,id)<=0&&st.equip[cid][s]!==id) return toast("未装備の在庫がありません。"); if(!equipmentChangeFits(st,cid,s,id)) return toast("未装備品が300種類を超えます。金庫へ預けてください。"); st.equip[cid][s]=id; commit(); G.sheetData={cid,view:""}; render(); drawMiniSprites(); },
-  setSupport(el){ if(!canEditParty()||streamPending()) return; const v=el.dataset.v||null; if(v!==null&&!supportAvailable(G.st,v)) return toast("この地域支援はまだ使えません。"); G.st.support=v; commit(); render(); },
+  setEquip(el){ if(!canEditParty()) return; const st=G.st,cid=el.dataset.c,s=el.dataset.s,id=el.dataset.v||null; if(!st.roster.includes(cid)||!["w","a","acc"].includes(s)||G.sheetData.cid!==cid||G.sheetData.view!==`eq:${s}`) return; if(id&&(!Object.hasOwn(EQUIP,id)||EQUIP[id].slot!==s)) return; if(id){ const it=EQUIP[id], cur=charStats(st,cid,levelOf(st.xp,st)); if(it.job&&(it.job!==cur.job||cur.R<it.needR)) return toast("現在の職業と熟練度では装備できません。"); } if(id&&availableCount(st,id)<=0&&st.equip[cid][s]!==id) return toast("未装備の在庫がありません。"); if(!equipmentChangeFits(st,cid,s,id)) return toast("未装備品が300種類を超えます。金庫へ預けてください。"); st.equip[cid][s]=id; commit(); G.sheetData={cid,view:""}; render(); drawMiniSprites(); },
+  setSupport(el){ if(!canEditParty()) return; const v=el.dataset.v||null; if(v!==null&&!supportAvailable(G.st,v)) return toast("この地域支援はまだ使えません。"); G.st.support=v; commit(); render(); },
   dexNav(el){ const k=el.dataset.k, v=el.dataset.v; if(k==="area"){ G.sheetData={area:v,page:0}; } else if(k==="page"){ G.sheetData.page=+v; } else { G.sheetData.detail=v||null; } render(); drawMiniSprites(); const s=$(".sheet"); if(s) s.scrollTop=0; },
   shopTab(el){ if(G.sheet!=="shop"||G.shopSaving||!["buy","item","sell"].includes(el.dataset.v)) return; G.sheetData.tab=el.dataset.v; G.sheetData.item=null; render(); },
   shopItem(el){ if(G.sheet!=="shop"||G.shopSaving) return; const id=el.dataset.v||null; if(id&&(!Object.hasOwn(ITEMS,id)&&!Object.hasOwn(EQUIP,id))) return; G.sheetData.item=id; G.sheetData.qty=1; render(); },
@@ -1431,12 +1365,7 @@ const ACT = {
     let rolledBack=false; if(!saved&&G.st===st&&st.saveGeneration===gen+1&&JSON.stringify(tradeSnapshot(st))===after){ restoreTrade(st,before); st.saveGeneration=gen; rolledBack=true; }
     if(G.st===st){ render(); if(saved) SND.sfx("buy"); toast(saved?`${it.name}×${q}を${offer.tab==="sell"?"売った":"買った"}。${vaulted?` ${vaulted}個は金庫へ保管しました。`:""}`:rolledBack?"取引を保存できなかったため取り消しました。":"取引を保存できませんでした。バックアップを書き出してください。"); } },
   replay(el){ G.sheet=null; playScene(el.dataset.v); },
-  ssSet(el){ G.sheetData[el.dataset.k]=el.dataset.v; render(); },
-  streamStart(){ const st=G.st, d=G.sheetData, qid=streamPending(); if(!st||G.readOnly||G.screen!=="explore"||G.sheet!=="streamSetup"||!qid||QUESTS[qid].hub!==curHub()||!STREAM_REQ[HUBS[curHub()].prefId]||!st.roster.includes(d.host)||!STREAM_THEMES[d.theme]||!["video","voice"].includes(d.style)) return toast("配信の開始条件が変わりました。依頼帳を確認してください。"); st.stream=newStream(st,curHub(),d.host,d.theme,d.style); commit(); G.sheet=null; G.screen="stream"; SND.play("stream"); render(); },
-  streamAct(el){ const s=G.st?.stream,k=el.dataset.v; if(G.readOnly||G.screen!=="stream"||G.sheet||G.dlg||!s||s.done||s.hand<0||s.hand>=4||!Object.hasOwn(STREAM_ACTS,k)) return; streamAct(k); },
-  streamRetry(){ const s=G.st?.stream; if(G.readOnly||G.screen!=="stream"||G.sheet||G.dlg||!s?.done||s.score>=80) return; Object.assign(s,{hand:0,score:0,used:[],themeBonusUsed:false,picks:[],done:false}); commit(); render(); },
-  streamLeave(){ const s=G.st?.stream; if(G.readOnly||G.screen!=="stream"||G.sheet||G.dlg||!s?.done||s.score>=80) return; G.st.stream=null; commit(); G.screen="explore"; exploreBgm(); render(); },
-  streamFinish(){ streamFinish(); }
+
 };
 function drawMiniSprites(){
   document.querySelectorAll("canvas[data-char]").forEach(c=>{ const g=c.getContext("2d"); g.clearRect(0,0,16,24); const id=c.dataset.char; g.drawImage(id==="moe"?ART.person("moe",PAL.violet,PAL.cream,0,0,{long:true,ribbon:PAL.coral}):charSprite(id,0,0),0,0); });
@@ -1453,18 +1382,6 @@ function validateState(s){
 function padSide(){ const s=G.st?G.st.settings:G.tmpSettings; if(s&&(s.padSide==="left"||s.padSide==="right")) return s.padSide; try{ const v=localStorage.getItem("tlr-kyushu-pad"); if(v==="left"||v==="right") return v; }catch(e){} return "right"; }
 function soundIsOn(){ if(G.soundWant!=null) return G.soundWant; if(G.st&&G.st.settings) return G.st.settings.sound!==false; return soundPref(); }
 function soundPref(){ try{ return localStorage.getItem("tlr-kyushu-sound")!=="0"; }catch(e){ return true; } }
-function savedStreamUsable(s,st){
-  if(!s||typeof s!=="object"||!HUBS[s.hub]||HUBS[s.hub].prefId!==s.prefId||!st.roster.includes(s.host)||!STREAM_THEMES[s.theme]||!["video","voice"].includes(s.style)) return false;
-  if(!Object.entries(QUESTS).some(([id,q])=>q.hub===s.hub&&st.quests[id]==="combatDone"&&(!st.activeQuest||st.activeQuest===id))) return false;
-  const request=STREAM_REQ[s.prefId];
-  if(!Array.isArray(request)||!Array.isArray(s.requestIds)||s.requestIds.length!==4||s.requestIds.some((id,i)=>id!==request[i])) return false;
-  if(!Number.isInteger(s.hand)||s.hand<0||s.hand>4||typeof s.done!=="boolean"||s.done!==(s.hand===4)||!Number.isFinite(s.score)||s.score<0) return false;
-  if(!Array.isArray(s.used)||s.used.some(id=>!Object.hasOwn(STREAM_ACTS,id))||!Array.isArray(s.picks)||s.picks.length!==s.hand||s.picks.some(p=>!p||!Object.hasOwn(STREAM_ACTS,p.act))) return false;
-  const replay={requestIds:request.slice(),theme:s.theme,hand:0,score:0,used:[],themeBonusUsed:false,picks:[],done:false};
-  for(const pick of s.picks){ const step=streamPlay(replay,pick.act); if(pick.total!==step.total) return false; }
-  if(s.score!==replay.score||s.themeBonusUsed!==replay.themeBonusUsed||s.used.length!==replay.used.length||s.used.some((id,i)=>id!==replay.used[i])) return false;
-  return true;
-}
 function supportAvailable(st,id){
   if(id==="PR01") return !!st.talked?.akari&&st.quests?.M01==="complete"&&st.quests?.S01==="complete";
   if(id==="PR02") return !!st.talked?.karatsuGuide&&st.quests?.M03==="complete";
@@ -1474,8 +1391,9 @@ function supportAvailable(st,id){
 function migrate(s){
   migrateGrowth(s);
   s.gameVersion=GAME_VERSION;
+  const layoutChanged=s.mapLayoutVersion!==MAP_LAYOUT_VERSION;
   const map=MAPS[s.mapId],p=s.pos;
-  if(!p||!Number.isInteger(p.x)||!Number.isInteger(p.y)||p.x<0||p.y<0||p.x>=map.w||p.y>=map.h||!".,123w=".includes(map.tiles[p.y]?.[p.x])||map.objects.some(o=>o.x===p.x&&o.y===p.y&&!o.walk)) s.pos={x:map.safeAnchor[0],y:map.safeAnchor[1]};
+  if(layoutChanged||!p||!Number.isInteger(p.x)||!Number.isInteger(p.y)||p.x<0||p.y<0||p.x>=map.w||p.y>=map.h||!".,123w=".includes(map.tiles[p.y]?.[p.x])||map.objects.some(o=>o.x===p.x&&o.y===p.y&&!o.walk)) s.pos={x:map.safeAnchor[0],y:map.safeAnchor[1]};
   if(!Array.isArray(s.visitedMaps)) s.visitedMaps=[];
   if(!Array.isArray(s.visitedHubs)) s.visitedHubs=[];
   if(!s.visitedMaps.includes(s.mapId)) s.visitedMaps.push(s.mapId);
@@ -1498,7 +1416,7 @@ function migrate(s){
     if(!Array.isArray(s.lastResult.itemsUsed)) s.lastResult.itemsUsed=[];
     if(s.lastResult.itemsUsedKnown!==true) s.lastResult.itemsUsedKnown=false;
   }
-  if(s.stream&&!savedStreamUsable(s.stream,s)) s.stream=null;
+  delete s.stream; // 旧版の配信中セーブは討伐済み依頼として下で引き継ぐ
   if(!Array.isArray(s.battleBadges)) s.battleBadges=[];
   if(s.settings&&s.settings.soundV!==2){ s.settings.sound=true; s.settings.soundV=2; }
   if(s.vitals===undefined) s.vitals=null;
@@ -1515,6 +1433,18 @@ function migrate(s){
   if(!s.quests.M06) s.quests.M06=s.quests.M05==="complete"?"available":"locked";
   if(!s.quests.M07) s.quests.M07=s.quests.M06==="complete"?"available":"locked";
   if(!s.quests.M08) s.quests.M08=s.quests.M07==="complete"?"available":"locked";
+  refreshMainQuests(s);
+  for(const [id,q] of Object.entries(QUESTS)){
+    if(s.quests[id]==="combatDone"||(q.main&&s.quests[id]!=="complete"&&s.bossDefeated?.[q.boss])) completeQuest(s,id);
+  }
+  refreshMainQuests(s);
+  for(const j of JOIN_PLAN) if(s.visitedHubs.includes(j.hub)&&!s.roster.includes(j.cid)) joinMember(s,j.cid);
+  if(s.run&&layoutChanged){
+    const field=HUBS[map.hub].fieldMap;
+    s.mapId=field; s.pos={x:MAPS[field].safeAnchor[0],y:MAPS[field].safeAnchor[1]};
+    s.run.returnPos={map:field,...s.pos};
+  }
+  s.mapLayoutVersion=MAP_LAYOUT_VERSION; s.gameVersion=GAME_VERSION;
   if(s.support&&!supportAvailable(s,s.support)) s.support=null;
   return s;
 }
@@ -1523,7 +1453,7 @@ document.addEventListener("click",e=>{
   const el=e.target.closest("[data-a]"); if(!el||el.disabled) return;
   if(el.getAttribute("aria-disabled")==="true") return;
   const f=ACT[el.dataset.a]; if(!f) return;
-  if(G.readOnly && !["shareCopy","shareNative","openSheet","closeSheet","dlgNext","dlgBack","dlgSkip","toTitle","dexNav","partyView","shopTab","shopItem","vaultOpen","vaultBack"].includes(el.dataset.a)) return toast("別のタブで遊んでいるため、このタブは閲覧のみです。");
+  if(G.readOnly && !["replayStory","shareCopy","shareNative","openSheet","closeSheet","dlgNext","dlgBack","dlgSkip","toTitle","dexNav","partyView","shopTab","shopItem","vaultOpen","vaultBack"].includes(el.dataset.a)) return toast("別のタブで遊んでいるため、このタブは閲覧のみです。");
   f(el);
   if(el.dataset.a==="openSheet") drawMiniSprites();
 });
@@ -1536,7 +1466,7 @@ async function boot(){
   const hot=window.claude&&window.claude.hot;
   if(hot&&hot.snapshot) hot.snapshot(()=>({st:G.st, screen:G.screen}));
   const data = hot&&hot.data;
-  if(data&&data.st){ G.st=data.st; G.screen=data.screen==="new"?"title":data.screen; G.hasSave=true; }
+  if(data&&data.st){ G.st=migrate(data.st); G.screen=["new","stream"].includes(data.screen)?"explore":data.screen; G.hasSave=true; }
   render(); if(G.screen==="title") drawTitleArt();
 }
 

@@ -3296,7 +3296,22 @@ function canTradeAtShop(d){ return !!G.st&&!G.readOnly&&!G.shopSaving&&G.screen=
 function tradeSnapshot(st){ return {gold:st.gold,bag:clone(st.bag),itemVault:clone(st.itemVault),keep:clone(st.keep),owned:clone(st.owned)}; }
 function restoreTrade(st,snap){ Object.assign(st,snap); }
 function itemText(it,V){ return it.text.replace(/(\d+)×V/g,(m,n)=>String(+n*V)).replace("−防御のダメージ","から敵の防御力を引いたダメージ"); }
-function keepFlush(){ const st=G.st; if(!st||G.readOnly||G.screen!=="explore"||G.sheet||G.dlg||st.run||!st.keep||!st.keep.length||!isSafe()) return 0; const moved=flushKeep(st),n=moved.bagged+moved.vaulted; if(n){ commit(); toast(`預かり所から道具を${n}個受け取った。${moved.vaulted?`うち${moved.vaulted}個はアイテム金庫へ保管した。`:""}`); } return n; }
+function keepFlush(){
+  const st=G.st;
+  if(!st||G.readOnly||G.screen!=="explore"||G.sheet||G.dlg||st.run||!st.keep||!st.keep.length||!isSafe()) return 0;
+  const before={bag:clone(st.bag),itemVault:clone(st.itemVault),keep:clone(st.keep),gen:st.saveGeneration};
+  const moved=flushKeep(st),n=moved.bagged+moved.vaulted;
+  if(n){
+    const after=JSON.stringify([st.bag,st.itemVault,st.keep]);
+    commit().then(saved=>{
+      if(saved||G.st!==st||st.saveGeneration!==before.gen+1||JSON.stringify([st.bag,st.itemVault,st.keep])!==after) return;
+      st.bag=before.bag; st.itemVault=before.itemVault; st.keep=before.keep; st.saveGeneration=before.gen;
+      render(); toast("預かり所からの受取を取り消しました。保存できませんでした。");
+    });
+    toast(`預かり所から道具を${n}個受け取った。${moved.vaulted?`うち${moved.vaulted}個はアイテム金庫へ保管した。`:""}`);
+  }
+  return n;
+}
 function canEditParty(){ return !!G.st&&!G.readOnly&&G.screen==="explore"&&G.sheet==="party"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&isSafe(); }
 function canEditVault(){ return !!G.st&&!G.readOnly&&!G.vaultSaving&&G.screen==="explore"&&G.sheet==="goldVault"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&isSafe()&&!streamPending(); }
 function canViewItemVault(){ return !!G.st&&G.screen==="explore"&&G.sheet==="itemVault"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&isSafe(); }

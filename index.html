@@ -745,7 +745,7 @@ const DIFFICULTY = {
 };
 
 /* ---- 道具袋の拡張上限（参照v10.73～10.80）。旧セーブの所持数は維持 ---- */
-const BAG_KINDS = 300, BAG_STACK = 99, KEEP_MAX = 20;
+const BAG_KINDS = 300, EVENT_KINDS = 400, BAG_STACK = 99, KEEP_MAX = 20;
 const ITEM_RARITY = {1:"★1 ありふれた",2:"★2 ときどき見る",3:"★3 めずらしい",4:"★4 とてもめずらしい",5:"★5 まぼろし"};
 const ITEM_ACQ = {S:"ショップ",E:"イベント限定",DS:"モンスター限定（売却可）",DN:"モンスター限定（売却不可）",SD:"ショップ・モンスター"};
 const ITEMS = {};
@@ -1614,9 +1614,10 @@ function aiChoose(run){
   return best;
 }
 
-/* ---- 道具袋（300種類×各99個。入らない分は金庫、次に預かり所へ） ---- */
+/* ---- 道具袋（通常300種類・イベント400種類、各99個。あふれた分は金庫へ） ---- */
 function bagCount(bag,id){ const e=(bag||[]).find(x=>x.id===id); return e?e.n:0; }
-function bagRoom(bag,id){ const e=bag.find(x=>x.id===id); if(e) return BAG_STACK-e.n; return bag.length<BAG_KINDS?BAG_STACK:0; }
+function bagKindCount(bag,event){ return bag.filter(e=>(ITEMS[e.id]?.acq==="E")===event).length; }
+function bagRoom(bag,id){ const e=bag.find(x=>x.id===id); if(e) return Math.max(0,BAG_STACK-e.n); const event=ITEMS[id]?.acq==="E"; return bagKindCount(bag,event)<(event?EVENT_KINDS:BAG_KINDS)?BAG_STACK:0; }
 function bagAdd(bag,id,n){ const add=Math.min(n,bagRoom(bag,id)); if(add<=0) return 0; const e=bag.find(x=>x.id===id); if(e) e.n+=add; else bag.push({id,n:add}); return add; }
 function bagRemove(bag,id,n){ const i=bag.findIndex(x=>x.id===id); if(i<0) return 0; const r=Math.min(n,bag[i].n); bag[i].n-=r; if(bag[i].n<=0) bag.splice(i,1); return r; }
 const ITEM_VAULT_MAX=999;
@@ -3245,7 +3246,7 @@ function renderDex(){
 function renderShop(){
   const st=G.st; const d=G.sheetData; const S=SHOPS[d.shop]; const tab=d.tab||"buy";
   const locked = !!st.run || !!streamPending() || !!G.shopSaving;
-  const head=`<p>所持 ${st.gold.toLocaleString()}ゴールド・道具袋 ${st.bag.length}/${BAG_KINDS}種類</p><div class="row3"><button class="btn ${tab==="buy"?"on":""}" data-a="shopTab" data-v="buy">装備を買う</button><button class="btn ${tab==="item"?"on":""}" data-a="shopTab" data-v="item">道具を買う</button><button class="btn ${tab==="sell"?"on":""}" data-a="shopTab" data-v="sell">売る</button></div>${locked?`<p class="warn">配信待ちの間は売買できません。</p>`:""}`;
+  const head=`<p>所持 ${st.gold.toLocaleString()}ゴールド・道具袋 通常${bagKindCount(st.bag,false)}/${BAG_KINDS}種類・イベント${bagKindCount(st.bag,true)}/${EVENT_KINDS}種類</p><div class="row3"><button class="btn ${tab==="buy"?"on":""}" data-a="shopTab" data-v="buy">装備を買う</button><button class="btn ${tab==="item"?"on":""}" data-a="shopTab" data-v="item">道具を買う</button><button class="btn ${tab==="sell"?"on":""}" data-a="shopTab" data-v="sell">売る</button></div>${locked?`<p class="warn">配信待ちの間は売買できません。</p>`:""}`;
   if(d.item && ITEMS[d.item]){
     const it=ITEMS[d.item]; const qty=d.qty||1; const own=bagCount(st.bag,d.item);
     if(tab==="item"){ const room=itemPurchaseRoom(st,d.item),bagSpace=bagRoom(st.bag,d.item); const total=it.price*qty; const can=!locked&&qty<=room&&st.gold>=total;
@@ -3256,7 +3257,7 @@ function renderShop(){
       <div class="stack"><button class="btn primary" data-a="shopDo" data-offer="${shopOfferToken(st,d)}" ${can?"":"disabled"}>${esc(it.name)}×${qty}を売る</button><button class="btn" data-a="shopItem" data-v="">一覧へ</button></div>`;
   }
   if(tab==="item"){
-    return head+`<div class="stack">${SHOP_ITEMS.map(id=>{const it=ITEMS[id]; return `<button class="btn dexrow" data-a="shopItem" data-v="${id}"><span>${esc(it.name)}　<span class="small">${"★".repeat(it.stars)}</span></span><span class="small">${it.price}ゴールド・${esc(itemText(it,Vof(levelOf(st.xp))))}・所持${bagCount(st.bag,id)}</span></button>`;}).join("")}</div><p class="small">道具袋は300種類まで、1種類99個まで。各県の店で品ぞろえが増えます（この版は福岡の品）。</p>`;
+    return head+`<div class="stack">${SHOP_ITEMS.map(id=>{const it=ITEMS[id]; return `<button class="btn dexrow" data-a="shopItem" data-v="${id}"><span>${esc(it.name)}　<span class="small">${"★".repeat(it.stars)}</span></span><span class="small">${it.price}ゴールド・${esc(itemText(it,Vof(levelOf(st.xp))))}・所持${bagCount(st.bag,id)}</span></button>`;}).join("")}</div><p class="small">道具袋は通常300種類・イベント400種類、1種類99個まで。各県の店で品ぞろえが増えます（この版は福岡の品）。</p>`;
   }
   if(d.item){
     const it=EQUIP[d.item]; const qty=d.qty||1; const own=st.owned[d.item]||0;
@@ -3337,14 +3338,14 @@ function renderItems(){
     return `<p><b>${esc(it.name)}</b>　×${n}</p><p class="small">${esc(ITEM_RARITY[it.stars])}・${esc(it.cat)}・入手：${esc(ITEM_ACQ[it.acq])}${it.sell>=0?`・売値${it.sell}ゴールド`:"・売却不可"}</p><p>${esc(itemText(it,Vof(levelOf(st.xp))))}。${it.battleOnly?"戦闘中だけ使えます。":"戦闘中・移動中に使えます。"}</p>
       <div class="stack">${use}${d.confirmDrop?`<p class="warn">${esc(it.name)}を1個捨てますか？ ${it.acq==="E"?"イベントの品は二度と手に入りません。":""}</p><button class="btn" data-a="itemDropDo" data-drop="${dropToken(st,d.item)}">捨てる</button><button class="btn" data-a="itemDropNo">やめる</button>`:`<button class="btn" data-a="itemDrop">1個捨てる</button>`}<button class="btn" data-a="itemView" data-v="">一覧へ</button></div>`;
   }
-  return `<p class="small">道具袋 ${st.bag.length}/${BAG_KINDS}種類（1種類${BAG_STACK}個まで）。回復・蘇生は移動中にも使えます。</p>
+  return `<p class="small">道具袋 通常${bagKindCount(st.bag,false)}/${BAG_KINDS}種類・イベント${bagKindCount(st.bag,true)}/${EVENT_KINDS}種類（1種類${BAG_STACK}個まで）。回復・蘇生は移動中にも使えます。</p>
     <div class="stack">${st.bag.map(e=>{const it=ITEMS[e.id]; return `<button class="btn dexrow" data-a="itemView" data-v="${e.id}"><span>${esc(it.name)}　×${e.n}　<span class="small">${"★".repeat(it.stars)}</span></span><span class="small">${esc(itemText(it,Vof(levelOf(st.xp))))}${it.battleOnly?"（戦闘のみ）":""}</span></button>`;}).join("")||`<p>道具を持っていません。ショップで買えます。</p>`}</div>
     <h3 class="label">アイテム金庫（${itemVaultCount(st)}/${ITEM_VAULT_MAX}）</h3><p class="small">道具袋に入りきらない報酬を全街共通で保管します。</p>${st.itemVault.length?`<ul class="list">${st.itemVault.map(e=>`<li>${esc(ITEMS[e.id].name)} ×${e.n}</li>`).join("")}</ul>`:""}${G.screen==="explore"&&isSafe()?`<button class="btn" data-a="itemVaultOpen">金庫の${G.readOnly?"中身を見る":"道具を出し入れ"}</button>`:""}
     ${st.keep&&st.keep.length?`<h3 class="label">宿屋の預かり所（${st.keep.length}/${KEEP_MAX}）</h3><p class="small">安全な場所で、袋またはアイテム金庫に空きがあれば自動的に受け取ります。</p><ul class="list">${st.keep.map(id=>`<li>${esc(ITEMS[id].name)}</li>`).join("")}</ul>`:""}`;
 }
 function renderItemVault(){
   const st=G.st,d=G.sheetData,mode=d.mode==="withdraw"?"withdraw":"deposit",source=mode==="deposit"?st.bag:st.itemVault,query=String(d.query||"").trim().toLocaleLowerCase(),filter=d.filter||"all",list=source.filter(e=>ITEMS[e.id]&&(filter==="all"||(filter==="event")===(ITEMS[e.id].acq==="E"))&&(!query||e.id.toLocaleLowerCase().includes(query)||ITEMS[e.id].name.toLocaleLowerCase().includes(query))),pages=Math.max(1,Math.ceil(list.length/10)),page=Math.max(0,Math.min(pages-1,d.page||0)),id=d.id||"",max=id?(mode==="deposit"?Math.min(bagCount(st.bag,id),ITEM_VAULT_MAX-itemVaultCount(st)):Math.min(bagCount(st.itemVault,id),bagRoom(st.bag,id))):0,qty=d.qty||1,can=canEditItemVault(),view=canViewItemVault(),p=d.preview;
-  return `<p>道具袋 ${st.bag.length}/${BAG_KINDS}種類・金庫 ${itemVaultCount(st)}/${ITEM_VAULT_MAX}個</p>${G.readOnly?`<p class="small">閲覧専用：道具は移動できません。</p>`:""}<div class="stack"><button class="btn ${mode==="deposit"?"on":""}" data-a="itemVaultMode" data-v="deposit" ${view&&!G.vaultSaving?"":"disabled"}>預け入れ</button><button class="btn ${mode==="withdraw"?"on":""}" data-a="itemVaultMode" data-v="withdraw" ${view&&!G.vaultSaving?"":"disabled"}>引き出し</button></div>
+  return `<p>道具袋 通常${bagKindCount(st.bag,false)}/${BAG_KINDS}種類・イベント${bagKindCount(st.bag,true)}/${EVENT_KINDS}種類・金庫 ${itemVaultCount(st)}/${ITEM_VAULT_MAX}個</p>${G.readOnly?`<p class="small">閲覧専用：道具は移動できません。</p>`:""}<div class="stack"><button class="btn ${mode==="deposit"?"on":""}" data-a="itemVaultMode" data-v="deposit" ${view&&!G.vaultSaving?"":"disabled"}>預け入れ</button><button class="btn ${mode==="withdraw"?"on":""}" data-a="itemVaultMode" data-v="withdraw" ${view&&!G.vaultSaving?"":"disabled"}>引き出し</button></div>
     <div class="stack">${[["all","すべて"],["normal","通常の道具"],["event","イベント限定道具"]].map(([k,label])=>`<button class="btn ${filter===k?"on":""}" data-a="itemVaultFilter" data-v="${k}" aria-pressed="${filter===k}" ${view&&!G.vaultSaving?"":"disabled"}>${label}</button>`).join("")}</div><label class="label" for="itemVaultSearch">道具名・IDで検索</label><input id="itemVaultSearch" value="${esc(d.query||"")}" maxlength="60"><button class="btn" data-a="itemVaultSearch" ${view&&!G.vaultSaving?"":"disabled"}>検索</button><div class="stack">${list.slice(page*10,page*10+10).map(e=>`<button class="btn ${id===e.id?"on":""}" data-a="itemVaultSelect" data-v="${e.id}" ${view&&!G.vaultSaving&&!p?"":"disabled"}>${esc(ITEMS[e.id].name)} ×${e.n} <span class="small">${ITEMS[e.id].acq==="E"?"イベント限定":"道具"}</span></button>`).join("")||"該当する道具はありません。"}</div><div class="row3"><button class="btn" data-a="itemVaultPage" data-v="${page-1}" ${view&&page>0?"":"disabled"}>前の10件</button><span>${page+1}/${pages}ページ</span><button class="btn" data-a="itemVaultPage" data-v="${page+1}" ${view&&page+1<pages?"":"disabled"}>次の10件</button></div>
     ${id&&ITEMS[id]?`<p>${esc(ITEMS[id].name)}：移動できる数 ${max}個</p><div class="stack">${[["1個",1],["5個",5],["10個",10],[`最大（${max}個）`,max]].map(([label,n])=>`<button class="btn" data-a="itemVaultQty" data-v="${n}" ${can&&!p&&n>=1&&n<=max?"":"disabled"}>${label}</button>`).join("")}</div><p>選択 ${qty}個</p>${p?`<p>袋 ${p.bagBefore}→${p.bagAfter}個／金庫 ${p.vaultBefore}→${p.vaultAfter}個</p><button class="btn primary" data-a="itemVaultCommit" data-token="${p.token}" ${can?"":"disabled"}>移動を確定</button><button class="btn" data-a="itemVaultEdit" ${can?"":"disabled"}>選び直す</button>`:`<button class="btn primary" data-a="itemVaultPreview" ${can&&qty<=max?"":"disabled"}>数量を確認</button>`}`:""}<button class="btn" data-a="itemVaultBack" ${G.vaultSaving?"disabled":""}>道具へ戻る</button>`;
 }

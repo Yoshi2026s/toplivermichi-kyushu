@@ -179,9 +179,16 @@ const SND = (()=>{
       else { voice(hz(s[1]),t,s[2],s[0],0.42,{out:sfxBus,sus:0.8,detune:4,cutoff:4500,fenv:1500,rev:0.18,a:0.002,d:0.03,r:0.05}); t+=s[2]; }
     }
   }
+  function outputLevel(value,time){
+    if(!ac||!master) return;
+    const gain=master.gain,now=ac.currentTime;
+    if(typeof gain.cancelAndHoldAtTime==="function") gain.cancelAndHoldAtTime(now);
+    else { gain.cancelScheduledValues(now); gain.setValueAtTime(gain.value,now); }
+    gain.linearRampToValueAtTime(value,now+time);
+  }
   function setOn(v){
-    if(v){ if(!init()){ on=false; return false; } if(ac.state==="suspended") ac.resume(); on=true; const c=cur; cur=null; if(c) play(c); }
-    else { on=false; stopBgm(); }
+    if(v){ if(!init()){ on=false; return false; } if(ac.state==="suspended") ac.resume(); on=true; outputLevel(0.85,0.06); const c=cur; cur=null; if(c) play(c); }
+    else { on=false; stopBgm(); outputLevel(0.0001,0.03); }
     return on;
   }
   function suspend(){ stopBgm(); if(ac&&ac.state==="running") ac.suspend().catch(()=>{}); }

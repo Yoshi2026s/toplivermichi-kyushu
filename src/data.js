@@ -136,7 +136,8 @@ const QUESTS = {
 /* 第15節：地域支援 */
 const SUPPORTS = {
   PR01:{name:"福岡の声", text:"戦闘開始時のエール＋10", startA:10, npc:"akari"},
-  PR02:{name:"佐賀の声", text:"戦闘開始時のエール＋12", startA:12, npc:"karatsuGuide"}
+  PR02:{name:"佐賀の声", text:"戦闘開始時のエール＋12", startA:12, npc:"karatsuGuide"},
+  PR03:{name:"長崎の声", text:"戦闘開始時のエール＋14", startA:14, npc:"saseboGuide"}
 };
 
 /* 第13・13A節：配信 */

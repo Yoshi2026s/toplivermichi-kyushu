@@ -2598,7 +2598,7 @@ function interact(o){
     case "npc": return talkNpc(o.npc);
     case "shop": return openSheet("shop",{shop:o.shop, npc:o.npc, tab:"buy"});
     case "door": return travelMap(o.to,o.tx,o.ty);
-    case "gate": return nationalRouteAvailable(st,curHub(),o.to)?openSheet("travel",{to:o.to,tx:o.tx,ty:o.ty}):say([["",o.to==="KY03"?"唐津への道は福岡編の完了後に開きます。":"この先の道はまだ開いていません。"]]);
+    case "gate": return nationalRouteAvailable(st,curHub(),o.to)?openSheet("travel",{to:o.to,tx:o.tx,ty:o.ty,gateId:o.id}):say([["",o.to==="KY03"?"唐津への道は福岡編の完了後に開きます。":"この先の道はまだ開いていません。"]]);
     case "box": return openBox(o);
     case "sign": { const a=AREAS[o.area]; const b=Object.values(BOSSES).find(x=>x.areaId===o.area);
       return say([["案内板",`${a.name}（${o.area}）。強度q${a.q}・推奨レベル${a.q}。`+(b?`この奥に地域ボス「${b.name}」（推奨レベル${b.q}）。`:"")],["案内板",a.lore]]); }
@@ -3504,7 +3504,7 @@ const ACT = {
   stop(){ if(G.walk.path.length>1) G.walk.path=G.walk.path.slice(0,1); G.walk.pending=null; },
   interactId(el){ const o=MAPS[G.st.mapId].objects.find(x=>x.id===el.dataset.v); G.sheet=null; render(); interact(o); },
   guideTo(el){ const o=MAPS[G.st.mapId].objects.find(x=>x.id===el.dataset.v); G.sheet=null; render(); walkTo(o.x,o.y); },
-  doTravel(){ if(!canTravelFrom("travel")) return; const d=G.sheetData; if(!HUBS[d.to]||curHub()===d.to||!nationalRouteAvailable(G.st,curHub(),d.to)||!nearbyObjects().some(o=>o.type==="gate"&&o.to===d.to&&o.tx===d.tx&&o.ty===d.ty)) return toast("移動先が変わりました。門を調べ直してください。"); G.sheet=null; travelHub(d.to,d.tx,d.ty); },
+  doTravel(){ if(!canTravelFrom("travel")) return; const d=G.sheetData; const from=curHub(); const route=NATIONAL_ROUTES.find(r=>r.status==="playable"&&r.from===from&&r.to===d.to); const first=!(G.st.visitedHubs||[]).includes(d.to); if(!HUBS[d.to]||from===d.to||!nationalRouteAvailable(G.st,from,d.to)||first&&route&&route.firstGateId!==d.gateId||!nearbyObjects().some(o=>o.type==="gate"&&o.id===d.gateId&&o.to===d.to&&o.tx===d.tx&&o.ty===d.ty)) return toast("移動先が変わりました。門を調べ直してください。"); G.sheet=null; travelHub(d.to,d.tx,d.ty); },
   worldGo(el){ if(!canTravelFrom("map")) return; const to=el.dataset.v; if(!Object.hasOwn(HUBS,to)||curHub()===to) return toast("行先を選び直してください。"); const status=worldTravelStatus(G.st,curHub(),to,true); if(!status.available) return toast(status.reason); const map=MAPS[to]; if(!map||!Array.isArray(map.safeAnchor)) return toast("この行先にはまだ移動できません。"); const s=map.safeAnchor; G.sheet=null; travelHub(to,s[0],s[1]); },
   doInn(el){ if(G.readOnly||G.screen!=="explore"||G.sheet!=="inn"||G.dlg||G.st.run||!isSafe()) return; const st=G.st; const total=(INN_PRICE[curHub()]||10)*st.roster.length; if(st.gold<total) return toast(`ゴールドが足りません（あと${total-st.gold}）。`); el.disabled=true; G.sheet=null; st.gold-=total; restoreAll(st); st.day++; st.slots=6; commit(); render(); SND.sfx("heal"); say([["",`${total}ゴールドを払って泊まった。`],["",`${st.day}日目の朝。全員の体力と集中力が全回復した！`]]); },
   doRest(){ if(G.readOnly||G.screen!=="explore"||G.sheet!=="rest"||G.dlg||G.st.run||!isSafe()) return; const st=G.st; G.sheet=null; st.day++; st.slots=6; commit(); render(); toast(`${st.day}日目の朝。旅程枠が6に戻った。`); },

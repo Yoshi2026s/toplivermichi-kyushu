@@ -192,6 +192,6 @@ const SND = (()=>{
     return on;
   }
   function suspend(){ if(jingleT){ clearTimeout(jingleT); jingleT=null; } stopBgm(); if(ac&&ac.state==="running") ac.suspend().catch(()=>{}); }
-  function resume(){ if(on&&ac){ ac.resume().catch(()=>{}); const c=cur; cur=null; if(c) play(c); } }
+  function resume(){ if(!on||!ac) return; if(ac.state==="suspended") ac.resume().catch(()=>{}); if(timer||jingleT) return; const c=cur; cur=null; if(c) play(c); }
   return { play, jingle, sfx, setOn, suspend, resume, get on(){return on;}, get current(){return cur;} };
 })();

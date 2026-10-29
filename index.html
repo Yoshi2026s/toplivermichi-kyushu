@@ -3261,9 +3261,9 @@ function renderParty(){
       <button class="btn" data-a="partyView" data-c="" data-v="">一覧へ</button></div>`;
   }
   const bond = npc => !st.talked[npc]?0: 1 + (npc==="akari"? (st.quests.M01==="complete"?1:0)+(st.quests.S01==="complete"?1:0) : (st.quests.M02==="complete"?1:0)+(st.quests.S02==="complete"?1:0));
-  const supOk = st.talked.akari && st.quests.M01==="complete" && st.quests.S01==="complete";
-  const sagaSupOk = st.talked.karatsuGuide && st.quests.M03==="complete";
-  const nagasakiSupOk = st.talked.saseboGuide && st.quests.M05==="complete";
+  const supOk = supportAvailable(st,"PR01");
+  const sagaSupOk = supportAvailable(st,"PR02");
+  const nagasakiSupOk = supportAvailable(st,"PR03");
   const partyLocked=G.readOnly||G.screen!=="explore"||G.sheet!=="party"||!!G.dlg||!!st.run||!!G.walk.path.length||!isSafe();
   return `${lockMsg?`<p class="warn">${lockMsg}</p>`:""}<p class="small">出撃は1～4人。先頭が前衛です。加入済みの仲間から選び、待機メンバーとは出撃枠を指定して直接入れ替えられます。</p>
     <h3 class="label">戦闘メンバー</h3><div class="stack">${st.party.map((c,i)=>`<div class="prow"><button class="btn grow" data-a="partyView" data-c="${c}" data-v="">${i+1}. ${esc(charName(st,c))}・${esc(JOBS[st.jobs[c]].name)}</button>${i?`<button class="btn sq" data-a="partyUp" data-v="${i}" data-c="${c}" aria-label="${esc(charName(st,c))}を前へ" ${partyLocked?"disabled":""}>↑</button>`:""}${st.party.length>1?`<button class="btn sq" data-a="partyLeave" data-v="${i}" data-c="${c}" aria-label="${esc(charName(st,c))}を待機へ" ${partyLocked?"disabled":""}>待機</button>`:""}</div>`).join("")}</div>
@@ -3656,7 +3656,7 @@ const ACT = {
     for(const [s,id] of [["w","CW01"],["a","CA01"]]) if(!st.equip[cid][s]&&availableCount(st,id)>0) st.equip[cid][s]=id;
     commit(); G.sheetData={cid,view:""}; render(); drawMiniSprites(); toast(`${charName(st,cid)}のジョブを${JOBS[j].name}にした。`); },
   setEquip(el){ if(!canEditParty()||streamPending()) return; const st=G.st,cid=el.dataset.c,s=el.dataset.s,id=el.dataset.v||null; if(!st.roster.includes(cid)||!["w","a","acc"].includes(s)||G.sheetData.cid!==cid||G.sheetData.view!==`eq:${s}`) return; if(id&&(!Object.hasOwn(EQUIP,id)||EQUIP[id].slot!==s)) return; if(id){ const it=EQUIP[id], cur=charStats(st,cid,levelOf(st.xp)); if(it.job&&(it.job!==cur.job||cur.R<it.needR)) return toast("現在の職業と熟練度では装備できません。"); } if(id&&availableCount(st,id)<=0&&st.equip[cid][s]!==id) return toast("未装備の在庫がありません。"); st.equip[cid][s]=id; commit(); G.sheetData={cid,view:""}; render(); drawMiniSprites(); },
-  setSupport(el){ if(!canEditParty()||streamPending()) return; const v=el.dataset.v||null; if(v!==null&&!Object.hasOwn(SUPPORTS,v)) return; if(v==="PR01"&&!(G.st.talked.akari&&G.st.quests.M01==="complete"&&G.st.quests.S01==="complete")) return toast("この地域支援はまだ使えません。"); if(v==="PR02"&&!(G.st.talked.karatsuGuide&&G.st.quests.M03==="complete")) return toast("この地域支援はまだ使えません。"); if(v==="PR03"&&!(G.st.talked.saseboGuide&&G.st.quests.M05==="complete")) return toast("この地域支援はまだ使えません。"); G.st.support=v; commit(); render(); },
+  setSupport(el){ if(!canEditParty()||streamPending()) return; const v=el.dataset.v||null; if(v!==null&&!supportAvailable(G.st,v)) return toast("この地域支援はまだ使えません。"); G.st.support=v; commit(); render(); },
   dexNav(el){ const k=el.dataset.k, v=el.dataset.v; if(k==="area"){ G.sheetData={area:v,page:0}; } else if(k==="page"){ G.sheetData.page=+v; } else { G.sheetData.detail=v||null; } render(); drawMiniSprites(); const s=$(".sheet"); if(s) s.scrollTop=0; },
   shopTab(el){ if(G.sheet!=="shop"||G.shopSaving||!["buy","item","sell"].includes(el.dataset.v)) return; G.sheetData.tab=el.dataset.v; G.sheetData.item=null; render(); },
   shopItem(el){ if(G.sheet!=="shop"||G.shopSaving) return; const id=el.dataset.v||null; if(id&&(!Object.hasOwn(ITEMS,id)&&!Object.hasOwn(EQUIP,id))) return; G.sheetData.item=id; G.sheetData.qty=1; render(); },
@@ -3707,6 +3707,12 @@ function savedStreamUsable(s,st){
   if(s.score!==replay.score||s.themeBonusUsed!==replay.themeBonusUsed||s.used.length!==replay.used.length||s.used.some((id,i)=>id!==replay.used[i])) return false;
   return true;
 }
+function supportAvailable(st,id){
+  if(id==="PR01") return !!st.talked?.akari&&st.quests?.M01==="complete"&&st.quests?.S01==="complete";
+  if(id==="PR02") return !!st.talked?.karatsuGuide&&st.quests?.M03==="complete";
+  if(id==="PR03") return !!st.talked?.saseboGuide&&st.quests?.M05==="complete";
+  return false;
+}
 function migrate(s){
   const map=MAPS[s.mapId],p=s.pos;
   if(!p||!Number.isInteger(p.x)||!Number.isInteger(p.y)||p.x<0||p.y<0||p.x>=map.w||p.y>=map.h||!".,123w=".includes(map.tiles[p.y]?.[p.x])||map.objects.some(o=>o.x===p.x&&o.y===p.y&&!o.walk)) s.pos={x:map.safeAnchor[0],y:map.safeAnchor[1]};
@@ -3746,6 +3752,7 @@ function migrate(s){
   if(!s.quests.M03) s.quests.M03=s.quests.M02==="complete"||s.fukuokaClear?"available":"locked";
   if(!s.quests.M04) s.quests.M04=s.quests.M03==="complete"?"available":"locked";
   if(!s.quests.M05) s.quests.M05=s.quests.M04==="complete"?"available":"locked";
+  if(s.support&&!supportAvailable(s,s.support)) s.support=null;
   return s;
 }
 

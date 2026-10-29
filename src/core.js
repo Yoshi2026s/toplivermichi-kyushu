@@ -537,6 +537,7 @@ function unlockSide(st){
 }
 function equippedCount(st,id){ let n=0; for(const c of st.roster){ const e=st.equip[c]; if(e.w===id)n++; if(e.a===id)n++; if(e.acc===id)n++; } return n; }
 function availableCount(st,id){ return (st.owned[id]||0)-equippedCount(st,id); }
+function unequippedGearCount(st){ return Object.keys(st.owned).reduce((n,id)=>n+Math.max(0,availableCount(st,id)),0); }
 
 /* ---- 配信（第13・13A節） ---- */
 function newStream(st, hub, host, theme, style){
@@ -865,7 +866,7 @@ function bagRemove(bag,id,n){ const i=bag.findIndex(x=>x.id===id); if(i<0) retur
 const ITEM_VAULT_MAX=999;
 function itemVaultCount(st){ return (st.itemVault||[]).reduce((n,e)=>n+e.n,0); }
 function itemVaultAdd(st,id,n){
-  if(!ITEMS[id]||!Number.isSafeInteger(n)||n<1) return 0;
+  if((!ITEMS[id]&&!EQUIP[id])||!Number.isSafeInteger(n)||n<1) return 0;
   st.itemVault=st.itemVault||[];
   const room=Math.max(0,ITEM_VAULT_MAX-itemVaultCount(st)),add=Math.min(n,room);
   if(!add) return 0;
@@ -873,9 +874,19 @@ function itemVaultAdd(st,id,n){
   return add;
 }
 function transferVaultItem(st,mode,id,n){
-  if(!["deposit","withdraw"].includes(mode)||!ITEMS[id]||!Number.isSafeInteger(n)||n<1||!Array.isArray(st.bag)||!Array.isArray(st.itemVault)) return false;
+  if(!["deposit","withdraw"].includes(mode)||(!ITEMS[id]&&!EQUIP[id])||!Number.isSafeInteger(n)||n<1||!Array.isArray(st.bag)||!Array.isArray(st.itemVault)) return false;
   const stored=bagCount(st.itemVault,id),total=itemVaultCount(st);
-  if(!Number.isSafeInteger(total)||total>ITEM_VAULT_MAX||st.itemVault.some(e=>!ITEMS[e.id]||!Number.isSafeInteger(e.n)||e.n<1)) return false;
+  if(!Number.isSafeInteger(total)||total>ITEM_VAULT_MAX||st.itemVault.some(e=>!ITEMS[e.id]&&!EQUIP[e.id]||!Number.isSafeInteger(e.n)||e.n<1)) return false;
+  if(EQUIP[id]){
+    if(mode==="deposit"){
+      if(availableCount(st,id)<n||total+n>ITEM_VAULT_MAX) return false;
+      st.owned[id]-=n; itemVaultAdd(st,id,n);
+    }else{
+      if(stored<n||(st.owned[id]||0)+n>8||unequippedGearCount(st)+n>UNEQUIPPED_GEAR_MAX) return false;
+      bagRemove(st.itemVault,id,n); st.owned[id]=(st.owned[id]||0)+n;
+    }
+    return true;
+  }
   if(mode==="deposit"){
     if(bagCount(st.bag,id)<n||total+n>ITEM_VAULT_MAX) return false;
     bagRemove(st.bag,id,n); itemVaultAdd(st,id,n);

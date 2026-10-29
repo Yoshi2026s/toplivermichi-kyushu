@@ -209,6 +209,8 @@ const asoGate=maps.KY07.objects.find(o=>o.id==='gate_aso'),asoReturn=maps.KY08.o
 if(!asoGate||!asoReturn||asoGate.to!=='KY08'||asoReturn.to!=='KY07'||asoGate.tx!==2||asoGate.ty!==20||asoReturn.tx!==37||asoReturn.ty!==20) fail('Aso city gates are not reciprocal');
 if(!reachable(maps.KY08,[2,20],maps.KY08.safeAnchor)||!reachable(maps.KY08,maps.KY08.safeAnchor,[2,20])) fail('Aso city safety or return path failed');
 for(const type of ['npc','inn','rest','board','shelf']) if(!maps.KY08.objects.some(o=>o.type===type)) fail(`Aso city ${type} missing`);
+const asoBossTile=maps.KY08.objects.find(o=>o.type==='boss'&&o.boss==='B07');
+if(!asoBossTile||!reachable(maps.KY08,maps.KY08.safeAnchor,[asoBossTile.x,asoBossTile.y])) fail('Aso city boss is unreachable');
 for(const zone of ['1','2','3']){
   const id=maps.KY08.zones[zone],tile=maps.KY08.tiles.flatMap((row,y)=>row.map((value,x)=>value===zone?[x,y]:null)).find(Boolean);
   if(id!==`KY08-A${zone}`||!tile||!reachable(maps.KY08,maps.KY08.safeAnchor,tile)||!maps.KY08.objects.some(o=>o.type==='sign'&&o.area===id)) fail(`Aso city exploration zone ${zone} is incomplete`);
@@ -236,10 +238,10 @@ traveler.slots=2;traveler.quests.M06='complete';traveler.quests.M07='available';
 if(traveler.mapId!=='KY07'||traveler.pos.x!==2||traveler.pos.y!==20||!traveler.visitedHubs.includes('KY07')) fail('Kumamoto city arrival failed');
 const kumamotoQuests=runInNewContext(`${core}\n${questViewFn}\nrenderQuests()`,{G:{st:traveler},curHub:()=> 'KY07',isSafe:()=>true,esc:s=>String(s)});
 if(!kumamotoQuests.includes('M07と3区域')||!kumamotoQuests.includes('M07 石垣の先の声')) fail('Kumamoto city board did not show M07');
-traveler.slots=2;traveler.quests.M07='complete';journey.travelHub('KY08',2,20);
+traveler.slots=2;traveler.quests.M07='complete';traveler.quests.M08='available';journey.travelHub('KY08',2,20);
 if(traveler.mapId!=='KY08'||traveler.pos.x!==2||traveler.pos.y!==20||!traveler.visitedHubs.includes('KY08')) fail('Aso city arrival failed');
 const asoQuests=runInNewContext(`${core}\n${questViewFn}\nrenderQuests()`,{G:{st:traveler},curHub:()=> 'KY08',isSafe:()=>true,esc:s=>String(s)});
-if(!asoQuests.includes('探索3区域')||!asoQuests.includes('依頼・配信はまだ収録していません')) fail('Aso city board did not identify unfinished content');
+if(!asoQuests.includes('M08と3区域')||!asoQuests.includes('M08 風を渡る返事')) fail('Aso city board did not show M08');
 traveler.slots=1;journey.travelHub('KY07',37,20);
 if(traveler.mapId!=='KY07') fail('Aso city return failed');
 traveler.slots=1;journey.travelHub('KY06',37,20);
@@ -247,6 +249,6 @@ if(traveler.mapId!=='KY06') fail('Kumamoto city return failed');
 traveler.slots=1;
 journey.travelHub('KY05',37,20);
 if(traveler.mapId!=='KY05'||traveler.slots!==0||saved!==8) fail('Nagasaki city return failed');
-console.log('National registry: 8 regions, 47 prefectures, 8 connected hubs, Aso city exploration and route OK');
+console.log('National registry: 8 regions, 47 prefectures, 8 connected hubs, Aso city M08 and route OK');
 
 

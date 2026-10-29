@@ -52,4 +52,7 @@ assert.equal(st.gold,90);assert.equal(st.itemVault[0].n,1);assert.equal(st.saveG
 st.gold=200;G.sheetData={shop:'SHOP',tab:'buy',item:'SWORD',qty:1};
 await actions.shopDo({dataset:{offer:shopOfferToken(st,G.sheetData)},disabled:false});
 assert.equal(st.gold,200);assert.equal(st.owned.SWORD,2);assert.equal(st.saveGeneration,1);
+G.sheet='shop';G.shopSaving=true;
+actions.shopTab({dataset:{v:'sell'}});
+assert.equal(G.sheetData.tab,'buy');
 console.log('Shop offer bounds and stale token OK');

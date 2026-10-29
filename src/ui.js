@@ -1059,8 +1059,8 @@ function renderShop(){
   }
   if(d.item){
     const it=EQUIP[d.item]; const qty=d.qty||1; const own=st.owned[d.item]||0;
-    if(tab==="buy"){ const total=it.price*qty; const can=!locked && own+qty<=8 && st.gold>=total;
-      return head+`<p><b>${esc(it.name)}</b>：${esc(itemText(it,Vof(levelOf(st.xp))))}</p><p>単価${it.price}ゴールド・所持${own}/8</p>${qtyRow(qty,8-own)}<p>合計${total}ゴールド → 取引後${(st.gold-total).toLocaleString()}ゴールド</p>${can?"":`<p class="warn">${own+qty>8?"所持上限8を超えます。":st.gold<total?"ゴールドが足りません。":""}</p>`}
+    if(tab==="buy"){ const total=it.price*qty,room=shopOffer(st,{shop:d.shop,tab:"buy",item:d.item,qty})?.max||0,can=!locked&&qty<=room&&st.gold>=total;
+      return head+`<p><b>${esc(it.name)}</b>：${esc(itemText(it,Vof(levelOf(st.xp))))}</p><p>単価${it.price}ゴールド・所持${own}/8・未装備品${unequippedGearCount(st)}/${UNEQUIPPED_GEAR_MAX}</p>${qtyRow(qty,Math.max(1,room))}<p>合計${total}ゴールド → 取引後${(st.gold-total).toLocaleString()}ゴールド</p>${can?"":`<p class="warn">${own+qty>8?"同じ装備の所持上限8を超えます。":qty>room?"未装備品の上限300個を超えます。":st.gold<total?"ゴールドが足りません。":""}</p>`}
       <div class="stack"><button class="btn primary" data-a="shopDo" data-offer="${shopOfferToken(st,d)}" ${can?"":"disabled"}>${esc(it.name)}×${qty}を買う</button><button class="btn" data-a="shopItem" data-v="">一覧へ</button></div>`; }
     const sellable=availableCount(st,d.item); const unit=Math.floor(it.price/2); const can=!locked&&qty<=sellable;
     return head+`<p><b>${esc(it.name)}</b>　所持${own}・装備中${equippedCount(st,d.item)}・売却可能${sellable}</p><p>買取単価${unit}ゴールド${unit===0?"（返却してもゴールドは増えません）":""}</p>${qtyRow(qty,Math.max(1,sellable))}<p>受取${unit*qty}ゴールド → 取引後${(st.gold+unit*qty).toLocaleString()}ゴールド</p>
@@ -1075,6 +1075,7 @@ function renderShop(){
     <h3 class="label">道具</h3><div class="stack">${st.bag.map(e=>{const it=ITEMS[e.id]; return `<button class="btn dexrow" data-a="shopItem" data-v="${e.id}"><span>${esc(it.name)}</span><span class="small">所持${e.n}・${it.sell<0?"売却不可":`買取${it.sell}ゴールド`}</span></button>`;}).join("")||`<p class="small">道具はありません。</p>`}</div>`;
 }
 function itemPurchaseRoom(st,id){ return bagRoom(st.bag,id)+Math.max(0,ITEM_VAULT_MAX-itemVaultCount(st)); }
+function unequippedGearCount(st){ return Object.keys(st.owned).reduce((n,id)=>n+Math.max(0,availableCount(st,id)),0); }
 function shopOffer(st,d){
   if(!SHOPS[d.shop]||!["buy","item","sell"].includes(d.tab)||!Number.isSafeInteger(d.qty)||d.qty<1) return null;
   const id=d.item, item=Object.hasOwn(ITEMS,id), equip=Object.hasOwn(EQUIP,id);
@@ -1086,7 +1087,7 @@ function shopOffer(st,d){
     if(!SHOPS[d.shop].items.includes(id)&&!gifts.includes(id)) return null;
   }
   const own=item?bagCount(st.bag,id):(st.owned[id]||0);
-  const max=d.tab==="item"?itemPurchaseRoom(st,id):d.tab==="buy"?8-own:item?own:availableCount(st,id);
+  const max=d.tab==="item"?itemPurchaseRoom(st,id):d.tab==="buy"?Math.max(0,Math.min(8-own,UNEQUIPPED_GEAR_MAX-unequippedGearCount(st))):item?own:availableCount(st,id);
   const unit=d.tab==="sell"?(item?ITEMS[id].sell:Math.floor(EQUIP[id].price/2)):(item?ITEMS[id].price:EQUIP[id].price);
   return {shop:d.shop,tab:d.tab,item:id,qty:d.qty,unit,own,max,gold:st.gold};
 }

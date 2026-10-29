@@ -76,11 +76,13 @@ const futureDef=data.match(/const FUTURE_HUBS = \[[^\n]+\];/)?.[0], worldFn=ui.m
 if(!futureDef||!worldFn||!statusFn) fail('national map UI source missing');
 const future=runInNewContext(`${futureDef}\nFUTURE_HUBS`);
 const world=runInNewContext(`${source}\n${worldFn}\n${statusFn}\n${routeFn}\nrenderWorld()`,{G:{st:{visitedHubs:['KY01'],quests:{},fukuokaClear:false,slots:6}},HUBS:hubs,FUTURE_HUBS:future,isSafe:()=>true,curHub:()=> 'KY01',esc:s=>String(s)});
-if((world.match(/<details>/g)||[]).length!==8||!world.includes('拠点ありは2/47都道府県')||!world.includes('訪問済みは実装済みの1/2県')||!world.includes('JP40 福岡県：拠点あり（福岡市・北九州市）・訪問済み')||!world.includes('JP41 佐賀県：拠点あり（唐津市・佐賀市）・未訪問')||!world.includes('JP42 長崎県：地理台帳のみ・移動不可')) fail('national directory must distinguish playable hubs from registry-only prefectures');
+if((world.match(/<details>/g)||[]).length!==8||!world.includes('拠点ありは2/47都道府県')||!world.includes('訪問済みは実装済みの1/2県・1/4拠点')||!world.includes('JP40 福岡県：拠点あり（福岡市・北九州市）・訪問済み')||!world.includes('JP41 佐賀県：拠点あり（唐津市・佐賀市）・未訪問')||!world.includes('JP42 長崎県：地理台帳のみ・移動不可')) fail('national directory must distinguish playable hubs from registry-only prefectures');
 if(!world.includes('福岡市 ↔ 北九州市：経路解放済み')||!world.includes('北九州市 ↔ 唐津市：福岡編の完了待ち')||!world.includes('唐津市 ↔ 佐賀市：唐津編M03の完了待ち')) fail('nationwide route directory did not show unlock conditions');
 if(!world.includes('この先の拠点候補')||!world.includes('KY05 長崎・佐世保市　未収録・移動不可')||world.includes('KY05 長崎・佐世保市　未解放')) fail('future hub was presented as unlockable');
 const worldVisited=runInNewContext(`${source}\n${worldFn}\n${statusFn}\n${routeFn}\nrenderWorld()`,{G:{st:{visitedHubs:['KY01','KY03'],quests:{},fukuokaClear:true,slots:6}},HUBS:hubs,FUTURE_HUBS:future,isSafe:()=>true,curHub:()=> 'KY03',esc:s=>String(s)});
-if(!worldVisited.includes('訪問済みは実装済みの2/2県')||!worldVisited.includes('JP41 佐賀県：拠点あり（唐津市・佐賀市）・訪問済み')) fail('national visit count did not follow saved hubs');
+if(!worldVisited.includes('訪問済みは実装済みの2/2県・2/4拠点')||!worldVisited.includes('JP41 佐賀県：拠点あり（唐津市・佐賀市）・訪問済み')) fail('national visit count did not follow saved hubs');
+const worldSaga=runInNewContext(`${source}\n${worldFn}\n${statusFn}\n${routeFn}\nrenderWorld()`,{G:{st:{visitedHubs:['KY01','KY02','KY03','KY04'],quests:{M03:'complete'},fukuokaClear:true,slots:3}},HUBS:hubs,FUTURE_HUBS:future,isSafe:()=>true,curHub:()=> 'KY04',esc:s=>String(s)});
+if(!worldSaga.includes('訪問済みは実装済みの2/2県・4/4拠点')) fail('Saga city visit did not update hub count');
 if(!worldVisited.includes('北九州市 ↔ 唐津市：経路解放済み')||!worldVisited.includes('唐津市 ↔ 佐賀市：唐津編M03の完了待ち')) fail('route directory did not follow quest progress');
 const travelStatus=runInNewContext(`${source}\n${routeFn}\n${statusFn}\nworldTravelStatus`);
 const base={visitedHubs:['KY01','KY02'],fukuokaClear:false,quests:{M03:'locked'},slots:6};

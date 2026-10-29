@@ -115,6 +115,16 @@ worldGo({dataset:{v:'KY03'}});
 if(moves||!lastMessage.includes('旅程枠')) fail('stale map action bypassed travel slots');
 actionState.st.slots=1;worldGo({dataset:{v:'KY03'}});
 if(moves!==1||actionState.sheet!==null) fail('valid map travel was rejected');
+const gateState={st:{...base,visitedHubs:['KY01','KY02'],slots:2},screen:'explore',sheet:'travel',sheetData:{to:'KY03',tx:2,ty:24,gateId:'gate_saga'},dlg:null,readOnly:false,walk:{path:[]}};
+let gateMoves=0;
+const gateTravel=runInNewContext(`${source}\n${routeFn}\n${canTravelFn}\n${actionDef}\nACT.doTravel`,{G:gateState,HUBS:hubs,curHub:()=> 'KY02',isSafe:()=>true,nearbyObjects:()=>[maps.KY02.objects.find(o=>o.id==='gate_saga')],travelHub:()=>{gateMoves++;},toast:()=>{}});
+gateTravel();
+if(gateMoves) fail('locked first-arrival gate opened');
+gateState.st.fukuokaClear=true;
+gateState.sheetData.gateId='gate1';gateTravel();
+if(gateMoves) fail('stale gate ID bypassed first-arrival route');
+gateState.sheetData.gateId='gate_saga';gateTravel();
+if(gateMoves!==1||gateState.sheet!==null) fail('valid first-arrival gate was rejected');
 console.log('National registry: 8 regions, 47 prefectures, 4 connected hubs, directory and Saga city route OK');
 
 

@@ -84,6 +84,17 @@ if(can({fukuokaClear:false},'KY02','KY03')||!can({fukuokaClear:true},'KY02','KY0
 if(can({quests:{M03:'locked'}},'KY03','KY04')||!can({quests:{M03:'complete'}},'KY03','KY04')||!can({quests:{M03:'complete'}},'KY04','KY03')) fail('Saga city unlock or return guard failed');
 const futureDef=data.match(/const FUTURE_HUBS = \[[^\n]+\];/)?.[0], worldFn=ui.match(/function renderWorld\(\)\{[\s\S]*?\n\}/)?.[0], statusFn=ui.match(/function worldTravelStatus\(st,from,to,safe\)\{[\s\S]*?\n\}/)?.[0], itineraryFn=ui.match(/function nationalItinerary\(st,from,to\)\{[\s\S]*?\n\}/)?.[0], unlockFn=ui.match(/function nationalRouteUnlockReason\(from,to\)\{[\s\S]*?\n\}/)?.[0];
 if(!futureDef||!worldFn||!statusFn||!itineraryFn||!unlockFn) fail('national map UI source missing');
+const alternateRoutes=[
+  {from:'A',to:'B',status:'playable',unlock:'always'},
+  {from:'B',to:'C',status:'playable',unlock:'fukuokaClear'},
+  {from:'A',to:'D',status:'playable',unlock:'always'},
+  {from:'D',to:'E',status:'playable',unlock:'always'},
+  {from:'E',to:'C',status:'playable',unlock:'always'}
+];
+const routePlanner=runInNewContext(`${routeFn}\n${itineraryFn}\nnationalItinerary`,{NATIONAL_ROUTES:alternateRoutes,HUBS:{A:{},B:{},C:{},D:{},E:{}}});
+if(routePlanner({fukuokaClear:false},'A','C').join(',')!=='A,D,E,C'||routePlanner({fukuokaClear:true},'A','C').join(',')!=='A,B,C') fail('itinerary did not prefer an open route before a shorter locked route');
+alternateRoutes[4].status='planned';
+if(routePlanner({fukuokaClear:false},'A','C').join(',')!=='A,B,C') fail('itinerary did not show a locked route when no open route exists');
 const future=runInNewContext(`${futureDef}\nFUTURE_HUBS`);
 const world=runInNewContext(`${source}\n${worldFn}\n${statusFn}\n${routeFn}\n${itineraryFn}\n${unlockFn}\nrenderWorld()`,{G:{st:{visitedHubs:['KY01'],quests:{},fukuokaClear:false,slots:6}},HUBS:hubs,FUTURE_HUBS:future,isSafe:()=>true,curHub:()=> 'KY01',esc:s=>String(s)});
 if((world.match(/<details>/g)||[]).length!==8||!world.includes('拠点ありは2/47都道府県')||!world.includes('訪問済みは実装済みの1/2県・1/4拠点')||!world.includes('JP40 福岡県：拠点あり（福岡市・北九州市）・訪問済み')||!world.includes('JP41 佐賀県：拠点あり（唐津市・佐賀市）・未訪問')||!world.includes('JP42 長崎県：地理台帳のみ・移動不可')) fail('national directory must distinguish playable hubs from registry-only prefectures');

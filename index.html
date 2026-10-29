@@ -1638,7 +1638,9 @@ function itemVaultCount(st){ return (st.itemVault||[]).reduce((n,e)=>n+e.n,0); }
 function itemVaultAdd(st,id,n){
   if((!ITEMS[id]&&!EQUIP[id])||!Number.isSafeInteger(n)||n<1) return 0;
   st.itemVault=st.itemVault||[];
-  const room=Math.max(0,ITEM_VAULT_MAX-itemVaultCount(st)),add=Math.min(n,room);
+  const room=Math.max(0,ITEM_VAULT_MAX-itemVaultCount(st));
+  const gearRoom=EQUIP[id]?Math.max(0,8-(st.owned[id]||0)-bagCount(st.itemVault,id)):n;
+  const add=Math.min(n,room,gearRoom);
   if(!add) return 0;
   const e=st.itemVault.find(x=>x.id===id); if(e) e.n+=add; else st.itemVault.push({id,n:add});
   return add;
@@ -1648,6 +1650,7 @@ function transferVaultItem(st,mode,id,n){
   const stored=bagCount(st.itemVault,id),total=itemVaultCount(st);
   if(!Number.isSafeInteger(total)||total>ITEM_VAULT_MAX||st.itemVault.some(e=>!ITEMS[e.id]&&!EQUIP[e.id]||!Number.isSafeInteger(e.n)||e.n<1)) return false;
   if(EQUIP[id]){
+    if((st.owned[id]||0)+stored>8) return false;
     if(mode==="deposit"){
       if(availableCount(st,id)<n||total+n>ITEM_VAULT_MAX) return false;
       st.owned[id]-=n; itemVaultAdd(st,id,n);

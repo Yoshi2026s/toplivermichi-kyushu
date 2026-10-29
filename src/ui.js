@@ -481,7 +481,7 @@ function renderBattle(){
       <div class="estat">体力 ${e.hp}/${e.maxHP}・防御力${e.def}</div>
       ${e.hp<=0?`<div class="tele">鎮まった</div>`:""}</div></div>`; }).join("");
   const chain = run.kiraDone?"キラコメ済":`キラコメ${run.chain.stage}/3 次:${["挨拶","作戦","感謝"][run.chain.stage]}`;
-  const last = (run.log||[]).slice(-3);
+  const battleLines=Array.isArray(run.log)?run.log:[];
   return `<section class="battle">
     <div class="bhead"><span>ターン${run.turn}・${esc(DIFFICULTY[run.difficulty].name)}・${run.kind==="boss"?"地域ボス":esc(AREAS[run.areaId].name)}</span><span>コメント連携${run.B}・${chain}</span></div>
     <div class="gauge" aria-label="エール${run.A}"><span>エール</span><span class="bar ale"><i style="width:${run.A}%"></i></span><b>${run.A}</b></div>
@@ -492,7 +492,7 @@ function renderBattle(){
     ${renderCommand(run)}
     <button class="btn" data-a="openSheet" data-k="battleChallenges">挑戦・戦闘バッジ</button>
     <div class="srow"><button class="btn" data-a="battleLogExpand" aria-pressed="${!!G.logExpanded}">${G.logExpanded?"ログを縮小":"ログを拡大"}</button><button class="btn" data-a="openSheet" data-k="battleLog">履歴を見る</button></div>
-    <div class="log ${G.logExpanded?"expanded":""}" role="log" aria-live="polite" aria-label="直近の戦闘ログ">${(run.log||[]).slice(G.logExpanded?-8:-3).map(l=>`<span>${esc(l)}</span>`).join("")}</div>
+    <div class="log ${G.logExpanded?"expanded":""}" role="log" aria-live="polite" aria-label="直近の戦闘ログ">${battleLines.slice(G.logExpanded?-8:-3).map(l=>`<span>${esc(l)}</span>`).join("")}</div>
   </section>`;
 }
 function renderBattleLog(){
@@ -1403,6 +1403,7 @@ function migrate(s){
   if(!s.itemsVersion){ s.bag=INITIAL_ITEMS.map(([id,n])=>({id,n})); s.keep=[]; s.itemsVersion=1; s.gameVersion=GAME_VERSION; }
   if(s.run&&!s.run.bag) s.run.bag=clone(s.bag);
   if(s.run){
+    s.run.log=Array.isArray(s.run.log)?s.run.log.filter(line=>typeof line==="string").slice(-80):[];
     if(!Array.isArray(s.run.itemHistory)){ s.run.itemHistory=[]; s.run.itemHistoryComplete=false; }
     else if(s.run.itemHistoryComplete!==true) s.run.itemHistoryComplete=false;
     if(s.run.actionHistoryComplete!==true || !s.run.actionFlags) s.run.actionHistoryComplete=false;

@@ -21,8 +21,9 @@ if(amount('35510',35510,0)!==35510||amount('1',1,0)!==1) throw new Error('valid 
 for(const raw of ['', '0', '-1', '1.5', '1e3', 'abc', ' 1 ', '9007199254740992']) if(amount(raw,35510,0)!==0) throw new Error(`invalid amount accepted: ${raw}`);
 if(amount('2',1,0)!==0||amount('1',1,Number.MAX_SAFE_INTEGER)!==0) throw new Error('balance or integer overflow accepted');
 const migration=ui.match(/function migrate\(s\)\{[\s\S]*?\n\}/)?.[0];
-if(!migration) throw new Error('save migration missing');
-const migrate=runInNewContext(`${core}\nfunction soundPref(){return true}\n${migration}\nmigrate`);
+const supportAvailable=ui.match(/function supportAvailable\(st,id\)\{[\s\S]*?\n\}/)?.[0];
+if(!migration||!supportAvailable) throw new Error('save migration missing');
+const migrate=runInNewContext(`${core}\nfunction soundPref(){return true}\n${supportAvailable}\n${migration}\nmigrate`);
 const legacy=game.newGame('旧記録','男性'); delete legacy.vaultGold; delete legacy.pendingGifts; legacy.gold=317; legacy.bag[0].n=9;
 const migrated=migrate(legacy);
 if(migrated.vaultGold!==0||migrated.gold!==317) throw new Error('legacy gold migration failed');

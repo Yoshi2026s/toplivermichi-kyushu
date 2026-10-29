@@ -856,9 +856,10 @@ function aiChoose(run){
   return best;
 }
 
-/* ---- 道具袋（300種類×各99個。入らない分は金庫、次に預かり所へ） ---- */
+/* ---- 道具袋（通常300種類・イベント400種類、各99個。あふれた分は金庫へ） ---- */
 function bagCount(bag,id){ const e=(bag||[]).find(x=>x.id===id); return e?e.n:0; }
-function bagRoom(bag,id){ const e=bag.find(x=>x.id===id); if(e) return BAG_STACK-e.n; return bag.length<BAG_KINDS?BAG_STACK:0; }
+function bagKindCount(bag,event){ return bag.filter(e=>(ITEMS[e.id]?.acq==="E")===event).length; }
+function bagRoom(bag,id){ const e=bag.find(x=>x.id===id); if(e) return Math.max(0,BAG_STACK-e.n); const event=ITEMS[id]?.acq==="E"; return bagKindCount(bag,event)<(event?EVENT_KINDS:BAG_KINDS)?BAG_STACK:0; }
 function bagAdd(bag,id,n){ const add=Math.min(n,bagRoom(bag,id)); if(add<=0) return 0; const e=bag.find(x=>x.id===id); if(e) e.n+=add; else bag.push({id,n:add}); return add; }
 function bagRemove(bag,id,n){ const i=bag.findIndex(x=>x.id===id); if(i<0) return 0; const r=Math.min(n,bag[i].n); bag[i].n-=r; if(bag[i].n<=0) bag.splice(i,1); return r; }
 const ITEM_VAULT_MAX=999;

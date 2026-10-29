@@ -3650,6 +3650,14 @@ function validateState(s){
 function padSide(){ const s=G.st?G.st.settings:G.tmpSettings; if(s&&(s.padSide==="left"||s.padSide==="right")) return s.padSide; try{ const v=localStorage.getItem("tlr-kyushu-pad"); if(v==="left"||v==="right") return v; }catch(e){} return "right"; }
 function soundIsOn(){ if(G.soundWant!=null) return G.soundWant; if(G.st&&G.st.settings) return G.st.settings.sound!==false; return soundPref(); }
 function soundPref(){ try{ return localStorage.getItem("tlr-kyushu-sound")!=="0"; }catch(e){ return true; } }
+function savedStreamUsable(s,st){
+  if(!s||typeof s!=="object"||!HUBS[s.hub]||HUBS[s.hub].prefId!==s.prefId||!st.roster.includes(s.host)||!STREAM_THEMES[s.theme]||!["video","voice"].includes(s.style)) return false;
+  const request=STREAM_REQ[s.prefId];
+  if(!Array.isArray(request)||!Array.isArray(s.requestIds)||s.requestIds.length!==4||s.requestIds.some(id=>!Object.hasOwn(STREAM_ACTS,id))) return false;
+  if(!Number.isInteger(s.hand)||s.hand<0||s.hand>4||typeof s.done!=="boolean"||s.done!==(s.hand===4)||!Number.isFinite(s.score)||s.score<0) return false;
+  if(!Array.isArray(s.used)||s.used.some(id=>!Object.hasOwn(STREAM_ACTS,id))||!Array.isArray(s.picks)||s.picks.length!==s.hand||s.picks.some(p=>!p||!Object.hasOwn(STREAM_ACTS,p.act))) return false;
+  return true;
+}
 function migrate(s){
   if(!Array.isArray(s.visitedMaps)) s.visitedMaps=[];
   if(!Array.isArray(s.visitedHubs)) s.visitedHubs=[];
@@ -3673,6 +3681,7 @@ function migrate(s){
     if(!Array.isArray(s.lastResult.itemsUsed)) s.lastResult.itemsUsed=[];
     if(s.lastResult.itemsUsedKnown!==true) s.lastResult.itemsUsedKnown=false;
   }
+  if(s.stream&&!savedStreamUsable(s.stream,s)) s.stream=null;
   if(!Array.isArray(s.battleBadges)) s.battleBadges=[];
   if(s.settings&&s.settings.soundV!==2){ s.settings.sound=true; s.settings.soundV=2; }
   if(s.vitals===undefined) s.vitals=null;

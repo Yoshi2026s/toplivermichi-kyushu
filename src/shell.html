@@ -1,4 +1,4 @@
-<title>トップライバーへの道 九州編</title>
+<title>トップライバーへの道 全国探索版</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=BIZ+UDPGothic:wght@400;700&display=swap">
@@ -104,6 +104,7 @@ body.in-battle{padding-top:6px;padding-bottom:calc(var(--dockH) + 6px + env(safe
 .bhead{display:flex;justify-content:space-between;gap:6px;font-family:var(--f-dot);color:var(--gold);font-size:14px;flex-wrap:wrap}
 .gauge{display:grid;grid-template-columns:auto 1fr 2.2em;gap:6px;align-items:center;font-size:14px}
 .gauge b{text-align:right;font-variant-numeric:tabular-nums}
+.battle-support{margin:0;color:var(--gold);font-size:12px}
 .bar{display:block;height:7px;background:var(--ink);border:1px solid var(--mist);overflow:hidden}
 .bar i{display:block;height:100%;background:var(--aqua)}
 .bar.enemy i{background:var(--coral)}
@@ -155,8 +156,12 @@ body.in-battle{padding-top:6px;padding-bottom:calc(var(--dockH) + 6px + env(safe
 .preview{display:flex;flex-direction:column;gap:2px;font-size:13px;line-height:1.3;min-width:0}
 .preview .pinfo{color:#D9D2C0}.preview .pv{color:var(--aqua);font-size:14px}.preview .hint{color:var(--mist)}.preview .warn{font-size:14px}
 .cmd p{font-size:15px}
-.log{font:inherit;text-align:left;color:var(--cream);font-size:13px;line-height:1.3;background:var(--ink);border:2px solid var(--slate);padding:4px 6px;display:flex;flex-direction:column;gap:1px;flex:none;cursor:pointer;min-height:48px}
+.log{font:inherit;text-align:left;color:var(--cream);font-size:13px;line-height:1.3;background:var(--ink);border:2px solid var(--slate);padding:4px 6px;display:flex;flex-direction:column;gap:1px;flex:none;min-height:48px}
 .log span{overflow-wrap:anywhere}
+.log-entry{font:inherit;color:inherit;text-align:left;background:none;border:0;padding:0;overflow-wrap:anywhere;cursor:pointer}
+.log-entry:focus-visible{outline:2px solid var(--gold)}
+.battle:has(.log.expanded){overflow-y:auto}
+.battle .log.expanded{min-height:232px;max-height:232px;overflow-y:auto}
 @media (max-height:600px){.explore{height:auto;overflow:visible}.mapwrap{flex:none;height:200px}.battle{height:auto;overflow:visible}.win.cmd{overflow:visible}.chips{overflow:visible}}
 @media (max-height:700px){.cue,.cue.on{font-size:12px}.bhead{font-size:12px}.pstat{font-size:12px}.pjob{display:none}.esprite.boss{width:60px}.bhead{font-size:13px}.ename{font-size:14px}.esprite{width:32px;height:32px}.pcard{min-height:44px}.cmd .cmdgrid .btn{min-height:40px}.chip{min-height:36px}.log span:first-child:nth-last-child(3){display:none}}
 .pop{position:absolute;right:8px;top:2px;font-family:var(--f-dot);font-size:20px;font-weight:700;pointer-events:none;animation:popup .9s steps(6) forwards;text-shadow:2px 2px 0 var(--ink);z-index:3}
@@ -206,7 +211,7 @@ body{padding-bottom:calc(var(--dockH) + 12px)}
   :root{--dockH:76px}
   .stick{width:68px;height:68px}.stick .knob{width:32px;height:32px;margin:-16px 0 0 -16px}.stick .ring{inset:7px}
   .pbtn{width:46px;height:46px}.pbtn.a{width:54px;height:54px}.pbtn.b{margin-top:10px}.pbtn b{font-size:17px}.pbtn small{font-size:10px}
-  .battle .log{min-height:0}.battle .log span:not(:last-child){display:none}
+  .battle .log:not(.expanded){min-height:0}.battle .log:not(.expanded) .log-entry:not(:last-child){display:none}
   .cmd .cmdgrid .btn{min-height:36px}.chip{min-height:34px}.pcard{min-height:40px}.confirmrow .btn{min-height:44px}
   .battle{gap:4px}
   .battle .cue:not(.on){display:none}
@@ -291,3 +296,4 @@ body:not(.reduce-motion) .rlevel{animation:rpulse 1.2s steps(4) 2}
   <div class="hint">スティック：移動／決定：調べる</div>
   <div class="abtns"><button class="pbtn b" data-pad="b" aria-label="戻る"><b>B</b><small>戻る</small></button><button class="pbtn a" data-pad="a" aria-label="決定"><b>A</b><small>決定</small></button></div>
 </div>
+

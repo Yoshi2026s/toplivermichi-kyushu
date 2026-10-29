@@ -165,6 +165,7 @@ const ART = (()=>{
       case "box": px(g,2,13,12,9,PAL.brown); px(g,2,13,12,1,light(PAL.brown,.3)); px(g,2,11,12,3,PAL.gold); px(g,2,11,12,1,light(PAL.gold,.4)); px(g,7,13,2,4,PAL.cream); px(g,11,14,2,7,dark(PAL.brown));
         if(frame%2) px(g,12,9,1,1,PAL.cream); break;
       case "boxOpen": px(g,2,14,12,8,PAL.brown); px(g,3,15,10,2,dark(PAL.brown,.5)); px(g,1,8,14,3,PAL.gold); px(g,1,8,14,1,light(PAL.gold,.4)); break;
+      case "landmark":
       case "sign": px(g,7,14,2,9,PAL.brown); px(g,1,7,14,8,PAL.cream); px(g,1,7,14,1,light(PAL.cream,.5)); px(g,3,9,10,1,PAL.slate); px(g,3,11,7,1,PAL.slate); px(g,11,11,2,2,PAL.red); break;
       case "bench": px(g,1,14,14,3,PAL.brown); px(g,1,14,14,1,light(PAL.brown,.3)); px(g,2,17,2,5,dark(PAL.brown)); px(g,12,17,2,5,dark(PAL.brown)); px(g,1,10,14,2,PAL.sand); break;
       case "tower": ol=false; px(g,7,0,2,24,PAL.mist); px(g,8,0,1,24,dark(PAL.mist,.3)); for(let y=3;y<24;y+=5){ px(g,4,y,8,1,PAL.mist); px(g,5,y+1,1,3,PAL.slate); px(g,10,y+1,1,3,PAL.slate); }

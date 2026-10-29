@@ -1,5 +1,5 @@
-/* ===== data: 全定義（福岡編で使う範囲） ===== */
-const GAME_VERSION = "5.29";
+/* ===== data: 福岡編と佐賀・唐津編 ===== */
+const GAME_VERSION = "5.30";
 const SCHEMA_VERSION = 5;
 
 const PAL = {
@@ -97,7 +97,13 @@ const SHOPS = {
 /* 第11B節：地域ボス（福岡は静観型） */
 const BOSSES = {
   LB01:{name:"コメラモス", q:3, areaId:"KY01-A3", cue:"guard", hub:"KY01"},
-  B01: {name:"ハートーマ", q:8, areaId:"KY02-A3", cue:"guard", hub:"KY02"}
+  B01: {name:"ハートーマ", q:8, areaId:"KY02-A3", cue:"guard", hub:"KY02"},
+  B02: {name:"シオカゼラ", q:11, areaId:"KY03-A3", cue:"guard", hub:"KY03"},
+  B03: {name:"ヒカリカエシ", q:14, areaId:"KY04-A3", cue:"guard", hub:"KY04"},
+  B04: {name:"カゼマチ", q:17, areaId:"KY05-A3", cue:"guard", hub:"KY05"},
+  B05: {name:"オトノコダマ", q:20, areaId:"KY06-A3", cue:"guard", hub:"KY06"},
+  B06: {name:"コエノカゲ", q:23, areaId:"KY07-A3", cue:"guard", hub:"KY07"},
+  B07: {name:"カゼノコダマ", q:26, areaId:"KY08-A3", cue:"guard", hub:"KY08"}
 };
 
 /* ボスの少人数補正（ユーザー指定の2人旅に合わせた本作の調整）。HPと攻撃に掛ける */
@@ -107,25 +113,41 @@ const BOSS_SCALE_OVERRIDE = { LB01:{ 2:{hp:0.9,atk:1} } };
 function bossScale(bid, n){ n=Math.min(4,Math.max(1,n)); const o=BOSS_SCALE_OVERRIDE[bid]; return (o&&o[n]) || BOSS_PARTY_SCALE[n]; }
 
 /* 宿屋：1人あたりの宿泊料（ゴールド）。泊まると翌朝になり、体力と集中力が全回復 */
-const INN_PRICE = { KY01:6, KY02:10 };
+const INN_PRICE = { KY01:6, KY02:10, KY03:12, KY04:12, KY05:14, KY06:14, KY07:16, KY08:16 };
 
 /* 第05D節：もえのシナリオ到達ランク */
 const MOE_RANKS = ["E1","D1","D2","D3","C1","C2","C3","B1","B2","B3","A1","A2","A3","S1","S2","S3","S4","S5","S6"];
 
-/* 第18～19節：依頼（福岡編） */
+/* 第18～19節：依頼（福岡編・佐賀編の入口） */
 const QUESTS = {
   M01:{hub:"KY01", name:"故郷からの第一声", kills:1, boss:"LB01", stream:false, main:true,
        goal:"福岡市のA1～A3で通常敵を1体倒し、放送塔の丘の奥でコメラモスに挑む。"},
   M02:{hub:"KY02", name:"港の声リレー", kills:2, boss:"B01", stream:true, main:true,
        goal:"北九州市のA1～A3で通常敵を2体倒し、灯台の段丘の奥でハートーマに挑む。その後、配信で80点以上。"},
+  M03:{hub:"KY03", name:"海辺からの返事", kills:2, boss:"B02", stream:true, main:true,
+       goal:"唐津市のA1～A3で通常敵を2体倒し、海辺の見晴らしでシオカゼラに挑む。その後、配信で80点以上。"},
+  M04:{hub:"KY04", name:"街灯をつなぐ声", kills:2, boss:"B03", stream:true, main:true,
+       goal:"佐賀市のA1～A3で通常敵を2体倒し、街灯の広場でヒカリカエシに挑む。その後、配信で80点以上。"},
+  M05:{hub:"KY05", name:"港から届く返事", kills:2, boss:"B04", stream:true, main:true,
+       goal:"佐世保市のA1～A3で通常敵を2体倒し、展望広場でカゼマチに挑む。その後、配信で80点以上。"},
+  M06:{hub:"KY06", name:"丘から返る声", kills:2, boss:"B05", stream:true, main:true,
+       goal:"長崎市のA1～A3で通常敵を2体倒し、丘の眺めでオトノコダマに挑む。その後、配信で80点以上。"},
+  M07:{hub:"KY07", name:"石垣の先の声", kills:2, boss:"B06", stream:true, main:true,
+       goal:"熊本市のA1～A3で通常敵を2体倒し、石垣の広場でコエノカゲに挑む。その後、配信で80点以上。"},
+  M08:{hub:"KY08", name:"風を渡る返事", kills:2, boss:"B07", stream:true, main:true,
+       goal:"阿蘇市のA1～A3で通常敵を2体倒し、稜線の広場でカゼノコダマに挑む。その後、配信で80点以上。"},
   S01:{hub:"KY01", name:"ふるさとの紹介文", kills:1, main:false, npc:"akari",
        goal:"灯里と故郷の紹介文を考え、福岡市のA1～A3で通常敵を1体倒す。"},
   S02:{hub:"KY02", name:"港の拍手練習", kills:1, main:false, npc:"sota",
        goal:"奏太の応援のタイミングを整え、北九州市のA1～A3で通常敵を1体倒す。"}
 };
 
-/* 第15節：地域支援（福岡のみ収録） */
-const SUPPORTS = { PR01:{name:"福岡の声", text:"戦闘開始時のエール＋10", startA:10, npc:"akari"} };
+/* 第15節：地域支援 */
+const SUPPORTS = {
+  PR01:{name:"福岡の声", text:"戦闘開始時のエール＋10", startA:10, npc:"akari"},
+  PR02:{name:"佐賀の声", text:"戦闘開始時のエール＋12", startA:12, npc:"karatsuGuide"},
+  PR03:{name:"長崎の声", text:"戦闘開始時のエール＋14", startA:14, npc:"saseboGuide"}
+};
 
 /* 第13・13A節：配信 */
 const STREAM_ACTS = {
@@ -136,7 +158,7 @@ const STREAM_ACTS = {
   like:{name:"いいねリレー", req:"光のリレーを見たい"},
   kira:{name:"キラコメ演出", req:"短いキラコメで彩って"}
 };
-const STREAM_REQ = { PR01:["first","local","reply","thanks"] };
+const STREAM_REQ = { PR01:["first","local","reply","thanks"], PR02:["local","reply","first","thanks"], PR03:["local","first","reply","thanks"], PR04:["first","reply","local","thanks"] };
 const STREAM_THEMES = { newbie:{name:"初見歓迎",act:"first"}, local:{name:"地域の話",act:"local"}, chat:{name:"ゆったり雑談",act:"reply"} };
 const STREAM_TIMES = ["21時00分","21時20分","21時40分","21時59分"];
 
@@ -213,7 +235,8 @@ const MAPS = {
       {id:"sign6",x:22,y:10,type:"sign",label:"案内板（灯台の段丘）",area:"KY02-A3"},
       {id:"lighthouse",x:24,y:1,type:"tower",label:"灯台"},
       {id:"boss2",x:24,y:2,type:"boss",label:"灯台の前（ボス待機地点）",boss:"B01",walk:true},
-      {id:"gate2",x:1,y:24,type:"gate",label:"福岡市への道",to:"KY01",tx:45,ty:24}
+      {id:"gate2",x:1,y:24,type:"gate",label:"福岡市への道",to:"KY01",tx:45,ty:24},
+      {id:"gate_saga",x:46,y:24,type:"gate",label:"唐津市への道",to:"KY03",tx:2,ty:24}
     ],
     zones:{"1":"KY02-A1","2":"KY02-A2","3":"KY02-A3"}
   },
@@ -225,16 +248,133 @@ const MAPS = {
       {id:"moe2",x:17,y:6,type:"npc",label:"もえ",npc:"moe"},
       {id:"board2",x:20,y:3,type:"board",label:"控室の編成ボード"}
     ], zones:{}
+  },
+  "KY03":{ hub:"KY03", name:"唐津市", kind:"out", w:48, h:32, safeAnchor:[12,20],
+    tiles: buildMap(48,32,[
+      [".",1,1,46,30],["~",1,1,46,8],["~",33,9,14,8],
+      ["T",2,10,8,8],["T",39,18,7,7],
+      ["1",2,18,9,5],["2",34,18,5,8],["3",15,9,18,6],
+      [",",1,24,24,1],[",",12,16,2,9],[",",12,16,24,2],
+      ["#",17,20,6,3],["c",17,19,6,1],["#",27,20,6,3],["c",27,19,6,1]
+    ]),
+    objects:[
+      {id:"gate_kitakyushu",x:1,y:24,type:"gate",label:"北九州市への道",to:"KY02",tx:45,ty:24},
+      {id:"karatsu_guide",x:12,y:19,type:"npc",label:"唐津の案内人",npc:"karatsuGuide"},
+      {id:"karatsu_landmark",x:25,y:16,type:"landmark",label:"海辺の案内板"},
+      {id:"karatsu_sign1",x:10,y:20,type:"sign",label:"案内板（海辺の小径）",area:"KY03-A1"},
+      {id:"karatsu_sign2",x:35,y:17,type:"sign",label:"案内板（潮見の路地）",area:"KY03-A2"},
+      {id:"karatsu_sign3",x:14,y:12,type:"sign",label:"案内板（見晴らし台）",area:"KY03-A3"},
+      {id:"karatsu_boss",x:24,y:10,type:"boss",label:"見晴らし台の前（ボス待機地点）",boss:"B02",walk:true},
+      {id:"karatsu_inn",x:20,y:20,type:"inn",label:"唐津の宿屋"},
+      {id:"karatsu_rest",x:30,y:20,type:"rest",label:"休憩所（日付を進める）"},
+      {id:"karatsu_board",x:27,y:16,type:"board",label:"編成ボード"},
+      {id:"karatsu_record",x:33,y:16,type:"shelf",label:"旅の記録"},
+      {id:"gate_sagacity",x:46,y:24,type:"gate",label:"佐賀市への道",to:"KY04",tx:2,ty:20}
+    ], zones:{"1":"KY03-A1","2":"KY03-A2","3":"KY03-A3"}
+  },
+  "KY04":{ hub:"KY04", name:"佐賀市", kind:"out", w:40, h:28, safeAnchor:[12,20],
+    tiles:buildMap(40,28,[[".",1,1,38,26],["T",2,3,7,9],["T",32,3,6,9],["1",3,13,6,5],["2",30,13,6,5],["3",16,4,9,5],[",",1,20,37,1],[",",12,12,2,9],[",",12,12,22,2]]),
+    objects:[
+      {id:"gate_karatsu",x:1,y:20,type:"gate",label:"唐津市への道",to:"KY03",tx:46,ty:25},
+      {id:"sagacity_guide",x:12,y:19,type:"npc",label:"佐賀市の案内人",npc:"sagaCityGuide"},
+      {id:"sagacity_sign1",x:9,y:15,type:"sign",label:"案内板（川沿いの道）",area:"KY04-A1"},
+      {id:"sagacity_sign2",x:29,y:15,type:"sign",label:"案内板（駅前の通り）",area:"KY04-A2"},
+      {id:"sagacity_sign3",x:20,y:9,type:"sign",label:"案内板（街灯の広場）",area:"KY04-A3"},
+      {id:"sagacity_boss",x:20,y:5,type:"boss",label:"街灯の広場の奥（ボス待機地点）",boss:"B03",walk:true},
+      {id:"sagacity_inn",x:20,y:18,type:"inn",label:"佐賀市の宿屋"},
+      {id:"sagacity_rest",x:30,y:18,type:"rest",label:"休憩所（日付を進める）"},
+      {id:"sagacity_board",x:26,y:13,type:"board",label:"編成ボード"},
+      {id:"sagacity_record",x:33,y:13,type:"shelf",label:"旅の記録"},
+      {id:"gate_sasebo",x:38,y:20,type:"gate",label:"佐世保市への道",to:"KY05",tx:2,ty:20}
+    ], zones:{"1":"KY04-A1","2":"KY04-A2","3":"KY04-A3"}
+  },
+  "KY05":{ hub:"KY05", name:"佐世保市", kind:"out", w:40, h:28, safeAnchor:[12,20],
+    tiles:buildMap(40,28,[[".",1,1,38,26],["T",2,3,7,9],["T",32,3,6,9],["1",3,13,6,5],["2",30,13,6,5],["3",16,4,9,5],[",",1,20,37,1],[",",12,12,2,9],[",",12,12,22,2]]),
+    objects:[
+      {id:"gate_sagacity",x:1,y:20,type:"gate",label:"佐賀市への道",to:"KY04",tx:37,ty:20},
+      {id:"sasebo_guide",x:12,y:19,type:"npc",label:"佐世保市の案内人",npc:"saseboGuide"},
+      {id:"sasebo_sign1",x:9,y:15,type:"sign",label:"案内板（港沿いの道）",area:"KY05-A1"},
+      {id:"sasebo_sign2",x:29,y:15,type:"sign",label:"案内板（坂の通り）",area:"KY05-A2"},
+      {id:"sasebo_sign3",x:20,y:9,type:"sign",label:"案内板（展望広場）",area:"KY05-A3"},
+      {id:"sasebo_boss",x:20,y:5,type:"boss",label:"展望広場の奥（ボス待機地点）",boss:"B04",walk:true},
+      {id:"sasebo_inn",x:20,y:18,type:"inn",label:"佐世保市の宿屋"},
+      {id:"sasebo_rest",x:30,y:18,type:"rest",label:"休憩所（日付を進める）"},
+      {id:"sasebo_board",x:26,y:13,type:"board",label:"編成ボード"},
+      {id:"sasebo_record",x:33,y:13,type:"shelf",label:"旅の記録"},
+      {id:"gate_nagasaki",x:38,y:20,type:"gate",label:"長崎市への道",to:"KY06",tx:2,ty:20}
+    ], zones:{"1":"KY05-A1","2":"KY05-A2","3":"KY05-A3"}
+  },
+  "KY06":{ hub:"KY06", name:"長崎市", kind:"out", w:40, h:28, safeAnchor:[12,20],
+    tiles:buildMap(40,28,[[".",1,1,38,26],["~",1,1,38,5],["T",2,8,7,8],["T",32,8,6,8],["1",3,16,7,3],["2",30,16,6,3],["3",16,7,9,4],[",",1,20,37,1],[",",12,10,2,11],[",",12,10,21,2],["#",18,15,7,3],["c",18,14,7,1]]),
+    objects:[
+      {id:"gate_sasebo",x:1,y:20,type:"gate",label:"佐世保市への道",to:"KY05",tx:37,ty:20},
+      {id:"nagasaki_guide",x:12,y:19,type:"npc",label:"長崎市の案内人",npc:"nagasakiGuide"},
+      {id:"nagasaki_sign1",x:10,y:17,type:"sign",label:"案内板（港の小径）",area:"KY06-A1"},
+      {id:"nagasaki_sign2",x:29,y:17,type:"sign",label:"案内板（坂道の路地）",area:"KY06-A2"},
+      {id:"nagasaki_sign3",x:20,y:11,type:"sign",label:"案内板（丘の眺め）",area:"KY06-A3"},
+      {id:"nagasaki_boss",x:20,y:8,type:"boss",label:"丘の眺めの奥（ボス待機地点）",boss:"B05",walk:true},
+      {id:"nagasaki_inn",x:21,y:18,type:"inn",label:"長崎市の宿屋"},
+      {id:"nagasaki_rest",x:30,y:18,type:"rest",label:"休憩所（日付を進める）"},
+      {id:"nagasaki_board",x:26,y:13,type:"board",label:"編成ボード"},
+      {id:"nagasaki_record",x:33,y:13,type:"shelf",label:"旅の記録"},
+      {id:"gate_kumamoto",x:38,y:20,type:"gate",label:"熊本市への道",to:"KY07",tx:2,ty:20}
+    ], zones:{"1":"KY06-A1","2":"KY06-A2","3":"KY06-A3"}
+  },
+  "KY07":{ hub:"KY07", name:"熊本市", kind:"out", w:40, h:28, safeAnchor:[12,20],
+    tiles:buildMap(40,28,[[".",1,1,38,26],["T",2,3,7,9],["T",32,3,6,9],["1",3,13,6,5],["2",30,13,6,5],["3",16,4,9,4],[",",1,20,37,1],[",",12,12,2,9],["#",17,8,8,6],["c",16,14,10,1]]),
+    objects:[
+      {id:"gate_nagasakicity",x:1,y:20,type:"gate",label:"長崎市への道",to:"KY06",tx:37,ty:20},
+      {id:"kumamoto_guide",x:12,y:19,type:"npc",label:"熊本市の案内人",npc:"kumamotoGuide"},
+      {id:"kumamoto_sign1",x:9,y:15,type:"sign",label:"案内板（川辺の小径）",area:"KY07-A1"},
+      {id:"kumamoto_sign2",x:29,y:15,type:"sign",label:"案内板（街路の通り）",area:"KY07-A2"},
+      {id:"kumamoto_sign3",x:20,y:8,type:"sign",label:"案内板（石垣の広場）",area:"KY07-A3"},
+      {id:"kumamoto_boss",x:20,y:5,type:"boss",label:"石垣の広場の奥（ボス待機地点）",boss:"B06",walk:true},
+      {id:"kumamoto_inn",x:20,y:18,type:"inn",label:"熊本市の宿屋"},
+      {id:"kumamoto_rest",x:30,y:18,type:"rest",label:"休憩所（日付を進める）"},
+      {id:"kumamoto_board",x:26,y:16,type:"board",label:"編成ボード"},
+      {id:"kumamoto_record",x:33,y:16,type:"shelf",label:"旅の記録"},
+      {id:"gate_aso",x:38,y:20,type:"gate",label:"阿蘇市への道",to:"KY08",tx:2,ty:20}
+    ], zones:{"1":"KY07-A1","2":"KY07-A2","3":"KY07-A3"}
+  },
+  "KY08":{ hub:"KY08", name:"阿蘇市", kind:"out", w:40, h:28, safeAnchor:[12,20],
+    tiles:buildMap(40,28,[[".",1,1,38,26],["T",2,3,7,9],["T",32,3,6,9],["1",3,13,6,5],["2",30,13,6,5],["3",16,3,9,4],[",",1,20,37,1],[",",12,12,2,9],["#",18,7,6,5],["c",17,12,8,1]]),
+    objects:[
+      {id:"gate_kumamotocity",x:1,y:20,type:"gate",label:"熊本市への道",to:"KY07",tx:37,ty:20},
+      {id:"aso_guide",x:12,y:19,type:"npc",label:"阿蘇市の案内人",npc:"asoGuide"},
+      {id:"aso_sign1",x:9,y:15,type:"sign",label:"案内板（草地の道）",area:"KY08-A1"},
+      {id:"aso_sign2",x:29,y:15,type:"sign",label:"案内板（風の通り）",area:"KY08-A2"},
+      {id:"aso_sign3",x:20,y:7,type:"sign",label:"案内板（稜線の広場）",area:"KY08-A3"},
+      {id:"aso_boss",x:20,y:4,type:"boss",label:"稜線の広場の奥（ボス待機地点）",boss:"B07",walk:true},
+      {id:"aso_inn",x:20,y:18,type:"inn",label:"阿蘇市の宿屋"},
+      {id:"aso_rest",x:30,y:18,type:"rest",label:"休憩所（日付を進める）"},
+      {id:"aso_board",x:26,y:16,type:"board",label:"編成ボード"},
+      {id:"aso_record",x:33,y:16,type:"shelf",label:"旅の記録"}
+    ], zones:{"1":"KY08-A1","2":"KY08-A2","3":"KY08-A3"}
   }
 };
 const HUBS = {
   KY01:{name:"福岡市", pref:"福岡", prefId:"PR01", map:"KY01", home:true},
-  KY02:{name:"北九州市", pref:"福岡", prefId:"PR01", map:"KY02"}
+  KY02:{name:"北九州市", pref:"福岡", prefId:"PR01", map:"KY02"},
+  KY03:{name:"唐津市", pref:"佐賀", prefId:"PR02", map:"KY03"},
+  KY04:{name:"佐賀市", pref:"佐賀", prefId:"PR02", map:"KY04"},
+  KY05:{name:"佐世保市", pref:"長崎", prefId:"PR03", map:"KY05"},
+  KY06:{name:"長崎市", pref:"長崎", prefId:"PR03", map:"KY06"},
+  KY07:{name:"熊本市", pref:"熊本", prefId:"PR04", map:"KY07"},
+  KY08:{name:"阿蘇市", pref:"熊本", prefId:"PR04", map:"KY08"}
 };
-const FUTURE_HUBS = [["KY03","唐津市","佐賀"],["KY04","佐賀市","佐賀"],["KY05","佐世保市","長崎"],["KY06","長崎市","長崎"],["KY07","熊本市","熊本"],["KY08","阿蘇市","熊本"],["KY09","別府市","大分"],["KY10","大分市","大分"],["KY11","宮崎市","宮崎"],["KY12","日南市","宮崎"],["KY13","霧島市","鹿児島"],["KY14","鹿児島市","鹿児島"],["KY15","那覇市","沖縄"],["KY16","名護市","沖縄"]];
+const FUTURE_HUBS = [["KY09","別府市","大分"],["KY10","大分市","大分"],["KY11","宮崎市","宮崎"],["KY12","日南市","宮崎"],["KY13","霧島市","鹿児島"],["KY14","鹿児島市","鹿児島"],["KY15","那覇市","沖縄"],["KY16","名護市","沖縄"]];
 
 /* ===== 住民と会話 ===== */
 const NPCS = {
+  asoGuide:{name:"阿蘇市の案内人", hub:"KY08", sprite:[PAL.sand,PAL.sea],
+    first:p=>[["案内人",`${p}さん、阿蘇市へようこそ。草地の道から稜線の広場まで歩けます。`],["案内人","風の中で返事が散っています。依頼帳でM08を受け、街で調べてください。"]],
+    normal:p=>[["案内人","草地の道・風の通り・稜線の広場を探索できます。宿屋と休憩所もどうぞ。"]]},
+  kumamotoGuide:{name:"熊本市の案内人", hub:"KY07", sprite:[PAL.sand,PAL.ink],
+    first:p=>[["案内人",`${p}さん、熊本市へようこそ。川辺の小径から石垣の広場まで歩けます。`],["案内人","石垣の奥に声が残っています。依頼帳でM07を受け、街で調べてください。"]],
+    normal:p=>[["案内人","川辺の小径・街路の通り・石垣の広場を探索できます。宿屋と休憩所もどうぞ。"]]},
+  nagasakiGuide:{name:"長崎市の案内人", hub:"KY06", sprite:[PAL.sea,PAL.sand],
+    first:p=>[["案内人",`${p}さん、長崎市へようこそ。港の小径から丘の眺めまで探索できます。`],["案内人","丘の上で返事が重なっています。依頼帳でM06を受け、港と坂道から調べてください。"]],
+    normal:p=>[["案内人","港の小径・坂道の路地・丘の眺めを歩けます。佐世保市へは西の門から戻れます。"]]},
   akari:{name:"灯里", hub:"KY01", rep:true, sprite:[PAL.coral,PAL.ink],
     first:p=>[["灯里",`${p}、おかえり！ 交流会の準備、手伝いに来てくれたんだね。`],["灯里","この広場、昔から皆の待ち合わせ場所でしょ。今日はもえさんの配信を見に来た人も多いよ。"],["灯里","実は、広場の紹介文を一緒に考えてくれる人を探してたんだ。手が空いたら声をかけて。"]],
     after:p=>[["灯里","紹介文、掲示板に貼ったよ。読んだ人が『行ってみたい』って言ってくれた。"]],
@@ -255,6 +395,15 @@ const NPCS = {
   misuzu:{name:"美鈴", hub:"KY02", sprite:[PAL.aqua,PAL.red],
     first:p=>[["美鈴","遊歩道の足元灯、点いたり消えたりしてるの。乱れのせいかしら。"]],
     normal:p=>[["美鈴","係留ロープの結び目って、きれいな形をしてるのよ。"]] },
+  saseboGuide:{name:"佐世保市の案内人", hub:"KY05", sprite:[PAL.sand,PAL.sea],
+    first:p=>[["案内人",`${p}さん、佐世保市へようこそ。港沿いの道から展望広場まで探索できます。`],["案内人","展望広場の声が風に散っています。依頼帳でM05を受け、港沿いと坂道から調べてください。"]],
+    normal:p=>[["案内人","港沿いの道・坂の通り・展望広場には乱れが残っています。佐賀市へは西の門から戻れます。"]]},
+  sagaCityGuide:{name:"佐賀市の案内人", hub:"KY04", sprite:[PAL.sand,PAL.coral],
+    first:p=>[["案内人",`${p}さん、佐賀市へようこそ。唐津での配信を聞きました。`],["案内人","街灯の広場で声が重なっています。依頼帳でM04を受け、川沿いと駅前から調べてください。"]],
+    normal:p=>[["案内人","唐津へは西の門から戻れます。街灯の広場へ向かう前に宿屋で整えてください。"]]},
+  karatsuGuide:{name:"唐津の案内人", hub:"KY03", sprite:[PAL.sand,PAL.sea],
+    first:p=>[["案内人",`${p}さん、唐津へようこそ。海辺の案内板から、この街の声を聞いてみてください。`],["案内人","見晴らし台の返事が乱れています。依頼帳でM03を受け、海辺の探索区域を調べてください。"]],
+    normal:p=>[["案内人","北九州へは西の門から戻れます。見晴らし台へ行く前に宿屋で整えてください。"]] },
   moe:{name:"もえ", sprite:[PAL.cream,PAL.violet]}
 };
 
@@ -295,7 +444,62 @@ const SCENES = {
     ["","もえのシナリオ到達ランクがD2になった。"],
     [p,"二人でここまで来られたね。次の県では、手伝ってくれる仲間も探そう。"],
     ["もえ",`${p}、次は佐賀だね。私、相手の返事を取り入れた紹介を試してみたい。`],
-    ["","福岡編はここまで。佐賀から先の章は、この版には未収録です。通常戦での育成、図鑑集め、任意依頼は続けられます。"]
+    ["","福岡編はここまで。唐津に渡り、次の依頼「M03 海辺からの返事」を受けられます。"]
+  ]},
+  M03_BOSS:{title:"見晴らし台の風", lines:p=>[
+    ["","見晴らし台の乱れが静まり、海辺からの返事が届き始めた。"],
+    ["航平",`${p}さん、帰りの道は任せて。もえさんの配信で、この街の声を届けよう。`],
+    ["","佐賀での配信準備が整った。依頼帳から配信を始めよう。"]
+  ]},
+  RANK_D3:{title:"もえのランク D3", lines:p=>[
+    ["もえ","唐津の人の返事を、急がず聞けた気がする。"],
+    ["",`${p}たちは佐賀の海辺から次の旅程を考える。`],
+    ["","もえのシナリオ到達ランクがD3になった。唐津の東門から佐賀市へ進み、M04を受けられます。"]
+  ]},
+  M04_BOSS:{title:"街灯の広場", lines:p=>[
+    ["","街灯の広場に重なっていた声がほどけ、通りに落ち着きが戻った。"],
+    ["もえ",`${p}、川沿いと駅前で聞いた声も、配信で届けよう。`],
+    ["","佐賀市での配信準備が整った。依頼帳から配信を始めよう。"]
+  ]},
+  RANK_C1:{title:"もえのランク C1", lines:p=>[
+    ["もえ","佐賀市の声を、みんなと一緒に届けられたね。"],
+    ["","もえのシナリオ到達ランクがC1になった。佐賀市の東門から佐世保市へ進み、M05を受けられます。"]
+  ]},
+  M05_BOSS:{title:"展望広場の風", lines:p=>[
+    ["","展望広場に重なっていた声がほどけ、港へ向かう風が落ち着いた。"],
+    ["もえ",`${p}、港沿いと坂道で聞いた返事を配信でも届けよう。`],
+    ["","佐世保市での配信準備が整った。依頼帳から配信を始めよう。"]
+  ]},
+  RANK_C2:{title:"もえのランク C2", lines:p=>[
+    ["もえ","佐世保市からの返事も、みんなへ届けられたね。"],
+    ["","もえのシナリオ到達ランクがC2になった。佐世保市の東門から長崎市へ進み、M06を受けられます。"]
+  ]},
+  M06_BOSS:{title:"丘の声", lines:p=>[
+    ["","丘に重なっていた声が静まり、港と坂道からの返事が聞こえ始めた。"],
+    ["もえ",`${p}、長崎市で聞いた声を配信でも届けよう。`],
+    ["","長崎市での配信準備が整った。依頼帳から配信を始めよう。"]
+  ]},
+  RANK_C3:{title:"もえのランク C3", lines:p=>[
+    ["もえ","長崎市で聞いた返事も、ひとつずつ届けられたね。"],
+    ["","もえのシナリオ到達ランクがC3になった。長崎市の東門から熊本市へ進み、M07を受けられます。"]
+  ]},
+  M07_BOSS:{title:"石垣の声", lines:p=>[
+    ["","広場に重なっていた声がほどけ、川辺と街路の呼びかけが届いた。"],
+    ["もえ",`${p}、熊本市で聞いた声を配信でも届けよう。`],
+    ["","熊本市での配信準備が整った。依頼帳から配信を始めよう。"]
+  ]},
+  RANK_B1:{title:"もえのランク B1", lines:p=>[
+    ["もえ","熊本市の返事も、みんなに届いたね。"],
+    ["","もえのシナリオ到達ランクがB1になった。熊本市の東門から阿蘇市へ進み、M08を受けられます。"]
+  ]},
+  M08_BOSS:{title:"稜線の声", lines:p=>[
+    ["","風に散っていた声がまとまり、草地と通りからの返事が聞こえ始めた。"],
+    ["もえ",`${p}、阿蘇市で聞いた声を配信でも届けよう。`],
+    ["","阿蘇市での配信準備が整った。依頼帳から配信を始めよう。"]
+  ]},
+  RANK_B2:{title:"もえのランク B2", lines:p=>[
+    ["もえ","阿蘇市の風の中でも、返事を届けられたね。"],
+    ["","もえのシナリオ到達ランクがB2になった。この先の地域は開発中です。"]
   ]},
   S01_DONE:{title:"ふるさとの紹介文", lines:p=>[
     ["灯里","できた！『待ち合わせの広場。帰ってきた人に、おかえりを言う場所』。"],
@@ -322,8 +526,9 @@ const DIFFICULTY = {
   hard:{name:"手応え",hp:1.2,atk:1.15,startA:0}
 };
 
-/* ---- 道具（ユーザー指定：20種類×各9個まで。v5.29 第16P節） ---- */
-const BAG_KINDS = 20, BAG_STACK = 9, KEEP_MAX = 20;
+/* ---- 道具袋の拡張上限（参照v10.73～10.80）。旧セーブの所持数は維持 ---- */
+const BAG_KINDS = 300, EVENT_KINDS = 400, BAG_STACK = 99, KEEP_MAX = 20;
+const UNEQUIPPED_GEAR_MAX = 300;
 const ITEM_RARITY = {1:"★1 ありふれた",2:"★2 ときどき見る",3:"★3 めずらしい",4:"★4 とてもめずらしい",5:"★5 まぼろし"};
 const ITEM_ACQ = {S:"ショップ",E:"イベント限定",DS:"モンスター限定（売却可）",DN:"モンスター限定（売却不可）",SD:"ショップ・モンスター"};
 const ITEMS = {};
@@ -333,3 +538,7 @@ for(const [id,r] of Object.entries(ITEMS_RAW)){
 /* 店の道具：地域段階1（福岡）の購入可能品 */
 const SHOP_ITEMS = Object.values(ITEMS).filter(it=>(it.acq==="S"||it.acq==="SD")&&it.tier<=1).map(it=>it.id);
 const INITIAL_ITEMS = [["IT001",5],["IT033",3]];
+
+
+
+

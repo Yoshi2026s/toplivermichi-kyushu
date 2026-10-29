@@ -16,10 +16,10 @@ function newGame(name, gender){
     profile:{name, gender}, day:1, slots:6, mapId:"KY01", pos:{x:19,y:19}, dir:0,
     visitedMaps:["KY01"], visitedHubs:["KY01"], xp:0,
     roster:["hero","moe"], party:["hero","moe"], vitals:null,
-    jobs:{}, jp:{}, equip:{}, owned:{CW01:8, CA01:8}, favorite:{},
-    gold:0, tickets:200, gifts:{W:{},A:{}},
-    bag:INITIAL_ITEMS.map(([id,n])=>({id,n})), keep:[], itemsVersion:1,
-    quests:{M01:"available", M02:"locked", S01:"locked", S02:"locked"}, qprog:{}, activeQuest:null,
+    jobs:{}, jp:{}, equip:{}, owned:{CW01:8, CA01:8}, pendingGifts:[], favorite:{},
+    gold:0, vaultGold:0, tickets:200, gifts:{W:{},A:{}},
+    bag:INITIAL_ITEMS.map(([id,n])=>({id,n})), keep:[], itemVault:[], itemsVersion:1,
+    quests:{M01:"available", M02:"locked", M03:"locked", M04:"locked", M05:"locked", M06:"locked", M07:"locked", M08:"locked", S01:"locked", S02:"locked"}, qprog:{}, activeQuest:null,
     talked:{}, boxes:{}, cards:[], bossDefeated:{}, seen:{}, killCount:{},
     moeRank:0, run:null, runSeq:0, stream:null, lastResult:null, streamBest:{},
     support:null, scenes:{}, fukuokaClear:false,
@@ -31,6 +31,17 @@ function newGame(name, gender){
   }
   for(const c of st.roster){ st.equip[c].w="CW01"; st.equip[c].a="CA01"; }
   return st;
+}
+
+function transferVaultGold(st,mode,amount){
+  if(!["deposit","withdraw"].includes(mode)||!Number.isSafeInteger(amount)||amount<1) return false;
+  if(!Number.isSafeInteger(st.gold)||st.gold<0||!Number.isSafeInteger(st.vaultGold)||st.vaultGold<0) return false;
+  const from=mode==="deposit"?st.gold:st.vaultGold;
+  const to=mode==="deposit"?st.vaultGold:st.gold;
+  if(amount>from||!Number.isSafeInteger(to+amount)) return false;
+  if(mode==="deposit"){st.gold-=amount;st.vaultGold+=amount;}
+  else {st.vaultGold-=amount;st.gold+=amount;}
+  return true;
 }
 
 /* ---- 能力の導出（第16E・16G・17A節） ---- */
@@ -97,7 +108,9 @@ function baseRun(st, kind){
   return { seq: st.runSeq+1, kind, L, V:Vof(L), difficulty:st.settings.difficulty, support:st.support,
     party: buildParty(st,L), enemies:[], turn:1, A:Math.min(100,A0), B:0,
     chain:{stage:0, members:[]}, kiraDone:false, firstKill:false,
-    cue:null, log:[], state:"input", rewardsApplied:false, bag:clone(st.bag||[]) };
+    cue:null, log:[], itemHistory:[], itemHistoryComplete:true,
+    actionFlags:{damageHit:false,attackHit:false,multiHit:false,attackFinish:false,skillFinish:false,meterFinish:false,commentAttack:false,ignoreDefHit:false,bigHit:false,actionCount:0,enemyAttacked:false,restUsed:false,firstTurnDamage:false,cheerSpent:false,cheerPeak:Math.min(100,A0),commentLines:[],cheerAction:false,skillUsed:false,mpRestored:false,mpSpent:false,mpTargets:[],mpGuard:false,mpRest:false,mpSkill:false,mpItem:false,mpLow:false,guardUsed:false,guardActors:[],guardHit:false,wardHit:false,zeroHit:false,heavyGuardHit:false,criticalSurvive:false,actors:[],jobs:[],actionTypes:[],skills:[],healTargets:[],healMulti:false,familyHeal:false,itemHeal:false,selfHeal:false,otherHeal:false,fullHeal:false,revived:false,lowHeal:false,cueSolved:false,downSeen:false}, actionHistoryComplete:true,
+    state:"input", rewardsApplied:false, bag:clone(st.bag||[]) };
 }
 function createFieldRun(st, areaId, rolls){ // rolls: {count:0|1, picks:[r0,r1]}
   const run = baseRun(st,"field"); const ar=AREAS[areaId]; const q=ar.q; const diff=DIFFICULTY[run.difficulty];
@@ -128,12 +141,13 @@ function createBossRun(st, bossId){
 
 /* ---- 予告（第08・11D節） ---- */
 function alive(run){ return run.party.filter(p=>p.hp>0); }
-function pickTarget(run, pos){
-  const t = run.party[pos];
-  if(t && t.hp>0) return pos;
-  const al = alive(run); if(!al.length) return -1;
-  let best = al[0]; for(const p of al){ if(p.hp<best.hp) best=p; }
-  return best.pos;
+function pickTarget(run, seed){
+  const candidates=run.party.map((p,i)=>({p,i,weight:run.party.length-i})).filter(x=>x.p.hp>0);
+  if(!candidates.length) return -1;
+  const total=candidates.reduce((n,x)=>n+x.weight,0);
+  let cursor=((seed%total)+total)%total;
+  for(const x of candidates){ if(cursor<x.weight) return x.i; cursor-=x.weight; }
+  return candidates[0].i;
 }
 function enemyAction(run, e){
   const step = e.cycle[(run.turn-1)%e.cycle.length];
@@ -143,7 +157,7 @@ function enemyAction(run, e){
     power = step.t==="c" ? 0 : Math.ceil(step.p * e.atkMult * cueMult);
   }
   const res = { type: step.t, power, heavy: !!step.heavy };
-  if(step.t==="s") res.target = pickTarget(run, (run.turn-1+e.slot)%run.party.length);
+  if(step.t==="s") res.target = pickTarget(run, run.turn-1+e.slot);
   return res;
 }
 function telegraph(run){ return run.enemies.filter(e=>e.hp>0).map(e=>({slot:e.slot, ...enemyAction(run,e)})); }
@@ -271,16 +285,77 @@ function planSkill(run,a,act,p,h){
 function applyAction(run, idx, act){
   const p = planAction(run, idx, act);
   if(!p.ok) return {ok:false, reason:p.reason};
+  if(run.actionHistoryComplete===true && run.actionFlags){
+    if(Number.isInteger(run.actionFlags.actionCount)) run.actionFlags.actionCount++;
+    if(act.type==="rest") run.actionFlags.restUsed=true;
+    if(p.cost.a>0) run.actionFlags.cheerSpent=true;
+    if(act.type==="comment" && Array.isArray(run.actionFlags.commentLines) && !run.actionFlags.commentLines.includes(act.line)) run.actionFlags.commentLines.push(act.line);
+    if(act.type==="family" || act.type==="meter") run.actionFlags.cheerAction=true;
+    if(act.type==="skill") run.actionFlags.skillUsed=true;
+    if(act.type!=="item" && p.cgain.some(g=>g.amt>0)) run.actionFlags.mpRestored=true;
+    if(p.cost.c>0) run.actionFlags.mpSpent=true;
+    const restored=p.cgain.filter(g=>g.amt>0);
+    if(Array.isArray(run.actionFlags.mpTargets)) for(const g of restored){
+      const cid=run.party[g.pos].cid;
+      if(!run.actionFlags.mpTargets.includes(cid)) run.actionFlags.mpTargets.push(cid);
+    }
+    if(restored.length && act.type==="guard") run.actionFlags.mpGuard=true;
+    if(restored.length && act.type==="rest") run.actionFlags.mpRest=true;
+    if(restored.length && act.type==="skill") run.actionFlags.mpSkill=true;
+    if(restored.length && act.type==="item") run.actionFlags.mpItem=true;
+    if(restored.some(g=>run.party[g.pos].c-(g.pos===idx?p.cost.c:0)<=2)) run.actionFlags.mpLow=true;
+    if(act.type==="guard") run.actionFlags.guardUsed=true;
+    if(act.type==="guard" && Array.isArray(run.actionFlags.guardActors) && !run.actionFlags.guardActors.includes(run.party[idx].cid)) run.actionFlags.guardActors.push(run.party[idx].cid);
+    if(Array.isArray(run.actionFlags.actionTypes) && !run.actionFlags.actionTypes.includes(act.type)) run.actionFlags.actionTypes.push(act.type);
+    if(act.type==="skill" && Array.isArray(run.actionFlags.skills) && !run.actionFlags.skills.includes(run.party[idx].job)) run.actionFlags.skills.push(run.party[idx].job);
+    if(!run.actionFlags.actors.includes(run.party[idx].cid)) run.actionFlags.actors.push(run.party[idx].cid);
+    if(!run.actionFlags.jobs.includes(run.party[idx].job)) run.actionFlags.jobs.push(run.party[idx].job);
+    if(p.heal.some(h=>h.revive)) run.actionFlags.revived=true;
+    if(p.heal.some(h=>h.amt>0 && !h.revive && run.party[h.pos].hp>0 && run.party[h.pos].hp<=run.party[h.pos].maxHP*0.3)) run.actionFlags.lowHeal=true;
+    const healed=p.heal.filter(h=>h.amt>0);
+    if(Array.isArray(run.actionFlags.healTargets)) for(const h of healed){
+      const cid=run.party[h.pos].cid;
+      if(!run.actionFlags.healTargets.includes(cid)) run.actionFlags.healTargets.push(cid);
+    }
+    if(healed.length>=2) run.actionFlags.healMulti=true;
+    if(healed.length && act.type==="family") run.actionFlags.familyHeal=true;
+    if(healed.length && act.type==="item") run.actionFlags.itemHeal=true;
+    if(healed.some(h=>h.pos===idx)) run.actionFlags.selfHeal=true;
+    if(healed.some(h=>h.pos!==idx)) run.actionFlags.otherHeal=true;
+    if(healed.some(h=>h.amt>=run.party[h.pos].maxHP-run.party[h.pos].hp)) run.actionFlags.fullHeal=true;
+  }
   const a = run.party[idx]; const log=[]; const nm=a.name;
   const label = actLabel(run,a,act);
   log.push(`${nm}の${label}！`);
   a.c -= p.cost.c; run.A -= p.cost.a; if(p.cost.hp){ a.hp -= p.cost.hp; log.push(`${nm}は体力を${p.cost.hp}払った。`); }
+  if(a.hp<=0 && run.actionHistoryComplete===true && run.actionFlags) run.actionFlags.downSeen=true;
   // 攻撃
   let killedNow=0;
+  let hitCount=0;
   for(const d of p.dmg){
     const e = run.enemies.find(x=>x.slot===d.slot); if(!e||e.hp<=0) continue;
     const real = Math.min(d.raw, e.hp); e.hp -= real; log.push(`${e.display}に${real}ダメージ。`);
+    if(real>0){
+      hitCount++;
+      if(run.actionHistoryComplete===true && run.actionFlags){
+        const f=run.actionFlags;
+        f.damageHit=true;
+        if(act.type==="attack") f.attackHit=true;
+        if(p.consumeB && run.B>0) f.commentAttack=true;
+        if(act.type==="skill" && a.job==="J16") f.ignoreDefHit=true;
+        if(real>=e.maxHP/2) f.bigHit=true;
+      }
+    }
+    if(real>0 && run.turn===1 && run.actionHistoryComplete===true && run.actionFlags) run.actionFlags.firstTurnDamage=true;
     if(e.hp<=0){ killedNow++; log.push(`${e.display}を鎮めた。`); }
+  }
+  if(run.actionHistoryComplete===true && run.actionFlags){
+    if(hitCount>=2) run.actionFlags.multiHit=true;
+    if(hitCount>0 && run.enemies.every(e=>e.hp<=0)){
+      if(act.type==="attack") run.actionFlags.attackFinish=true;
+      if(act.type==="skill") run.actionFlags.skillFinish=true;
+      if(act.type==="meter") run.actionFlags.meterFinish=true;
+    }
   }
   if(p.consumeB){ run.B=0; }
   if(p.setBAfter){ run.B=p.setBAfter; }
@@ -290,7 +365,13 @@ function applyAction(run, idx, act){
   for(const g of p.cgain){ const t=run.party[g.pos]; if(g.amt>0){ t.c=Math.min(10,t.c+g.amt); log.push(`${t.name}の集中力＋${g.amt}`); } }
   for(const w of p.ward){ const t=run.party[w.pos]; if(w.amt>0){ t.ward=Math.min(8,t.ward+w.amt); log.push(`${t.name}に防護${w.amt}`); } }
   if(p.guard){ a.guard=true; log.push(`${nm}は身構えた。`); }
-  if(p.item){ bagRemove(run.bag, p.item, 1); }
+  if(p.item){
+    bagRemove(run.bag, p.item, 1);
+    if(!Array.isArray(run.itemHistory)) run.itemHistory=[];
+    run.itemHistory.push({id:p.item,actor:a.cid,turn:run.turn,
+      hp:p.heal.reduce((n,h)=>n+h.amt,0), c:p.cgain.reduce((n,g)=>n+g.amt,0),
+      revives:p.heal.filter(h=>h.revive).length});
+  }
   // キラコメ連携
   let chainProg=false;
   if(p.chain){
@@ -308,16 +389,17 @@ function applyAction(run, idx, act){
   // ボス対処
   if(p.cue && run.cue && !run.cue.bits.includes(a.cid)){
     run.cue.bits.push(a.cid);
-    if(run.cue.bits.length>=2){ run.cue.ready=true; log.push("対処成功！ 次の強攻撃が20%軽くなる。"); }
+    if(run.cue.bits.length>=2){ run.cue.ready=true; if(run.actionHistoryComplete===true && run.actionFlags) run.actionFlags.cueSolved=true; log.push("対処成功！ 次の強攻撃が20%軽くなる。"); }
   }
   // 初撃破のパチパチ
   if(killedNow>0 && !run.firstKill && !p.item){ run.firstKill=true; run.A=Math.min(100,run.A+10); log.push("パチパチ！ 拍手でエール＋10。"); }
+  if(run.actionHistoryComplete===true && run.actionFlags && Number.isFinite(run.actionFlags.cheerPeak)) run.actionFlags.cheerPeak=Math.max(run.actionFlags.cheerPeak,run.A);
   a.acted=true;
   if(p.valid || chainProg) a.valid++;
   // 勝敗
   if(run.enemies.every(e=>e.hp<=0)){ run.state="won"; log.push("ノイズ体をすべて鎮めた！"); }
   else if(alive(run).every(m=>m.acted)){ log.push(...enemyPhase(run)); }
-  run.log = [...(run.log||[]), ...log].slice(-12);
+  run.log = [...(run.log||[]), ...log].slice(-80);
   return {ok:true, log};
 }
 function actLabel(run,a,act){
@@ -336,11 +418,21 @@ function enemyPhase(run){
   for(const e of run.enemies.filter(x=>x.hp>0).sort((x,y)=>x.slot-y.slot)){
     const act = enemyAction(run,e);
     if(act.type==="c"){ log.push(`${e.display}は力をためている。`); continue; }
-    const targets = act.type==="a" ? alive(run) : [run.party[pickTarget(run, (run.turn-1+e.slot)%run.party.length)]].filter(Boolean);
+    if(run.actionHistoryComplete===true && run.actionFlags) run.actionFlags.enemyAttacked=true;
+    const targets = act.type==="a" ? alive(run) : [run.party[act.target]].filter(Boolean);
     for(const t of targets){
       let inc = Math.max(0, act.power - run.V*(t.armorD + t.ward));
       if(t.guard) inc = Math.ceil(inc/2);
+      if(run.actionHistoryComplete===true && run.actionFlags){
+        const flags=run.actionFlags;
+        if(t.guard) flags.guardHit=true;
+        if(t.ward>0) flags.wardHit=true;
+        if(inc===0) flags.zeroHit=true;
+        if(act.heavy && t.guard) flags.heavyGuardHit=true;
+      }
       t.hp = Math.max(0, t.hp-inc);
+      if(inc>0 && t.hp>0 && t.hp<=t.maxHP*0.3 && run.actionHistoryComplete===true && run.actionFlags) run.actionFlags.criticalSurvive=true;
+      if(t.hp===0 && run.actionHistoryComplete===true && run.actionFlags) run.actionFlags.downSeen=true;
       log.push(`${e.display}の${act.type==="a"?"全体攻撃":"攻撃"}。${t.name}に${inc}。`+(t.hp===0?` ${t.name}は戦闘不能。`:""));
     }
     if(alive(run).length===0){ run.state="lost"; log.push("全員が戦闘不能になった……"); return log; }
@@ -405,7 +497,18 @@ function applyVictory(st, run){
 function giftCheck(st, job, kind, res){
   if(st.gifts[kind][job]) return;
   st.gifts[kind][job]=true; const id=(kind==="W"?"JW":"JA")+job.slice(1);
-  st.owned[id]=Math.min(8,(st.owned[id]||0)+1); res.gifts.push(id);
+  const total=(st.owned[id]||0)+bagCount(st.itemVault||[],id);
+  if(total<8&&unequippedGearCount(st)<UNEQUIPPED_GEAR_MAX){ st.owned[id]=(st.owned[id]||0)+1; res.gifts.push(id); }
+  else if(total<8&&itemVaultAdd(st,id,1)){ res.gifts.push(id); res.notes.push(`${EQUIP[id].name}はアイテム金庫に保管した。`); }
+  else { st.pendingGifts=st.pendingGifts||[]; st.pendingGifts.push(id); res.notes.push(`${EQUIP[id].name}は所持上限のため受取保留。安全地帯のアイテム金庫で受け取れる。`); }
+}
+function claimPendingGift(st,id){
+  if(!EQUIP[id]||!st.pendingGifts?.includes(id)||(st.owned[id]||0)+bagCount(st.itemVault||[],id)>=8) return null;
+  let destination=null;
+  if(unequippedGearCount(st)<UNEQUIPPED_GEAR_MAX){ st.owned[id]=(st.owned[id]||0)+1; destination="手元"; }
+  else if(itemVaultAdd(st,id,1)) destination="アイテム金庫";
+  if(destination) st.pendingGifts.splice(st.pendingGifts.indexOf(id),1);
+  return destination;
 }
 function completeQuest(st, qid, res){
   if(st.quests[qid]==="complete") return;
@@ -415,7 +518,13 @@ function completeQuest(st, qid, res){
   st.xp=Math.min(XP_CAP, st.xp+xp); st.tickets+=tk;
   if(res){ res.xp+=xp; res.tickets+=tk; res.quest=qid; }
   if(qid==="M01"){ st.moeRank=Math.max(st.moeRank,1); st.quests.M02="available"; }
-  if(qid==="M02"){ st.moeRank=Math.max(st.moeRank,2); st.fukuokaClear=true; }
+  if(qid==="M02"){ st.moeRank=Math.max(st.moeRank,2); st.fukuokaClear=true; st.quests.M03="available"; }
+  if(qid==="M03"){ st.moeRank=Math.max(st.moeRank,3); st.quests.M04="available"; }
+  if(qid==="M04"){ st.moeRank=Math.max(st.moeRank,4); st.quests.M05="available"; }
+  if(qid==="M05"){ st.moeRank=Math.max(st.moeRank,5); st.quests.M06="available"; }
+  if(qid==="M06"){ st.moeRank=Math.max(st.moeRank,6); st.quests.M07="available"; }
+  if(qid==="M07"){ st.moeRank=Math.max(st.moeRank,7); st.quests.M08="available"; }
+  if(qid==="M08") st.moeRank=Math.max(st.moeRank,8);
   unlockSide(st);
 }
 /* ---- 体力・集中力の持ち越し（ユーザー指定：戦闘後も残り、宿屋で全回復） ---- */
@@ -443,6 +552,7 @@ function unlockSide(st){
 }
 function equippedCount(st,id){ let n=0; for(const c of st.roster){ const e=st.equip[c]; if(e.w===id)n++; if(e.a===id)n++; if(e.acc===id)n++; } return n; }
 function availableCount(st,id){ return (st.owned[id]||0)-equippedCount(st,id); }
+function unequippedGearCount(st){ return Object.keys(st.owned).reduce((n,id)=>n+Math.max(0,availableCount(st,id)),0); }
 
 /* ---- 配信（第13・13A節） ---- */
 function newStream(st, hub, host, theme, style){
@@ -510,13 +620,15 @@ function aiCandidates(run, a){
   en.forEach(t=>out.push({type:"attack",target:t}));
   ["greet","plan","thanks"].forEach(l=>out.push({type:"comment",line:l}));
   out.push({type:"guard"},{type:"rest"},{type:"meter"},{type:"family"});
-  // 道具：持っている種類ごとに対象を試す
+  // オートでは購入可能な低レア回復品だけを検討する。所持品や乱数は候補探索中に変更しない。
   const downs=run.party.filter(m=>m.hp<=0).map(m=>m.pos);
-  for(const e of (run.bag||[])){ const it=ITEMS[e.id]; if(!it||e.n<=0) continue; const nd=itemNeeds(it);
-    if(nd==="enemy") en.forEach(t=>out.push({type:"item",item:e.id,target:t}));
-    else if(nd==="ally") al.forEach(p=>out.push({type:"item",item:e.id,ally:p}));
+  for(const e of (run.bag||[])){ const it=ITEMS[e.id]; if(!it||e.n<=0||it.stars>2||it.price<=0||!['S','SD'].includes(it.acq)||it.cat==="攻撃") continue;
+    const nd=itemNeeds(it), effect=it.eff[0];
+    const needsHelp=m=>m.hp>0&&((effect.includes('hp')&&m.hp<m.maxHP&&(m.hp/m.maxHP<=0.85||aiIncoming(run,m)>=m.hp))||(effect.includes('c')&&m.c/10<=0.7));
+    if(nd==="ally") run.party.filter(needsHelp).forEach(m=>out.push({type:"item",item:e.id,ally:m.pos}));
     else if(nd==="down") downs.forEach(p=>out.push({type:"item",item:e.id,ally:p}));
-    else out.push({type:"item",item:e.id}); }
+    else if(nd==="downAll"&&downs.length) out.push({type:"item",item:e.id});
+    else if(nd==="allyAll"&&run.party.some(needsHelp)) out.push({type:"item",item:e.id}); }
   const need={J01:"enemy",J02:"line",J03:"ally",J04:"mode",J05:"enemy",J06:"mode",J07:"none",J08:"ally",J09:"enemy",J10:"none",J11:"none",J12:"none",J13:"ally",J14:"none",J15:"enemy",J16:"enemy",J17:"none",J18:"ally",J19:"enemy",J20:"none",J21:"enemy",J22:"allyOther"}[a.job];
   if(need==="enemy") en.forEach(t=>out.push({type:"skill",target:t}));
   if(need==="ally") al.forEach(p=>out.push({type:"skill",ally:p}));
@@ -530,13 +642,11 @@ function aiCandidates(run, a){
   return out;
 }
 function aiIncoming(run, m){
-  if(m.hp<=0) return 0; let sum=0;
-  for(const t of telegraph(run)){
-    if(t.type==="c") continue;
-    if(t.type==="s" && t.target!==m.pos) continue;
-    let inc=Math.max(0, t.power - run.V*(m.armorD+m.ward)); if(m.guard) inc=Math.ceil(inc/2); sum+=inc;
-  }
-  return sum;
+  if(m.hp<=0) return 0;
+  const sim=JSON.parse(JSON.stringify(run)), before=sim.party[m.pos]?.hp;
+  if(before==null) return 0;
+  enemyPhase(sim);
+  return Math.max(0,before-sim.party[m.pos].hp);
 }
 function aiScore(before, after){
   if(after.state==="won") return 1e6 - after.turn*10;
@@ -559,39 +669,267 @@ function aiScore(before, after){
   if(after.chain.stage>before.chain.stage) s+=12*after.chain.stage;
   return s;
 }
+function aiItemUseful(run,p){
+  if(p.heal.some(h=>h.revive)) return true;
+  const usefulHP=p.heal.some(h=>{
+    const m=run.party[h.pos], need=Math.min(Math.ceil(m.maxHP*0.03),m.maxHP-m.hp);
+    return need>0 && h.amt>=need;
+  });
+  const usefulC=p.cgain.some(g=>g.amt>=1);
+  return usefulHP||usefulC;
+}
+const ITEM_BADGES={B081:"道具を温存",B082:"一つだけの切り札",B083:"備えを生かす",B084:"道具を使い分ける",B085:"回復と補給の準備",B086:"応援を残す",B087:"声援を蓄える",B088:"技術で節約",B089:"自力で補給",B090:"備えと守り"};
+function itemBattleBadges(history,run){
+  const used=Array.isArray(history)?history.filter(x=>x&&typeof x.id==="string"):[];
+  const out=[];
+  if(!used.length) out.push("B081");
+  if(used.length===1) out.push("B082");
+  if(used.length) out.push("B083");
+  if(new Set(used.map(x=>x.id)).size>=2) out.push("B084");
+  if(used.some(x=>x.hp>0)&&used.some(x=>x.c>0)) out.push("B085");
+  if(run?.actionHistoryComplete===true && run.actionFlags){
+    const f=run.actionFlags;
+    if(!f.cheerSpent) out.push("B086");
+    if(run.A>=80) out.push("B087");
+    if(!used.length && f.skillUsed) out.push("B088");
+    if(!used.length && f.mpRestored) out.push("B089");
+    if(used.length && f.guardUsed) out.push("B090");
+  }
+  return out;
+}
+const GROWTH_BADGES={B091:"旅路の一勝",B092:"ライバルを越える",B094:"三職業の共演",B095:"二人の物語",B096:"復活から勝利へ",B097:"逆境を乗り越える",B098:"対処成功"};
+function growthBattleBadges(run){
+  const out=[];
+  if(run.kind==="field") out.push("B091");
+  if(run.kind==="boss") out.push("B092");
+  if(run.actionHistoryComplete===true && run.actionFlags){
+    const f=run.actionFlags;
+    if(Array.isArray(f.jobs)&&new Set(f.jobs).size>=3) out.push("B094");
+    if(Array.isArray(f.actors)&&f.actors.includes("hero")&&f.actors.includes("moe")) out.push("B095");
+    if(f.revived && run.party.every(m=>m.hp>0)) out.push("B096");
+    if(f.lowHeal) out.push("B097");
+    if(run.kind==="boss" && f.cueSolved) out.push("B098");
+  }
+  return out;
+}
+const DEFENSE_BADGES={B036:"全員で帰還",B037:"余力を残す",B038:"万全の勝利"};
+const GUARD_BADGES={B031:"守りの達人",B032:"交代で守る",B033:"防護がある安心",B034:"無傷の受け止め",B039:"強攻撃への備え",B040:"踏みとどまる"};
+function guardBattleBadges(run){
+  if(run.actionHistoryComplete!==true || !run.actionFlags) return [];
+  const f=run.actionFlags, out=[];
+  if(f.guardHit) out.push("B031");
+  if(Array.isArray(f.guardActors) && new Set(f.guardActors).size>=2) out.push("B032");
+  if(f.wardHit) out.push("B033");
+  if(f.zeroHit) out.push("B034");
+  if(f.heavyGuardHit) out.push("B039");
+  if(f.criticalSurvive) out.push("B040");
+  return out;
+}
+const PARTY_BADGES={B023:"二人で進む",B024:"全員に出番",B025:"職業を合わせる"};
+const ACTION_BADGES={B021:"多彩な作戦",B022:"引き出し豊富",B026:"技を使い分ける",B027:"攻撃の二本柱",B028:"攻守の切り替え",B029:"声と技の共演"};
+const HEAL_BADGES={B041:"癒やしの手",B042:"仲間を気遣う",B043:"みんなを癒やす",B044:"立て直し",B045:"もう一度一緒に",B046:"ファミリーのぬくもり",B047:"道具で応急手当",B048:"自分も大切に",B049:"あなたを支える",B050:"元気いっぱい"};
+const MP_BADGES={B051:"守って補給",B052:"ひと息の価値",B053:"技能で補給",B054:"携帯補給",B055:"MPを分け合う",B056:"MPの余裕",B057:"息切れから復帰",B058:"明日への備え",B059:"自然な補給",B060:"MPを使い切らない"};
+const CHEER_BADGES={B061:"最初の声援",B062:"三つの言葉",B063:"挨拶から始まる",B064:"作戦を共有",B065:"感謝の気持ち",B066:"キラコメ完成",B067:"応援が届く",B068:"大きな応援",B069:"満場の応援",B070:"応援を行動に"};
+const SPEED_BADGES={B001:"開幕の決着",B002:"短期決着",B003:"安定した進行",B004:"一人一手の決着",B005:"先手必勝",B006:"止まらない攻勢",B007:"初手の一撃",B008:"決戦を駆ける",B010:"少ない手数"};
+const ATTACK_BADGES={B011:"基本の一撃",B012:"職業の力",B013:"まとめて攻撃",B014:"基本で締める",B015:"技でフィニッシュ",B016:"突破で締める",B018:"コメントを力に",B019:"防御を突破",B020:"鮮やかな大打撃",B030:"攻めと癒やし"};
+function attackBattleBadges(run){
+  if(run.actionHistoryComplete!==true || !run.actionFlags) return [];
+  const f=run.actionFlags, out=[];
+  if(f.attackHit) out.push("B011");
+  if(f.skillUsed) out.push("B012");
+  if(f.multiHit) out.push("B013");
+  if(f.attackFinish) out.push("B014");
+  if(f.skillFinish) out.push("B015");
+  if(f.meterFinish) out.push("B016");
+  if(f.commentAttack) out.push("B018");
+  if(f.ignoreDefHit) out.push("B019");
+  if(f.bigHit) out.push("B020");
+  if(f.damageHit && Array.isArray(f.healTargets) && f.healTargets.length) out.push("B030");
+  return out;
+}
+function speedBattleBadges(run){
+  const out=[];
+  if(run.turn<=1) out.push("B001");
+  if(run.turn<=3) out.push("B002");
+  if(run.turn<=5) out.push("B003");
+  if(run.kind==="boss" && run.turn<=8) out.push("B008");
+  if(run.actionHistoryComplete===true && run.actionFlags){
+    const f=run.actionFlags;
+    if(Number.isInteger(f.actionCount) && f.actionCount<=run.party.length) out.push("B004");
+    if(f.enemyAttacked===false) out.push("B005");
+    if(f.restUsed===false) out.push("B006");
+    if(f.firstTurnDamage) out.push("B007");
+    if(Number.isInteger(f.actionCount) && f.actionCount<=6) out.push("B010");
+  }
+  return out.sort();
+}
+function cheerBattleBadges(run){
+  const out=[];
+  if(run.actionHistoryComplete===true && run.actionFlags){
+    const f=run.actionFlags;
+    const lines=new Set(Array.isArray(f.commentLines)?f.commentLines:[]);
+    if(lines.size) out.push("B061");
+    if(["greet","plan","thanks"].every(x=>lines.has(x))) out.push("B062");
+    if(lines.has("greet")) out.push("B063");
+    if(lines.has("plan")) out.push("B064");
+    if(lines.has("thanks")) out.push("B065");
+    if(f.cheerAction) out.push("B070");
+  }
+  if(run.kiraDone) out.push("B066");
+  const peak=Math.max(run.A,run.actionFlags?.cheerPeak||0);
+  if(peak>=40) out.push("B067");
+  if(peak>=80) out.push("B068");
+  if(peak>=100) out.push("B069");
+  return out.sort();
+}
+function mpBattleBadges(run){
+  const out=[];
+  if(run.actionHistoryComplete===true && run.actionFlags){
+    const f=run.actionFlags;
+    if(f.mpGuard) out.push("B051");
+    if(f.mpRest) out.push("B052");
+    if(f.mpSkill) out.push("B053");
+    if(f.mpItem) out.push("B054");
+    if(Array.isArray(f.mpTargets) && new Set(f.mpTargets).size>=2) out.push("B055");
+    if(f.mpLow) out.push("B057");
+    if(f.mpRestored) out.push("B059");
+    if(f.mpSpent && run.party.every(m=>m.c>=1)) out.push("B060");
+  }
+  if(run.party.every(m=>m.c>=5)) out.push("B056");
+  if(run.party.every(m=>m.c>=3)) out.push("B058");
+  return out.sort();
+}
+function healBattleBadges(run){
+  if(run.actionHistoryComplete!==true || !run.actionFlags) return [];
+  const f=run.actionFlags;
+  const targets=new Set(Array.isArray(f.healTargets)?f.healTargets:[]);
+  const out=[];
+  if(targets.size) out.push("B041");
+  if(targets.size>=2) out.push("B042");
+  if(f.healMulti) out.push("B043");
+  if(f.lowHeal) out.push("B044");
+  if(f.revived) out.push("B045");
+  if(f.familyHeal) out.push("B046");
+  if(f.itemHeal) out.push("B047");
+  if(f.selfHeal) out.push("B048");
+  if(f.otherHeal) out.push("B049");
+  if(f.fullHeal) out.push("B050");
+  return out;
+}
+function actionBattleBadges(run){
+  if(run.actionHistoryComplete!==true || !run.actionFlags) return [];
+  const types=new Set(Array.isArray(run.actionFlags.actionTypes)?run.actionFlags.actionTypes:[]);
+  const skills=new Set(Array.isArray(run.actionFlags.skills)?run.actionFlags.skills:[]);
+  const out=[];
+  if(types.size>=3) out.push("B021");
+  if(types.size>=4) out.push("B022");
+  if(skills.size>=2) out.push("B026");
+  if(types.has("attack")&&types.has("skill")) out.push("B027");
+  if(types.has("guard")&&types.has("skill")) out.push("B028");
+  if(types.has("comment")&&types.has("skill")) out.push("B029");
+  return out;
+}
+function partyBattleBadges(run){
+  if(run.actionHistoryComplete!==true || !run.actionFlags) return [];
+  const actors=new Set(Array.isArray(run.actionFlags.actors)?run.actionFlags.actors:[]);
+  const jobs=new Set(Array.isArray(run.actionFlags.jobs)?run.actionFlags.jobs:[]);
+  const out=[];
+  if(actors.size>=2) out.push("B023");
+  if(run.party.length>0 && run.party.every(m=>actors.has(m.cid))) out.push("B024");
+  if(jobs.size>=2) out.push("B025");
+  return out;
+}
+function defenseBattleBadges(run){
+  const out=[];
+  if(run.actionHistoryComplete===true && run.actionFlags && !run.actionFlags.downSeen) out.push("B036");
+  if(run.party.every(m=>m.hp>0 && m.hp>=m.maxHP/2)) out.push("B037");
+  if(run.party.every(m=>m.hp>0 && m.hp>=m.maxHP)) out.push("B038");
+  return out;
+}
 function aiChoose(run){
   let best=null;
   for(const a of run.party){
     if(a.hp<=0||a.acted) continue;
     for(const act of aiCandidates(run,a)){
       const p=planAction(run,a.pos,act); if(!p.ok) continue;
+      if(act.type==="item" && !aiItemUseful(run,p)) continue;
       const sim=JSON.parse(JSON.stringify(run)); sim.log=[];
       const r=applyAction(sim,a.pos,act); if(!r.ok) continue;
+      if(act.type==="item"&&sim.state!=="won"){
+        const netGain=sim.party.some((m,i)=>m.hp>run.party[i].hp||m.c>run.party[i].c);
+        const newDown=sim.party.some((m,i)=>run.party[i].hp>0&&m.hp<=0);
+        if(!netGain||newDown) continue;
+      }
       let sc=aiScore(run,sim);
+      const winning=sim.state==="won";
       if(act.type==="attack") sc+=0.5;            // 同点なら通常攻撃
       if(act.type==="item"){ const it=ITEMS[act.item]; sc -= 10 + 12*it.stars + Math.min(60,Math.max(it.price,it.sell,40)/4); } // 道具は数に限りがあるため控えめに（レアほど温存）
-      if(!best||sc>best.score) best={idx:a.pos, act, score:sc, label:actLabel(run,a,act), name:a.name};
+      if(!best||(winning&&!best.winning)||(winning===best.winning&&sc>best.score)) best={idx:a.pos, act, score:sc, winning, label:actLabel(run,a,act), name:a.name};
     }
   }
   return best;
 }
 
-/* ---- 道具袋（20種類×各9個。入らない分は預かり所へ） ---- */
+/* ---- 道具袋（通常300種類・イベント400種類、各99個。あふれた分は金庫へ） ---- */
 function bagCount(bag,id){ const e=(bag||[]).find(x=>x.id===id); return e?e.n:0; }
-function bagRoom(bag,id){ const e=bag.find(x=>x.id===id); if(e) return BAG_STACK-e.n; return bag.length<BAG_KINDS?BAG_STACK:0; }
+function bagKindCount(bag,event){ return bag.filter(e=>(ITEMS[e.id]?.acq==="E")===event).length; }
+function bagRoom(bag,id){ const e=bag.find(x=>x.id===id); if(e) return Math.max(0,BAG_STACK-e.n); const event=ITEMS[id]?.acq==="E"; return bagKindCount(bag,event)<(event?EVENT_KINDS:BAG_KINDS)?BAG_STACK:0; }
 function bagAdd(bag,id,n){ const add=Math.min(n,bagRoom(bag,id)); if(add<=0) return 0; const e=bag.find(x=>x.id===id); if(e) e.n+=add; else bag.push({id,n:add}); return add; }
 function bagRemove(bag,id,n){ const i=bag.findIndex(x=>x.id===id); if(i<0) return 0; const r=Math.min(n,bag[i].n); bag[i].n-=r; if(bag[i].n<=0) bag.splice(i,1); return r; }
+const ITEM_VAULT_MAX=999;
+function itemVaultCount(st){ return (st.itemVault||[]).reduce((n,e)=>n+e.n,0); }
+function itemVaultAdd(st,id,n){
+  if((!ITEMS[id]&&!EQUIP[id])||!Number.isSafeInteger(n)||n<1) return 0;
+  st.itemVault=st.itemVault||[];
+  const room=Math.max(0,ITEM_VAULT_MAX-itemVaultCount(st));
+  const gearRoom=EQUIP[id]?Math.max(0,8-(st.owned[id]||0)-bagCount(st.itemVault,id)):n;
+  const add=Math.min(n,room,gearRoom);
+  if(!add) return 0;
+  const e=st.itemVault.find(x=>x.id===id); if(e) e.n+=add; else st.itemVault.push({id,n:add});
+  return add;
+}
+function transferVaultItem(st,mode,id,n){
+  if(!["deposit","withdraw"].includes(mode)||(!ITEMS[id]&&!EQUIP[id])||!Number.isSafeInteger(n)||n<1||!Array.isArray(st.bag)||!Array.isArray(st.itemVault)) return false;
+  const stored=bagCount(st.itemVault,id),total=itemVaultCount(st);
+  if(!Number.isSafeInteger(total)||total>ITEM_VAULT_MAX||st.itemVault.some(e=>!ITEMS[e.id]&&!EQUIP[e.id]||!Number.isSafeInteger(e.n)||e.n<1)) return false;
+  if(EQUIP[id]){
+    if((st.owned[id]||0)+stored>8) return false;
+    if(mode==="deposit"){
+      if(availableCount(st,id)<n||total+n>ITEM_VAULT_MAX) return false;
+      st.owned[id]-=n; itemVaultAdd(st,id,n);
+    }else{
+      if(stored<n||(st.owned[id]||0)+n>8||unequippedGearCount(st)+n>UNEQUIPPED_GEAR_MAX) return false;
+      bagRemove(st.itemVault,id,n); st.owned[id]=(st.owned[id]||0)+n;
+    }
+    return true;
+  }
+  if(mode==="deposit"){
+    if(bagCount(st.bag,id)<n||total+n>ITEM_VAULT_MAX) return false;
+    bagRemove(st.bag,id,n); itemVaultAdd(st,id,n);
+  }else{
+    if(stored<n||bagRoom(st.bag,id)<n) return false;
+    bagRemove(st.itemVault,id,n); bagAdd(st.bag,id,n);
+  }
+  return true;
+}
 function giveItem(st,id,n,res,why){
   st.bag=st.bag||[]; st.keep=st.keep||[];
-  const got=bagAdd(st.bag,id,n); let rest=n-got, kept=0;
+  const got=bagAdd(st.bag,id,n); let rest=n-got, vaulted=0, kept=0;
+  if(rest>0){ vaulted=itemVaultAdd(st,id,rest); rest-=vaulted; }
   while(rest>0 && st.keep.length<KEEP_MAX){ st.keep.push(id); rest--; kept++; }
-  if(res){ res.items=res.items||[]; res.itemsKept=res.itemsKept||[]; res.itemsLost=res.itemsLost||[];
-    if(got) res.items.push({id,n:got,why}); if(kept) res.itemsKept.push({id,n:kept}); if(rest) res.itemsLost.push({id,n:rest}); }
-  return {got,kept,lost:rest};
+  if(res){ res.items=res.items||[]; res.itemsVaulted=res.itemsVaulted||[]; res.itemsKept=res.itemsKept||[]; res.itemsLost=res.itemsLost||[];
+    if(got) res.items.push({id,n:got,why}); if(vaulted) res.itemsVaulted.push({id,n:vaulted}); if(kept) res.itemsKept.push({id,n:kept}); if(rest) res.itemsLost.push({id,n:rest}); }
+  return {got,vaulted,kept,lost:rest};
 }
-function flushKeep(st){ // 預かり所から袋へ（安全地帯で呼ぶ）
-  if(!st.keep||!st.keep.length) return 0; let moved=0; const left=[];
-  for(const id of st.keep){ if(bagAdd(st.bag,id,1)) moved++; else left.push(id); }
+function flushKeep(st){ // 預かり所から袋・金庫へ（安全地帯で呼ぶ）
+  const moved={bagged:0,vaulted:0};
+  if(!st.keep||!st.keep.length) return moved;
+  const left=[];
+  for(const id of st.keep){
+    if(bagAdd(st.bag,id,1)) moved.bagged++;
+    else if(itemVaultAdd(st,id,1)) moved.vaulted++;
+    else left.push(id);
+  }
   st.keep=left; return moved;
 }
 function itemAmount(it, k, maxHP, V, boost){

@@ -99,7 +99,8 @@ const BOSSES = {
   LB01:{name:"コメラモス", q:3, areaId:"KY01-A3", cue:"guard", hub:"KY01"},
   B01: {name:"ハートーマ", q:8, areaId:"KY02-A3", cue:"guard", hub:"KY02"},
   B02: {name:"シオカゼラ", q:11, areaId:"KY03-A3", cue:"guard", hub:"KY03"},
-  B03: {name:"ヒカリカエシ", q:14, areaId:"KY04-A3", cue:"guard", hub:"KY04"}
+  B03: {name:"ヒカリカエシ", q:14, areaId:"KY04-A3", cue:"guard", hub:"KY04"},
+  B04: {name:"カゼマチ", q:17, areaId:"KY05-A3", cue:"guard", hub:"KY05"}
 };
 
 /* ボスの少人数補正（ユーザー指定の2人旅に合わせた本作の調整）。HPと攻撃に掛ける */
@@ -124,6 +125,8 @@ const QUESTS = {
        goal:"唐津市のA1～A3で通常敵を2体倒し、海辺の見晴らしでシオカゼラに挑む。その後、配信で80点以上。"},
   M04:{hub:"KY04", name:"街灯をつなぐ声", kills:2, boss:"B03", stream:true, main:true,
        goal:"佐賀市のA1～A3で通常敵を2体倒し、街灯の広場でヒカリカエシに挑む。その後、配信で80点以上。"},
+  M05:{hub:"KY05", name:"港から届く返事", kills:2, boss:"B04", stream:true, main:true,
+       goal:"佐世保市のA1～A3で通常敵を2体倒し、展望広場でカゼマチに挑む。その後、配信で80点以上。"},
   S01:{hub:"KY01", name:"ふるさとの紹介文", kills:1, main:false, npc:"akari",
        goal:"灯里と故郷の紹介文を考え、福岡市のA1～A3で通常敵を1体倒す。"},
   S02:{hub:"KY02", name:"港の拍手練習", kills:1, main:false, npc:"sota",
@@ -145,7 +148,7 @@ const STREAM_ACTS = {
   like:{name:"いいねリレー", req:"光のリレーを見たい"},
   kira:{name:"キラコメ演出", req:"短いキラコメで彩って"}
 };
-const STREAM_REQ = { PR01:["first","local","reply","thanks"], PR02:["local","reply","first","thanks"] };
+const STREAM_REQ = { PR01:["first","local","reply","thanks"], PR02:["local","reply","first","thanks"], PR03:["local","first","reply","thanks"] };
 const STREAM_THEMES = { newbie:{name:"初見歓迎",act:"first"}, local:{name:"地域の話",act:"local"}, chat:{name:"ゆったり雑談",act:"reply"} };
 const STREAM_TIMES = ["21時00分","21時20分","21時40分","21時59分"];
 
@@ -283,6 +286,7 @@ const MAPS = {
       {id:"sasebo_sign1",x:9,y:15,type:"sign",label:"案内板（港沿いの道）",area:"KY05-A1"},
       {id:"sasebo_sign2",x:29,y:15,type:"sign",label:"案内板（坂の通り）",area:"KY05-A2"},
       {id:"sasebo_sign3",x:20,y:9,type:"sign",label:"案内板（展望広場）",area:"KY05-A3"},
+      {id:"sasebo_boss",x:20,y:5,type:"boss",label:"展望広場の奥（ボス待機地点）",boss:"B04",walk:true},
       {id:"sasebo_inn",x:20,y:18,type:"inn",label:"佐世保市の宿屋"},
       {id:"sasebo_rest",x:30,y:18,type:"rest",label:"休憩所（日付を進める）"},
       {id:"sasebo_board",x:26,y:13,type:"board",label:"編成ボード"},
@@ -322,8 +326,8 @@ const NPCS = {
     first:p=>[["美鈴","遊歩道の足元灯、点いたり消えたりしてるの。乱れのせいかしら。"]],
     normal:p=>[["美鈴","係留ロープの結び目って、きれいな形をしてるのよ。"]] },
   saseboGuide:{name:"佐世保市の案内人", hub:"KY05", sprite:[PAL.sand,PAL.sea],
-    first:p=>[["案内人",`${p}さん、佐世保市へようこそ。港沿いの道から展望広場まで探索できます。`],["案内人","長崎編の依頼と地域ボス・配信はまだ準備中です。佐賀市へは西の門から戻れます。"]],
-    normal:p=>[["案内人","港沿いの道・坂の通り・展望広場には乱れが残っています。準備を整えてください。"]]},
+    first:p=>[["案内人",`${p}さん、佐世保市へようこそ。港沿いの道から展望広場まで探索できます。`],["案内人","展望広場の声が風に散っています。依頼帳でM05を受け、港沿いと坂道から調べてください。"]],
+    normal:p=>[["案内人","港沿いの道・坂の通り・展望広場には乱れが残っています。佐賀市へは西の門から戻れます。"]]},
   sagaCityGuide:{name:"佐賀市の案内人", hub:"KY04", sprite:[PAL.sand,PAL.coral],
     first:p=>[["案内人",`${p}さん、佐賀市へようこそ。唐津での配信を聞きました。`],["案内人","街灯の広場で声が重なっています。依頼帳でM04を受け、川沿いと駅前から調べてください。"]],
     normal:p=>[["案内人","唐津へは西の門から戻れます。街灯の広場へ向かう前に宿屋で整えてください。"]]},
@@ -389,7 +393,16 @@ const SCENES = {
   ]},
   RANK_C1:{title:"もえのランク C1", lines:p=>[
     ["もえ","佐賀市の声を、みんなと一緒に届けられたね。"],
-    ["","もえのシナリオ到達ランクがC1になった。佐賀市の東門から佐世保市へ進めます。探索はできますが、長崎編の依頼と地域ボス・配信は開発中です。"]
+    ["","もえのシナリオ到達ランクがC1になった。佐賀市の東門から佐世保市へ進み、M05を受けられます。"]
+  ]},
+  M05_BOSS:{title:"展望広場の風", lines:p=>[
+    ["","展望広場に重なっていた声がほどけ、港へ向かう風が落ち着いた。"],
+    ["もえ",`${p}、港沿いと坂道で聞いた返事を配信でも届けよう。`],
+    ["","佐世保市での配信準備が整った。依頼帳から配信を始めよう。"]
+  ]},
+  RANK_C2:{title:"もえのランク C2", lines:p=>[
+    ["もえ","佐世保市からの返事も、みんなへ届けられたね。"],
+    ["","もえのシナリオ到達ランクがC2になった。長崎県の次の地域は開発中です。"]
   ]},
   S01_DONE:{title:"ふるさとの紹介文", lines:p=>[
     ["灯里","できた！『待ち合わせの広場。帰ってきた人に、おかえりを言う場所』。"],

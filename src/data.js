@@ -102,7 +102,8 @@ const BOSSES = {
   B03: {name:"ヒカリカエシ", q:14, areaId:"KY04-A3", cue:"guard", hub:"KY04"},
   B04: {name:"カゼマチ", q:17, areaId:"KY05-A3", cue:"guard", hub:"KY05"},
   B05: {name:"オトノコダマ", q:20, areaId:"KY06-A3", cue:"guard", hub:"KY06"},
-  B06: {name:"コエノカゲ", q:23, areaId:"KY07-A3", cue:"guard", hub:"KY07"}
+  B06: {name:"コエノカゲ", q:23, areaId:"KY07-A3", cue:"guard", hub:"KY07"},
+  B07: {name:"カゼノコダマ", q:26, areaId:"KY08-A3", cue:"guard", hub:"KY08"}
 };
 
 /* ボスの少人数補正（ユーザー指定の2人旅に合わせた本作の調整）。HPと攻撃に掛ける */
@@ -133,6 +134,8 @@ const QUESTS = {
        goal:"長崎市のA1～A3で通常敵を2体倒し、丘の眺めでオトノコダマに挑む。その後、配信で80点以上。"},
   M07:{hub:"KY07", name:"石垣の先の声", kills:2, boss:"B06", stream:true, main:true,
        goal:"熊本市のA1～A3で通常敵を2体倒し、石垣の広場でコエノカゲに挑む。その後、配信で80点以上。"},
+  M08:{hub:"KY08", name:"風を渡る返事", kills:2, boss:"B07", stream:true, main:true,
+       goal:"阿蘇市のA1～A3で通常敵を2体倒し、稜線の広場でカゼノコダマに挑む。その後、配信で80点以上。"},
   S01:{hub:"KY01", name:"ふるさとの紹介文", kills:1, main:false, npc:"akari",
        goal:"灯里と故郷の紹介文を考え、福岡市のA1～A3で通常敵を1体倒す。"},
   S02:{hub:"KY02", name:"港の拍手練習", kills:1, main:false, npc:"sota",
@@ -341,6 +344,7 @@ const MAPS = {
       {id:"aso_sign1",x:9,y:15,type:"sign",label:"案内板（草地の道）",area:"KY08-A1"},
       {id:"aso_sign2",x:29,y:15,type:"sign",label:"案内板（風の通り）",area:"KY08-A2"},
       {id:"aso_sign3",x:20,y:7,type:"sign",label:"案内板（稜線の広場）",area:"KY08-A3"},
+      {id:"aso_boss",x:20,y:4,type:"boss",label:"稜線の広場の奥（ボス待機地点）",boss:"B07",walk:true},
       {id:"aso_inn",x:20,y:18,type:"inn",label:"阿蘇市の宿屋"},
       {id:"aso_rest",x:30,y:18,type:"rest",label:"休憩所（日付を進める）"},
       {id:"aso_board",x:26,y:16,type:"board",label:"編成ボード"},
@@ -363,7 +367,7 @@ const FUTURE_HUBS = [["KY09","別府市","大分"],["KY10","大分市","大分"]
 /* ===== 住民と会話 ===== */
 const NPCS = {
   asoGuide:{name:"阿蘇市の案内人", hub:"KY08", sprite:[PAL.sand,PAL.sea],
-    first:p=>[["案内人",`${p}さん、阿蘇市へようこそ。草地の道から稜線の広場まで歩けます。`],["案内人","依頼と配信はまだ準備中です。熊本市へは西の門から戻れます。"]],
+    first:p=>[["案内人",`${p}さん、阿蘇市へようこそ。草地の道から稜線の広場まで歩けます。`],["案内人","風の中で返事が散っています。依頼帳でM08を受け、街で調べてください。"]],
     normal:p=>[["案内人","草地の道・風の通り・稜線の広場を探索できます。宿屋と休憩所もどうぞ。"]]},
   kumamotoGuide:{name:"熊本市の案内人", hub:"KY07", sprite:[PAL.sand,PAL.ink],
     first:p=>[["案内人",`${p}さん、熊本市へようこそ。川辺の小径から石垣の広場まで歩けます。`],["案内人","石垣の奥に声が残っています。依頼帳でM07を受け、街で調べてください。"]],
@@ -486,7 +490,16 @@ const SCENES = {
   ]},
   RANK_B1:{title:"もえのランク B1", lines:p=>[
     ["もえ","熊本市の返事も、みんなに届いたね。"],
-    ["","もえのシナリオ到達ランクがB1になった。熊本市の東門から阿蘇市へ進めます。"]
+    ["","もえのシナリオ到達ランクがB1になった。熊本市の東門から阿蘇市へ進み、M08を受けられます。"]
+  ]},
+  M08_BOSS:{title:"稜線の声", lines:p=>[
+    ["","風に散っていた声がまとまり、草地と通りからの返事が聞こえ始めた。"],
+    ["もえ",`${p}、阿蘇市で聞いた声を配信でも届けよう。`],
+    ["","阿蘇市での配信準備が整った。依頼帳から配信を始めよう。"]
+  ]},
+  RANK_B2:{title:"もえのランク B2", lines:p=>[
+    ["もえ","阿蘇市の風の中でも、返事を届けられたね。"],
+    ["","もえのシナリオ到達ランクがB2になった。この先の地域は開発中です。"]
   ]},
   S01_DONE:{title:"ふるさとの紹介文", lines:p=>[
     ["灯里","できた！『待ち合わせの広場。帰ってきた人に、おかえりを言う場所』。"],

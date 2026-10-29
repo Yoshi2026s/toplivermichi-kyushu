@@ -873,7 +873,8 @@ function renderWorld(){
       return `<li>${p.id} ${esc(p.name)}：${hubs.length?`拠点あり（${hubs.map(id=>esc(HUBS[id].name)).join("・")}）・${visitedPrefs.some(v=>v.id===p.id)?"訪問済み":"未訪問"}`:"地理台帳のみ・移動不可"}</li>`;
     }).join("")}</ul></details>`;
   }).join("");
-  h+=`</div><h3 class="label">この先の拠点</h3><ul class="list dim">${FUTURE_HUBS.map(([id,n,p])=>`<li>${id} ${p}・${n}　未解放</li>`).join("")}</ul>
+  const routeDirectory=NATIONAL_ROUTES.filter(r=>r.status==="playable").map(r=>`<li>${esc(HUBS[r.from].name)} ↔ ${esc(HUBS[r.to].name)}：${nationalRouteAvailable(st,r.from,r.to)?"経路解放済み":r.unlock==="fukuokaClear"?"福岡編の完了待ち":"唐津編M03の完了待ち"}</li>`).join("");
+  h+=`</div><h3 class="label">実装済みの経路</h3><ul class="list">${routeDirectory}</ul><p class="small">初回到達は街の門から向かいます。訪問後に地図から移動できます。</p><h3 class="label">この先の拠点</h3><ul class="list dim">${FUTURE_HUBS.map(([id,n,p])=>`<li>${id} ${p}・${n}　未解放</li>`).join("")}</ul>
     <h3 class="label">全国編の準備状況</h3><p class="small">${NATIONAL_REGIONS.length}地方・${NATIONAL_PREFECTURES.length}都道府県の地理台帳を準備中。現在遊べるのは福岡県の福岡市・北九州市、佐賀県の唐津市（M03まで）と佐賀市（M04まで）です。その先は未収録です。</p>
     <h3 class="label">全国の都道府県</h3><p class="small">拠点ありは${playablePrefs.length}/${NATIONAL_PREFECTURES.length}都道府県。訪問済みは実装済みの${visitedPrefs.length}/${playablePrefs.length}県。地理台帳のみの県には移動できません。</p>${regionDirectory}`;
   return h;
@@ -882,8 +883,8 @@ function worldTravelStatus(st,from,to,safe){
   const route=NATIONAL_ROUTES.find(r=>r.status==="playable"&&((r.from===from&&r.to===to)||(r.from===to&&r.to===from)));
   if(!route) return {available:false,reason:"現在地からの直通経路はありません。隣接する拠点を経由してください。"};
   if(!nationalRouteAvailable(st,from,to)) return {available:false,reason:route.unlock==="fukuokaClear"?"福岡編の完了後に開きます。":"唐津編M03の完了後に開きます。"};
-  if(!st.visitedHubs.includes(to)&&to==="KY03") return {available:false,reason:"初回は北九州の東門から向かってください。"};
-  if(!st.visitedHubs.includes(to)&&to==="KY04") return {available:false,reason:"初回は唐津の東門から向かってください。"};
+  if(!(st.visitedHubs||[]).includes(to)&&to==="KY03") return {available:false,reason:"初回は北九州の東門から向かってください。"};
+  if(!(st.visitedHubs||[]).includes(to)&&to==="KY04") return {available:false,reason:"初回は唐津の東門から向かってください。"};
   if(!safe) return {available:false,reason:"安全地帯から出発できます。"};
   if(st.slots<1) return {available:false,reason:"旅程枠が足りません。休息すると回復します。"};
   return {available:true,reason:""};

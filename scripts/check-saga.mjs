@@ -6,6 +6,12 @@ const root=resolve(import.meta.dirname,'..');
 const files=['data_enemies.js','data_saga_enemies.js','data_items.js','data_national.js','data.js','core.js'];
 const source=files.map(f=>readFileSync(resolve(root,'src',f),'utf8')).join('\n');
 const ui=readFileSync(resolve(root,'src/ui.js'),'utf8');
+const toResult=ui.match(/function toResult\(\)\{[\s\S]*?\n\}/)?.[0];
+if(!toResult) throw new Error('battle result action missing');
+for(const invalid of [{screen:'explore',state:'won'},{screen:'battle',state:'input'},{screen:'battle',state:'lost'},{screen:'battle',state:'won',readOnly:true},{screen:'battle',state:'won',sheet:'party'}]){
+  const G={st:{run:{state:invalid.state}},screen:invalid.screen,readOnly:!!invalid.readOnly,sheet:invalid.sheet||null,dlg:null};
+  runInNewContext(`${toResult}\ntoResult()`,{G,applyVictory:()=>{throw new Error('stale battle result applied')}});
+}
 const migration=ui.match(/function migrate\(s\)\{[\s\S]*?\n\}/)?.[0];
 const supportAvailable=ui.match(/function supportAvailable\(st,id\)\{[\s\S]*?\n\}/)?.[0];
 if(!migration||!supportAvailable) throw new Error('save migration missing');

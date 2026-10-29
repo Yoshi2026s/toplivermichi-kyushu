@@ -187,11 +187,11 @@ const SND = (()=>{
     gain.linearRampToValueAtTime(value,now+time);
   }
   function setOn(v){
-    if(v){ if(!init()){ on=false; return false; } if(ac.state==="suspended") ac.resume(); on=true; outputLevel(0.85,0.06); const c=cur; cur=null; if(c) play(c); }
-    else { on=false; stopBgm(); outputLevel(0.0001,0.03); }
+    if(v){ if(!init()){ on=false; return false; } if(ac.state==="suspended") ac.resume(); if(on) return true; on=true; outputLevel(0.85,0.06); const c=cur; cur=null; if(c) play(c); }
+    else { if(!on) return false; on=false; if(jingleT){ clearTimeout(jingleT); jingleT=null; } stopBgm(); outputLevel(0.0001,0.03); }
     return on;
   }
-  function suspend(){ stopBgm(); if(ac&&ac.state==="running") ac.suspend().catch(()=>{}); }
+  function suspend(){ if(jingleT){ clearTimeout(jingleT); jingleT=null; } stopBgm(); if(ac&&ac.state==="running") ac.suspend().catch(()=>{}); }
   function resume(){ if(on&&ac){ ac.resume().catch(()=>{}); const c=cur; cur=null; if(c) play(c); } }
   return { play, jingle, sfx, setOn, suspend, resume, get on(){return on;}, get current(){return cur;} };
 })();

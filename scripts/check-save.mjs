@@ -23,9 +23,9 @@ missingVisit.mapId='KY03'; delete missingVisit.visitedMaps; delete missingVisit.
 migrateVisit(missingVisit);
 if(!missingVisit.visitedMaps.includes('KY03')||!missingVisit.visitedHubs.includes('KY03')) throw new Error('current location missing from migrated visits');
 const partialVisit=game.newGame('部分訪問','男性');
-partialVisit.mapId='KY04'; partialVisit.visitedMaps=['KY01']; partialVisit.visitedHubs=['KY01'];
+partialVisit.mapId='KY04'; partialVisit.visitedMaps=['KY01','KY02','KY03']; partialVisit.visitedHubs=['KY01'];
 migrateVisit(partialVisit);
-if(!partialVisit.visitedMaps.includes('KY04')||!partialVisit.visitedHubs.includes('KY04')||!partialVisit.visitedHubs.includes('KY01')) throw new Error('partial visit history was not repaired');
+if(!partialVisit.visitedMaps.includes('KY04')||!['KY01','KY02','KY03','KY04'].every(id=>partialVisit.visitedHubs.includes(id))) throw new Error('partial visit history was not repaired');
 db.auto=makeRecord(newer,2); db['auto-prev']=makeRecord(old,1);
 let loaded=await game.loadSave();
 if(loaded.state.profile.name!=='新しい記録'||loaded.fromPrev||loaded.storage!=='indexeddb') throw new Error('current save not loaded');

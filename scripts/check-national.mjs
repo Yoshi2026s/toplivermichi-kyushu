@@ -87,6 +87,7 @@ if(!worldVisited.includes('北九州市 ↔ 唐津市：経路解放済み')||!w
 const travelStatus=runInNewContext(`${source}\n${routeFn}\n${statusFn}\nworldTravelStatus`);
 const base={visitedHubs:['KY01','KY02'],fukuokaClear:false,quests:{M03:'locked'},slots:6};
 if(!travelStatus(base,'KY01','KY02',true).available||!travelStatus(base,'KY01','KY03',true).reason.includes('直通経路')||!travelStatus(base,'KY02','KY03',true).reason.includes('福岡編')) fail('national map route reasons failed');
+if(!travelStatus({...base,visitedHubs:['KY01']},'KY01','KY02',true).reason.includes('福岡市の東門')) fail('first visit to Kitakyushu bypassed the gate');
 if(!travelStatus({...base,fukuokaClear:true},'KY02','KY03',true).reason.includes('東門')||!travelStatus({...base,fukuokaClear:true,visitedHubs:[...base.visitedHubs,'KY03']},'KY03','KY04',true).reason.includes('M03')) fail('national map unlock reasons failed');
 const open={...base,fukuokaClear:true,visitedHubs:['KY01','KY02','KY03','KY04'],quests:{M03:'complete'}};
 if(!travelStatus(open,'KY03','KY04',true).available||!travelStatus(open,'KY03','KY04',false).reason.includes('安全地帯')||!travelStatus({...open,slots:0},'KY03','KY04',true).reason.includes('旅程枠')) fail('national map travel readiness failed');

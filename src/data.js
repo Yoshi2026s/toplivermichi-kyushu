@@ -1,5 +1,5 @@
 /* ===== data: 福岡編と佐賀・唐津編 ===== */
-const GAME_VERSION = "5.29-dev";
+const GAME_VERSION = "5.30";
 const SCHEMA_VERSION = 5;
 
 const PAL = {
@@ -538,6 +538,7 @@ for(const [id,r] of Object.entries(ITEMS_RAW)){
 /* 店の道具：地域段階1（福岡）の購入可能品 */
 const SHOP_ITEMS = Object.values(ITEMS).filter(it=>(it.acq==="S"||it.acq==="SD")&&it.tier<=1).map(it=>it.id);
 const INITIAL_ITEMS = [["IT001",5],["IT033",3]];
+
 
 
 

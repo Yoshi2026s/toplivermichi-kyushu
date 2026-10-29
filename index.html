@@ -3091,17 +3091,19 @@ function renderWorld(){
     h+=`<div class="qcard"><div class="srow"><b>${id} ${esc(H.pref)}・${esc(H.name)}${H.home?"（故郷）":""}</b><span class="tag">${here?"現在地":visited?"訪問済み":"未訪問"}</span></div>
       ${here?"":`<button class="btn" data-a="worldGo" data-v="${id}" ${travel.available?"":"disabled"}>向かう（1枠）</button>${travel.reason?`<p class="small">${esc(travel.reason)}</p>`:""}`}</div>`;
   }
+  const playablePrefs=NATIONAL_PREFECTURES.filter(p=>(NATIONAL_IMPLEMENTED_HUBS[p.id]||[]).some(id=>Object.hasOwn(HUBS,id)));
+  const visitedPrefs=playablePrefs.filter(p=>(NATIONAL_IMPLEMENTED_HUBS[p.id]||[]).some(id=>(st.visitedHubs||[]).includes(id)));
   const regionDirectory=NATIONAL_REGIONS.map(([regionId,regionName])=>{
     const prefs=NATIONAL_PREFECTURES.filter(p=>p.regionId===regionId);
     const withHubs=prefs.filter(p=>Array.isArray(NATIONAL_IMPLEMENTED_HUBS[p.id])&&NATIONAL_IMPLEMENTED_HUBS[p.id].some(id=>Object.hasOwn(HUBS,id))).length;
     return `<details><summary>${esc(regionName)}（拠点あり ${withHubs}/${prefs.length}県）</summary><ul class="list">${prefs.map(p=>{
       const hubs=(NATIONAL_IMPLEMENTED_HUBS[p.id]||[]).filter(id=>Object.hasOwn(HUBS,id));
-      return `<li>${p.id} ${esc(p.name)}：${hubs.length?`拠点あり（${hubs.map(id=>esc(HUBS[id].name)).join("・")}）`:"地理台帳のみ・移動不可"}</li>`;
+      return `<li>${p.id} ${esc(p.name)}：${hubs.length?`拠点あり（${hubs.map(id=>esc(HUBS[id].name)).join("・")}）・${visitedPrefs.some(v=>v.id===p.id)?"訪問済み":"未訪問"}`:"地理台帳のみ・移動不可"}</li>`;
     }).join("")}</ul></details>`;
   }).join("");
   h+=`</div><h3 class="label">この先の拠点</h3><ul class="list dim">${FUTURE_HUBS.map(([id,n,p])=>`<li>${id} ${p}・${n}　未解放</li>`).join("")}</ul>
     <h3 class="label">全国編の準備状況</h3><p class="small">${NATIONAL_REGIONS.length}地方・${NATIONAL_PREFECTURES.length}都道府県の地理台帳を準備中。現在遊べるのは福岡県の福岡市・北九州市、佐賀県の唐津市（M03まで）と佐賀市（M04まで）です。その先は未収録です。</p>
-    <h3 class="label">全国の都道府県</h3><p class="small">拠点ありは${Object.keys(NATIONAL_IMPLEMENTED_HUBS).length}/${NATIONAL_PREFECTURES.length}都道府県。地理台帳のみの県には移動できません。</p>${regionDirectory}`;
+    <h3 class="label">全国の都道府県</h3><p class="small">拠点ありは${playablePrefs.length}/${NATIONAL_PREFECTURES.length}都道府県。訪問済みは実装済みの${visitedPrefs.length}/${playablePrefs.length}県。地理台帳のみの県には移動できません。</p>${regionDirectory}`;
   return h;
 }
 function worldTravelStatus(st,from,to,safe){

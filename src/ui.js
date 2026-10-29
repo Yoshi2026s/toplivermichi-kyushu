@@ -916,13 +916,16 @@ function nationalRouteAvailable(st,from,to){
 }
 function nationalItinerary(st,from,to){
   if(!Object.hasOwn(HUBS,from)||!Object.hasOwn(HUBS,to)) return null;
-  const queue=[[from]],seen=new Set([from]);
-  for(const path of queue){
-    const last=path.at(-1);
-    if(last===to) return path;
-    for(const route of NATIONAL_ROUTES.filter(r=>r.status==="playable"&&(r.from===last||r.to===last))){
-      const next=route.from===last?route.to:route.from;
-      if(!seen.has(next)&&Object.hasOwn(HUBS,next)){seen.add(next);queue.push([...path,next]);}
+  for(const unlockedOnly of [true,false]){
+    const queue=[[from]],seen=new Set([from]);
+    for(const path of queue){
+      const last=path.at(-1);
+      if(last===to) return path;
+      for(const route of NATIONAL_ROUTES.filter(r=>r.status==="playable"&&(r.from===last||r.to===last))){
+        const next=route.from===last?route.to:route.from;
+        if(unlockedOnly&&!nationalRouteAvailable(st,last,next)) continue;
+        if(!seen.has(next)&&Object.hasOwn(HUBS,next)){seen.add(next);queue.push([...path,next]);}
+      }
     }
   }
   return null;

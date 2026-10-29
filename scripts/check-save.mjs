@@ -34,6 +34,9 @@ if(!saseboVisit.visitedHubs.includes('KY05')||saseboVisit.mapId!=='KY05'||sasebo
 if(!saseboVisit.roster.includes('kayo')||!saseboVisit.vitals.kayo) throw new Error('interrupted Sasebo arrival did not recover Kayo');
 migrateVisit(saseboVisit);
 if(saseboVisit.roster.filter(cid=>cid==='kayo').length!==1) throw new Error('Sasebo join recovery duplicated Kayo');
+const nagasakiVisit=game.newGame('長崎市の記録','女性');nagasakiVisit.mapId='KY06';nagasakiVisit.pos={x:12,y:20};nagasakiVisit.quests.M05='complete';nagasakiVisit.visitedMaps=['KY01','KY06'];nagasakiVisit.visitedHubs=['KY01'];
+migrateVisit(nagasakiVisit);
+if(!nagasakiVisit.visitedHubs.includes('KY06')||nagasakiVisit.mapId!=='KY06'||nagasakiVisit.pos.x!==12||nagasakiVisit.quests.M05!=='complete') throw new Error('Nagasaki city visit migration lost location or quest');
 const lockedSupport=game.newGame('未解放支援','女性');lockedSupport.support='PR03';migrateVisit(lockedSupport);
 if(lockedSupport.support!==null) throw new Error('locked Nagasaki support survived migration');
 const unlockedSupport=game.newGame('解放済支援','女性');unlockedSupport.talked.saseboGuide=true;unlockedSupport.quests.M05='complete';unlockedSupport.support='PR03';migrateVisit(unlockedSupport);

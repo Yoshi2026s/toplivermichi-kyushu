@@ -1251,9 +1251,9 @@ const ACT = {
     await commit(); G.starting=false; G.hasSave=true;
     G.screen="explore"; exploreBgm(); render(); playScene("HS00");
   },
-  async continue(){ const s=await loadSave(); if(!s) return toast("記録が見つかりません。"); G.st=migrate(s.state); G.soundWant=null; setSave(s.fromPrev?"前の記録から復旧":s.storage==="local"?"保存済み（簡易保存）":"保存済み"); if(G.st.settings.sound===false&&SND.on) SND.setOn(false); else if(G.st.settings.sound!==false&&!SND.on) SND.setOn(true);
+  async continue(){ const s=await loadSave(); if(!s) return toast("記録が見つかりません。"); const hadStream=!!s.state.stream; G.st=migrate(s.state); G.soundWant=null; setSave(s.fromPrev?"前の記録から復旧":s.storage==="local"?"保存済み（簡易保存）":"保存済み"); if(G.st.settings.sound===false&&SND.on) SND.setOn(false); else if(G.st.settings.sound!==false&&!SND.on) SND.setOn(true);
     if(G.st.run){ G.screen="battle"; SND.play(G.st.run.kind==="boss"?"boss":"battle"); } else if(G.st.stream){ G.screen="stream"; SND.play("stream"); } else { G.screen="explore"; exploreBgm(); }
-    render(); if(s.fromPrev) toast("前の世代の記録から再開しました。設定からバックアップを確認できます。"); },
+    render(); const notices=[]; if(s.fromPrev) notices.push("前の世代の記録から再開しました。設定からバックアップを確認できます。"); if(hadStream&&!G.st.stream) notices.push("配信記録に欠損があったため解除しました。依頼帳で状態を確認してください。"); if(notices.length) toast(notices.join(" ")); },
   toTitle(){ G.sheet=null; G.screen="title"; G.dlg=null; SND.play("title"); render(); },
   openSheet(el){ openSheet(el.dataset.k); }, closeSheet(){ closeSheet(); },
   badgeFilter(){ if(G.sheet!=="record") return; G.sheetData.badgeOnlyUnowned=!G.sheetData.badgeOnlyUnowned; render(); },

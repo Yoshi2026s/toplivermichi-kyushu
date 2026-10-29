@@ -21,8 +21,8 @@ function commit(){
   const json=JSON.stringify(st); const rec={gen:st.saveGeneration, time:Date.now(), state:json, sum:checksum(json)};
   setSave("保存中…");
   saveChain = saveChain.then(async()=>{
-    try{ const prev=await DB.get("auto"); await DB.putPair(rec, prev&&prev.gen<rec.gen?prev:null); setSave("保存済み"); }
-    catch(e){ try{ localStorage.setItem("tlr-kyushu-auto", JSON.stringify(rec)); setSave("保存済み（簡易保存）"); }catch(e2){ setSave("未保存：この端末では保存できません。設定からバックアップを書き出してください。"); } }
+    try{ const prev=await DB.get("auto"); await DB.putPair(rec, prev&&prev.gen<rec.gen?prev:null); setSave("保存済み"); return true; }
+    catch(e){ try{ localStorage.setItem("tlr-kyushu-auto", JSON.stringify(rec)); setSave("保存済み（簡易保存）"); return true; }catch(e2){ setSave("未保存：この端末では保存できません。設定からバックアップを書き出してください。"); return false; } }
   });
   return saveChain;
 }
@@ -1092,7 +1092,7 @@ function canTradeAtShop(d){ return !!G.st&&!G.readOnly&&G.screen==="explore"&&G.
 function itemText(it,V){ return it.text.replace(/(\d+)×V/g,(m,n)=>String(+n*V)).replace("−防御のダメージ","から敵の防御力を引いたダメージ"); }
 function keepFlush(){ const st=G.st; if(!st||G.readOnly||G.screen!=="explore"||G.sheet||G.dlg||st.run||!st.keep||!st.keep.length||!isSafe()) return 0; const n=flushKeep(st); if(n){ commit(); toast(`預かり所から道具を${n}個受け取った。`); } return n; }
 function canEditParty(){ return !!G.st&&!G.readOnly&&G.screen==="explore"&&G.sheet==="party"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&isSafe(); }
-function canEditVault(){ return !!G.st&&!G.readOnly&&G.screen==="explore"&&G.sheet==="goldVault"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&isSafe()&&!streamPending(); }
+function canEditVault(){ return !!G.st&&!G.readOnly&&!G.vaultSaving&&G.screen==="explore"&&G.sheet==="goldVault"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&isSafe()&&!streamPending(); }
 function vaultAmountValue(raw,from,to){
   const value=String(raw);
   if(!/^[1-9][0-9]*$/.test(value)) return 0;
@@ -1172,10 +1172,16 @@ const ACT = {
     if(!amount) return toast("1G以上の整数を残高以内で入力してください。");
     const p={mode,amount,gold:st.gold,vault:st.vaultGold,gen:st.saveGeneration,afterGold:st.gold+(mode==="deposit"?-amount:amount),afterVault:st.vaultGold+(mode==="deposit"?amount:-amount)};
     p.token=checksum(JSON.stringify(p)); d.amount=raw; d.preview=p; render(); },
-  vaultCommit(el){ if(!canEditVault()) return; const st=G.st,p=G.sheetData.preview,raw=$("#vaultAmount")?.value||"";
+  async vaultCommit(el){ if(!canEditVault()) return; const st=G.st,p=G.sheetData.preview,raw=$("#vaultAmount")?.value||"";
     if(!p||el.dataset.token!==p.token||checksum(JSON.stringify({mode:p.mode,amount:p.amount,gold:p.gold,vault:p.vault,gen:p.gen,afterGold:p.afterGold,afterVault:p.afterVault}))!==p.token||G.sheetData.mode!==p.mode||raw!==String(p.amount)||st.saveGeneration!==p.gen||st.gold!==p.gold||st.vaultGold!==p.vault) return toast("残高か入力が変わりました。確認し直してください。");
     if(!transferVaultGold(st,p.mode,p.amount)) return toast("送金できません。残高を確認してください。");
-    el.disabled=true; G.sheetData={mode:p.mode,amount:"",preview:null}; commit(); render(); toast(`${p.amount.toLocaleString()}Gを${p.mode==="deposit"?"預け入れました":"引き出しました"}。`); },
+    el.disabled=true; G.vaultSaving=true; G.sheetData={mode:p.mode,amount:"",preview:null}; render();
+    let saved=false;
+    try{ saved=await commit(); }catch(e){ setSave("未保存：この端末では保存できません。設定からバックアップを書き出してください。"); }
+    finally{ G.vaultSaving=false; }
+    let rolledBack=false;
+    if(!saved && G.st===st && st.saveGeneration===p.gen+1 && st.gold===p.afterGold && st.vaultGold===p.afterVault){ st.gold=p.gold; st.vaultGold=p.vault; st.saveGeneration=p.gen; rolledBack=true; }
+    if(G.st===st){ render(); toast(saved?`${p.amount.toLocaleString()}Gを${p.mode==="deposit"?"預け入れました":"引き出しました"}。`:rolledBack?"送金を保存できなかったため取り消しました。保存設定を確認してください。":"送金を保存できませんでした。設定からバックアップを書き出してください。"); } },
   itemView(el){ if(!canEditItems()) return; const id=el.dataset.v||null; if(id&&(!ITEMS[id]||bagCount(G.st.bag,id)<1)) return; G.sheetData={item:id}; render(); },
   itemUse(el){ if(!canEditItems()) return; const st=G.st, id=G.sheetData.item; if(!ITEMS[id]||bagCount(st.bag,id)<1) return toast("道具を選び直してください。"); const r=useItemField(st,id,el.dataset.c||null); if(!r.ok) return toast(r.reason); commit(); SND.sfx("heal"); if(bagCount(st.bag,id)<=0) G.sheetData={item:null}; render(); toast(r.log.join("・")); },
   itemDrop(){ if(!canEditItems()) return; const id=G.sheetData.item; if(!ITEMS[id]||bagCount(G.st.bag,id)<1) return toast("道具を選び直してください。"); G.sheetData.confirmDrop=true; render(); },

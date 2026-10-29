@@ -340,9 +340,9 @@ const NATIONAL_PREFECTURES = [
 const NATIONAL_IMPLEMENTED_HUBS = {JP40:["KY01","KY02"],JP41:["KY03","KY04"]};
 /* 経路は実装状態と解放条件を分ける。planned は地図の移動先にしない。 */
 const NATIONAL_ROUTES = [
-  {id:"RT-KY01-KY02",from:"KY01",to:"KY02",mode:"road",status:"playable",unlock:"always"},
-  {id:"RT-KY02-KY03",from:"KY02",to:"KY03",mode:"road",status:"playable",unlock:"fukuokaClear"},
-  {id:"RT-KY03-KY04",from:"KY03",to:"KY04",mode:"road",status:"playable",unlock:"karatsuClear"}
+  {id:"RT-KY01-KY02",from:"KY01",to:"KY02",mode:"road",status:"playable",unlock:"always",firstArrival:"福岡市の東門"},
+  {id:"RT-KY02-KY03",from:"KY02",to:"KY03",mode:"road",status:"playable",unlock:"fukuokaClear",firstArrival:"北九州の東門"},
+  {id:"RT-KY03-KY04",from:"KY03",to:"KY04",mode:"road",status:"playable",unlock:"karatsuClear",firstArrival:"唐津の東門"}
 ];
 
 /* ===== data: 福岡編と佐賀・唐津編 ===== */
@@ -3113,8 +3113,7 @@ function worldTravelStatus(st,from,to,safe){
   const route=NATIONAL_ROUTES.find(r=>r.status==="playable"&&((r.from===from&&r.to===to)||(r.from===to&&r.to===from)));
   if(!route) return {available:false,reason:"現在地からの直通経路はありません。隣接する拠点を経由してください。"};
   if(!nationalRouteAvailable(st,from,to)) return {available:false,reason:route.unlock==="fukuokaClear"?"福岡編の完了後に開きます。":"唐津編M03の完了後に開きます。"};
-  const firstGate={KY02:"福岡市",KY03:"北九州",KY04:"唐津"};
-  if(firstGate[to]&&!(st.visitedHubs||[]).includes(to)) return {available:false,reason:`初回は${firstGate[to]}の東門から向かってください。`};
+  if(route.to===to&&route.firstArrival&&!(st.visitedHubs||[]).includes(to)) return {available:false,reason:`初回は${route.firstArrival}から向かってください。`};
   if(!safe) return {available:false,reason:"安全地帯から出発できます。"};
   if(st.slots<1) return {available:false,reason:"旅程枠が足りません。休息すると回復します。"};
   return {available:true,reason:""};

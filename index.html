@@ -1379,7 +1379,7 @@ function aiCandidates(run, a){
   const downs=run.party.filter(m=>m.hp<=0).map(m=>m.pos);
   for(const e of (run.bag||[])){ const it=ITEMS[e.id]; if(!it||e.n<=0||it.stars>2||it.price<=0||!['S','SD'].includes(it.acq)||it.cat==="攻撃") continue;
     const nd=itemNeeds(it), effect=it.eff[0];
-    const needsHelp=m=>m.hp>0&&((effect.includes('hp')&&m.hp/m.maxHP<=0.85)||(effect.includes('c')&&m.c/10<=0.7));
+    const needsHelp=m=>m.hp>0&&((effect.includes('hp')&&m.hp<m.maxHP&&(m.hp/m.maxHP<=0.85||aiIncoming(run,m)>=m.hp))||(effect.includes('c')&&m.c/10<=0.7));
     if(nd==="ally") run.party.filter(needsHelp).forEach(m=>out.push({type:"item",item:e.id,ally:m.pos}));
     else if(nd==="down") downs.forEach(p=>out.push({type:"item",item:e.id,ally:p}));
     else if(nd==="downAll"&&downs.length) out.push({type:"item",item:e.id});

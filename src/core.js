@@ -871,6 +871,19 @@ function itemVaultAdd(st,id,n){
   const e=st.itemVault.find(x=>x.id===id); if(e) e.n+=add; else st.itemVault.push({id,n:add});
   return add;
 }
+function transferVaultItem(st,mode,id,n){
+  if(!["deposit","withdraw"].includes(mode)||!ITEMS[id]||!Number.isSafeInteger(n)||n<1||!Array.isArray(st.bag)||!Array.isArray(st.itemVault)) return false;
+  const stored=bagCount(st.itemVault,id),total=itemVaultCount(st);
+  if(!Number.isSafeInteger(total)||total>ITEM_VAULT_MAX||st.itemVault.some(e=>!ITEMS[e.id]||!Number.isSafeInteger(e.n)||e.n<1)) return false;
+  if(mode==="deposit"){
+    if(bagCount(st.bag,id)<n||total+n>ITEM_VAULT_MAX) return false;
+    bagRemove(st.bag,id,n); itemVaultAdd(st,id,n);
+  }else{
+    if(stored<n||bagRoom(st.bag,id)<n) return false;
+    bagRemove(st.itemVault,id,n); bagAdd(st.bag,id,n);
+  }
+  return true;
+}
 function giveItem(st,id,n,res,why){
   st.bag=st.bag||[]; st.keep=st.keep||[];
   const got=bagAdd(st.bag,id,n); let rest=n-got, vaulted=0, kept=0;
@@ -944,3 +957,4 @@ function useItemField(st, id, cid){
   bagRemove(st.bag,id,1);
   return {ok:true, log};
 }
+

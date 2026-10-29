@@ -165,6 +165,8 @@ body.in-battle{padding-top:6px;padding-bottom:calc(var(--dockH) + 6px + env(safe
 .cmd p{font-size:15px}
 .log{font:inherit;text-align:left;color:var(--cream);font-size:13px;line-height:1.3;background:var(--ink);border:2px solid var(--slate);padding:4px 6px;display:flex;flex-direction:column;gap:1px;flex:none;cursor:pointer;min-height:48px}
 .log span{overflow-wrap:anywhere}
+.battle:has(.log.expanded){overflow-y:auto}
+.battle .log.expanded{min-height:232px;max-height:232px;overflow-y:auto}
 @media (max-height:600px){.explore{height:auto;overflow:visible}.mapwrap{flex:none;height:200px}.battle{height:auto;overflow:visible}.win.cmd{overflow:visible}.chips{overflow:visible}}
 @media (max-height:700px){.cue,.cue.on{font-size:12px}.bhead{font-size:12px}.pstat{font-size:12px}.pjob{display:none}.esprite.boss{width:60px}.bhead{font-size:13px}.ename{font-size:14px}.esprite{width:32px;height:32px}.pcard{min-height:44px}.cmd .cmdgrid .btn{min-height:40px}.chip{min-height:36px}.log span:first-child:nth-last-child(3){display:none}}
 .pop{position:absolute;right:8px;top:2px;font-family:var(--f-dot);font-size:20px;font-weight:700;pointer-events:none;animation:popup .9s steps(6) forwards;text-shadow:2px 2px 0 var(--ink);z-index:3}
@@ -214,7 +216,7 @@ body{padding-bottom:calc(var(--dockH) + 12px)}
   :root{--dockH:76px}
   .stick{width:68px;height:68px}.stick .knob{width:32px;height:32px;margin:-16px 0 0 -16px}.stick .ring{inset:7px}
   .pbtn{width:46px;height:46px}.pbtn.a{width:54px;height:54px}.pbtn.b{margin-top:10px}.pbtn b{font-size:17px}.pbtn small{font-size:10px}
-  .battle .log{min-height:0}.battle .log span:not(:last-child){display:none}
+  .battle .log:not(.expanded){min-height:0}.battle .log:not(.expanded) span:not(:last-child){display:none}
   .cmd .cmdgrid .btn{min-height:36px}.chip{min-height:34px}.pcard{min-height:40px}.confirmrow .btn{min-height:44px}
   .battle{gap:4px}
   .battle .cue:not(.on){display:none}
@@ -2671,7 +2673,7 @@ function travelHub(to,tx,ty){
 
 /* ---- 戦闘 ---- */
 function startBattle(run){
-  G.auto=false; clearTimeout(G.autoT); G.autoLast=null;
+  G.auto=false; clearTimeout(G.autoT); G.autoLast=null; G.logExpanded=false;
   const st=G.st; st.run=run; st.runSeq=run.seq;
   for(const e of run.enemies) if(!e.boss) st.seen[e.id]=true;
   run.log=[`${run.enemies.map(e=>e.display).join("と")}が現れた！`];
@@ -2719,7 +2721,8 @@ function renderBattle(){
     <div class="party">${run.party.map((m,i)=>partyCard(m,i,run)).join("")}</div>
     ${renderCommand(run)}
     <button class="btn" data-a="openSheet" data-k="battleChallenges">挑戦・戦闘バッジ</button>
-    <button class="log" data-a="openSheet" data-k="battleLog" aria-live="polite" aria-label="戦闘ログ（タップで直近80件）">${last.map(l=>`<span>${esc(l)}</span>`).join("")}</button>
+    <div class="srow"><button class="btn" data-a="battleLogExpand" aria-pressed="${!!G.logExpanded}">${G.logExpanded?"ログを縮小":"ログを拡大"}</button><button class="btn" data-a="openSheet" data-k="battleLog">履歴を見る</button></div>
+    <button class="log ${G.logExpanded?"expanded":""}" data-a="openSheet" data-k="battleLog" aria-live="polite" aria-label="戦闘ログ（タップで直近80件）">${(run.log||[]).slice(G.logExpanded?-8:-3).map(l=>`<span>${esc(l)}</span>`).join("")}</button>
   </section>`;
 }
 function renderBattleLog(){
@@ -3453,6 +3456,7 @@ function renderStreamSetup(){
 
 /* ===== 操作の受付 ===== */
 const ACT = {
+  battleLogExpand(){ if(G.screen!=="battle"||G.sheet||G.dlg||!G.st?.run) return; if(G.auto){G.auto=false;clearTimeout(G.autoT);G.autoLast=null;} G.logExpanded=!G.logExpanded; render(); },
   battleLogPage(el){ if(G.screen!=="battle"||G.sheet!=="battleLog"||!G.st?.run) return; const lines=Array.isArray(G.st.run.log)?G.st.run.log:[]; const pages=Math.max(1,Math.ceil(Math.min(lines.length,80)/8)); const page=Number(el.dataset.v); if(!Number.isInteger(page)||page<0||page>=pages) return; G.sheetData.page=page; render(); },
   newGame(){ if(G.screen!=="title") return; G.newGame={name:"",gender:null,composing:false,step:1}; G.screen="new"; render(); },
   pickGender(el){ G.newGame.gender=el.dataset.v; const inp=$("#nameInput"); if(inp) G.newGame.name=inp.value; render(); },

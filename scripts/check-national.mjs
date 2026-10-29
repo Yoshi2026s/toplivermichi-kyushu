@@ -87,6 +87,18 @@ if(!travelStatus(base,'KY01','KY02',true).available||!travelStatus(base,'KY01','
 if(!travelStatus({...base,fukuokaClear:true},'KY02','KY03',true).reason.includes('東門')||!travelStatus({...base,fukuokaClear:true,visitedHubs:[...base.visitedHubs,'KY03']},'KY03','KY04',true).reason.includes('M03')) fail('national map unlock reasons failed');
 const open={...base,fukuokaClear:true,visitedHubs:['KY01','KY02','KY03','KY04'],quests:{M03:'complete'}};
 if(!travelStatus(open,'KY03','KY04',true).available||!travelStatus(open,'KY03','KY04',false).reason.includes('安全地帯')||!travelStatus({...open,slots:0},'KY03','KY04',true).reason.includes('旅程枠')) fail('national map travel readiness failed');
+const actionDef=ui.match(/const ACT = \{[\s\S]*?\n\};/)?.[0],canTravelFn=ui.match(/function canTravelFrom\(sheet\)\{[^\n]+\}/)?.[0];
+if(!actionDef||!canTravelFn) fail('travel action missing');
+const actionState={st:{...base,fukuokaClear:true,visitedHubs:['KY01','KY02']},screen:'explore',sheet:'map',dlg:null,readOnly:false,walk:{path:[]}};
+let moves=0,lastMessage='';
+const worldGo=runInNewContext(`${source}\n${routeFn}\n${statusFn}\n${canTravelFn}\n${actionDef}\nACT.worldGo`,{G:actionState,HUBS:hubs,MAPS:maps,curHub:()=> 'KY02',isSafe:()=>true,toast:msg=>{lastMessage=msg;},travelHub:()=>{moves++;}});
+worldGo({dataset:{v:'KY03'}});
+if(moves||!lastMessage.includes('東門')) fail('stale map action bypassed first-visit gate');
+actionState.st.visitedHubs.push('KY03');actionState.st.slots=0;
+worldGo({dataset:{v:'KY03'}});
+if(moves||!lastMessage.includes('旅程枠')) fail('stale map action bypassed travel slots');
+actionState.st.slots=1;worldGo({dataset:{v:'KY03'}});
+if(moves!==1||actionState.sheet!==null) fail('valid map travel was rejected');
 console.log('National registry: 8 regions, 47 prefectures, 4 connected hubs, directory and Saga city route OK');
 
 

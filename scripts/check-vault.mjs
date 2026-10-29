@@ -84,6 +84,7 @@ if(!itemVaultViewFn) throw new Error('item vault view missing');
 ivState.readOnly=true; ivState.sheetData={mode:'withdraw',id:transferId,qty:1,preview:null,query:'',page:0};
 const readView=runInNewContext(`${itemVaultViewFn}\nrenderItemVault()`,{G:ivState,ITEMS:runInNewContext(`${core}\nITEMS`),BAG_KINDS:20,ITEM_VAULT_MAX:999,itemVaultCount:game.itemVaultCount,bagCount:game.bagCount,bagRoom:(bag,id)=>9-game.bagCount(bag,id),canEditItemVault:()=>false,canViewItemVault:()=>true,esc:s=>String(s)});
 if(!readView.includes('閲覧専用')||!readView.includes('data-a="itemVaultSearch"')||!readView.includes('data-a="itemVaultPage"')||!/<button class="btn primary" data-a="itemVaultPreview"[^>]+disabled/.test(readView)) throw new Error('read-only item vault navigation failed');
+if(!readView.includes('>1個</button>')||readView.split('最大（1個）').length!==2) throw new Error('item quantity labels are duplicated');
 ivState.st.bag.push({id:'IT017',n:1});ivState.sheetData={mode:'deposit',id:null,qty:1,preview:null,query:'',filter:'event',page:0};
 const eventView=runInNewContext(`${itemVaultViewFn}\nrenderItemVault()`,{G:ivState,ITEMS:runInNewContext(`${core}\nITEMS`),BAG_KINDS:20,ITEM_VAULT_MAX:999,itemVaultCount:game.itemVaultCount,bagCount:game.bagCount,bagRoom:(bag,id)=>9-game.bagCount(bag,id),canEditItemVault:()=>false,canViewItemVault:()=>true,esc:s=>String(s)});
 if(!eventView.includes('応援団の差し入れ箱')||eventView.includes('休憩カード')||!eventView.includes('イベント限定道具')) throw new Error('event item classification failed');

@@ -1043,7 +1043,7 @@ function renderDex(){
 }
 function renderShop(){
   const st=G.st; const d=G.sheetData; const S=SHOPS[d.shop]; const tab=d.tab||"buy";
-  const locked = !!st.run || !!streamPending();
+  const locked = !!st.run || !!streamPending() || !!G.shopSaving;
   const head=`<p>所持 ${st.gold.toLocaleString()}ゴールド・道具袋 ${st.bag.length}/${BAG_KINDS}種類</p><div class="row3"><button class="btn ${tab==="buy"?"on":""}" data-a="shopTab" data-v="buy">装備を買う</button><button class="btn ${tab==="item"?"on":""}" data-a="shopTab" data-v="item">道具を買う</button><button class="btn ${tab==="sell"?"on":""}" data-a="shopTab" data-v="sell">売る</button></div>${locked?`<p class="warn">配信待ちの間は売買できません。</p>`:""}`;
   if(d.item && ITEMS[d.item]){
     const it=ITEMS[d.item]; const qty=d.qty||1; const own=bagCount(st.bag,d.item);
@@ -1091,7 +1091,9 @@ function shopOffer(st,d){
   return {shop:d.shop,tab:d.tab,item:id,qty:d.qty,unit,own,max,gold:st.gold};
 }
 function shopOfferToken(st,d){ const offer=shopOffer(st,d); return offer?checksum(JSON.stringify(offer)):""; }
-function canTradeAtShop(d){ return !!G.st&&!G.readOnly&&G.screen==="explore"&&G.sheet==="shop"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&!streamPending()&&isSafe()&&nearbyObjects().some(o=>o.type==="shop"&&o.shop===d.shop); }
+function canTradeAtShop(d){ return !!G.st&&!G.readOnly&&!G.shopSaving&&G.screen==="explore"&&G.sheet==="shop"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&!streamPending()&&isSafe()&&nearbyObjects().some(o=>o.type==="shop"&&o.shop===d.shop); }
+function tradeSnapshot(st){ return {gold:st.gold,bag:clone(st.bag),itemVault:clone(st.itemVault),keep:clone(st.keep),owned:clone(st.owned)}; }
+function restoreTrade(st,snap){ Object.assign(st,snap); }
 function itemText(it,V){ return it.text.replace(/(\d+)×V/g,(m,n)=>String(+n*V)).replace("−防御のダメージ","から敵の防御力を引いたダメージ"); }
 function keepFlush(){ const st=G.st; if(!st||G.readOnly||G.screen!=="explore"||G.sheet||G.dlg||st.run||!st.keep||!st.keep.length||!isSafe()) return 0; const n=flushKeep(st); if(n){ commit(); toast(`預かり所から道具を${n}個受け取った。`); } return n; }
 function canEditParty(){ return !!G.st&&!G.readOnly&&G.screen==="explore"&&G.sheet==="party"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&isSafe(); }
@@ -1269,13 +1271,17 @@ const ACT = {
   shopTab(el){ if(G.sheet!=="shop"||!["buy","item","sell"].includes(el.dataset.v)) return; G.sheetData.tab=el.dataset.v; G.sheetData.item=null; render(); },
   shopItem(el){ if(G.sheet!=="shop") return; const id=el.dataset.v||null; if(id&&(!Object.hasOwn(ITEMS,id)&&!Object.hasOwn(EQUIP,id))) return; G.sheetData.item=id; G.sheetData.qty=1; render(); },
   shopQty(el){ if(G.sheet!=="shop") return; const q=Number(el.dataset.v), offer=shopOffer(G.st,G.sheetData); if(!offer||!Number.isSafeInteger(q)||q<1||q>offer.max) return toast("数量を選び直してください。"); G.sheetData.qty=q; render(); },
-  shopDo(el){ const st=G.st,d=G.sheetData; if(!canTradeAtShop(d)) return toast("この場所では売買できません。"); const offer=shopOffer(st,d); if(!offer||!el.dataset.offer||el.dataset.offer!==shopOfferToken(st,d)||offer.max<offer.qty||offer.unit<0||!Number.isSafeInteger(offer.unit)||(offer.tab!=="sell"&&st.gold<offer.unit*offer.qty)) return toast("内容が変わりました。商品と数量を選び直してください。");
-    el.disabled=true; const q=offer.qty,id=offer.item,it=ITEMS[id]||EQUIP[id];
+  async shopDo(el){ const st=G.st,d=G.sheetData; if(!canTradeAtShop(d)) return toast("この場所では売買できません。"); const offer=shopOffer(st,d); if(!offer||!el.dataset.offer||el.dataset.offer!==shopOfferToken(st,d)||offer.max<offer.qty||offer.unit<0||!Number.isSafeInteger(offer.unit)||(offer.tab!=="sell"&&st.gold<offer.unit*offer.qty)) return toast("内容が変わりました。商品と数量を選び直してください。");
+    el.disabled=true; G.shopSaving=true; const before=tradeSnapshot(st),gen=st.saveGeneration,q=offer.qty,id=offer.item,it=ITEMS[id]||EQUIP[id];
     let vaulted=0;
-    if(ITEMS[id]){ if(offer.tab==="sell"){ bagRemove(st.bag,id,q); st.gold+=offer.unit*q; } else { const bagBefore=clone(st.bag),vaultBefore=clone(st.itemVault),keepBefore=clone(st.keep); const received=giveItem(st,id,q); if(received.got+received.vaulted!==q){ st.bag=bagBefore; st.itemVault=vaultBefore; st.keep=keepBefore; el.disabled=false; return toast("受取先がいっぱいです。数量を選び直してください。"); } vaulted=received.vaulted; st.gold-=offer.unit*q; } }
+    if(ITEMS[id]){ if(offer.tab==="sell"){ bagRemove(st.bag,id,q); st.gold+=offer.unit*q; } else { const received=giveItem(st,id,q); if(received.got+received.vaulted!==q){ restoreTrade(st,before); G.shopSaving=false; el.disabled=false; return toast("受取先がいっぱいです。数量を選び直してください。"); } vaulted=received.vaulted; st.gold-=offer.unit*q; } }
     else if(offer.tab==="sell"){ st.owned[id]-=q; st.gold+=offer.unit*q; }
     else { st.gold-=offer.unit*q; st.owned[id]=(st.owned[id]||0)+q; }
-    d.item=null; commit(); SND.sfx("buy"); render(); toast(`${it.name}×${q}を${offer.tab==="sell"?"売った":"買った"}。${vaulted?` ${vaulted}個は金庫へ保管しました。`:""}`); },
+    const after=JSON.stringify(tradeSnapshot(st)); d.item=null; render(); let saved=false;
+    try{ saved=await commit(); }catch(e){ setSave("未保存：この端末では保存できません。設定からバックアップを書き出してください。"); }
+    finally{ G.shopSaving=false; }
+    let rolledBack=false; if(!saved&&G.st===st&&st.saveGeneration===gen+1&&JSON.stringify(tradeSnapshot(st))===after){ restoreTrade(st,before); st.saveGeneration=gen; rolledBack=true; }
+    if(G.st===st){ render(); if(saved) SND.sfx("buy"); toast(saved?`${it.name}×${q}を${offer.tab==="sell"?"売った":"買った"}。${vaulted?` ${vaulted}個は金庫へ保管しました。`:""}`:rolledBack?"取引を保存できなかったため取り消しました。":"取引を保存できませんでした。バックアップを書き出してください。"); } },
   replay(el){ G.sheet=null; playScene(el.dataset.v); },
   ssSet(el){ G.sheetData[el.dataset.k]=el.dataset.v; render(); },
   streamStart(){ const st=G.st, d=G.sheetData, qid=streamPending(); if(!st||G.readOnly||G.screen!=="explore"||G.sheet!=="streamSetup"||!qid||QUESTS[qid].hub!==curHub()||!STREAM_REQ[HUBS[curHub()].prefId]||!st.roster.includes(d.host)||!STREAM_THEMES[d.theme]||!["video","voice"].includes(d.style)) return toast("配信の開始条件が変わりました。依頼帳を確認してください。"); st.stream=newStream(st,curHub(),d.host,d.theme,d.style); commit(); G.sheet=null; G.screen="stream"; SND.play("stream"); render(); },

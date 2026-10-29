@@ -3242,8 +3242,8 @@ function renderShop(){
   const head=`<p>所持 ${st.gold.toLocaleString()}ゴールド・道具袋 ${st.bag.length}/${BAG_KINDS}種類</p><div class="row3"><button class="btn ${tab==="buy"?"on":""}" data-a="shopTab" data-v="buy">装備を買う</button><button class="btn ${tab==="item"?"on":""}" data-a="shopTab" data-v="item">道具を買う</button><button class="btn ${tab==="sell"?"on":""}" data-a="shopTab" data-v="sell">売る</button></div>${locked?`<p class="warn">配信待ちの間は売買できません。</p>`:""}`;
   if(d.item && ITEMS[d.item]){
     const it=ITEMS[d.item]; const qty=d.qty||1; const own=bagCount(st.bag,d.item);
-    if(tab==="item"){ const room=bagRoom(st.bag,d.item); const total=it.price*qty; const can=!locked&&qty<=room&&st.gold>=total;
-      return head+`<p><b>${esc(it.name)}</b>（${esc(ITEM_RARITY[it.stars])}）</p><p>${esc(itemText(it,Vof(levelOf(st.xp))))}。${it.battleOnly?"戦闘中だけ使えます。":"戦闘中・移動中に使えます。"}</p><p>単価${it.price}ゴールド・所持${own}/${BAG_STACK}</p>${qtyRow(qty,Math.max(1,room))}<p>合計${total}ゴールド → 取引後${(st.gold-total).toLocaleString()}ゴールド</p>${can?"":`<p class="warn">${room<=0?(own?"1種類9個までです。":"道具袋が20種類でいっぱいです。"):qty>room?`あと${room}個までしか入りません。`:st.gold<total?"ゴールドが足りません。":""}</p>`}
+    if(tab==="item"){ const room=itemPurchaseRoom(st,d.item),bagSpace=bagRoom(st.bag,d.item); const total=it.price*qty; const can=!locked&&qty<=room&&st.gold>=total;
+      return head+`<p><b>${esc(it.name)}</b>（${esc(ITEM_RARITY[it.stars])}）</p><p>${esc(itemText(it,Vof(levelOf(st.xp))))}。${it.battleOnly?"戦闘中だけ使えます。":"戦闘中・移動中に使えます。"}</p><p>単価${it.price}ゴールド・所持${own}/${BAG_STACK}</p>${qtyRow(qty,Math.max(1,room))}${qty>bagSpace?`<p class="small">袋に入らない${qty-bagSpace}個はアイテム金庫へ保管します。</p>`:""}<p>合計${total}ゴールド → 取引後${(st.gold-total).toLocaleString()}ゴールド</p>${can?"":`<p class="warn">${room<=0?"道具袋と金庫がいっぱいです。":qty>room?`あと${room}個までしか受け取れません。`:st.gold<total?"ゴールドが足りません。":""}</p>`}
       <div class="stack"><button class="btn primary" data-a="shopDo" data-offer="${shopOfferToken(st,d)}" ${can?"":"disabled"}>${esc(it.name)}×${qty}を買う</button><button class="btn" data-a="shopItem" data-v="">一覧へ</button></div>`; }
     const unit=it.sell; const can=!locked&&unit>=0&&qty<=own;
     return head+`<p><b>${esc(it.name)}</b>　所持${own}</p>${unit<0?`<p class="warn">この道具は売れません（${esc(ITEM_ACQ[it.acq])}）。</p>`:`<p>買取単価${unit}ゴールド</p>${qtyRow(qty,Math.max(1,own))}<p>受取${unit*qty}ゴールド → 取引後${(st.gold+unit*qty).toLocaleString()}ゴールド</p>`}
@@ -3269,6 +3269,7 @@ function renderShop(){
   return head+`<h3 class="label">装備</h3><div class="stack">${ids.map(id=>`<button class="btn dexrow" data-a="shopItem" data-v="${id}"><span>${esc(EQUIP[id].name)}</span><span class="small">所持${st.owned[id]}・売却可能${availableCount(st,id)}・買取${Math.floor(EQUIP[id].price/2)}ゴールド</span></button>`).join("")}</div>
     <h3 class="label">道具</h3><div class="stack">${st.bag.map(e=>{const it=ITEMS[e.id]; return `<button class="btn dexrow" data-a="shopItem" data-v="${e.id}"><span>${esc(it.name)}</span><span class="small">所持${e.n}・${it.sell<0?"売却不可":`買取${it.sell}ゴールド`}</span></button>`;}).join("")||`<p class="small">道具はありません。</p>`}</div>`;
 }
+function itemPurchaseRoom(st,id){ return bagRoom(st.bag,id)+Math.max(0,ITEM_VAULT_MAX-itemVaultCount(st)); }
 function shopOffer(st,d){
   if(!SHOPS[d.shop]||!["buy","item","sell"].includes(d.tab)||!Number.isSafeInteger(d.qty)||d.qty<1) return null;
   const id=d.item, item=Object.hasOwn(ITEMS,id), equip=Object.hasOwn(EQUIP,id);
@@ -3280,7 +3281,7 @@ function shopOffer(st,d){
     if(!SHOPS[d.shop].items.includes(id)&&!gifts.includes(id)) return null;
   }
   const own=item?bagCount(st.bag,id):(st.owned[id]||0);
-  const max=d.tab==="item"?bagRoom(st.bag,id):d.tab==="buy"?8-own:item?own:availableCount(st,id);
+  const max=d.tab==="item"?itemPurchaseRoom(st,id):d.tab==="buy"?8-own:item?own:availableCount(st,id);
   const unit=d.tab==="sell"?(item?ITEMS[id].sell:Math.floor(EQUIP[id].price/2)):(item?ITEMS[id].price:EQUIP[id].price);
   return {shop:d.shop,tab:d.tab,item:id,qty:d.qty,unit,own,max,gold:st.gold};
 }
@@ -3465,10 +3466,11 @@ const ACT = {
   shopQty(el){ if(G.sheet!=="shop") return; const q=Number(el.dataset.v), offer=shopOffer(G.st,G.sheetData); if(!offer||!Number.isSafeInteger(q)||q<1||q>offer.max) return toast("数量を選び直してください。"); G.sheetData.qty=q; render(); },
   shopDo(el){ const st=G.st,d=G.sheetData; if(!canTradeAtShop(d)) return toast("この場所では売買できません。"); const offer=shopOffer(st,d); if(!offer||!el.dataset.offer||el.dataset.offer!==shopOfferToken(st,d)||offer.max<offer.qty||offer.unit<0||!Number.isSafeInteger(offer.unit)||(offer.tab!=="sell"&&st.gold<offer.unit*offer.qty)) return toast("内容が変わりました。商品と数量を選び直してください。");
     el.disabled=true; const q=offer.qty,id=offer.item,it=ITEMS[id]||EQUIP[id];
-    if(ITEMS[id]){ if(offer.tab==="sell"){ bagRemove(st.bag,id,q); st.gold+=offer.unit*q; } else { st.gold-=offer.unit*q; bagAdd(st.bag,id,q); } }
+    let vaulted=0;
+    if(ITEMS[id]){ if(offer.tab==="sell"){ bagRemove(st.bag,id,q); st.gold+=offer.unit*q; } else { const bagBefore=clone(st.bag),vaultBefore=clone(st.itemVault),keepBefore=clone(st.keep); const received=giveItem(st,id,q); if(received.got+received.vaulted!==q){ st.bag=bagBefore; st.itemVault=vaultBefore; st.keep=keepBefore; el.disabled=false; return toast("受取先がいっぱいです。数量を選び直してください。"); } vaulted=received.vaulted; st.gold-=offer.unit*q; } }
     else if(offer.tab==="sell"){ st.owned[id]-=q; st.gold+=offer.unit*q; }
     else { st.gold-=offer.unit*q; st.owned[id]=(st.owned[id]||0)+q; }
-    d.item=null; commit(); SND.sfx("buy"); render(); toast(`${it.name}×${q}を${offer.tab==="sell"?"売った":"買った"}。`); },
+    d.item=null; commit(); SND.sfx("buy"); render(); toast(`${it.name}×${q}を${offer.tab==="sell"?"売った":"買った"}。${vaulted?` ${vaulted}個は金庫へ保管しました。`:""}`); },
   replay(el){ G.sheet=null; playScene(el.dataset.v); },
   ssSet(el){ G.sheetData[el.dataset.k]=el.dataset.v; render(); },
   streamStart(){ const st=G.st, d=G.sheetData, qid=streamPending(); if(!st||G.readOnly||G.screen!=="explore"||G.sheet!=="streamSetup"||!qid||QUESTS[qid].hub!==curHub()||!STREAM_REQ[HUBS[curHub()].prefId]||!st.roster.includes(d.host)||!STREAM_THEMES[d.theme]||!["video","voice"].includes(d.style)) return toast("配信の開始条件が変わりました。依頼帳を確認してください。"); st.stream=newStream(st,curHub(),d.host,d.theme,d.style); commit(); G.sheet=null; G.screen="stream"; SND.play("stream"); render(); },

@@ -398,7 +398,7 @@ const DIFFICULTY = {
 };
 
 /* ---- 道具袋の拡張上限（参照v10.73～10.80）。旧セーブの所持数は維持 ---- */
-const BAG_KINDS = 300, BAG_STACK = 99, KEEP_MAX = 20;
+const BAG_KINDS = 300, EVENT_KINDS = 400, BAG_STACK = 99, KEEP_MAX = 20;
 const ITEM_RARITY = {1:"★1 ありふれた",2:"★2 ときどき見る",3:"★3 めずらしい",4:"★4 とてもめずらしい",5:"★5 まぼろし"};
 const ITEM_ACQ = {S:"ショップ",E:"イベント限定",DS:"モンスター限定（売却可）",DN:"モンスター限定（売却不可）",SD:"ショップ・モンスター"};
 const ITEMS = {};

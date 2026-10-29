@@ -76,7 +76,9 @@ const futureDef=data.match(/const FUTURE_HUBS = \[[^\n]+\];/)?.[0], worldFn=ui.m
 if(!futureDef||!worldFn||!statusFn) fail('national map UI source missing');
 const future=runInNewContext(`${futureDef}\nFUTURE_HUBS`);
 const world=runInNewContext(`${source}\n${worldFn}\n${statusFn}\n${routeFn}\nrenderWorld()`,{G:{st:{visitedHubs:['KY01'],quests:{},fukuokaClear:false,slots:6}},HUBS:hubs,FUTURE_HUBS:future,isSafe:()=>true,curHub:()=> 'KY01',esc:s=>String(s)});
-if((world.match(/<details>/g)||[]).length!==8||!world.includes('拠点ありは2/47都道府県')||!world.includes('JP40 福岡県：拠点あり（福岡市・北九州市）')||!world.includes('JP41 佐賀県：拠点あり（唐津市・佐賀市）')||!world.includes('JP42 長崎県：地理台帳のみ・移動不可')) fail('national directory must distinguish playable hubs from registry-only prefectures');
+if((world.match(/<details>/g)||[]).length!==8||!world.includes('拠点ありは2/47都道府県')||!world.includes('訪問済みは実装済みの1/2県')||!world.includes('JP40 福岡県：拠点あり（福岡市・北九州市）・訪問済み')||!world.includes('JP41 佐賀県：拠点あり（唐津市・佐賀市）・未訪問')||!world.includes('JP42 長崎県：地理台帳のみ・移動不可')) fail('national directory must distinguish playable hubs from registry-only prefectures');
+const worldVisited=runInNewContext(`${source}\n${worldFn}\n${statusFn}\n${routeFn}\nrenderWorld()`,{G:{st:{visitedHubs:['KY01','KY03'],quests:{},fukuokaClear:true,slots:6}},HUBS:hubs,FUTURE_HUBS:future,isSafe:()=>true,curHub:()=> 'KY03',esc:s=>String(s)});
+if(!worldVisited.includes('訪問済みは実装済みの2/2県')||!worldVisited.includes('JP41 佐賀県：拠点あり（唐津市・佐賀市）・訪問済み')) fail('national visit count did not follow saved hubs');
 const travelStatus=runInNewContext(`${source}\n${routeFn}\n${statusFn}\nworldTravelStatus`);
 const base={visitedHubs:['KY01','KY02'],fukuokaClear:false,quests:{M03:'locked'},slots:6};
 if(!travelStatus(base,'KY01','KY02',true).available||!travelStatus(base,'KY01','KY03',true).reason.includes('直通経路')||!travelStatus(base,'KY02','KY03',true).reason.includes('福岡編')) fail('national map route reasons failed');
@@ -84,6 +86,5 @@ if(!travelStatus({...base,fukuokaClear:true},'KY02','KY03',true).reason.includes
 const open={...base,fukuokaClear:true,visitedHubs:['KY01','KY02','KY03','KY04'],quests:{M03:'complete'}};
 if(!travelStatus(open,'KY03','KY04',true).available||!travelStatus(open,'KY03','KY04',false).reason.includes('安全地帯')||!travelStatus({...open,slots:0},'KY03','KY04',true).reason.includes('旅程枠')) fail('national map travel readiness failed');
 console.log('National registry: 8 regions, 47 prefectures, 4 connected hubs, directory and Saga city route OK');
-
 
 

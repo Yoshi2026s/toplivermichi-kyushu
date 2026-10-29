@@ -16,7 +16,7 @@ function newGame(name, gender){
     profile:{name, gender}, day:1, slots:6, mapId:"KY01", pos:{x:19,y:19}, dir:0,
     visitedMaps:["KY01"], visitedHubs:["KY01"], xp:0,
     roster:["hero","moe"], party:["hero","moe"], vitals:null,
-    jobs:{}, jp:{}, equip:{}, owned:{CW01:8, CA01:8}, favorite:{},
+    jobs:{}, jp:{}, equip:{}, owned:{CW01:8, CA01:8}, pendingGifts:[], favorite:{},
     gold:0, vaultGold:0, tickets:200, gifts:{W:{},A:{}},
     bag:INITIAL_ITEMS.map(([id,n])=>({id,n})), keep:[], itemVault:[], itemsVersion:1,
     quests:{M01:"available", M02:"locked", M03:"locked", M04:"locked", S01:"locked", S02:"locked"}, qprog:{}, activeQuest:null,
@@ -497,7 +497,18 @@ function applyVictory(st, run){
 function giftCheck(st, job, kind, res){
   if(st.gifts[kind][job]) return;
   st.gifts[kind][job]=true; const id=(kind==="W"?"JW":"JA")+job.slice(1);
-  st.owned[id]=Math.min(8,(st.owned[id]||0)+1); res.gifts.push(id);
+  const total=(st.owned[id]||0)+bagCount(st.itemVault||[],id);
+  if(total<8&&unequippedGearCount(st)<UNEQUIPPED_GEAR_MAX){ st.owned[id]=(st.owned[id]||0)+1; res.gifts.push(id); }
+  else if(total<8&&itemVaultAdd(st,id,1)){ res.gifts.push(id); res.notes.push(`${EQUIP[id].name}はアイテム金庫に保管した。`); }
+  else { st.pendingGifts=st.pendingGifts||[]; st.pendingGifts.push(id); res.notes.push(`${EQUIP[id].name}は所持上限のため受取保留。安全地帯のアイテム金庫で受け取れる。`); }
+}
+function claimPendingGift(st,id){
+  if(!EQUIP[id]||!st.pendingGifts?.includes(id)||(st.owned[id]||0)+bagCount(st.itemVault||[],id)>=8) return null;
+  let destination=null;
+  if(unequippedGearCount(st)<UNEQUIPPED_GEAR_MAX){ st.owned[id]=(st.owned[id]||0)+1; destination="手元"; }
+  else if(itemVaultAdd(st,id,1)) destination="アイテム金庫";
+  if(destination) st.pendingGifts.splice(st.pendingGifts.indexOf(id),1);
+  return destination;
 }
 function completeQuest(st, qid, res){
   if(st.quests[qid]==="complete") return;

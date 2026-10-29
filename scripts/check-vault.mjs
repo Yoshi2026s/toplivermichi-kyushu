@@ -79,5 +79,9 @@ if(game.bagCount(ivState.st.bag,transferId)!==ivBefore-1||game.bagCount(ivState.
 ivState.sheetData={mode:'withdraw',id:transferId,qty:1,preview:null}; ivSaved=false; iv.itemVaultPreview();
 await iv.itemVaultCommit({dataset:{token:ivState.sheetData.preview.token},disabled:false});
 if(game.bagCount(ivState.st.bag,transferId)!==ivBefore-1||game.bagCount(ivState.st.itemVault,transferId)!==1||ivState.st.saveGeneration!==1||!lastToast.includes('取り消しました')) throw new Error('item save failure did not roll back');
+const itemVaultViewFn=ui.match(/function renderItemVault\(\)\{[\s\S]*?\n\}/)?.[0];
+if(!itemVaultViewFn) throw new Error('item vault view missing');
+ivState.readOnly=true; ivState.sheetData={mode:'withdraw',id:transferId,qty:1,preview:null,query:'',page:0};
+const readView=runInNewContext(`${itemVaultViewFn}\nrenderItemVault()`,{G:ivState,ITEMS:runInNewContext(`${core}\nITEMS`),BAG_KINDS:20,ITEM_VAULT_MAX:999,itemVaultCount:game.itemVaultCount,bagCount:game.bagCount,bagRoom:(bag,id)=>9-game.bagCount(bag,id),canEditItemVault:()=>false,canViewItemVault:()=>true,esc:s=>String(s)});
+if(!readView.includes('閲覧専用')||!readView.includes('data-a="itemVaultSearch"')||!readView.includes('data-a="itemVaultPage"')||!/<button class="btn primary" data-a="itemVaultPreview"[^>]+disabled/.test(readView)) throw new Error('read-only item vault navigation failed');
 console.log('Gold and item vault: transfer, overflow, capacity and legacy save OK');
-

@@ -150,6 +150,10 @@ const items=()=>game.aiCandidates(run,actor).filter(a=>a.type==='item');
 if(items().length) fail('healthy party must not spend items');
 actor.hp=Math.floor(actor.maxHP*0.8);
 if(!items().some(a=>a.item==='IT001')||items().some(a=>['IT071','IT058'].includes(a.item))) fail('recovery candidate filter failed');
+const threatened=game.createFieldRun(st,'KY01-A1',{count:0,picks:[0,0]});
+threatened.bag=[{id:'IT001',n:1}]; threatened.party[0].hp=threatened.party[0].maxHP-1;
+threatened.enemies[0].cycle=[{t:'a',p:threatened.party[0].maxHP+10}];
+if(!game.aiCandidates(threatened,threatened.party[0]).some(a=>a.type==='item'&&a.item==='IT001'&&a.ally===threatened.party[0].pos)) fail('incoming lethal attack did not make recovery a candidate');
 const before=JSON.stringify(run);
 game.aiChoose(run);
 if(JSON.stringify(run)!==before) fail('candidate search mutated battle state');
@@ -177,4 +181,3 @@ danger.enemies[0].cycle=[{t:'a',p:999}];
 const dangerousPick=game.aiChoose(danger);
 if(dangerousPick?.act.type==='item') fail('auto should not spend an item when the enemy immediately downs the party');
 console.log('Auto items: thresholds, purchasable recovery and immutable search OK');
-

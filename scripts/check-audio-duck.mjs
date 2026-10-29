@@ -41,3 +41,14 @@ if(events.join(',')!=='level,play') throw new Error('unmute did not resume desti
 events.length=0;controls.suspend();
 if(events.join(',')!=='stop') throw new Error('suspend did not stop music');
 console.log('Audio: repeated settings and jingle cancellation OK');
+const resume=source.match(/function resume\(\)\{[^\n]+\}/)?.[0];
+if(!resume) throw new Error('audio resume missing');
+const resumes=[];
+const resumed=runInNewContext(`let on=true,ac={state:'running',resume:()=>Promise.resolve()},cur='battle',timer=1,jingleT=null;const play=n=>resumes.push(n);${resume}\n({resume,stop:()=>{timer=null},get current(){return cur}})`,{resumes});
+resumed.resume();
+if(resumes.length) throw new Error('visible event restarted active BGM');
+resumed.stop();resumed.resume();
+if(resumes.join(',')!=='battle'||resumed.current!==null) throw new Error('suspended BGM did not resume once');
+resumed.resume();
+if(resumes.length!==1) throw new Error('repeated resume restarted BGM');
+console.log('Audio: visibility resume is idempotent OK');

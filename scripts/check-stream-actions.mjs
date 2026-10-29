@@ -1,0 +1,28 @@
+import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
+import {resolve} from 'node:path';
+
+const ui=readFileSync(resolve(import.meta.dirname,'../src/ui.js'),'utf8');
+const actions=ui.match(/const ACT = \{[\s\S]*?\n\};/)?.[0];
+if(!actions) throw new Error('stream actions missing');
+const state={st:{stream:{hand:0,score:0,done:false,used:[],picks:[],themeBonusUsed:false}},screen:'stream',sheet:null,dlg:null,readOnly:false};
+let plays=0,saves=0;
+const act=runInNewContext(`${actions}\nACT`,{G:state,STREAM_ACTS:{first:{}},streamAct:()=>{plays++;},commit:()=>{saves++;},render:()=>{},exploreBgm:()=>{}});
+act.streamAct({dataset:{v:'first'}});
+if(plays!==1) throw new Error('valid stream action rejected');
+state.dlg={};act.streamAct({dataset:{v:'first'}});state.dlg=null;
+act.streamAct({dataset:{v:'unknown'}});
+state.st.stream.done=true;act.streamAct({dataset:{v:'first'}});
+if(plays!==1) throw new Error('stale or repeated stream action accepted');
+state.st.stream.score=79;state.st.stream.hand=4;state.st.stream.used=['first'];
+state.screen='explore';act.streamRetry();
+if(saves) throw new Error('retry outside stream changed the save');
+state.screen='stream';act.streamRetry();
+if(saves!==1||state.st.stream.done||state.st.stream.hand!==0||state.st.stream.used.length) throw new Error('valid retry failed');
+state.st.stream.done=true;state.st.stream.score=80;act.streamLeave();
+if(saves!==1||state.st.stream===null) throw new Error('successful stream could be abandoned by stale button');
+state.st.stream.score=79;state.dlg={};act.streamLeave();
+if(saves!==1) throw new Error('stream left during dialogue');
+state.dlg=null;act.streamLeave();
+if(saves!==2||state.st.stream!==null||state.screen!=='explore') throw new Error('valid failed stream exit rejected');
+console.log('Stream actions: active turn, stale buttons, retry and exit guards OK');

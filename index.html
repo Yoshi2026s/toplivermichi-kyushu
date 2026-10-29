@@ -1,6 +1,6 @@
 <!doctype html><html lang="ja"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="福岡編と佐賀県唐津市の探索拠点を遊べる、スマホ向けの非公式創作RPG。佐賀の依頼・戦闘・配信は開発中。">
+<meta name="description" content="福岡編から47都道府県へ旅する、スマホ向けの非公式創作RPG。全国の追加拠点は開発中。">
 <meta name="theme-color" content="#101820">
 <style>body{margin:0}</style>
 <script>window.TLR_PUBLIC=true;window.TLR_BUILD="2026-10-29";</script>
@@ -337,7 +337,7 @@ const ITEMS_RAW={"IT001":["休憩カード","HP回復","味方1人",["hp",10],1,
 const ITEM_DROPS={"EN-KY02-A3-001":["IT001",8],"EN-KY01-A1-001":["IT001",8],"EN-KY01-A2-001":["IT001",8],"EN-KY03-A3-025":["IT004",12],"EN-KY04-A1-025":["IT004",12],"EN-KY04-A2-025":["IT004",12],"EN-KY05-A1-025":["IT006",12],"EN-KY05-A2-025":["IT006",12],"EN-KY05-A3-025":["IT006",12],"EN-KY08-A2-025":["IT008",12],"EN-KY08-A3-025":["IT008",12],"EN-KY07-A1-025":["IT008",12],"EN-KY11-A3-039":["IT010",16],"EN-KY12-A1-039":["IT010",16],"EN-KY12-A2-039":["IT010",16],"EN-DP06-039":["IT013",16],"EN-DP05-039":["IT013",16],"EN-DP04-039":["IT013",16],"EN-EX01-A2-047":["IT014",32],"EN-EX01-A3-047":["IT014",32],"EN-EX01-A1-047":["IT014",32],"EN-KY13-A3-047":["IT016",32],"EN-KY14-A1-047":["IT016",32],"EN-KY14-A2-047":["IT016",32],"EN-KY06-A3-039":["IT019",16],"EN-KY05-A1-039":["IT019",16],"EN-KY05-A2-039":["IT019",16],"EN-KY10-A1-039":["IT021",16],"EN-KY10-A2-039":["IT021",16],"EN-KY10-A3-039":["IT021",16],"EN-KY13-A2-047":["IT023",32],"EN-KY13-A3-048":["IT023",32],"EN-KY14-A1-048":["IT023",32],"EN-KY16-A3-047":["IT025",32],"EN-KY15-A1-047":["IT025",32],"EN-KY15-A2-047":["IT025",32],"EN-KY02-A1-001":["IT027",8],"EN-KY02-A2-001":["IT027",8],"EN-KY02-A3-002":["IT027",8],"EN-KY03-A3-026":["IT028",12],"EN-KY04-A1-026":["IT028",12],"EN-KY04-A2-026":["IT028",12],"EN-KY08-A3-026":["IT031",12],"EN-KY07-A1-026":["IT031",12],"EN-KY07-A2-025":["IT031",12],"EN-KY14-A2-039":["IT032",16],"EN-KY14-A3-039":["IT032",16],"EN-KY13-A1-039":["IT032",16],"EN-KY02-A1-002":["IT033",8],"EN-KY02-A2-002":["IT033",8],"EN-KY02-A3-003":["IT033",8],"EN-KY05-A1-026":["IT036",12],"EN-KY05-A2-026":["IT036",12],"EN-KY05-A3-026":["IT036",12],"EN-KY12-A1-040":["IT039",16],"EN-KY12-A2-040":["IT039",16],"EN-KY12-A3-039":["IT039",16],"EN-KY03-A3-001":["IT040",8],"EN-KY04-A1-001":["IT040",8],"EN-KY04-A2-001":["IT040",8],"EN-KY01-A1-002":["IT042",8],"EN-KY01-A2-002":["IT042",8],"EN-KY01-A3-001":["IT042",8],"EN-KY16-A3-039":["IT043",16],"EN-KY15-A1-039":["IT043",16],"EN-KY15-A2-039":["IT043",16],"EN-DP06-040":["IT045",16],"EN-DP05-040":["IT045",16],"EN-DP04-040":["IT045",16],"EN-DP07-047":["IT046",32],"EN-DP06-047":["IT046",32],"EN-DP05-047":["IT046",32],"EN-KY05-A1-027":["IT048",12],"EN-KY05-A2-027":["IT048",12],"EN-KY05-A3-027":["IT048",12],"EN-KY14-A1-039":["IT051",16],"EN-KY14-A2-040":["IT051",16],"EN-KY14-A3-040":["IT051",16],"EN-KY15-A3-047":["IT052",32],"EN-KY16-A1-047":["IT052",32],"EN-KY16-A2-047":["IT052",32],"EN-EX01-A3-050":["IT055",64],"EN-EX01-A1-050":["IT055",64],"EN-EX01-A2-050":["IT055",64],"EN-KY02-A1-025":["IT057",12],"EN-KY02-A2-025":["IT057",12],"EN-KY02-A3-025":["IT057",12],"EN-KY07-A1-039":["IT060",16],"EN-KY07-A2-039":["IT060",16],"EN-KY07-A3-039":["IT060",16],"EN-KY14-A2-048":["IT062",32],"EN-KY14-A3-047":["IT062",32],"EN-KY13-A1-047":["IT062",32],"EN-KY15-A3-048":["IT064",32],"EN-KY16-A1-048":["IT064",32],"EN-KY16-A2-048":["IT064",32],"EN-KY01-A1-003":["IT066",8],"EN-KY01-A2-003":["IT066",8],"EN-KY01-A3-002":["IT066",8],"EN-DP06-041":["IT069",16],"EN-DP05-041":["IT069",16],"EN-DP04-041":["IT069",16],"EN-EX01-A3-001":["IT070",64],"EN-EX01-A1-001":["IT070",64],"EN-EX01-A2-001":["IT070",64],"EN-KY01-A1-004":["IT072",8],"EN-KY01-A2-004":["IT072",8],"EN-KY01-A3-003":["IT072",8],"EN-KY04-A2-027":["IT074",12],"EN-KY04-A3-025":["IT074",12],"EN-KY03-A1-025":["IT074",12],"EN-KY07-A2-026":["IT077",12],"EN-KY07-A3-025":["IT077",12],"EN-KY08-A1-025":["IT077",12],"EN-KY07-A1-040":["IT078",16],"EN-KY07-A2-040":["IT078",16],"EN-KY07-A3-040":["IT078",16],"EN-KY12-A1-041":["IT081",16],"EN-KY12-A2-041":["IT081",16],"EN-KY12-A3-040":["IT081",16],"EN-KY13-A1-040":["IT084",16],"EN-KY13-A2-039":["IT084",16],"EN-KY13-A3-039":["IT084",16],"EN-DP01-047":["IT088",32],"EN-DP08-047":["IT088",32],"EN-DP07-048":["IT088",32],"EN-DP02-047":["IT089",32],"EN-DP01-048":["IT089",32],"EN-DP08-048":["IT089",32],"EN-EX01-A1-002":["IT090",64],"EN-EX01-A2-002":["IT090",64],"EN-EX01-A3-002":["IT090",64],"EN-KY04-A3-001":["IT091",8],"EN-KY03-A1-001":["IT091",8],"EN-KY03-A2-001":["IT091",8],"EN-KY02-A2-003":["IT092",8],"EN-KY02-A3-004":["IT092",8],"EN-KY01-A1-005":["IT092",8],"EN-KY07-A3-026":["IT094",12],"EN-KY08-A1-026":["IT094",12],"EN-KY08-A2-026":["IT094",12],"EN-KY09-A2-039":["IT095",16],"EN-KY09-A3-039":["IT095",16],"EN-KY10-A1-040":["IT095",16],"EN-KY11-A1-039":["IT096",16],"EN-KY11-A2-039":["IT096",16],"EN-KY11-A3-040":["IT096",16],"EN-KY16-A3-048":["IT097",32],"EN-KY15-A1-048":["IT097",32],"EN-KY15-A2-048":["IT097",32],"EN-EX01-A1-003":["IT099",64],"EN-EX01-A2-003":["IT099",64],"EN-EX01-A3-003":["IT099",64]};
 const ITEM_EVENTS={"S01":["IT017",2],"DB04初回撃破":["IT026",1],"M10":["IT029",2],"KY02-BOX-B":["IT030",1],"S06":["IT041",3],"EX01-BOX-B":["IT044",2],"M06":["IT053",2],"M14":["IT054",2],"M16":["IT056",3],"S02":["IT058",2],"DB08初回撃破":["IT065",1],"KY01-BOX-A":["IT067",1],"M12":["IT068",1],"S04":["IT087",3],"KY03-BOX-B":["IT093",3],"DB06初回撃破":["IT098",2],"M01":["IT100",3]};
 
-/* 全国編の地理台帳。ゲームに未実装の拠点・経路・物語を推測で生成しない。 */
+/* 全国編の地理台帳。追加の探索拠点と経路は data_nationwide.js に定義する。 */
 const NATIONAL_REGIONS = [
   ["RG01","北海道"], ["RG02","東北"], ["RG03","関東"], ["RG04","中部"],
   ["RG05","近畿"], ["RG06","中国"], ["RG07","四国"], ["RG08","九州・沖縄"]
@@ -352,7 +352,7 @@ const NATIONAL_PREFECTURES = [
   ["JP36","徳島県","RG07"], ["JP37","香川県","RG07"], ["JP38","愛媛県","RG07"], ["JP39","高知県","RG07"],
   ["JP40","福岡県","RG08"], ["JP41","佐賀県","RG08"], ["JP42","長崎県","RG08"], ["JP43","熊本県","RG08"], ["JP44","大分県","RG08"], ["JP45","宮崎県","RG08"], ["JP46","鹿児島県","RG08"], ["JP47","沖縄県","RG08"]
 ].map(([id,name,regionId])=>({id,name,regionId}));
-/* 実際に遊べる拠点だけを列挙。未収録の県には移動先を作らない。 */
+/* 既存の本編拠点。追加の訪問拠点は data_nationwide.js で登録する。 */
 const NATIONAL_IMPLEMENTED_HUBS = {JP40:["KY01","KY02"],JP41:["KY03","KY04"],JP42:["KY05","KY06"],JP43:["KY07","KY08"]};
 /* 経路は実装状態と解放条件を分ける。planned は地図の移動先にしない。 */
 const NATIONAL_ROUTES = [
@@ -905,6 +905,58 @@ for(const [id,r] of Object.entries(ITEMS_RAW)){
 /* 店の道具：地域段階1（福岡）の購入可能品 */
 const SHOP_ITEMS = Object.values(ITEMS).filter(it=>(it.acq==="S"||it.acq==="SD")&&it.tier<=1).map(it=>it.id);
 const INITIAL_ITEMS = [["IT001",5],["IT033",3]];
+
+/* 全国の探索拠点。後続版の復元ではなく、この版で新たに制作した旅の土台。 */
+const NATIONWIDE_CITY = {
+  JP01:"札幌市",JP02:"青森市",JP03:"盛岡市",JP04:"仙台市",JP05:"秋田市",JP06:"山形市",JP07:"福島市",
+  JP08:"水戸市",JP09:"宇都宮市",JP10:"前橋市",JP11:"さいたま市",JP12:"千葉市",JP13:"新宿区",JP14:"横浜市",
+  JP15:"新潟市",JP16:"富山市",JP17:"金沢市",JP18:"福井市",JP19:"甲府市",JP20:"長野市",JP21:"岐阜市",JP22:"静岡市",JP23:"名古屋市",
+  JP24:"津市",JP25:"大津市",JP26:"京都市",JP27:"大阪市",JP28:"神戸市",JP29:"奈良市",JP30:"和歌山市",
+  JP31:"鳥取市",JP32:"松江市",JP33:"岡山市",JP34:"広島市",JP35:"山口市",JP36:"徳島市",JP37:"高松市",JP38:"松山市",JP39:"高知市",
+  JP44:"大分市",JP45:"宮崎市",JP46:"鹿児島市",JP47:"那覇市"
+};
+/* 既存の阿蘇市から南九州・沖縄を巡り、中国・四国・本州を経て北海道へ続く旅程。 */
+const NATIONWIDE_ORDER = [44,45,46,47,35,34,33,32,31,39,38,37,36,28,27,26,25,24,29,30,23,21,22,19,20,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1];
+const nationwideHub = n=>`NW${String(n).padStart(2,"0")}`;
+const nationwidePref = n=>`JP${String(n).padStart(2,"0")}`;
+const nationwideGatePoint = i=>({x:3+i*3,y:19});
+for(const n of NATIONWIDE_ORDER){
+  const prefId=nationwidePref(n),pref=NATIONAL_PREFECTURES.find(p=>p.id===prefId),hub=nationwideHub(n),city=NATIONWIDE_CITY[prefId];
+  if(!pref||!city) throw new Error(`全国拠点の定義不足: ${prefId}`);
+  HUBS[hub]={name:city,pref:pref.name,prefId,map:hub};
+  NATIONAL_IMPLEMENTED_HUBS[prefId]=[hub];
+  INN_PRICE[hub]=16;
+  const zones={};
+  for(let z=1;z<=3;z++){
+    const area=`${hub}-A${z}`,base=AREAS[`KY08-A${z}`];
+    zones[String(z)]=area;
+    AREAS[area]={...base,name:`${city}・探索区域${z}`,prefix:`${city}の声`,lore:`${pref.name}を巡る新しい旅の探索区域。`,list:base.list.map(row=>[...row])};
+  }
+  MAPS[hub]={hub,name:city,kind:"out",w:32,h:24,safeAnchor:[15,18],
+    tiles:buildMap(32,24,[[".",1,1,30,22],["1",3,3,7,5],["2",22,3,7,5],["3",12,2,8,5],[",",1,18,30,2]]),
+    objects:[
+      {id:`${hub}_sign1`,x:8,y:8,type:"sign",label:"探索区域1の案内",area:zones["1"]},
+      {id:`${hub}_sign2`,x:23,y:8,type:"sign",label:"探索区域2の案内",area:zones["2"]},
+      {id:`${hub}_sign3`,x:16,y:7,type:"sign",label:"探索区域3の案内",area:zones["3"]},
+      {id:`${hub}_inn`,x:11,y:16,type:"inn",label:`${city}の宿屋`},
+      {id:`${hub}_rest`,x:20,y:16,type:"rest",label:"休憩所（日付を進める）"},
+      {id:`${hub}_board`,x:13,y:15,type:"board",label:"編成ボード"},
+      {id:`${hub}_record`,x:18,y:15,type:"shelf",label:"旅の記録"}
+    ],zones};
+}
+for(let i=0;i<NATIONWIDE_ORDER.length;i++){
+  const from=i===0?"KY08":nationwideHub(NATIONWIDE_ORDER[i-1]);
+  const to=nationwideHub(NATIONWIDE_ORDER[i]);
+  const fromMap=MAPS[from],toMap=MAPS[to];
+  const forward=nationwideGatePoint(fromMap.objects.filter(o=>o.type==="gate"&&o.id.startsWith("nw_gate_")).length);
+  const backward=nationwideGatePoint(toMap.objects.filter(o=>o.type==="gate"&&o.id.startsWith("nw_gate_")).length);
+  const gateId=`nw_gate_${from}_${to}`;
+  fromMap.objects.push({id:gateId,x:forward.x,y:forward.y,type:"gate",label:`${HUBS[to].name}への交通路`,to,tx:toMap.safeAnchor[0],ty:toMap.safeAnchor[1]});
+  toMap.objects.push({id:`nw_gate_${to}_${from}`,x:backward.x,y:backward.y,type:"gate",label:`${HUBS[from].name}への交通路`,to:from,tx:fromMap.safeAnchor[0],ty:fromMap.safeAnchor[1]});
+  NATIONAL_ROUTES.push({id:`RT-${from}-${to}`,from,to,mode:"transit",status:"playable",unlock:i===0?"asoClear":"always",firstArrival:`${HUBS[from].name}の交通路`,firstGateId:gateId});
+}
+/* 旧来の候補リストは移動可能な拠点を未収録と誤表示するため空にする。 */
+FUTURE_HUBS.length=0;
 
 /* ===== core: 計算・条件・報酬（状態はJSONで保持し、純粋関数で更新） ===== */
 const XP_CAP = 10029900, JP_CAP = 1997996;
@@ -2470,7 +2522,10 @@ function objective(){
   if(streamPending()) return `${streamPending()}：配信で80点以上を目指す（依頼帳から開始）`;
   if(q){ const Q=QUESTS[q]; if(st.quests[q]==="bossReady") return `${q}：${BOSSES[Q.boss].name}に挑む（${MAPS[Q.hub].name}の奥地）`; return `${q}：通常敵 ${st.qprog[q]||0}/${Q.kills}体（${HUBS[Q.hub].name}のA1～A3）`; }
   const avail=["M01","M02","M03","M04","M05","M06","M07","M08"].find(k=>st.quests[k]==="available"); if(avail) return `依頼帳で「${avail} ${QUESTS[avail].name}」を受ける（2枠）`;
-  if(st.quests.M08==="complete") return "阿蘇市編クリア！ 次の地域は開発中です";
+  if(st.quests.M08==="complete"){
+    const visited=NATIONAL_PREFECTURES.filter(p=>(NATIONAL_IMPLEMENTED_HUBS[p.id]||[]).some(id=>st.visitedHubs?.includes(id))).length;
+    return visited===47?"全国47都道府県を踏破しました！":`全国の旅：${visited}/47都道府県を訪問。地図で次の交通路を確認しよう`;
+  }
   if(st.quests.M07==="complete") return curHub()==="KY08"?"阿蘇市でM08を受け、風の声を届けよう":"熊本市編クリア！ 東門から阿蘇市へ進めます";
   if(st.quests.M06==="complete") return curHub()==="KY07"?"熊本市でM07を受け、街の声を届けよう":"長崎市編クリア！ 東門から熊本市へ進めます";
   if(st.quests.M05==="complete") return curHub()==="KY06"?"長崎市でM06を受け、街の声を届けよう":"佐世保市編クリア！ 東門から長崎市へ進めます";
@@ -2530,7 +2585,7 @@ function renderTitle(){
       <button class="btn" data-a="openSheet" data-k="about">この作品について</button>
     </div>
     <p class="note">配信文化を参考にした非公式の創作ゲームです。実在のサービス・アカウントとは連携しません。BGMと効果音は最初からONです（画面に触れると鳴り始めます。設定で消音にできます）。</p>
-    <p class="note">この開発版の収録範囲：第1章 福岡（M01・M02）＋佐賀県唐津市のM03、佐賀市のM04、長崎県佐世保市のM05、長崎市のM06、熊本市のM07、阿蘇市のM08と各配信・探索3区域まで。次の地域は未収録です。</p>
+    <p class="note">この開発版はM01～M08に加え、47都道府県を訪問・探索できます。全国の追加拠点と交通路は本版の新規制作です。M09以降の本編と参照版v10.108の再現は制作中です。</p>
   </section>`;
 }
 function drawTitleArt(){
@@ -3276,7 +3331,7 @@ function renderSettings(){
 function renderQuests(){
   const st=G.st; const hub=curHub(); const safe=isSafe();
   const stat={locked:"未解放",available:"受注できる",active:"受注中",bossReady:"ボスに挑戦できる",combatDone:"配信待ち",complete:"完了"};
-  let h=`<p class="small">受注は同時に1件。本編・任意とも受注時に旅程枠2を使います（残り${st.slots}枠）。</p>${hub==="KY05"?'<p class="note">佐世保市のM05と3区域を遊べます。M05完了後は東門から長崎市へ進めます。</p>':hub==="KY06"?'<p class="note">長崎市のM06と3区域を遊べます。M06完了後は東門から熊本市へ進めます。</p>':hub==="KY07"?'<p class="note">熊本市のM07と3区域を遊べます。M07完了後は東門から阿蘇市へ進めます。</p>':hub==="KY08"?'<p class="note">阿蘇市のM08と3区域を遊べます。次の地域は未収録です。</p>':""}`;
+  let h=`<p class="small">受注は同時に1件。本編・任意とも受注時に旅程枠2を使います（残り${st.slots}枠）。</p>${hub==="KY05"?'<p class="note">佐世保市のM05と3区域を遊べます。M05完了後は東門から長崎市へ進めます。</p>':hub==="KY06"?'<p class="note">長崎市のM06と3区域を遊べます。M06完了後は東門から熊本市へ進めます。</p>':hub==="KY07"?'<p class="note">熊本市のM07と3区域を遊べます。M07完了後は東門から阿蘇市へ進めます。</p>':hub==="KY08"?'<p class="note">阿蘇市のM08完了後、交通路から全国へ進めます。</p>':hub.startsWith("NW")?'<p class="note">この地域は訪問・探索ができます。本編依頼と固有物語は制作中です。</p>':""}`;
   for(const [id,Q] of Object.entries(QUESTS)){
     const s=st.quests[id]; const prog = ["active","bossReady","combatDone","complete"].includes(s)?`討伐 ${st.qprog[id]||0}/${Q.kills}`:"";
     let btn="";
@@ -3290,8 +3345,14 @@ function renderQuests(){
 }
 function renderWorld(){
   const st=G.st; const safe=isSafe();
-  let h=`<p class="small">拠点間の移動は旅程枠1。安全地帯から出発できます。</p><div class="stack">`;
-  for(const [id,H] of Object.entries(HUBS)){
+  let h=`<p class="small">拠点間の移動は旅程枠1。安全地帯から出発できます。地図では現在地に隣接する拠点を表示します。</p><div class="stack">`;
+  const current=curHub();
+  const adjacent=new Set([current]);
+  for(const route of NATIONAL_ROUTES.filter(r=>r.status==="playable")){
+    if(route.from===current) adjacent.add(route.to);
+    if(route.to===current) adjacent.add(route.from);
+  }
+  for(const [id,H] of Object.entries(HUBS).filter(([id])=>adjacent.has(id))){
     const here=curHub()===id; const visited=st.visitedHubs.includes(id);
     const travel=here?null:worldTravelStatus(st,curHub(),id,safe);
     const itinerary=here?null:nationalItinerary(st,curHub(),id);
@@ -3315,10 +3376,10 @@ function renderWorld(){
       return `<li>${p.id} ${esc(p.name)}：${hubs.length?`拠点あり（${hubs.map(id=>esc(HUBS[id].name)).join("・")}）・${visitedPrefs.some(v=>v.id===p.id)?"訪問済み":"未訪問"}`:"地理台帳のみ・移動不可"}</li>`;
     }).join("")}</ul></details>`;
   }).join("");
-  const routeDirectory=NATIONAL_ROUTES.filter(r=>r.status==="playable").map(r=>`<li>${esc(HUBS[r.from].name)} ↔ ${esc(HUBS[r.to].name)}：${nationalRouteAvailable(st,r.from,r.to)?"経路解放済み":r.unlock==="fukuokaClear"?"福岡編の完了待ち":r.unlock==="karatsuClear"?"唐津編M03の完了待ち":r.unlock==="sagaCityClear"?"佐賀市編M04の完了待ち":r.unlock==="saseboClear"?"佐世保市編M05の完了待ち":r.unlock==="nagasakiClear"?"長崎市編M06の完了待ち":"熊本市編M07の完了待ち"}${!st.visitedHubs.includes(r.to)&&r.firstArrival?`（初回：${esc(r.firstArrival)}）`:""}</li>`).join("");
-  h+=`</div><h3 class="label">実装済みの経路</h3><ul class="list">${routeDirectory}</ul><p class="small">初回到達は街の門から向かいます。訪問後に地図から移動できます。</p><h3 class="label">この先の拠点候補</h3><ul class="list dim">${FUTURE_HUBS.map(([id,n,p])=>`<li>${id} ${p}・${n}　未収録・移動不可</li>`).join("")}</ul>
-    <h3 class="label">全国編の準備状況</h3><p class="small">${NATIONAL_REGIONS.length}地方・${NATIONAL_PREFECTURES.length}都道府県の地理台帳を準備中。現在遊べるのは福岡県の福岡市・北九州市、佐賀県の唐津市（M03まで）と佐賀市（M04まで）、長崎県の佐世保市（M05まで）と長崎市（M06まで）、熊本県の熊本市（M07まで）と阿蘇市（M08まで）です。次の地域は未収録です。</p>
-    <h3 class="label">全国の都道府県</h3><p class="small">拠点ありは${playablePrefs.length}/${NATIONAL_PREFECTURES.length}都道府県。訪問済みは実装済みの${visitedPrefs.length}/${playablePrefs.length}県・${visitedHubCount}/${playableHubIds.length}拠点。地理台帳のみの県には移動できません。</p>${regionDirectory}`;
+  const routeDirectory=NATIONAL_ROUTES.filter(r=>r.status==="playable").map(r=>`<li>${esc(HUBS[r.from].name)} ↔ ${esc(HUBS[r.to].name)}：${nationalRouteAvailable(st,r.from,r.to)?"経路解放済み":esc(nationalRouteUnlockReason(r.from,r.to))}${!st.visitedHubs.includes(r.to)&&r.firstArrival?`（初回：${esc(r.firstArrival)}）`:""}</li>`).join("");
+  h+=`</div><details><summary>実装済みの経路（${NATIONAL_ROUTES.length}）</summary><ul class="list">${routeDirectory}</ul></details><p class="small">初回到達は街の門・交通路から向かいます。訪問後に地図から移動できます。</p>
+    <h3 class="label">全国編の収録状況</h3><p class="small">${NATIONAL_REGIONS.length}地方・${NATIONAL_PREFECTURES.length}都道府県の拠点と探索区域を収録。M01～M08の本編後、交通路から全国を巡れます。追加拠点の固有物語・本編は制作中です。</p>
+    <h3 class="label">全国の都道府県</h3><p class="small">拠点ありは${playablePrefs.length}/${NATIONAL_PREFECTURES.length}都道府県。訪問済みは${visitedPrefs.length}/${playablePrefs.length}県・${visitedHubCount}/${playableHubIds.length}拠点。${visitedPrefs.length===47?"全国踏破達成！":"全県を巡ると全国踏破です。"}</p>${regionDirectory}`;
   return h;
 }
 function worldTravelStatus(st,from,to,safe){
@@ -3332,10 +3393,10 @@ function worldTravelStatus(st,from,to,safe){
 }
 function nationalRouteUnlockReason(from,to){
   const route=NATIONAL_ROUTES.find(r=>r.status==="playable"&&((r.from===from&&r.to===to)||(r.from===to&&r.to===from)));
-  return route?.unlock==="fukuokaClear"?"福岡編の完了後に開きます。":route?.unlock==="karatsuClear"?"唐津編M03の完了後に開きます。":route?.unlock==="sagaCityClear"?"佐賀市編M04の完了後に開きます。":route?.unlock==="saseboClear"?"佐世保市編M05の完了後に開きます。":route?.unlock==="nagasakiClear"?"長崎市編M06の完了後に開きます。":route?.unlock==="kumamotoClear"?"熊本市編M07の完了後に開きます。":"この先の道はまだ開いていません。";
+  return route?.unlock==="fukuokaClear"?"福岡編の完了後に開きます。":route?.unlock==="karatsuClear"?"唐津編M03の完了後に開きます。":route?.unlock==="sagaCityClear"?"佐賀市編M04の完了後に開きます。":route?.unlock==="saseboClear"?"佐世保市編M05の完了後に開きます。":route?.unlock==="nagasakiClear"?"長崎市編M06の完了後に開きます。":route?.unlock==="kumamotoClear"?"熊本市編M07の完了後に開きます。":route?.unlock==="asoClear"?"阿蘇市編M08の完了後に開きます。":"この先の道はまだ開いていません。";
 }
 function nationalRouteAvailable(st,from,to){
-  return NATIONAL_ROUTES.some(r=>r.status==="playable"&&((r.from===from&&r.to===to)||(r.from===to&&r.to===from))&&(r.unlock==="always"||r.unlock==="fukuokaClear"&&!!st.fukuokaClear||r.unlock==="karatsuClear"&&st.quests?.M03==="complete"||r.unlock==="sagaCityClear"&&st.quests?.M04==="complete"||r.unlock==="saseboClear"&&st.quests?.M05==="complete"||r.unlock==="nagasakiClear"&&st.quests?.M06==="complete"||r.unlock==="kumamotoClear"&&st.quests?.M07==="complete"));
+  return NATIONAL_ROUTES.some(r=>r.status==="playable"&&((r.from===from&&r.to===to)||(r.from===to&&r.to===from))&&(r.unlock==="always"||r.unlock==="fukuokaClear"&&!!st.fukuokaClear||r.unlock==="karatsuClear"&&st.quests?.M03==="complete"||r.unlock==="sagaCityClear"&&st.quests?.M04==="complete"||r.unlock==="saseboClear"&&st.quests?.M05==="complete"||r.unlock==="nagasakiClear"&&st.quests?.M06==="complete"||r.unlock==="kumamotoClear"&&st.quests?.M07==="complete"||r.unlock==="asoClear"&&st.quests?.M08==="complete"));
 }
 function nationalItinerary(st,from,to){
   if(!Object.hasOwn(HUBS,from)||!Object.hasOwn(HUBS,to)) return null;
@@ -3736,7 +3797,7 @@ const ACT = {
   stop(){ if(G.walk.path.length>1) G.walk.path=G.walk.path.slice(0,1); G.walk.pending=null; },
   interactId(el){ const o=MAPS[G.st.mapId].objects.find(x=>x.id===el.dataset.v); G.sheet=null; render(); interact(o); },
   guideTo(el){ const o=MAPS[G.st.mapId].objects.find(x=>x.id===el.dataset.v); G.sheet=null; render(); walkTo(o.x,o.y); },
-  doTravel(){ if(!canTravelFrom("travel")) return; const d=G.sheetData; const from=curHub(); if(!d||typeof d.to!=="string"||!Number.isInteger(d.tx)||!Number.isInteger(d.ty)||typeof d.gateId!=="string") return toast("移動先が変わりました。門を調べ直してください。"); const route=NATIONAL_ROUTES.find(r=>r.status==="playable"&&r.from===from&&r.to===d.to); const first=!(G.st.visitedHubs||[]).includes(d.to); if(!HUBS[d.to]||from===d.to||!nationalRouteAvailable(G.st,from,d.to)||first&&route&&route.firstGateId!==d.gateId||!nearbyObjects().some(o=>o.type==="gate"&&o.id===d.gateId&&o.to===d.to&&o.tx===d.tx&&o.ty===d.ty)) return toast("移動先が変わりました。門を調べ直してください。"); G.sheet=null; travelHub(d.to,d.tx,d.ty); },
+  doTravel(){ if(!canTravelFrom("travel")) return; const d=G.sheetData; const from=curHub(); if(!d||typeof d.to!=="string"||!Number.isInteger(d.tx)||!Number.isInteger(d.ty)||typeof d.gateId!=="string") return toast("移動先が変わりました。門を調べ直してください。"); const route=NATIONAL_ROUTES.find(r=>r.status==="playable"&&((r.from===from&&r.to===d.to)||(r.from===d.to&&r.to===from))); const first=!(G.st.visitedHubs||[]).includes(d.to); if(!HUBS[d.to]||from===d.to||!route||!nationalRouteAvailable(G.st,from,d.to)||first&&route.from===from&&route.firstGateId!==d.gateId||!nearbyObjects().some(o=>o.type==="gate"&&o.id===d.gateId&&o.to===d.to&&o.tx===d.tx&&o.ty===d.ty)) return toast("移動先が変わりました。門を調べ直してください。"); G.sheet=null; travelHub(d.to,d.tx,d.ty); },
   worldGo(el){ if(!canTravelFrom("map")) return; const to=el.dataset.v; if(!Object.hasOwn(HUBS,to)||curHub()===to) return toast("行先を選び直してください。"); const status=worldTravelStatus(G.st,curHub(),to,true); if(!status.available) return toast(status.reason); const map=MAPS[to]; if(!map||!Array.isArray(map.safeAnchor)) return toast("この行先にはまだ移動できません。"); const s=map.safeAnchor; G.sheet=null; travelHub(to,s[0],s[1]); },
   doInn(el){ if(G.readOnly||G.screen!=="explore"||G.sheet!=="inn"||G.dlg||G.st.run||!isSafe()) return; const st=G.st; const total=(INN_PRICE[curHub()]||10)*st.roster.length; if(st.gold<total) return toast(`ゴールドが足りません（あと${total-st.gold}）。`); el.disabled=true; G.sheet=null; st.gold-=total; restoreAll(st); st.day++; st.slots=6; commit(); render(); SND.sfx("heal"); say([["",`${total}ゴールドを払って泊まった。`],["",`${st.day}日目の朝。全員の体力と集中力が全回復した！`]]); },
   doRest(){ if(G.readOnly||G.screen!=="explore"||G.sheet!=="rest"||G.dlg||G.st.run||!isSafe()) return; const st=G.st; G.sheet=null; st.day++; st.slots=6; commit(); render(); toast(`${st.day}日目の朝。旅程枠が6に戻った。`); },

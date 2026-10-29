@@ -2265,7 +2265,7 @@ async function loadSave(){
     {record:prev,storage:"indexeddb",fromPrev:true}
   ].map(c=>({...c,state:decode(c.record)})).filter(c=>c.state);
   candidates.sort((a,b)=>{
-    const gen=c=>Number.isSafeInteger(c.record.gen)&&c.record.gen>=0?c.record.gen:Number.isSafeInteger(c.state.saveGeneration)&&c.state.saveGeneration>=0?c.state.saveGeneration:0;
+    const gen=c=>Number.isSafeInteger(c.state.saveGeneration)&&c.state.saveGeneration>=0?c.state.saveGeneration:Number.isSafeInteger(c.record.gen)&&c.record.gen>=0?c.record.gen:0;
     return gen(b)-gen(a);
   });
   const best=candidates[0];

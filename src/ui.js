@@ -426,18 +426,20 @@ function renderDialog(){
 function playScene(id, after){ const sc=SCENES[id]; if(id.startsWith("RANK_")) SND.sfx("rank"); if(id==="RANK_D2"){ SND.play("ending"); const a0=after; after=()=>{ exploreBgm(); if(a0) a0(); }; } G.st.scenes[id]=true; commit(); say([["",`― ${sc.title} ―`],...sc.lines(G.st.profile.name)], after); }
 
 /* ---- 移動 ---- */
-function travelMap(to,tx,ty){
+function travelMap(to,tx,ty,save=true){
   const st=G.st; st.mapId=to; st.pos={x:tx,y:ty}; G.walk.path=[]; G.fol={x:tx,y:ty};
   if(!st.visitedMaps.includes(to)) st.visitedMaps.push(to);
   const hub=MAPS[to].hub; if(!st.visitedHubs.includes(hub)) st.visitedHubs.push(hub);
-  commit(); G.sheet=null; render();
+  if(save) commit(); G.sheet=null; render();
 }
 function travelHub(to,tx,ty){
   const st=G.st; if(st.slots<1){ return openSheet("rest",{reason:"旅程枠が足りません。休息すると翌日6枠になります。"}); }
   st.slots-=1; const first=!st.visitedHubs.includes(to);
-  travelMap(to,tx,ty);
+  travelMap(to,tx,ty,false);
   const j=JOIN_PLAN.find(x=>x.hub===to);
-  if(j && joinMember(st,j.cid)){ commit(); say([["",`${HUBS[to]?HUBS[to].name:j.pref}で${CHARS[j.cid].full}と出会った。`],["",`${CHARS[j.cid].full}が仲間に加わった。`]]); return; }
+  const joined=j&&joinMember(st,j.cid);
+  commit();
+  if(joined){ say([["",`${HUBS[to]?HUBS[to].name:j.pref}で${CHARS[j.cid].full}と出会った。`],["",`${CHARS[j.cid].full}が仲間に加わった。`]]); return; }
   if(first && to==="KY02") say([["",`${HUBS[to].name}に着いた。港の風と倉庫の匂いがする。`],["もえ","ここが北九州……。港の音、配信に入れたら素敵だね。"]]);
 }
 
@@ -1440,6 +1442,10 @@ function migrate(s){
   if(s.settings&&s.settings.soundV!==2){ s.settings.sound=true; s.settings.soundV=2; }
   if(s.vitals===undefined) s.vitals=null;
   s.jobs.moe=s.jobs.moe||"J08"; s.jp.moe=s.jp.moe||{}; s.equip.moe=s.equip.moe||{w:null,a:null,acc:null};
+  if(s.visitedHubs.includes("KY05")&&!s.roster.includes("kayo")){
+    s.jobs.kayo=s.jobs.kayo||CHARS.kayo.initJob; s.jp.kayo=s.jp.kayo||{}; s.equip.kayo=s.equip.kayo||{w:null,a:null,acc:null};
+    joinMember(s,"kayo");
+  }
   s.settings=Object.assign({difficulty:"std",sound:soundPref(),reduceMotion:false},s.settings||{});
   s.scenes=s.scenes||{}; s.cards=s.cards||[];
   if(!s.quests.M03) s.quests.M03=s.quests.M02==="complete"||s.fukuokaClear?"available":"locked";

@@ -676,7 +676,9 @@ function autoStep(){
   else { G.auto=false; render(); }
 }
 function toResult(){
-  const st=G.st, run=st.run; const res=applyVictory(st,run);
+  const st=G.st, run=st?.run;
+  if(G.readOnly||G.screen!=="battle"||G.sheet||G.dlg||!run||run.state!=="won") return;
+  const res=applyVictory(st,run);
   st.battleBadges=Array.isArray(st.battleBadges)?st.battleBadges:[];
   const eligible=eligibleBattleBadges(run);
   const newBadges=eligible.filter(id=>!st.battleBadges.includes(id));

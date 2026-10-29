@@ -877,8 +877,12 @@ function renderWorld(){
     const travel=here?null:worldTravelStatus(st,curHub(),id,safe);
     const itinerary=here?null:nationalItinerary(st,curHub(),id);
     const lockedLegs=itinerary?.slice(1).flatMap((step,i)=>nationalRouteAvailable(st,itinerary[i],step)?[]:[`${HUBS[itinerary[i]].name}→${HUBS[step].name}：${nationalRouteUnlockReason(itinerary[i],step)}`])||[];
+    const firstArrivalLegs=itinerary?.slice(1).flatMap((step,i)=>{
+      const route=NATIONAL_ROUTES.find(r=>r.status==="playable"&&r.from===itinerary[i]&&r.to===step);
+      return route?.firstArrival&&!(st.visitedHubs||[]).includes(step)?[`${HUBS[step].name}の初回到達：${route.firstArrival}から向かってください。`]:[];
+    })||[];
     h+=`<div class="qcard"><div class="srow"><b>${id} ${esc(H.pref)}・${esc(H.name)}${H.home?"（故郷）":""}</b><span class="tag">${here?"現在地":visited?"訪問済み":"未訪問"}</span></div>
-      ${here?"":`<button class="btn" data-a="worldGo" data-v="${id}" ${travel.available?"":"disabled"}>向かう（1枠）</button>${itinerary?.length>2?`<p class="small">経由：${itinerary.map(step=>esc(HUBS[step].name)).join(" → ")}（計${itinerary.length-1}枠${lockedLegs.length?"・未解放区間あり":""}${st.slots<itinerary.length-1?"・現在の旅程枠では不足":""}）</p>${lockedLegs.map(note=>`<p class="small">${esc(note)}</p>`).join("")}`:""}${travel.reason?`<p class="small">${esc(travel.reason)}</p>`:""}`}</div>`;
+      ${here?"":`<button class="btn" data-a="worldGo" data-v="${id}" ${travel.available?"":"disabled"}>向かう（1枠）</button>${itinerary?.length>2?`<p class="small">経由：${itinerary.map(step=>esc(HUBS[step].name)).join(" → ")}（計${itinerary.length-1}枠${lockedLegs.length?"・未解放区間あり":""}${st.slots<itinerary.length-1?"・現在の旅程枠では不足":""}）</p>${[...lockedLegs,...firstArrivalLegs].map(note=>`<p class="small">${esc(note)}</p>`).join("")}`:""}${travel.reason?`<p class="small">${esc(travel.reason)}</p>`:""}`}</div>`;
   }
   const playablePrefs=NATIONAL_PREFECTURES.filter(p=>(NATIONAL_IMPLEMENTED_HUBS[p.id]||[]).some(id=>Object.hasOwn(HUBS,id)));
   const visitedPrefs=playablePrefs.filter(p=>(NATIONAL_IMPLEMENTED_HUBS[p.id]||[]).some(id=>(st.visitedHubs||[]).includes(id)));

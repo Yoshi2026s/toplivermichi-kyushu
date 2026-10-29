@@ -102,6 +102,7 @@ if(!world.includes('福岡市 ↔ 北九州市：経路解放済み')||!world.in
 if(!world.includes('初回：福岡市の東門')||!world.includes('初回：北九州の東門')||!world.includes('初回：唐津の東門')) fail('route directory did not show first-arrival entrances');
 if(!world.includes('福岡市 → 北九州市 → 唐津市（計2枠・未解放区間あり）')||!world.includes('福岡市 → 北九州市 → 唐津市 → 佐賀市（計3枠・未解放区間あり）')) fail('itinerary missing route or locked segment');
 if(!world.includes('北九州市→唐津市：福岡編の完了後に開きます。')||!world.includes('唐津市→佐賀市：唐津編M03の完了後に開きます。')) fail('itinerary did not identify locked legs');
+if(!world.includes('北九州市の初回到達：福岡市の東門から向かってください。')||!world.includes('唐津市の初回到達：北九州の東門から向かってください。')||!world.includes('佐賀市の初回到達：唐津の東門から向かってください。')) fail('itinerary did not show first-arrival gates');
 if(!world.includes('この先の拠点候補')||!world.includes('KY05 長崎・佐世保市　未収録・移動不可')||world.includes('KY05 長崎・佐世保市　未解放')) fail('future hub was presented as unlockable');
 const worldVisited=runInNewContext(`${source}\n${worldFn}\n${statusFn}\n${routeFn}\n${itineraryFn}\n${unlockFn}\nrenderWorld()`,{G:{st:{visitedHubs:['KY01','KY03'],quests:{},fukuokaClear:true,slots:6}},HUBS:hubs,FUTURE_HUBS:future,isSafe:()=>true,curHub:()=> 'KY03',esc:s=>String(s)});
 if(!worldVisited.includes('訪問済みは実装済みの2/2県・2/4拠点')||!worldVisited.includes('JP41 佐賀県：拠点あり（唐津市・佐賀市）・訪問済み')) fail('national visit count did not follow saved hubs');
@@ -109,6 +110,7 @@ const worldSaga=runInNewContext(`${source}\n${worldFn}\n${statusFn}\n${routeFn}\
 if(!worldSaga.includes('訪問済みは実装済みの2/2県・4/4拠点')) fail('Saga city visit did not update hub count');
 if(!worldSaga.includes('佐賀市 → 唐津市 → 北九州市 → 福岡市（計3枠）')) fail('unlocked itinerary missing');
 if(worldSaga.includes('未解放区間あり')) fail('unlocked itinerary still reported locked legs');
+if(worldSaga.includes('の初回到達：')) fail('visited itinerary still showed first-arrival gates');
 const worldLowSlots=runInNewContext(`${source}\n${worldFn}\n${statusFn}\n${routeFn}\n${itineraryFn}\n${unlockFn}\nrenderWorld()`,{G:{st:{visitedHubs:['KY01','KY02','KY03','KY04'],quests:{M03:'complete'},fukuokaClear:true,slots:1}},HUBS:hubs,FUTURE_HUBS:future,isSafe:()=>true,curHub:()=> 'KY04',esc:s=>String(s)});
 if(!worldLowSlots.includes('佐賀市 → 唐津市 → 北九州市 → 福岡市（計3枠・現在の旅程枠では不足）')) fail('itinerary did not report insufficient slots');
 if(worldSaga.includes('初回：')) fail('visited routes still showed first-arrival entrances');

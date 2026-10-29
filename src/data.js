@@ -101,7 +101,8 @@ const BOSSES = {
   B02: {name:"シオカゼラ", q:11, areaId:"KY03-A3", cue:"guard", hub:"KY03"},
   B03: {name:"ヒカリカエシ", q:14, areaId:"KY04-A3", cue:"guard", hub:"KY04"},
   B04: {name:"カゼマチ", q:17, areaId:"KY05-A3", cue:"guard", hub:"KY05"},
-  B05: {name:"オトノコダマ", q:20, areaId:"KY06-A3", cue:"guard", hub:"KY06"}
+  B05: {name:"オトノコダマ", q:20, areaId:"KY06-A3", cue:"guard", hub:"KY06"},
+  B06: {name:"コエノカゲ", q:23, areaId:"KY07-A3", cue:"guard", hub:"KY07"}
 };
 
 /* ボスの少人数補正（ユーザー指定の2人旅に合わせた本作の調整）。HPと攻撃に掛ける */
@@ -111,7 +112,7 @@ const BOSS_SCALE_OVERRIDE = { LB01:{ 2:{hp:0.9,atk:1} } };
 function bossScale(bid, n){ n=Math.min(4,Math.max(1,n)); const o=BOSS_SCALE_OVERRIDE[bid]; return (o&&o[n]) || BOSS_PARTY_SCALE[n]; }
 
 /* 宿屋：1人あたりの宿泊料（ゴールド）。泊まると翌朝になり、体力と集中力が全回復 */
-const INN_PRICE = { KY01:6, KY02:10, KY03:12, KY04:12, KY05:14, KY06:14 };
+const INN_PRICE = { KY01:6, KY02:10, KY03:12, KY04:12, KY05:14, KY06:14, KY07:16 };
 
 /* 第05D節：もえのシナリオ到達ランク */
 const MOE_RANKS = ["E1","D1","D2","D3","C1","C2","C3","B1","B2","B3","A1","A2","A3","S1","S2","S3","S4","S5","S6"];
@@ -130,6 +131,8 @@ const QUESTS = {
        goal:"佐世保市のA1～A3で通常敵を2体倒し、展望広場でカゼマチに挑む。その後、配信で80点以上。"},
   M06:{hub:"KY06", name:"丘から返る声", kills:2, boss:"B05", stream:true, main:true,
        goal:"長崎市のA1～A3で通常敵を2体倒し、丘の眺めでオトノコダマに挑む。その後、配信で80点以上。"},
+  M07:{hub:"KY07", name:"石垣の先の声", kills:2, boss:"B06", stream:true, main:true,
+       goal:"熊本市のA1～A3で通常敵を2体倒し、石垣の広場でコエノカゲに挑む。その後、配信で80点以上。"},
   S01:{hub:"KY01", name:"ふるさとの紹介文", kills:1, main:false, npc:"akari",
        goal:"灯里と故郷の紹介文を考え、福岡市のA1～A3で通常敵を1体倒す。"},
   S02:{hub:"KY02", name:"港の拍手練習", kills:1, main:false, npc:"sota",
@@ -152,7 +155,7 @@ const STREAM_ACTS = {
   like:{name:"いいねリレー", req:"光のリレーを見たい"},
   kira:{name:"キラコメ演出", req:"短いキラコメで彩って"}
 };
-const STREAM_REQ = { PR01:["first","local","reply","thanks"], PR02:["local","reply","first","thanks"], PR03:["local","first","reply","thanks"] };
+const STREAM_REQ = { PR01:["first","local","reply","thanks"], PR02:["local","reply","first","thanks"], PR03:["local","first","reply","thanks"], PR04:["first","reply","local","thanks"] };
 const STREAM_THEMES = { newbie:{name:"初見歓迎",act:"first"}, local:{name:"地域の話",act:"local"}, chat:{name:"ゆったり雑談",act:"reply"} };
 const STREAM_TIMES = ["21時00分","21時20分","21時40分","21時59分"];
 
@@ -322,6 +325,7 @@ const MAPS = {
       {id:"kumamoto_sign1",x:9,y:15,type:"sign",label:"案内板（川辺の小径）",area:"KY07-A1"},
       {id:"kumamoto_sign2",x:29,y:15,type:"sign",label:"案内板（街路の通り）",area:"KY07-A2"},
       {id:"kumamoto_sign3",x:20,y:8,type:"sign",label:"案内板（石垣の広場）",area:"KY07-A3"},
+      {id:"kumamoto_boss",x:20,y:5,type:"boss",label:"石垣の広場の奥（ボス待機地点）",boss:"B06",walk:true},
       {id:"kumamoto_inn",x:20,y:18,type:"inn",label:"熊本市の宿屋"},
       {id:"kumamoto_rest",x:30,y:18,type:"rest",label:"休憩所（日付を進める）"},
       {id:"kumamoto_board",x:26,y:16,type:"board",label:"編成ボード"},
@@ -343,7 +347,7 @@ const FUTURE_HUBS = [["KY08","阿蘇市","熊本"],["KY09","別府市","大分"]
 /* ===== 住民と会話 ===== */
 const NPCS = {
   kumamotoGuide:{name:"熊本市の案内人", hub:"KY07", sprite:[PAL.sand,PAL.ink],
-    first:p=>[["案内人",`${p}さん、熊本市へようこそ。川辺の小径から石垣の広場まで歩けます。`],["案内人","依頼と配信はまだ準備中です。長崎市へは西の門から戻れます。"]],
+    first:p=>[["案内人",`${p}さん、熊本市へようこそ。川辺の小径から石垣の広場まで歩けます。`],["案内人","石垣の奥に声が残っています。依頼帳でM07を受け、街で調べてください。"]],
     normal:p=>[["案内人","川辺の小径・街路の通り・石垣の広場を探索できます。宿屋と休憩所もどうぞ。"]]},
   nagasakiGuide:{name:"長崎市の案内人", hub:"KY06", sprite:[PAL.sea,PAL.sand],
     first:p=>[["案内人",`${p}さん、長崎市へようこそ。港の小径から丘の眺めまで探索できます。`],["案内人","丘の上で返事が重なっています。依頼帳でM06を受け、港と坂道から調べてください。"]],
@@ -454,7 +458,16 @@ const SCENES = {
   ]},
   RANK_C3:{title:"もえのランク C3", lines:p=>[
     ["もえ","長崎市で聞いた返事も、ひとつずつ届けられたね。"],
-    ["","もえのシナリオ到達ランクがC3になった。この先の地域は開発中です。"]
+    ["","もえのシナリオ到達ランクがC3になった。長崎市の東門から熊本市へ進み、M07を受けられます。"]
+  ]},
+  M07_BOSS:{title:"石垣の声", lines:p=>[
+    ["","広場に重なっていた声がほどけ、川辺と街路の呼びかけが届いた。"],
+    ["もえ",`${p}、熊本市で聞いた声を配信でも届けよう。`],
+    ["","熊本市での配信準備が整った。依頼帳から配信を始めよう。"]
+  ]},
+  RANK_B1:{title:"もえのランク B1", lines:p=>[
+    ["もえ","熊本市の返事も、みんなに届いたね。"],
+    ["","もえのシナリオ到達ランクがB1になった。この先の地域は開発中です。"]
   ]},
   S01_DONE:{title:"ふるさとの紹介文", lines:p=>[
     ["灯里","できた！『待ち合わせの広場。帰ってきた人に、おかえりを言う場所』。"],

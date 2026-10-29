@@ -866,8 +866,9 @@ function renderWorld(){
   for(const [id,H] of Object.entries(HUBS)){
     const here=curHub()===id; const visited=st.visitedHubs.includes(id);
     const travel=here?null:worldTravelStatus(st,curHub(),id,safe);
+    const itinerary=here?null:nationalItinerary(st,curHub(),id);
     h+=`<div class="qcard"><div class="srow"><b>${id} ${esc(H.pref)}・${esc(H.name)}${H.home?"（故郷）":""}</b><span class="tag">${here?"現在地":visited?"訪問済み":"未訪問"}</span></div>
-      ${here?"":`<button class="btn" data-a="worldGo" data-v="${id}" ${travel.available?"":"disabled"}>向かう（1枠）</button>${travel.reason?`<p class="small">${esc(travel.reason)}</p>`:""}`}</div>`;
+      ${here?"":`<button class="btn" data-a="worldGo" data-v="${id}" ${travel.available?"":"disabled"}>向かう（1枠）</button>${itinerary?.length>2?`<p class="small">経由：${itinerary.map(step=>esc(HUBS[step].name)).join(" → ")}（計${itinerary.length-1}枠${itinerary.some((step,i)=>i>0&&!nationalRouteAvailable(st,itinerary[i-1],step))?"・未解放区間あり":""}）</p>`:""}${travel.reason?`<p class="small">${esc(travel.reason)}</p>`:""}`}</div>`;
   }
   const playablePrefs=NATIONAL_PREFECTURES.filter(p=>(NATIONAL_IMPLEMENTED_HUBS[p.id]||[]).some(id=>Object.hasOwn(HUBS,id)));
   const visitedPrefs=playablePrefs.filter(p=>(NATIONAL_IMPLEMENTED_HUBS[p.id]||[]).some(id=>(st.visitedHubs||[]).includes(id)));
@@ -898,6 +899,19 @@ function worldTravelStatus(st,from,to,safe){
 }
 function nationalRouteAvailable(st,from,to){
   return NATIONAL_ROUTES.some(r=>r.status==="playable"&&((r.from===from&&r.to===to)||(r.from===to&&r.to===from))&&(r.unlock==="always"||r.unlock==="fukuokaClear"&&!!st.fukuokaClear||r.unlock==="karatsuClear"&&st.quests?.M03==="complete"));
+}
+function nationalItinerary(st,from,to){
+  if(!Object.hasOwn(HUBS,from)||!Object.hasOwn(HUBS,to)) return null;
+  const queue=[[from]],seen=new Set([from]);
+  for(const path of queue){
+    const last=path.at(-1);
+    if(last===to) return path;
+    for(const route of NATIONAL_ROUTES.filter(r=>r.status==="playable"&&(r.from===last||r.to===last))){
+      const next=route.from===last?route.to:route.from;
+      if(!seen.has(next)&&Object.hasOwn(HUBS,next)){seen.add(next);queue.push([...path,next]);}
+    }
+  }
+  return null;
 }
 function renderParty(){
   const st=G.st; const d=G.sheetData; const L=levelOf(st.xp);

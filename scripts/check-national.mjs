@@ -196,6 +196,8 @@ const kumamotoGate=maps.KY06.objects.find(o=>o.id==='gate_kumamoto'),kumamotoRet
 if(!kumamotoGate||!kumamotoReturn||kumamotoGate.to!=='KY07'||kumamotoReturn.to!=='KY06'||kumamotoGate.tx!==2||kumamotoGate.ty!==20||kumamotoReturn.tx!==37||kumamotoReturn.ty!==20) fail('Kumamoto gates are not reciprocal');
 if(!reachable(maps.KY07,[2,20],maps.KY07.safeAnchor)||!reachable(maps.KY07,maps.KY07.safeAnchor,[2,20])) fail('Kumamoto city safety or return path failed');
 for(const type of ['npc','inn','rest','board','shelf']) if(!maps.KY07.objects.some(o=>o.type===type)) fail(`Kumamoto city ${type} missing`);
+const kumamotoBossTile=maps.KY07.objects.find(o=>o.type==='boss'&&o.boss==='B06');
+if(!kumamotoBossTile||!reachable(maps.KY07,maps.KY07.safeAnchor,[kumamotoBossTile.x,kumamotoBossTile.y])) fail('Kumamoto city boss is unreachable');
 for(const zone of ['1','2','3']){
   const id=maps.KY07.zones[zone],tile=maps.KY07.tiles.flatMap((row,y)=>row.map((value,x)=>value===zone?[x,y]:null)).find(Boolean);
   if(id!==`KY07-A${zone}`||!tile||!reachable(maps.KY07,maps.KY07.safeAnchor,tile)||!maps.KY07.objects.some(o=>o.type==='sign'&&o.area===id)) fail(`Kumamoto city exploration zone ${zone} is incomplete`);
@@ -219,15 +221,15 @@ journey.travelHub('KY06',2,20);
 if(traveler.mapId!=='KY06'||traveler.pos.x!==2||traveler.pos.y!==20||traveler.slots!==1||!traveler.visitedHubs.includes('KY06')||saved!==3||savedStates[2].mapId!=='KY06') fail('Nagasaki city arrival or save failed');
 const nagasakiQuests=runInNewContext(`${core}\n${questViewFn}\nrenderQuests()`,{G:{st:traveler},curHub:()=> 'KY06',isSafe:()=>true,esc:s=>String(s)});
 if(!nagasakiQuests.includes('M06と3区域')||!nagasakiQuests.includes('M06 丘から返る声')) fail('Nagasaki city board did not show M06');
-traveler.slots=2;traveler.quests.M06='complete';journey.travelHub('KY07',2,20);
+traveler.slots=2;traveler.quests.M06='complete';traveler.quests.M07='available';journey.travelHub('KY07',2,20);
 if(traveler.mapId!=='KY07'||traveler.pos.x!==2||traveler.pos.y!==20||!traveler.visitedHubs.includes('KY07')) fail('Kumamoto city arrival failed');
 const kumamotoQuests=runInNewContext(`${core}\n${questViewFn}\nrenderQuests()`,{G:{st:traveler},curHub:()=> 'KY07',isSafe:()=>true,esc:s=>String(s)});
-if(!kumamotoQuests.includes('探索3区域')||!kumamotoQuests.includes('依頼・配信はまだ収録していません')) fail('Kumamoto city board did not identify unfinished content');
+if(!kumamotoQuests.includes('M07と3区域')||!kumamotoQuests.includes('M07 石垣の先の声')) fail('Kumamoto city board did not show M07');
 traveler.slots=1;journey.travelHub('KY06',37,20);
 if(traveler.mapId!=='KY06') fail('Kumamoto city return failed');
 traveler.slots=1;
 journey.travelHub('KY05',37,20);
 if(traveler.mapId!=='KY05'||traveler.slots!==0||saved!==6) fail('Nagasaki city return failed');
-console.log('National registry: 8 regions, 47 prefectures, 7 connected hubs, Kumamoto city exploration and route OK');
+console.log('National registry: 8 regions, 47 prefectures, 7 connected hubs, Kumamoto city M07 and route OK');
 
 

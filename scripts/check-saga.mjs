@@ -14,6 +14,7 @@ const fail=msg=>{throw new Error(msg)};
 const fresh=game.newGame('確認用','女性');
 if(fresh.quests.M03!=='locked') fail('M03 must start locked');
 if(fresh.quests.M04!=='locked') fail('M04 must start locked');
+if(fresh.quests.M05!=='locked') fail('M05 must start locked');
 fresh.quests.M02='combatDone';
 game.completeQuest(fresh,'M02',{xp:0,tickets:0});
 if(fresh.quests.M03!=='available'||!fresh.fukuokaClear) fail('M02 must unlock M03');
@@ -28,8 +29,10 @@ if(migrated.quests.M03!=='available'||migrated.quests.M04!=='locked'||migrated.g
 if(migrated.lastResult.itemsUsedKnown!==false||migrated.lastResult.itemsUsed.length) fail('old result must keep unknown item history');
 const karatsuOld=game.newGame('唐津済','女性'); karatsuOld.quests.M03='complete'; delete karatsuOld.quests.M04;
 if(game.migrate(JSON.parse(JSON.stringify(karatsuOld))).quests.M04!=='available') fail('Karatsu save must unlock M04');
+const sagaCityOld=game.newGame('佐賀市済','女性');sagaCityOld.quests.M04='complete';delete sagaCityOld.quests.M05;
+if(game.migrate(JSON.parse(JSON.stringify(sagaCityOld))).quests.M05!=='available') fail('Saga city save must unlock M05');
 
-for(const id of ['KY03-A1','KY03-A2','KY03-A3','KY04-A1','KY04-A2','KY04-A3']){
+for(const id of ['KY03-A1','KY03-A2','KY03-A3','KY04-A1','KY04-A2','KY04-A3','KY05-A1','KY05-A2','KY05-A3']){
   if(game.AREAS[id]?.list.length!==50||!game.enemyDef(id,0).id.startsWith(`EN-${id}-`)) fail(`${id} enemy catalog invalid`);
   const run=game.createFieldRun(fresh,id,{count:0,picks:[0,0]});
   if(run.hub!==id.slice(0,4)||run.areaId!==id||run.enemies.length!==1) fail(`${id} battle creation failed`);
@@ -60,8 +63,18 @@ fresh.quests.M04='combatDone';
 const cityBefore=fresh.tickets;
 game.completeQuest(fresh,'M04',{xp:0,tickets:0});
 if(fresh.quests.M04!=='complete'||fresh.moeRank!==4||fresh.tickets<=cityBefore) fail('M04 completion failed');
+if(fresh.quests.M05!=='available') fail('M04 must unlock M05');
 const cityOnce=fresh.tickets;
 game.completeQuest(fresh,'M04',{xp:0,tickets:0});
 if(fresh.tickets!==cityOnce) fail('M04 reward duplicated');
-console.log('Saga M03-M04: old saves, battles, bosses, streams, ranks and rewards OK');
-
+const saseboBoss=game.createBossRun(fresh,'B04');
+if(saseboBoss.hub!=='KY05'||saseboBoss.areaId!=='KY05-A3'||saseboBoss.enemies[0].id!=='B04') fail('Sasebo boss battle invalid');
+const saseboStream=game.newStream(fresh,'KY05','hero','local','voice');
+for(const act of ['local','first','reply','thanks']) game.streamPlay(saseboStream,act);
+if(!saseboStream.done||saseboStream.score<80||saseboStream.hub!=='KY05'||saseboStream.prefId!=='PR03') fail('Sasebo stream cannot complete');
+fresh.quests.M05='combatDone';
+const saseboBefore=fresh.tickets;game.completeQuest(fresh,'M05',{xp:0,tickets:0});
+if(fresh.quests.M05!=='complete'||fresh.moeRank!==5||fresh.tickets<=saseboBefore) fail('M05 completion failed');
+const saseboOnce=fresh.tickets;game.completeQuest(fresh,'M05',{xp:0,tickets:0});
+if(fresh.tickets!==saseboOnce) fail('M05 reward duplicated');
+console.log('Saga and Sasebo M03-M05: old saves, battles, bosses, streams, ranks and rewards OK');

@@ -187,6 +187,8 @@ const core=['data_enemies.js','data_saga_enemies.js','data_items.js','data_natio
 const areaDefs=runInNewContext(`${core}\nAREAS`);
 for(const zone of ['1','2','3']) if(!areaDefs[`KY05-A${zone}`]||areaDefs[`KY05-A${zone}`].list.length<1) fail(`Sasebo area ${zone} has no enemies`);
 for(const zone of ['1','2','3']) if(!areaDefs[`KY06-A${zone}`]||areaDefs[`KY06-A${zone}`].list.length<1) fail(`Nagasaki city area ${zone} has no enemies`);
+const nagasakiBossTile=maps.KY06.objects.find(o=>o.type==='boss'&&o.boss==='B05');
+if(!nagasakiBossTile||!reachable(maps.KY06,maps.KY06.safeAnchor,[nagasakiBossTile.x,nagasakiBossTile.y])) fail('Nagasaki city boss is unreachable');
 const travelMapFn=ui.match(/function travelMap\(to,tx,ty,save=true\)\{[\s\S]*?\n\}/)?.[0],travelHubFn=ui.match(/function travelHub\(to,tx,ty\)\{[\s\S]*?\n\}/)?.[0];
 if(!travelMapFn||!travelHubFn) fail('hub travel implementation missing');
 let saved=0,dialogs=[];const savedStates=[];
@@ -201,13 +203,13 @@ if(!questViewFn) fail('quest UI missing');
 traveler.mapId='KY05';
 const saseboQuests=runInNewContext(`${core}\n${questViewFn}\nrenderQuests()`,{G:{st:traveler},curHub:()=> 'KY05',isSafe:()=>true,esc:s=>String(s)});
 if(!saseboQuests.includes('佐世保市のM05と3区域を遊べます')||!saseboQuests.includes('M05 港から届く返事')) fail('Sasebo quest board did not show M05');
-traveler.mapId='KY05';traveler.pos={x:37,y:20};traveler.slots=2;traveler.quests.M05='complete';
+traveler.mapId='KY05';traveler.pos={x:37,y:20};traveler.slots=2;traveler.quests.M05='complete';traveler.quests.M06='available';
 journey.travelHub('KY06',2,20);
 if(traveler.mapId!=='KY06'||traveler.pos.x!==2||traveler.pos.y!==20||traveler.slots!==1||!traveler.visitedHubs.includes('KY06')||saved!==3||savedStates[2].mapId!=='KY06') fail('Nagasaki city arrival or save failed');
 const nagasakiQuests=runInNewContext(`${core}\n${questViewFn}\nrenderQuests()`,{G:{st:traveler},curHub:()=> 'KY06',isSafe:()=>true,esc:s=>String(s)});
-if(!nagasakiQuests.includes('探索3区域')||!nagasakiQuests.includes('依頼・配信はまだ収録していません')) fail('Nagasaki city board did not identify unfinished content');
+if(!nagasakiQuests.includes('M06と3区域')||!nagasakiQuests.includes('M06 丘から返る声')) fail('Nagasaki city board did not show M06');
 journey.travelHub('KY05',37,20);
 if(traveler.mapId!=='KY05'||traveler.slots!==0||saved!==4) fail('Nagasaki city return failed');
-console.log('National registry: 8 regions, 47 prefectures, 6 connected hubs, Nagasaki city exploration and route OK');
+console.log('National registry: 8 regions, 47 prefectures, 6 connected hubs, Nagasaki city M06 and route OK');
 
 

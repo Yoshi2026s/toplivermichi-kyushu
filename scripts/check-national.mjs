@@ -192,6 +192,7 @@ const areaDefs=runInNewContext(`${core}\nAREAS`);
 for(const zone of ['1','2','3']) if(!areaDefs[`KY05-A${zone}`]||areaDefs[`KY05-A${zone}`].list.length<1) fail(`Sasebo area ${zone} has no enemies`);
 for(const zone of ['1','2','3']) if(!areaDefs[`KY06-A${zone}`]||areaDefs[`KY06-A${zone}`].list.length<1) fail(`Nagasaki city area ${zone} has no enemies`);
 for(const zone of ['1','2','3']) if(!areaDefs[`KY07-A${zone}`]||areaDefs[`KY07-A${zone}`].list.length!==50) fail(`Kumamoto city area ${zone} has no enemy catalog`);
+for(const zone of ['1','2','3']) if(!areaDefs[`KY08-A${zone}`]||areaDefs[`KY08-A${zone}`].list.length!==50) fail(`Aso city area ${zone} has no enemy catalog`);
 const nagasakiBossTile=maps.KY06.objects.find(o=>o.type==='boss'&&o.boss==='B05');
 if(!nagasakiBossTile||!reachable(maps.KY06,maps.KY06.safeAnchor,[nagasakiBossTile.x,nagasakiBossTile.y])) fail('Nagasaki city boss is unreachable');
 const kumamotoGate=maps.KY06.objects.find(o=>o.id==='gate_kumamoto'),kumamotoReturn=maps.KY07.objects.find(o=>o.id==='gate_nagasakicity');
@@ -208,6 +209,10 @@ const asoGate=maps.KY07.objects.find(o=>o.id==='gate_aso'),asoReturn=maps.KY08.o
 if(!asoGate||!asoReturn||asoGate.to!=='KY08'||asoReturn.to!=='KY07'||asoGate.tx!==2||asoGate.ty!==20||asoReturn.tx!==37||asoReturn.ty!==20) fail('Aso city gates are not reciprocal');
 if(!reachable(maps.KY08,[2,20],maps.KY08.safeAnchor)||!reachable(maps.KY08,maps.KY08.safeAnchor,[2,20])) fail('Aso city safety or return path failed');
 for(const type of ['npc','inn','rest','board','shelf']) if(!maps.KY08.objects.some(o=>o.type===type)) fail(`Aso city ${type} missing`);
+for(const zone of ['1','2','3']){
+  const id=maps.KY08.zones[zone],tile=maps.KY08.tiles.flatMap((row,y)=>row.map((value,x)=>value===zone?[x,y]:null)).find(Boolean);
+  if(id!==`KY08-A${zone}`||!tile||!reachable(maps.KY08,maps.KY08.safeAnchor,tile)||!maps.KY08.objects.some(o=>o.type==='sign'&&o.area===id)) fail(`Aso city exploration zone ${zone} is incomplete`);
+}
 const travelMapFn=ui.match(/function travelMap\(to,tx,ty,save=true\)\{[\s\S]*?\n\}/)?.[0],travelHubFn=ui.match(/function travelHub\(to,tx,ty\)\{[\s\S]*?\n\}/)?.[0];
 if(!travelMapFn||!travelHubFn) fail('hub travel implementation missing');
 let saved=0,dialogs=[];const savedStates=[];
@@ -234,7 +239,7 @@ if(!kumamotoQuests.includes('M07と3区域')||!kumamotoQuests.includes('M07 石�
 traveler.slots=2;traveler.quests.M07='complete';journey.travelHub('KY08',2,20);
 if(traveler.mapId!=='KY08'||traveler.pos.x!==2||traveler.pos.y!==20||!traveler.visitedHubs.includes('KY08')) fail('Aso city arrival failed');
 const asoQuests=runInNewContext(`${core}\n${questViewFn}\nrenderQuests()`,{G:{st:traveler},curHub:()=> 'KY08',isSafe:()=>true,esc:s=>String(s)});
-if(!asoQuests.includes('依頼・探索・配信はまだ収録していません')) fail('Aso city board did not identify unfinished content');
+if(!asoQuests.includes('探索3区域')||!asoQuests.includes('依頼・配信はまだ収録していません')) fail('Aso city board did not identify unfinished content');
 traveler.slots=1;journey.travelHub('KY07',37,20);
 if(traveler.mapId!=='KY07') fail('Aso city return failed');
 traveler.slots=1;journey.travelHub('KY06',37,20);
@@ -242,6 +247,6 @@ if(traveler.mapId!=='KY06') fail('Kumamoto city return failed');
 traveler.slots=1;
 journey.travelHub('KY05',37,20);
 if(traveler.mapId!=='KY05'||traveler.slots!==0||saved!==8) fail('Nagasaki city return failed');
-console.log('National registry: 8 regions, 47 prefectures, 8 connected hubs, Aso city safe hub and route OK');
+console.log('National registry: 8 regions, 47 prefectures, 8 connected hubs, Aso city exploration and route OK');
 
 

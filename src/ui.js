@@ -865,6 +865,8 @@ function renderWorld(){
   }
   const playablePrefs=NATIONAL_PREFECTURES.filter(p=>(NATIONAL_IMPLEMENTED_HUBS[p.id]||[]).some(id=>Object.hasOwn(HUBS,id)));
   const visitedPrefs=playablePrefs.filter(p=>(NATIONAL_IMPLEMENTED_HUBS[p.id]||[]).some(id=>(st.visitedHubs||[]).includes(id)));
+  const playableHubIds=[...new Set(playablePrefs.flatMap(p=>NATIONAL_IMPLEMENTED_HUBS[p.id].filter(id=>Object.hasOwn(HUBS,id))))];
+  const visitedHubCount=playableHubIds.filter(id=>(st.visitedHubs||[]).includes(id)).length;
   const regionDirectory=NATIONAL_REGIONS.map(([regionId,regionName])=>{
     const prefs=NATIONAL_PREFECTURES.filter(p=>p.regionId===regionId);
     const withHubs=prefs.filter(p=>Array.isArray(NATIONAL_IMPLEMENTED_HUBS[p.id])&&NATIONAL_IMPLEMENTED_HUBS[p.id].some(id=>Object.hasOwn(HUBS,id))).length;
@@ -876,7 +878,7 @@ function renderWorld(){
   const routeDirectory=NATIONAL_ROUTES.filter(r=>r.status==="playable").map(r=>`<li>${esc(HUBS[r.from].name)} ↔ ${esc(HUBS[r.to].name)}：${nationalRouteAvailable(st,r.from,r.to)?"経路解放済み":r.unlock==="fukuokaClear"?"福岡編の完了待ち":"唐津編M03の完了待ち"}</li>`).join("");
   h+=`</div><h3 class="label">実装済みの経路</h3><ul class="list">${routeDirectory}</ul><p class="small">初回到達は街の門から向かいます。訪問後に地図から移動できます。</p><h3 class="label">この先の拠点候補</h3><ul class="list dim">${FUTURE_HUBS.map(([id,n,p])=>`<li>${id} ${p}・${n}　未収録・移動不可</li>`).join("")}</ul>
     <h3 class="label">全国編の準備状況</h3><p class="small">${NATIONAL_REGIONS.length}地方・${NATIONAL_PREFECTURES.length}都道府県の地理台帳を準備中。現在遊べるのは福岡県の福岡市・北九州市、佐賀県の唐津市（M03まで）と佐賀市（M04まで）です。その先は未収録です。</p>
-    <h3 class="label">全国の都道府県</h3><p class="small">拠点ありは${playablePrefs.length}/${NATIONAL_PREFECTURES.length}都道府県。訪問済みは実装済みの${visitedPrefs.length}/${playablePrefs.length}県。地理台帳のみの県には移動できません。</p>${regionDirectory}`;
+    <h3 class="label">全国の都道府県</h3><p class="small">拠点ありは${playablePrefs.length}/${NATIONAL_PREFECTURES.length}都道府県。訪問済みは実装済みの${visitedPrefs.length}/${playablePrefs.length}県・${visitedHubCount}/${playableHubIds.length}拠点。地理台帳のみの県には移動できません。</p>${regionDirectory}`;
   return h;
 }
 function worldTravelStatus(st,from,to,safe){

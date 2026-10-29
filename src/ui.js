@@ -491,8 +491,14 @@ function renderBattle(){
     <div class="party">${run.party.map((m,i)=>partyCard(m,i,run)).join("")}</div>
     ${renderCommand(run)}
     <button class="btn" data-a="openSheet" data-k="battleChallenges">挑戦・戦闘バッジ</button>
-    <button class="log" data-a="openSheet" data-k="battleLog" aria-live="polite" aria-label="戦闘ログ（タップで直近6件）">${last.map(l=>`<span>${esc(l)}</span>`).join("")}</button>
+    <button class="log" data-a="openSheet" data-k="battleLog" aria-live="polite" aria-label="戦闘ログ（タップで直近80件）">${last.map(l=>`<span>${esc(l)}</span>`).join("")}</button>
   </section>`;
+}
+function renderBattleLog(){
+  const lines=(Array.isArray(G.st?.run?.log)?G.st.run.log:[]).slice(-80).reverse();
+  const pages=Math.max(1,Math.ceil(lines.length/8));
+  const page=Math.min(Math.max(0,Number.isInteger(G.sheetData?.page)?G.sheetData.page:0),pages-1);
+  return `<p class="small">直近${lines.length}件・新しい順（${page+1}/${pages}ページ）</p><div class="stack">${lines.slice(page*8,(page+1)*8).map(l=>`<p>${esc(l)}</p>`).join("")||"<p>まだありません。</p>"}</div><div class="srow"><button class="btn" data-a="battleLogPage" data-v="${page-1}" ${page>0?"":"disabled"}>新しい記録</button><button class="btn" data-a="battleLogPage" data-v="${page+1}" ${page+1<pages?"":"disabled"}>古い記録</button></div>`;
 }
 function skillNeeds(job){ return ({J01:"enemy",J02:"line",J03:"ally",J04:"mode",J05:"enemy",J06:"mode",J07:"none",J08:"ally",J09:"enemy",J10:"none",J11:"none",J12:"none",J13:"ally",J14:"none",J15:"enemy",J16:"enemy",J17:"none",J18:"ally",J19:"enemy",J20:"none",J21:"enemy",J22:"allyOther"})[job]; }
 function renderCommand(run){
@@ -818,7 +824,7 @@ function renderSheet(){
     case "moe": return sheetWrap("もえ", renderMoe());
     case "boss": { const b=BOSSES[d.bid]; const ps=bossScale(d.bid, st.party.length); const df=DIFFICULTY[st.settings.difficulty]; const pw=x=>Math.ceil(x*df.atk*ps.atk); return sheetWrap("地域ボス", `<p><b>${esc(b.name)}</b>（${d.bid}）　強度q${b.q}・推奨レベル${b.q}。現在レベル${levelOf(st.xp)}。</p><p class="small">体力${Math.ceil((100+36*b.q)*df.hp*ps.hp)}（${df.name}）。${st.party.length<4&&(ps.hp<1||ps.atk<1)?`戦闘メンバー${st.party.length}人のため、体力×${ps.hp}・攻撃×${ps.atk}の少人数補正（挑戦時の人数で固定）。`:""}</p><p class="small">行動周期：1人へ攻撃${pw(12+b.q)} → 全員へ攻撃${pw(6+Math.floor(b.q/2))} → ため → 全員へ強攻撃${pw(10+3*b.q)}。ため予告中に<b>異なる2人がガード</b>すると、直後の強攻撃が20%減ります（静観型）。</p><p class="small">敗北・撤退しても受注と討伐数は保持され、0枠で再挑戦できます。</p><div class="stack"><button class="btn primary" data-a="bossGo" data-v="${d.bid}">挑戦する</button><button class="btn" data-a="closeSheet">準備する</button></div>`); }
     case "streamSetup": return sheetWrap("配信の準備", renderStreamSetup());
-    case "battleLog": return sheetWrap("戦闘ログ", `<div class="stack">${((G.st.run&&G.st.run.log)||[]).slice(-6).map(l=>`<p>${esc(l)}</p>`).join("")||"<p>まだありません。</p>"}</div>`);
+    case "battleLog": return sheetWrap("戦闘ログ", renderBattleLog());
     case "pause": return sheetWrap("休止中", `<p>戦闘はターン${st.run.turn}の入力待ちで保存されています。再開しても撤退・回復・報酬は発生しません。</p><div class="stack"><button class="btn primary" data-a="closeSheet">再開する</button></div>`);
     case "retreat": return sheetWrap("撤退", `<p>撤退は必ず成功します。この戦闘の報酬は0、旅程枠も使いません。遭遇した位置へ戻ります。</p><div class="stack"><button class="btn primary" data-a="doRetreat">撤退する</button><button class="btn" data-a="closeSheet">戦闘を続ける</button></div>`);
   }
@@ -1219,6 +1225,7 @@ function renderStreamSetup(){
 
 /* ===== 操作の受付 ===== */
 const ACT = {
+  battleLogPage(el){ if(G.screen!=="battle"||G.sheet!=="battleLog"||!G.st?.run) return; const lines=Array.isArray(G.st.run.log)?G.st.run.log:[]; const pages=Math.max(1,Math.ceil(Math.min(lines.length,80)/8)); const page=Number(el.dataset.v); if(!Number.isInteger(page)||page<0||page>=pages) return; G.sheetData.page=page; render(); },
   newGame(){ if(G.screen!=="title") return; G.newGame={name:"",gender:null,composing:false,step:1}; G.screen="new"; render(); },
   pickGender(el){ G.newGame.gender=el.dataset.v; const inp=$("#nameInput"); if(inp) G.newGame.name=inp.value; render(); },
   newNext(){ if(G.screen!=="new"||G.newGame.step!==1||G.newGame.composing) return; const inp=$("#nameInput"); if(inp) G.newGame.name=inp.value; const v=validateName(G.newGame.name); if(!v.ok) return toast(v.errors[0]); if(!G.newGame.gender) return toast("性別を選んでください。"); G.newGame.name=v.value; G.newGame.step=2; render(); },

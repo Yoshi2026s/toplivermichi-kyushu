@@ -492,14 +492,16 @@ function renderBattle(){
     ${renderCommand(run)}
     <button class="btn" data-a="openSheet" data-k="battleChallenges">挑戦・戦闘バッジ</button>
     <div class="srow"><button class="btn" data-a="battleLogExpand" aria-pressed="${!!G.logExpanded}">${G.logExpanded?"ログを縮小":"ログを拡大"}</button><button class="btn" data-a="openSheet" data-k="battleLog">履歴を見る</button></div>
-    <div class="log ${G.logExpanded?"expanded":""}" role="log" aria-live="polite" aria-label="直近の戦闘ログ">${battleLines.slice(G.logExpanded?-8:-3).map(l=>`<span>${esc(l)}</span>`).join("")}</div>
+    <div class="log ${G.logExpanded?"expanded":""}" role="log" aria-live="polite" aria-label="直近の戦闘ログ">${battleLines.slice(G.logExpanded?-8:-3).map((l,i,a)=>`<button class="log-entry" data-a="battleLogLine" data-v="${battleLines.length-a.length+i}">${esc(l)}</button>`).join("")}</div>
   </section>`;
 }
 function renderBattleLog(){
   const lines=(Array.isArray(G.st?.run?.log)?G.st.run.log:[]).slice(-80).reverse();
   const pages=Math.max(1,Math.ceil(lines.length/8));
   const page=Math.min(Math.max(0,Number.isInteger(G.sheetData?.page)?G.sheetData.page:0),pages-1);
-  return `<p class="small">直近${lines.length}件・新しい順（${page+1}/${pages}ページ）</p><div class="stack">${lines.slice(page*8,(page+1)*8).map(l=>`<p>${esc(l)}</p>`).join("")||"<p>まだありません。</p>"}</div><div class="srow"><button class="btn" data-a="battleLogPage" data-v="${page-1}" ${page>0?"":"disabled"}>新しい記録</button><button class="btn" data-a="battleLogPage" data-v="${page+1}" ${page+1<pages?"":"disabled"}>古い記録</button></div>`;
+  const selected=G.sheetData?.line;
+  if(Number.isInteger(selected)&&selected>=0&&selected<lines.length) return `<p class="small">戦闘ログ・${lines.length-selected}件目</p><p>${esc(lines[selected])}</p><button class="btn" data-a="battleLogBack">履歴に戻る</button>`;
+  return `<p class="small">直近${lines.length}件・新しい順（${page+1}/${pages}ページ）</p><div class="stack">${lines.slice(page*8,(page+1)*8).map((l,i)=>`<button class="btn" data-a="battleLogLine" data-v="${lines.length-1-(page*8+i)}">${esc(l)}</button>`).join("")||"<p>まだありません。</p>"}</div><div class="srow"><button class="btn" data-a="battleLogPage" data-v="${page-1}" ${page>0?"":"disabled"}>新しい記録</button><button class="btn" data-a="battleLogPage" data-v="${page+1}" ${page+1<pages?"":"disabled"}>古い記録</button></div>`;
 }
 function skillNeeds(job){ return ({J01:"enemy",J02:"line",J03:"ally",J04:"mode",J05:"enemy",J06:"mode",J07:"none",J08:"ally",J09:"enemy",J10:"none",J11:"none",J12:"none",J13:"ally",J14:"none",J15:"enemy",J16:"enemy",J17:"none",J18:"ally",J19:"enemy",J20:"none",J21:"enemy",J22:"allyOther"})[job]; }
 function renderCommand(run){
@@ -1226,6 +1228,8 @@ function renderStreamSetup(){
 
 /* ===== 操作の受付 ===== */
 const ACT = {
+  battleLogLine(el){ if(G.screen!=="battle"||!G.st?.run||G.dlg||!['battleLog',null].includes(G.sheet)) return; const lines=Array.isArray(G.st.run.log)?G.st.run.log:[],index=Number(el.dataset.v),first=Math.max(0,lines.length-80); if(!Number.isInteger(index)||index<first||index>=lines.length) return; const reversed=lines.length-1-index; G.sheet='battleLog'; G.sheetData={page:Math.floor(reversed/8),line:reversed}; render(); },
+  battleLogBack(){ if(G.screen!=="battle"||G.sheet!=="battleLog"||!G.st?.run) return; delete G.sheetData.line; render(); },
   battleLogExpand(){ if(G.screen!=="battle"||G.sheet||G.dlg||!G.st?.run) return; if(G.auto){G.auto=false;clearTimeout(G.autoT);G.autoLast=null;G.cmd={};G.cursorSig=null;} G.logExpanded=!G.logExpanded; render(); },
   battleLogPage(el){ if(G.screen!=="battle"||G.sheet!=="battleLog"||!G.st?.run) return; const lines=Array.isArray(G.st.run.log)?G.st.run.log:[]; const pages=Math.max(1,Math.ceil(Math.min(lines.length,80)/8)); const page=Number(el.dataset.v); if(!Number.isInteger(page)||page<0||page>=pages) return; G.sheetData.page=page; render(); },
   newGame(){ if(G.screen!=="title") return; G.newGame={name:"",gender:null,composing:false,step:1}; G.screen="new"; render(); },

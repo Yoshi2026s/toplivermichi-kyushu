@@ -3033,7 +3033,7 @@ function streamAct(k){
 }
 function streamFinish(){
   const st=G.st; const qid=streamPending();
-  if(!st||G.readOnly||G.screen!=="stream"||!st.stream?.done||st.stream.score<80||!qid||st.quests[qid]!=="combatDone"||QUESTS[qid].hub!==st.stream.hub) return toast("配信の状態が変わりました。依頼帳を確認してください。");
+  if(!st||G.readOnly||G.screen!=="stream"||G.sheet||G.dlg||!st.stream?.done||st.stream.score<80||!qid||st.quests[qid]!=="combatDone"||QUESTS[qid].hub!==st.stream.hub) return toast("配信の状態が変わりました。依頼帳を確認してください。");
   st.stream=null;
   const res={xp:0,tickets:0}; completeQuest(st,qid,res);
   commit(); G.screen="explore"; exploreBgm(); render();
@@ -3630,9 +3630,9 @@ const ACT = {
   replay(el){ G.sheet=null; playScene(el.dataset.v); },
   ssSet(el){ G.sheetData[el.dataset.k]=el.dataset.v; render(); },
   streamStart(){ const st=G.st, d=G.sheetData, qid=streamPending(); if(!st||G.readOnly||G.screen!=="explore"||G.sheet!=="streamSetup"||!qid||QUESTS[qid].hub!==curHub()||!STREAM_REQ[HUBS[curHub()].prefId]||!st.roster.includes(d.host)||!STREAM_THEMES[d.theme]||!["video","voice"].includes(d.style)) return toast("配信の開始条件が変わりました。依頼帳を確認してください。"); st.stream=newStream(st,curHub(),d.host,d.theme,d.style); commit(); G.sheet=null; G.screen="stream"; SND.play("stream"); render(); },
-  streamAct(el){ streamAct(el.dataset.v); },
-  streamRetry(){ const s=G.st.stream; Object.assign(s,{hand:0,score:0,used:[],themeBonusUsed:false,picks:[],done:false}); commit(); render(); },
-  streamLeave(){ G.st.stream=null; commit(); G.screen="explore"; exploreBgm(); render(); },
+  streamAct(el){ const s=G.st?.stream,k=el.dataset.v; if(G.readOnly||G.screen!=="stream"||G.sheet||G.dlg||!s||s.done||s.hand<0||s.hand>=4||!Object.hasOwn(STREAM_ACTS,k)) return; streamAct(k); },
+  streamRetry(){ const s=G.st?.stream; if(G.readOnly||G.screen!=="stream"||G.sheet||G.dlg||!s?.done||s.score>=80) return; Object.assign(s,{hand:0,score:0,used:[],themeBonusUsed:false,picks:[],done:false}); commit(); render(); },
+  streamLeave(){ const s=G.st?.stream; if(G.readOnly||G.screen!=="stream"||G.sheet||G.dlg||!s?.done||s.score>=80) return; G.st.stream=null; commit(); G.screen="explore"; exploreBgm(); render(); },
   streamFinish(){ streamFinish(); }
 };
 function drawMiniSprites(){

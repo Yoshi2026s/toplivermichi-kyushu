@@ -399,7 +399,7 @@ function applyAction(run, idx, act){
   // 勝敗
   if(run.enemies.every(e=>e.hp<=0)){ run.state="won"; log.push("ノイズ体をすべて鎮めた！"); }
   else if(alive(run).every(m=>m.acted)){ log.push(...enemyPhase(run)); }
-  run.log = [...(run.log||[]), ...log].slice(-12);
+  run.log = [...(run.log||[]), ...log].slice(-80);
   return {ok:true, log};
 }
 function actLabel(run,a,act){

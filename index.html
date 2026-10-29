@@ -775,7 +775,7 @@ function newGame(name, gender){
     profile:{name, gender}, day:1, slots:6, mapId:"KY01", pos:{x:19,y:19}, dir:0,
     visitedMaps:["KY01"], visitedHubs:["KY01"], xp:0,
     roster:["hero","moe"], party:["hero","moe"], vitals:null,
-    jobs:{}, jp:{}, equip:{}, owned:{CW01:8, CA01:8}, favorite:{},
+    jobs:{}, jp:{}, equip:{}, owned:{CW01:8, CA01:8}, pendingGifts:[], favorite:{},
     gold:0, vaultGold:0, tickets:200, gifts:{W:{},A:{}},
     bag:INITIAL_ITEMS.map(([id,n])=>({id,n})), keep:[], itemVault:[], itemsVersion:1,
     quests:{M01:"available", M02:"locked", M03:"locked", M04:"locked", S01:"locked", S02:"locked"}, qprog:{}, activeQuest:null,
@@ -1256,7 +1256,18 @@ function applyVictory(st, run){
 function giftCheck(st, job, kind, res){
   if(st.gifts[kind][job]) return;
   st.gifts[kind][job]=true; const id=(kind==="W"?"JW":"JA")+job.slice(1);
-  st.owned[id]=Math.min(8,(st.owned[id]||0)+1); res.gifts.push(id);
+  const total=(st.owned[id]||0)+bagCount(st.itemVault||[],id);
+  if(total<8&&unequippedGearCount(st)<UNEQUIPPED_GEAR_MAX){ st.owned[id]=(st.owned[id]||0)+1; res.gifts.push(id); }
+  else if(total<8&&itemVaultAdd(st,id,1)){ res.gifts.push(id); res.notes.push(`${EQUIP[id].name}はアイテム金庫に保管した。`); }
+  else { st.pendingGifts=st.pendingGifts||[]; st.pendingGifts.push(id); res.notes.push(`${EQUIP[id].name}は所持上限のため受取保留。安全地帯のアイテム金庫で受け取れる。`); }
+}
+function claimPendingGift(st,id){
+  if(!EQUIP[id]||!st.pendingGifts?.includes(id)||(st.owned[id]||0)+bagCount(st.itemVault||[],id)>=8) return null;
+  let destination=null;
+  if(unequippedGearCount(st)<UNEQUIPPED_GEAR_MAX){ st.owned[id]=(st.owned[id]||0)+1; destination="手元"; }
+  else if(itemVaultAdd(st,id,1)) destination="アイテム金庫";
+  if(destination) st.pendingGifts.splice(st.pendingGifts.indexOf(id),1);
+  return destination;
 }
 function completeQuest(st, qid, res){
   if(st.quests[qid]==="complete") return;
@@ -3369,7 +3380,7 @@ function vaultCategory(id){ return EQUIP[id]?"gear":ITEMS[id]?.acq==="E"?"event"
 function vaultName(id){ return (ITEMS[id]||EQUIP[id])?.name||id; }
 function renderItemVault(){
   const st=G.st,d=G.sheetData,mode=d.mode==="withdraw"?"withdraw":"deposit",source=vaultEntries(st,mode),query=String(d.query||"").trim().toLocaleLowerCase(),filter=d.filter||"all",list=source.filter(e=>(ITEMS[e.id]||EQUIP[e.id])&&(filter==="all"||filter===vaultCategory(e.id))&&(!query||e.id.toLocaleLowerCase().includes(query)||vaultName(e.id).toLocaleLowerCase().includes(query))),pages=Math.max(1,Math.ceil(list.length/10)),page=Math.max(0,Math.min(pages-1,d.page||0)),id=d.id||"",max=id?vaultTransferRoom(st,mode,id):0,qty=d.qty||1,can=canEditItemVault(),view=canViewItemVault(),p=d.preview;
-  return `<p>道具袋 通常${bagKindCount(st.bag,false)}/${BAG_KINDS}種類・イベント${bagKindCount(st.bag,true)}/${EVENT_KINDS}種類・未装備品${unequippedGearCount(st)}/${UNEQUIPPED_GEAR_MAX}個・金庫 ${itemVaultCount(st)}/${ITEM_VAULT_MAX}個</p>${G.readOnly?`<p class="small">閲覧専用：移動できません。</p>`:""}<div class="stack"><button class="btn ${mode==="deposit"?"on":""}" data-a="itemVaultMode" data-v="deposit" ${view&&!G.vaultSaving?"":"disabled"}>預け入れ</button><button class="btn ${mode==="withdraw"?"on":""}" data-a="itemVaultMode" data-v="withdraw" ${view&&!G.vaultSaving?"":"disabled"}>引き出し</button></div>
+  return `<p>道具袋 通常${bagKindCount(st.bag,false)}/${BAG_KINDS}種類・イベント${bagKindCount(st.bag,true)}/${EVENT_KINDS}種類・未装備品${unequippedGearCount(st)}/${UNEQUIPPED_GEAR_MAX}個・金庫 ${itemVaultCount(st)}/${ITEM_VAULT_MAX}個</p>${G.readOnly?`<p class="small">閲覧専用：移動できません。</p>`:""}${st.pendingGifts?.length?`<h3 class="label">受取保留の贈り物</h3><div class="stack">${st.pendingGifts.map(id=>`<button class="btn" data-a="pendingGiftClaim" data-v="${id}" ${can&&!G.vaultSaving&&((st.owned[id]||0)+bagCount(st.itemVault,id)<8)&&(unequippedGearCount(st)<UNEQUIPPED_GEAR_MAX||itemVaultCount(st)<ITEM_VAULT_MAX)?"":"disabled"}>${esc(EQUIP[id].name)}を受け取る</button>`).join("")}</div>`:""}<div class="stack"><button class="btn ${mode==="deposit"?"on":""}" data-a="itemVaultMode" data-v="deposit" ${view&&!G.vaultSaving?"":"disabled"}>預け入れ</button><button class="btn ${mode==="withdraw"?"on":""}" data-a="itemVaultMode" data-v="withdraw" ${view&&!G.vaultSaving?"":"disabled"}>引き出し</button></div>
     <div class="stack">${[["all","すべて"],["normal","通常の道具"],["event","イベント限定道具"],["gear","未装備品"]].map(([k,label])=>`<button class="btn ${filter===k?"on":""}" data-a="itemVaultFilter" data-v="${k}" aria-pressed="${filter===k}" ${view&&!G.vaultSaving?"":"disabled"}>${label}</button>`).join("")}</div><label class="label" for="itemVaultSearch">名前・IDで検索</label><input id="itemVaultSearch" value="${esc(d.query||"")}" maxlength="60"><button class="btn" data-a="itemVaultSearch" ${view&&!G.vaultSaving?"":"disabled"}>検索</button><div class="stack">${list.slice(page*10,page*10+10).map(e=>`<button class="btn ${id===e.id?"on":""}" data-a="itemVaultSelect" data-v="${e.id}" ${view&&!G.vaultSaving&&!p?"":"disabled"}>${esc(vaultName(e.id))} ×${e.n} <span class="small">${vaultCategory(e.id)==="gear"?"装備":vaultCategory(e.id)==="event"?"イベント限定":"道具"}</span></button>`).join("")||"該当する品はありません。"}</div><div class="row3"><button class="btn" data-a="itemVaultPage" data-v="${page-1}" ${view&&page>0?"":"disabled"}>前の10件</button><span>${page+1}/${pages}ページ</span><button class="btn" data-a="itemVaultPage" data-v="${page+1}" ${view&&page+1<pages?"":"disabled"}>次の10件</button></div>
     ${id&&(ITEMS[id]||EQUIP[id])?`<p>${esc(vaultName(id))}：移動できる数 ${max}個</p><div class="stack">${[["1個",1],["5個",5],["10個",10],[`最大（${max}個）`,max]].filter(([label])=>!label.startsWith("最大")||![1,5,10].includes(max)).map(([label,n])=>`<button class="btn" data-a="itemVaultQty" data-v="${n}" ${can&&!p&&n>=1&&n<=max?"":"disabled"}>${label}</button>`).join("")}</div><p>選択 ${qty}個</p>${p?`<p>${EQUIP[id]?"未装備":"袋"} ${p.bagBefore}→${p.bagAfter}個／金庫 ${p.vaultBefore}→${p.vaultAfter}個</p><button class="btn primary" data-a="itemVaultCommit" data-token="${p.token}" ${can?"":"disabled"}>移動を確定</button><button class="btn" data-a="itemVaultEdit" ${can?"":"disabled"}>選び直す</button>`:`<button class="btn primary" data-a="itemVaultPreview" ${can&&qty<=max?"":"disabled"}>数量を確認</button>`}`:""}<button class="btn" data-a="itemVaultBack" ${G.vaultSaving?"disabled":""}>道具へ戻る</button>`;
 }
@@ -3418,6 +3429,15 @@ const ACT = {
   battleChallengeFilter(){ if(G.sheet!=="battleChallenges") return; G.sheetData.onlyActionable=!G.sheetData.onlyActionable; render(); },
   vaultOpen(){ if(!G.st||G.screen!=="explore"||G.sheet!=="record"||G.dlg||G.st.run||!isSafe()||G.walk.path.length) return; openSheet("goldVault",{mode:"deposit",amount:"",preview:null}); },
   itemVaultOpen(){ if(!G.st||G.screen!=="explore"||G.sheet!=="items"||G.dlg||G.st.run||G.walk.path.length||!isSafe()||G.vaultSaving) return; openSheet("itemVault",{mode:"deposit",id:null,qty:1,preview:null,query:"",page:0}); },
+  async pendingGiftClaim(el){
+    if(!canEditItemVault()||G.vaultSaving) return;
+    const st=G.st,id=el.dataset.v,before={owned:clone(st.owned),itemVault:clone(st.itemVault),pendingGifts:clone(st.pendingGifts||[])},gen=st.saveGeneration;
+    const destination=claimPendingGift(st,id); if(!destination) return toast("受取先に空きがありません。");
+    el.disabled=true; G.vaultSaving=true; const after=JSON.stringify([st.owned,st.itemVault,st.pendingGifts]); render();
+    let saved=false; try{ saved=await commit(); }catch(e){ setSave("未保存：この端末では保存できません。設定からバックアップを書き出してください。"); } finally{ G.vaultSaving=false; }
+    let rolledBack=false; if(!saved&&G.st===st&&st.saveGeneration===gen+1&&JSON.stringify([st.owned,st.itemVault,st.pendingGifts])===after){ st.owned=before.owned; st.itemVault=before.itemVault; st.pendingGifts=before.pendingGifts; st.saveGeneration=gen; rolledBack=true; }
+    if(G.st===st){ render(); toast(saved?`${EQUIP[id].name}を${destination}へ受け取った。`:rolledBack?"保存できなかったため受取を取り消しました。":"受取を保存できませんでした。バックアップを書き出してください。"); }
+  },
   itemVaultBack(){ if(G.sheet!=="itemVault"||G.vaultSaving) return; openSheet("items"); },
   itemVaultMode(el){ if(!canViewItemVault()||G.vaultSaving||!['deposit','withdraw'].includes(el.dataset.v)) return; G.sheetData={mode:el.dataset.v,id:null,qty:1,preview:null,query:G.sheetData.query||"",filter:G.sheetData.filter||"all",page:0}; render(); },
   itemVaultFilter(el){ if(!canViewItemVault()||G.vaultSaving||!["all","normal","event","gear"].includes(el.dataset.v)) return; G.sheetData.filter=el.dataset.v; G.sheetData.page=0; G.sheetData.id=null; G.sheetData.preview=null; render(); },
@@ -3541,6 +3561,7 @@ function validateState(s){
   if(!okNum(s.xp)||!okNum(s.gold)||!okNum(s.tickets)||!MAPS[s.mapId]||!Array.isArray(s.roster)||!Array.isArray(s.party)||s.party.length<1||s.party.length>4||new Set(s.party).size!==s.party.length||s.party.some(c=>!CHARS[c]||!s.roster.includes(c))) throw new Error("bad");
   if(s.vaultGold!==undefined&&(!Number.isSafeInteger(s.vaultGold)||s.vaultGold<0)) throw new Error("bad vault");
   if(s.itemVault!==undefined&&(!Array.isArray(s.itemVault)||s.itemVault.some(e=>!ITEMS[e.id]&&!EQUIP[e.id]||!Number.isSafeInteger(e.n)||e.n<1)||itemVaultCount(s)>ITEM_VAULT_MAX||new Set(s.itemVault.map(e=>e.id)).size!==s.itemVault.length||s.itemVault.some(e=>EQUIP[e.id]&&(s.owned[e.id]||0)+e.n>8))) throw new Error("bad item vault");
+  if(s.pendingGifts!==undefined&&(!Array.isArray(s.pendingGifts)||s.pendingGifts.some(id=>!EQUIP[id])||new Set(s.pendingGifts).size!==s.pendingGifts.length)) throw new Error("bad pending gifts");
   for(const c of s.party) if(!JOBS[s.jobs[c]]) throw new Error("bad job");
 }
 function padSide(){ const s=G.st?G.st.settings:G.tmpSettings; if(s&&(s.padSide==="left"||s.padSide==="right")) return s.padSide; try{ const v=localStorage.getItem("tlr-kyushu-pad"); if(v==="left"||v==="right") return v; }catch(e){} return "right"; }
@@ -3549,6 +3570,7 @@ function soundPref(){ try{ return localStorage.getItem("tlr-kyushu-sound")!=="0"
 function migrate(s){
   if(s.vaultGold===undefined) s.vaultGold=0;
   if(s.itemVault===undefined) s.itemVault=[];
+  if(!Array.isArray(s.pendingGifts)) s.pendingGifts=[];
   if(!s.itemsVersion){ s.bag=INITIAL_ITEMS.map(([id,n])=>({id,n})); s.keep=[]; s.itemsVersion=1; s.gameVersion=GAME_VERSION; }
   if(s.run&&!s.run.bag) s.run.bag=clone(s.bag);
   if(s.run){

@@ -5,7 +5,7 @@
 <style>body{margin:0}</style>
 <script>window.TLR_PUBLIC=true;window.TLR_BUILD="2026-10-29";</script>
 </head><body>
-<title>トップライバーへの道 全国探索版</title>
+<title>ポコチャクエスト</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=BIZ+UDPGothic:wght@400;700&display=swap">
@@ -2576,7 +2576,7 @@ function statusBar(){
 function renderTitle(){
   return `<section class="title-screen">
     <canvas id="titleArt" width="160" height="64" aria-hidden="true"></canvas>
-    <h1 class="logo"><span class="main">トップライバーへの道</span><span class="sub">全国探索版</span></h1>
+    <h1 class="logo"><span class="main">ポコチャクエスト</span><span class="sub">全国探索版</span></h1>
     <p class="lead">元アイドルのもえをS6へ導く、昭和風ドットRPG。</p>
     <div class="menu">
       <button class="btn primary" data-a="newGame">はじめから</button>
@@ -3275,7 +3275,7 @@ function sheetWrap(title, body){ return `<div class="overlay" role="dialog" aria
 function renderSheet(){
   const k=G.sheet; if(!k) return ""; const st=G.st; const d=G.sheetData;
   switch(k){
-    case "about": return sheetWrap("この作品について",`<p>「トップライバーへの道 全国探索版」は、配信文化を参考にした非公式の創作RPGです。人物・台詞・敵・数値・画像・音はゲーム用の創作で、実在のサービスの配信・課金・アカウント・ランキングとは連携しません。</p><p>雪餅羽もえ（のわんもえ）の「おやすみセカイ元メンバー・脱退後にPocochaでS6を目指す」という背景は、物語の設定です。作中のランクは物語上の到達記録で、実際のランク歴ではありません。</p><p>敵の名前は、配信・応援の言葉とRPGの語感を組み合わせた本作の創作名です。</p><p class="small">gameVersion ${GAME_VERSION}／schemaVersion ${SCHEMA_VERSION}</p>`);
+    case "about": return sheetWrap("この作品について",`<p>「ポコチャクエスト」は、配信文化を参考にした非公式の創作RPGです。人物・台詞・敵・数値・画像・音はゲーム用の創作で、実在のサービスの配信・課金・アカウント・ランキングとは連携しません。</p><p>雪餅羽もえ（のわんもえ）の「おやすみセカイ元メンバー・脱退後にPocochaでS6を目指す」という背景は、物語の設定です。作中のランクは物語上の到達記録で、実際のランク歴ではありません。</p><p>敵の名前は、配信・応援の言葉とRPGの語感を組み合わせた本作の創作名です。</p><p class="small">gameVersion ${GAME_VERSION}／schemaVersion ${SCHEMA_VERSION}</p>`);
     case "settings": return sheetWrap("設定と保存", renderSettings());
     case "nearby": { const near=nearbyObjects(); return sheetWrap("近くを調べる", near.length? `<div class="stack">${near.map(o=>`<button class="btn" data-a="interactId" data-v="${o.id}">${esc(o.label)}</button>`).join("")}</div>` : `<p>近くに調べられるものはありません。道しるべから目的地を選べます。</p>`); }
     case "guide": { const m=MAPS[st.mapId]; return sheetWrap("道しるべ", `<p class="small">選ぶと、その場所まで実際に歩きます（途中の遭遇エリアでは抽選があります）。</p><div class="stack">${m.objects.filter(o=>o.type!=="tower").map(o=>{ const a=o.area?AREAS[o.area]:null; return `<button class="btn" data-a="guideTo" data-v="${o.id}">${esc(o.label)}${a?`（推奨レベル${a.q}）`:""}</button>`; }).join("")}</div>`); }

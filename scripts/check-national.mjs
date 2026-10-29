@@ -49,6 +49,8 @@ for(const zone of ['1','2','3']){
   if(id!==`KY03-A${zone}`||!tile||!reachable(maps.KY03,maps.KY03.safeAnchor,tile)) fail(`Karatsu zone ${zone} unreachable`);
   if(!maps.KY03.objects.some(o=>o.type==='sign'&&o.area===id)) fail(`Karatsu zone ${zone} sign missing`);
 }
+const saseboBoss=maps.KY05.objects.find(o=>o.type==='boss'&&o.boss==='B04');
+if(!saseboBoss||!reachable(maps.KY05,maps.KY05.safeAnchor,[saseboBoss.x,saseboBoss.y])) fail('Sasebo boss is unreachable');
 if(!maps.KY03.objects.some(o=>o.type==='boss'&&o.boss==='B02')) fail('Karatsu boss missing');
 const cityGate=maps.KY03.objects.find(o=>o.id==='gate_sagacity'),returnGate=maps.KY04.objects.find(o=>o.id==='gate_karatsu');
 if(!cityGate||!returnGate||cityGate.to!=='KY04'||returnGate.to!=='KY03'||cityGate.tx!==2||cityGate.ty!==20||returnGate.tx!==46||returnGate.ty!==25) fail('Saga city gates are not reciprocal');
@@ -181,7 +183,7 @@ const questViewFn=ui.match(/function renderQuests\(\)\{[\s\S]*?\n\}/)?.[0];
 if(!questViewFn) fail('quest UI missing');
 traveler.mapId='KY05';
 const saseboQuests=runInNewContext(`${core}\n${questViewFn}\nrenderQuests()`,{G:{st:traveler},curHub:()=> 'KY05',isSafe:()=>true,esc:s=>String(s)});
-if(!saseboQuests.includes('佐世保市の3区域は探索できます')||!saseboQuests.includes('長崎編の依頼・地域ボス・配信はまだ収録されていません')) fail('Sasebo quest board overstated the playable Nagasaki chapter');
-console.log('National registry: 8 regions, 47 prefectures, 5 connected hubs, Sasebo safe hub and routes OK');
+if(!saseboQuests.includes('佐世保市のM05と3区域を遊べます')||!saseboQuests.includes('M05 港から届く返事')) fail('Sasebo quest board did not show M05');
+console.log('National registry: 8 regions, 47 prefectures, 5 connected hubs, Sasebo exploration and routes OK');
 
 

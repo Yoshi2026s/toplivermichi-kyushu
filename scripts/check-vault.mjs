@@ -43,6 +43,15 @@ if(flushed.bagged!==0||flushed.vaulted!==2||oldKeep.keep.length!==0||game.itemVa
 oldKeep.keep=[oldId]; oldKeep.itemVault[0].n=999;
 const blocked=game.flushKeep(oldKeep);
 if(blocked.bagged!==0||blocked.vaulted!==0||oldKeep.keep.length!==1) throw new Error('full bag and vault must retain old keep');
+const keepFn=ui.match(/function keepFlush\(\)\{[\s\S]*?\n\}/)?.[0];
+if(!keepFn) throw new Error('inn transfer save handler missing');
+const keepState={st:game.newGame('預かり所保存','女性'),screen:'explore',sheet:null,dlg:null,readOnly:false,walk:{path:[]}};
+const keptId=keepState.st.bag[0].id; keepState.st.bag[0].n=99; keepState.st.keep=[keptId];
+let keepToast='',keepRenders=0;
+const keepUi=runInNewContext(`${keepFn}\nkeepFlush`,{G:keepState,isSafe:()=>true,clone:structuredClone,flushKeep:game.flushKeep,commit:()=>{keepState.st.saveGeneration++;return Promise.resolve(false);},render:()=>{keepRenders++;},toast:msg=>{keepToast=msg;}});
+if(keepUi()!==1) throw new Error('inn transfer did not start');
+await Promise.resolve();
+if(keepState.st.keep.length!==1||game.itemVaultCount(keepState.st)!==0||keepState.st.saveGeneration!==0||keepRenders!==1||!keepToast.includes('取り消しました')) throw new Error('failed inn transfer did not roll back');
 const transferSave=game.newGame('道具移動','女性'),transferId=transferSave.bag[0].id,initial=game.bagCount(transferSave.bag,transferId);
 if(!game.transferVaultItem(transferSave,'deposit',transferId,2)||game.bagCount(transferSave.bag,transferId)!==initial-2||game.bagCount(transferSave.itemVault,transferId)!==2) throw new Error('item deposit failed');
 if(!game.transferVaultItem(transferSave,'withdraw',transferId,1)||game.bagCount(transferSave.bag,transferId)!==initial-1||game.bagCount(transferSave.itemVault,transferId)!==1) throw new Error('item withdrawal failed');

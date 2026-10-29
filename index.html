@@ -1401,13 +1401,11 @@ function aiCandidates(run, a){
   return out;
 }
 function aiIncoming(run, m){
-  if(m.hp<=0) return 0; let sum=0;
-  for(const t of telegraph(run)){
-    if(t.type==="c") continue;
-    if(t.type==="s" && t.target!==m.pos) continue;
-    let inc=Math.max(0, t.power - run.V*(m.armorD+m.ward)); if(m.guard) inc=Math.ceil(inc/2); sum+=inc;
-  }
-  return sum;
+  if(m.hp<=0) return 0;
+  const sim=JSON.parse(JSON.stringify(run)), before=sim.party[m.pos]?.hp;
+  if(before==null) return 0;
+  enemyPhase(sim);
+  return Math.max(0,before-sim.party[m.pos].hp);
 }
 function aiScore(before, after){
   if(after.state==="won") return 1e6 - after.turn*10;

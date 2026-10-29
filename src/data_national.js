@@ -14,7 +14,7 @@ const NATIONAL_PREFECTURES = [
   ["JP40","福岡県","RG08"], ["JP41","佐賀県","RG08"], ["JP42","長崎県","RG08"], ["JP43","熊本県","RG08"], ["JP44","大分県","RG08"], ["JP45","宮崎県","RG08"], ["JP46","鹿児島県","RG08"], ["JP47","沖縄県","RG08"]
 ].map(([id,name,regionId])=>({id,name,regionId}));
 /* 実際に遊べる拠点だけを列挙。未収録の県には移動先を作らない。 */
-const NATIONAL_IMPLEMENTED_HUBS = {JP40:["KY01","KY02"],JP41:["KY03","KY04"],JP42:["KY05","KY06"],JP43:["KY07"]};
+const NATIONAL_IMPLEMENTED_HUBS = {JP40:["KY01","KY02"],JP41:["KY03","KY04"],JP42:["KY05","KY06"],JP43:["KY07","KY08"]};
 /* 経路は実装状態と解放条件を分ける。planned は地図の移動先にしない。 */
 const NATIONAL_ROUTES = [
   {id:"RT-KY01-KY02",from:"KY01",to:"KY02",mode:"road",status:"playable",unlock:"always",firstArrival:"福岡市の東門",firstGateId:"gate1"},
@@ -22,5 +22,6 @@ const NATIONAL_ROUTES = [
   {id:"RT-KY03-KY04",from:"KY03",to:"KY04",mode:"road",status:"playable",unlock:"karatsuClear",firstArrival:"唐津の東門",firstGateId:"gate_sagacity"},
   {id:"RT-KY04-KY05",from:"KY04",to:"KY05",mode:"road",status:"playable",unlock:"sagaCityClear",firstArrival:"佐賀市の東門",firstGateId:"gate_sasebo"},
   {id:"RT-KY05-KY06",from:"KY05",to:"KY06",mode:"road",status:"playable",unlock:"saseboClear",firstArrival:"佐世保市の東門",firstGateId:"gate_nagasaki"},
-  {id:"RT-KY06-KY07",from:"KY06",to:"KY07",mode:"road",status:"playable",unlock:"nagasakiClear",firstArrival:"長崎市の東門",firstGateId:"gate_kumamoto"}
+  {id:"RT-KY06-KY07",from:"KY06",to:"KY07",mode:"road",status:"playable",unlock:"nagasakiClear",firstArrival:"長崎市の東門",firstGateId:"gate_kumamoto"},
+  {id:"RT-KY07-KY08",from:"KY07",to:"KY08",mode:"road",status:"playable",unlock:"kumamotoClear",firstArrival:"熊本市の東門",firstGateId:"gate_aso"}
 ];

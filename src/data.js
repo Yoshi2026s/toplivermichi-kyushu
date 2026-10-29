@@ -310,8 +310,20 @@ const MAPS = {
       {id:"nagasaki_inn",x:21,y:18,type:"inn",label:"長崎市の宿屋"},
       {id:"nagasaki_rest",x:30,y:18,type:"rest",label:"休憩所（日付を進める）"},
       {id:"nagasaki_board",x:26,y:13,type:"board",label:"編成ボード"},
-      {id:"nagasaki_record",x:33,y:13,type:"shelf",label:"旅の記録"}
+      {id:"nagasaki_record",x:33,y:13,type:"shelf",label:"旅の記録"},
+      {id:"gate_kumamoto",x:38,y:20,type:"gate",label:"熊本市への道",to:"KY07",tx:2,ty:20}
     ], zones:{"1":"KY06-A1","2":"KY06-A2","3":"KY06-A3"}
+  },
+  "KY07":{ hub:"KY07", name:"熊本市", kind:"out", w:40, h:28, safeAnchor:[12,20],
+    tiles:buildMap(40,28,[[".",1,1,38,26],["T",2,3,7,9],["T",32,3,6,9],[",",1,20,37,1],[",",12,12,2,9],["#",17,8,8,6],["c",16,14,10,1]]),
+    objects:[
+      {id:"gate_nagasakicity",x:1,y:20,type:"gate",label:"長崎市への道",to:"KY06",tx:37,ty:20},
+      {id:"kumamoto_guide",x:12,y:19,type:"npc",label:"熊本市の案内人",npc:"kumamotoGuide"},
+      {id:"kumamoto_inn",x:20,y:18,type:"inn",label:"熊本市の宿屋"},
+      {id:"kumamoto_rest",x:30,y:18,type:"rest",label:"休憩所（日付を進める）"},
+      {id:"kumamoto_board",x:26,y:16,type:"board",label:"編成ボード"},
+      {id:"kumamoto_record",x:33,y:16,type:"shelf",label:"旅の記録"}
+    ], zones:{}
   }
 };
 const HUBS = {
@@ -320,12 +332,16 @@ const HUBS = {
   KY03:{name:"唐津市", pref:"佐賀", prefId:"PR02", map:"KY03"},
   KY04:{name:"佐賀市", pref:"佐賀", prefId:"PR02", map:"KY04"},
   KY05:{name:"佐世保市", pref:"長崎", prefId:"PR03", map:"KY05"},
-  KY06:{name:"長崎市", pref:"長崎", prefId:"PR03", map:"KY06"}
+  KY06:{name:"長崎市", pref:"長崎", prefId:"PR03", map:"KY06"},
+  KY07:{name:"熊本市", pref:"熊本", prefId:"PR04", map:"KY07"}
 };
-const FUTURE_HUBS = [["KY07","熊本市","熊本"],["KY08","阿蘇市","熊本"],["KY09","別府市","大分"],["KY10","大分市","大分"],["KY11","宮崎市","宮崎"],["KY12","日南市","宮崎"],["KY13","霧島市","鹿児島"],["KY14","鹿児島市","鹿児島"],["KY15","那覇市","沖縄"],["KY16","名護市","沖縄"]];
+const FUTURE_HUBS = [["KY08","阿蘇市","熊本"],["KY09","別府市","大分"],["KY10","大分市","大分"],["KY11","宮崎市","宮崎"],["KY12","日南市","宮崎"],["KY13","霧島市","鹿児島"],["KY14","鹿児島市","鹿児島"],["KY15","那覇市","沖縄"],["KY16","名護市","沖縄"]];
 
 /* ===== 住民と会話 ===== */
 const NPCS = {
+  kumamotoGuide:{name:"熊本市の案内人", hub:"KY07", sprite:[PAL.sand,PAL.ink],
+    first:p=>[["案内人",`${p}さん、熊本市へようこそ。ここで旅を休められます。`],["案内人","探索区域と依頼はまだ開いていません。長崎市へは西の門から戻れます。"]],
+    normal:p=>[["案内人","宿屋や休憩所、編成ボードを使えます。次の道は準備中です。"]]},
   nagasakiGuide:{name:"長崎市の案内人", hub:"KY06", sprite:[PAL.sea,PAL.sand],
     first:p=>[["案内人",`${p}さん、長崎市へようこそ。港の小径から丘の眺めまで探索できます。`],["案内人","丘の上で返事が重なっています。依頼帳でM06を受け、港と坂道から調べてください。"]],
     normal:p=>[["案内人","港の小径・坂道の路地・丘の眺めを歩けます。佐世保市へは西の門から戻れます。"]]},

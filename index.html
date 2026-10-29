@@ -2256,14 +2256,20 @@ function commit(){
 }
 async function loadSave(){
   const decode = r => { if(!r||typeof r.state!=="string"||checksum(r.state)!==r.sum) return null; try{ const state=JSON.parse(r.state); validateState(state); return state; }catch(e){ return null; } };
-  let rec=null, prev=null, storage="indexeddb";
+  let rec=null, prev=null, local=null;
   try{ rec=await DB.get("auto"); prev=await DB.get("auto-prev"); }catch(e){}
-  let state=decode(rec);
-  if(!state){ try{ const ls=JSON.parse(localStorage.getItem("tlr-kyushu-auto")||"null"); const localState=decode(ls); if(localState){ rec=ls; state=localState; storage="local"; } }catch(e){} }
-  if(state) return {state, time:rec.time, storage};
-  state=decode(prev);
-  if(state) return {state, time:prev.time, fromPrev:true, storage:"indexeddb"};
-  return null;
+  try{ local=JSON.parse(localStorage.getItem("tlr-kyushu-auto")||"null"); }catch(e){}
+  const candidates=[
+    {record:rec,storage:"indexeddb",fromPrev:false},
+    {record:local,storage:"local",fromPrev:false},
+    {record:prev,storage:"indexeddb",fromPrev:true}
+  ].map(c=>({...c,state:decode(c.record)})).filter(c=>c.state);
+  candidates.sort((a,b)=>{
+    const gen=c=>Number.isSafeInteger(c.record.gen)&&c.record.gen>=0?c.record.gen:Number.isSafeInteger(c.state.saveGeneration)&&c.state.saveGeneration>=0?c.state.saveGeneration:0;
+    return gen(b)-gen(a);
+  });
+  const best=candidates[0];
+  return best?{state:best.state,time:best.record.time,storage:best.storage,fromPrev:best.fromPrev}:null;
 }
 function setSave(t){ G.saveStatus=t; const el=document.getElementById("saveStat"); if(el) el.textContent=t; }
 function acquireLock(){

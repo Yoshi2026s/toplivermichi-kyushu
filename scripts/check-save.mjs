@@ -15,7 +15,7 @@ const db={auto:null,'auto-prev':null},store={value:null};
 const game=runInNewContext(`${core}\n${checksum}\n${validate}\n${load}\n({newGame,checksum,loadSave})`,{
   DB:{get:async key=>db[key]},localStorage:{getItem:()=>store.value}
 });
-const makeRecord=(state,gen=1)=>{const text=JSON.stringify(state);return {state:text,sum:game.checksum(text),gen,time:gen};};
+const makeRecord=(state,gen=1)=>{const text=JSON.stringify({...state,saveGeneration:gen});return {state:text,sum:game.checksum(text),gen,time:gen};};
 const old=game.newGame('古い記録','男性'),newer=game.newGame('新しい記録','女性');
 const migrateVisit=runInNewContext(`${core}\n${migrate}\nmigrate`,{soundPref:()=>true});
 const missingVisit=game.newGame('訪問記録','男性');
@@ -44,6 +44,16 @@ if(loaded.state.profile.name!=='新しい記録'||loaded.storage!=='local'||load
 db.auto=makeRecord(old,2);
 loaded=await game.loadSave();
 if(loaded.state.profile.name!=='新しい記録'||loaded.storage!=='local') throw new Error('newer local save was ignored');
+db.auto.gen=999;
+loaded=await game.loadSave();
+if(loaded.state.profile.name!=='新しい記録'||loaded.storage!=='local') throw new Error('outer generation overrode the valid save body');
+db.auto.gen=2;
+const oldShape={...old}; delete oldShape.saveGeneration;
+db.auto={...makeRecord(oldShape,4),state:JSON.stringify(oldShape)};
+db.auto.sum=game.checksum(db.auto.state);
+loaded=await game.loadSave();
+if(loaded.state.profile.name!=='古い記録'||loaded.storage!=='indexeddb') throw new Error('legacy record generation fallback failed');
+db.auto=makeRecord(old,2);
 store.value=JSON.stringify(makeRecord(newer,1));
 loaded=await game.loadSave();
 if(loaded.state.profile.name!=='古い記録'||loaded.storage!=='indexeddb'||loaded.fromPrev) throw new Error('older local save replaced current save');

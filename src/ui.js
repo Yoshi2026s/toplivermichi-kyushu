@@ -67,7 +67,7 @@ function objective(){
   if(streamPending()) return `${streamPending()}：配信で80点以上を目指す（依頼帳から開始）`;
   if(q){ const Q=QUESTS[q]; if(st.quests[q]==="bossReady") return `${q}：${BOSSES[Q.boss].name}に挑む（${MAPS[Q.hub].name}の奥地）`; return `${q}：通常敵 ${st.qprog[q]||0}/${Q.kills}体（${HUBS[Q.hub].name}のA1～A3）`; }
   const avail=["M01","M02","M03","M04"].find(k=>st.quests[k]==="available"); if(avail) return `依頼帳で「${avail} ${QUESTS[avail].name}」を受ける（2枠）`;
-  if(st.quests.M04==="complete") return "佐賀市編クリア！ 続きの地域は開発中です";
+  if(st.quests.M04==="complete") return "佐賀市編クリア！ 東門から佐世保市の休憩拠点へ進めます";
   if(st.quests.M03==="complete") return curHub()==="KY03"?"唐津編クリア！ 東門から佐賀市へ進めます":"佐賀市でM04を受け、街の声を集めよう";
   if(st.fukuokaClear) return curHub()==="KY03"?"唐津でM03を受け、海辺の探索区域へ進もう":"福岡編クリア！ 北九州の東門から唐津へ進めます";
   return "探索して仲間を育てよう";
@@ -123,7 +123,7 @@ function renderTitle(){
       <button class="btn" data-a="openSheet" data-k="about">この作品について</button>
     </div>
     <p class="note">配信文化を参考にした非公式の創作ゲームです。実在のサービス・アカウントとは連携しません。BGMと効果音は最初からONです（画面に触れると鳴り始めます。設定で消音にできます）。</p>
-    <p class="note">この開発版の収録範囲：第1章 福岡（M01・M02）＋佐賀県唐津市のM03、佐賀市のM04と各配信まで。佐賀市の先は未収録です。</p>
+    <p class="note">この開発版の収録範囲：第1章 福岡（M01・M02）＋佐賀県唐津市のM03、佐賀市のM04と各配信、長崎県佐世保市の休憩拠点。長崎編の依頼と探索は未収録です。</p>
   </section>`;
 }
 function drawTitleArt(){
@@ -896,9 +896,9 @@ function renderWorld(){
       return `<li>${p.id} ${esc(p.name)}：${hubs.length?`拠点あり（${hubs.map(id=>esc(HUBS[id].name)).join("・")}）・${visitedPrefs.some(v=>v.id===p.id)?"訪問済み":"未訪問"}`:"地理台帳のみ・移動不可"}</li>`;
     }).join("")}</ul></details>`;
   }).join("");
-  const routeDirectory=NATIONAL_ROUTES.filter(r=>r.status==="playable").map(r=>`<li>${esc(HUBS[r.from].name)} ↔ ${esc(HUBS[r.to].name)}：${nationalRouteAvailable(st,r.from,r.to)?"経路解放済み":r.unlock==="fukuokaClear"?"福岡編の完了待ち":"唐津編M03の完了待ち"}${!st.visitedHubs.includes(r.to)&&r.firstArrival?`（初回：${esc(r.firstArrival)}）`:""}</li>`).join("");
+  const routeDirectory=NATIONAL_ROUTES.filter(r=>r.status==="playable").map(r=>`<li>${esc(HUBS[r.from].name)} ↔ ${esc(HUBS[r.to].name)}：${nationalRouteAvailable(st,r.from,r.to)?"経路解放済み":r.unlock==="fukuokaClear"?"福岡編の完了待ち":r.unlock==="karatsuClear"?"唐津編M03の完了待ち":"佐賀市編M04の完了待ち"}${!st.visitedHubs.includes(r.to)&&r.firstArrival?`（初回：${esc(r.firstArrival)}）`:""}</li>`).join("");
   h+=`</div><h3 class="label">実装済みの経路</h3><ul class="list">${routeDirectory}</ul><p class="small">初回到達は街の門から向かいます。訪問後に地図から移動できます。</p><h3 class="label">この先の拠点候補</h3><ul class="list dim">${FUTURE_HUBS.map(([id,n,p])=>`<li>${id} ${p}・${n}　未収録・移動不可</li>`).join("")}</ul>
-    <h3 class="label">全国編の準備状況</h3><p class="small">${NATIONAL_REGIONS.length}地方・${NATIONAL_PREFECTURES.length}都道府県の地理台帳を準備中。現在遊べるのは福岡県の福岡市・北九州市、佐賀県の唐津市（M03まで）と佐賀市（M04まで）です。その先は未収録です。</p>
+    <h3 class="label">全国編の準備状況</h3><p class="small">${NATIONAL_REGIONS.length}地方・${NATIONAL_PREFECTURES.length}都道府県の地理台帳を準備中。現在遊べるのは福岡県の福岡市・北九州市、佐賀県の唐津市（M03まで）と佐賀市（M04まで）、長崎県の佐世保市（休憩拠点のみ）です。長崎編の依頼と探索区域は未収録です。</p>
     <h3 class="label">全国の都道府県</h3><p class="small">拠点ありは${playablePrefs.length}/${NATIONAL_PREFECTURES.length}都道府県。訪問済みは実装済みの${visitedPrefs.length}/${playablePrefs.length}県・${visitedHubCount}/${playableHubIds.length}拠点。地理台帳のみの県には移動できません。</p>${regionDirectory}`;
   return h;
 }
@@ -913,10 +913,10 @@ function worldTravelStatus(st,from,to,safe){
 }
 function nationalRouteUnlockReason(from,to){
   const route=NATIONAL_ROUTES.find(r=>r.status==="playable"&&((r.from===from&&r.to===to)||(r.from===to&&r.to===from)));
-  return route?.unlock==="fukuokaClear"?"福岡編の完了後に開きます。":route?.unlock==="karatsuClear"?"唐津編M03の完了後に開きます。":"この先の道はまだ開いていません。";
+  return route?.unlock==="fukuokaClear"?"福岡編の完了後に開きます。":route?.unlock==="karatsuClear"?"唐津編M03の完了後に開きます。":route?.unlock==="sagaCityClear"?"佐賀市編M04の完了後に開きます。":"この先の道はまだ開いていません。";
 }
 function nationalRouteAvailable(st,from,to){
-  return NATIONAL_ROUTES.some(r=>r.status==="playable"&&((r.from===from&&r.to===to)||(r.from===to&&r.to===from))&&(r.unlock==="always"||r.unlock==="fukuokaClear"&&!!st.fukuokaClear||r.unlock==="karatsuClear"&&st.quests?.M03==="complete"));
+  return NATIONAL_ROUTES.some(r=>r.status==="playable"&&((r.from===from&&r.to===to)||(r.from===to&&r.to===from))&&(r.unlock==="always"||r.unlock==="fukuokaClear"&&!!st.fukuokaClear||r.unlock==="karatsuClear"&&st.quests?.M03==="complete"||r.unlock==="sagaCityClear"&&st.quests?.M04==="complete"));
 }
 function nationalItinerary(st,from,to){
   if(!Object.hasOwn(HUBS,from)||!Object.hasOwn(HUBS,to)) return null;

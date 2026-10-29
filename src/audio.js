@@ -42,7 +42,7 @@ const SND = (()=>{
     return { bpm:s.bpm, steps:bars.length*8, bars, lead, st, bass:pat(st.bass), arp:pat(st.arp), hat:pat(st.hat), kick:pat(st.kick), snare:pat(st.snare) };
   }
   /* 音の通り道：パート別バス → 音色EQ → コンプレッサー → 出力。リバーブとディレイは送りで混ぜる */
-  let musicBus=null, sfxBus=null, revIn=null, dlyIn=null, dly=null;
+  let musicBus=null, sfxBus=null, revIn=null, dlyIn=null, dly=null, duckUntil=0;
   function impulse(sec,decay){ const len=Math.floor(ac.sampleRate*sec), b=ac.createBuffer(2,len,ac.sampleRate);
     for(let c=0;c<2;c++){ const d=b.getChannelData(c); for(let i=0;i<len;i++){ const t=i/len; d[i]=(Math.random()*2-1)*Math.pow(1-t,decay)*(i<ac.sampleRate*0.012?i/(ac.sampleRate*0.012):1); } } return b; }
   function init(){
@@ -143,7 +143,7 @@ const SND = (()=>{
     for(let i=0;i<steps;i+=4) kick(t0+i*sd);
     jingleT=setTimeout(()=>{ jingleT=null; if(next){ const n=next; cur=null; play(n); } }, (steps*sd+0.25)*1000);
   }
-  function stopBgm(){ if(timer){ clearInterval(timer); timer=null; } }
+  function stopBgm(){ if(timer){ clearInterval(timer); timer=null; } duckUntil=0; if(musicBus&&ac){ musicBus.gain.cancelScheduledValues(ac.currentTime); musicBus.gain.setValueAtTime(0.5,ac.currentTime); } }
   /* 効果音とジングル */
   const SFX = {
     ok:[["p50",84,.05]], cancel:[["p50",72,.05],["p50",67,.07]], hit:[["noise",.06],["p25",55,.05]],
@@ -159,9 +159,21 @@ const SND = (()=>{
     defeat:[["p50",79,.04],["p50",72,.04],["p50",67,.04],["noise",.12]], damage:[["noise",.09],["p50",45,.05],["p50",40,.08]], down:[["noise",.12],["p50",50,.08],["p50",43,.1],["p50",36,.22]], level:[["p25",79,.07],["p25",83,.07],["p25",86,.07],["p25",91,.25]],
     rank:[["p25",72,.12],["p25",79,.12],["p25",84,.12],["p25",88,.12],["p25",91,.4]]
   };
+  function duckBgm(duration){
+    if(!ac||!musicBus||!timer) return;
+    const now=ac.currentTime;
+    duckUntil=Math.max(duckUntil,now+duration);
+    const gain=musicBus.gain;
+    if(typeof gain.cancelAndHoldAtTime==="function") gain.cancelAndHoldAtTime(now);
+    else { gain.cancelScheduledValues(now); gain.setValueAtTime(Math.min(gain.value,0.5),now); }
+    gain.linearRampToValueAtTime(0.2,now+0.02);
+    gain.setValueAtTime(0.2,duckUntil);
+    gain.linearRampToValueAtTime(0.5,duckUntil+0.18);
+  }
   function sfx(name){
-    if(!on||!ac) return; let t=ac.currentTime+0.01;
-    for(const s of (SFX[name]||[])){
+    if(!on||!ac) return; const parts=SFX[name]||[]; if(!parts.length) return; let t=ac.currentTime+0.01;
+    duckBgm(parts.reduce((n,s)=>n+(s[0]==="noise"||s[0]===null?s[1]:s[2]),0)+0.08);
+    for(const s of parts){
       if(s[0]==="noise"){ noise(t,s[1]+0.03,0.5,1200,{type:"bandpass",q:0.5,out:sfxBus,rev:0.15}); noise(t,0.02,0.3,5000,{out:sfxBus}); t+=s[1]; }
       else if(s[0]===null){ t+=s[1]; }
       else { voice(hz(s[1]),t,s[2],s[0],0.42,{out:sfxBus,sus:0.8,detune:4,cutoff:4500,fenv:1500,rev:0.18,a:0.002,d:0.03,r:0.05}); t+=s[2]; }

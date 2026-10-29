@@ -24,6 +24,7 @@ if(fresh.quests.M04!=='locked') fail('M04 must start locked');
 if(fresh.quests.M05!=='locked') fail('M05 must start locked');
 if(fresh.quests.M06!=='locked') fail('M06 must start locked');
 if(fresh.quests.M07!=='locked') fail('M07 must start locked');
+if(fresh.quests.M08!=='locked') fail('M08 must start locked');
 fresh.quests.M02='combatDone';
 game.completeQuest(fresh,'M02',{xp:0,tickets:0});
 if(fresh.quests.M03!=='available'||!fresh.fukuokaClear) fail('M02 must unlock M03');
@@ -44,8 +45,10 @@ const saseboOld=game.newGame('佐世保済','女性');saseboOld.quests.M05='comp
 if(game.migrate(JSON.parse(JSON.stringify(saseboOld))).quests.M06!=='available') fail('Sasebo save must unlock M06');
 const nagasakiOld=game.newGame('長崎済','女性');nagasakiOld.quests.M06='complete';delete nagasakiOld.quests.M07;
 if(game.migrate(JSON.parse(JSON.stringify(nagasakiOld))).quests.M07!=='available') fail('Nagasaki save must unlock M07');
+const kumamotoOld=game.newGame('熊本済','女性');kumamotoOld.quests.M07='complete';delete kumamotoOld.quests.M08;
+if(game.migrate(JSON.parse(JSON.stringify(kumamotoOld))).quests.M08!=='available') fail('Kumamoto save must unlock M08');
 
-for(const id of ['KY03-A1','KY03-A2','KY03-A3','KY04-A1','KY04-A2','KY04-A3','KY05-A1','KY05-A2','KY05-A3','KY06-A1','KY06-A2','KY06-A3','KY07-A1','KY07-A2','KY07-A3']){
+for(const id of ['KY03-A1','KY03-A2','KY03-A3','KY04-A1','KY04-A2','KY04-A3','KY05-A1','KY05-A2','KY05-A3','KY06-A1','KY06-A2','KY06-A3','KY07-A1','KY07-A2','KY07-A3','KY08-A1','KY08-A2','KY08-A3']){
   if(game.AREAS[id]?.list.length!==50||!game.enemyDef(id,0).id.startsWith(`EN-${id}-`)) fail(`${id} enemy catalog invalid`);
   const run=game.createFieldRun(fresh,id,{count:0,picks:[0,0]});
   if(run.hub!==id.slice(0,4)||run.areaId!==id||run.enemies.length!==1) fail(`${id} battle creation failed`);
@@ -136,6 +139,21 @@ for(const act of ['first','reply','local','thanks']) game.streamPlay(kumamotoStr
 if(!kumamotoStream.done||kumamotoStream.score<80||kumamotoStream.hub!=='KY07'||kumamotoStream.prefId!=='PR04') fail('M07 stream failed');
 const kumamotoBefore=flow.tickets;game.completeQuest(flow,'M07',{xp:0,tickets:0});
 if(flow.quests.M07!=='complete'||flow.activeQuest!==null||flow.moeRank!==7||flow.tickets<=kumamotoBefore) fail('M07 flow did not complete');
+if(flow.quests.M08!=='available') fail('M07 must unlock M08');
 const kumamotoOnce=flow.tickets;game.completeQuest(flow,'M07',{xp:0,tickets:0});
 if(flow.tickets!==kumamotoOnce) fail('M07 reward duplicated');
-console.log('Saga, Nagasaki and Kumamoto M03-M07: old saves, battles, bosses, streams, ranks and rewards OK');
+flow.quests.M08='active';flow.activeQuest='M08';
+for(let i=0;i<2;i++) game.applyVictory(flow,game.createFieldRun(flow,'KY08-A1',{count:0,picks:[0,0]}));
+if(flow.qprog.M08!==2||flow.quests.M08!=='bossReady') fail('M08 field victories did not unlock boss');
+const asoBoss=game.createBossRun(flow,'B07');
+if(asoBoss.hub!=='KY08'||asoBoss.areaId!=='KY08-A3'||asoBoss.enemies[0].id!=='B07') fail('Aso city boss battle invalid');
+game.applyVictory(flow,asoBoss);
+if(!flow.bossDefeated.B07||flow.quests.M08!=='combatDone') fail('M08 boss victory did not unlock stream');
+const asoStream=game.newStream(flow,'KY08','hero','local','voice');
+for(const act of ['first','reply','local','thanks']) game.streamPlay(asoStream,act);
+if(!asoStream.done||asoStream.score<80||asoStream.hub!=='KY08'||asoStream.prefId!=='PR04') fail('M08 stream failed');
+const asoBefore=flow.tickets;game.completeQuest(flow,'M08',{xp:0,tickets:0});
+if(flow.quests.M08!=='complete'||flow.activeQuest!==null||flow.moeRank!==8||flow.tickets<=asoBefore) fail('M08 flow did not complete');
+const asoOnce=flow.tickets;game.completeQuest(flow,'M08',{xp:0,tickets:0});
+if(flow.tickets!==asoOnce) fail('M08 reward duplicated');
+console.log('Saga, Nagasaki and Kumamoto M03-M08: old saves, battles, bosses, streams, ranks and rewards OK');

@@ -112,7 +112,7 @@ const BOSS_SCALE_OVERRIDE = { LB01:{ 2:{hp:0.9,atk:1} } };
 function bossScale(bid, n){ n=Math.min(4,Math.max(1,n)); const o=BOSS_SCALE_OVERRIDE[bid]; return (o&&o[n]) || BOSS_PARTY_SCALE[n]; }
 
 /* 宿屋：1人あたりの宿泊料（ゴールド）。泊まると翌朝になり、体力と集中力が全回復 */
-const INN_PRICE = { KY01:6, KY02:10, KY03:12, KY04:12, KY05:14, KY06:14, KY07:16 };
+const INN_PRICE = { KY01:6, KY02:10, KY03:12, KY04:12, KY05:14, KY06:14, KY07:16, KY08:16 };
 
 /* 第05D節：もえのシナリオ到達ランク */
 const MOE_RANKS = ["E1","D1","D2","D3","C1","C2","C3","B1","B2","B3","A1","A2","A3","S1","S2","S3","S4","S5","S6"];
@@ -329,8 +329,20 @@ const MAPS = {
       {id:"kumamoto_inn",x:20,y:18,type:"inn",label:"熊本市の宿屋"},
       {id:"kumamoto_rest",x:30,y:18,type:"rest",label:"休憩所（日付を進める）"},
       {id:"kumamoto_board",x:26,y:16,type:"board",label:"編成ボード"},
-      {id:"kumamoto_record",x:33,y:16,type:"shelf",label:"旅の記録"}
+      {id:"kumamoto_record",x:33,y:16,type:"shelf",label:"旅の記録"},
+      {id:"gate_aso",x:38,y:20,type:"gate",label:"阿蘇市への道",to:"KY08",tx:2,ty:20}
     ], zones:{"1":"KY07-A1","2":"KY07-A2","3":"KY07-A3"}
+  },
+  "KY08":{ hub:"KY08", name:"阿蘇市", kind:"out", w:40, h:28, safeAnchor:[12,20],
+    tiles:buildMap(40,28,[[".",1,1,38,26],["T",2,3,7,9],["T",32,3,6,9],[",",1,20,37,1],[",",12,12,2,9],["#",18,7,6,5],["c",17,12,8,1]]),
+    objects:[
+      {id:"gate_kumamotocity",x:1,y:20,type:"gate",label:"熊本市への道",to:"KY07",tx:37,ty:20},
+      {id:"aso_guide",x:12,y:19,type:"npc",label:"阿蘇市の案内人",npc:"asoGuide"},
+      {id:"aso_inn",x:20,y:18,type:"inn",label:"阿蘇市の宿屋"},
+      {id:"aso_rest",x:30,y:18,type:"rest",label:"休憩所（日付を進める）"},
+      {id:"aso_board",x:26,y:16,type:"board",label:"編成ボード"},
+      {id:"aso_record",x:33,y:16,type:"shelf",label:"旅の記録"}
+    ], zones:{}
   }
 };
 const HUBS = {
@@ -340,12 +352,16 @@ const HUBS = {
   KY04:{name:"佐賀市", pref:"佐賀", prefId:"PR02", map:"KY04"},
   KY05:{name:"佐世保市", pref:"長崎", prefId:"PR03", map:"KY05"},
   KY06:{name:"長崎市", pref:"長崎", prefId:"PR03", map:"KY06"},
-  KY07:{name:"熊本市", pref:"熊本", prefId:"PR04", map:"KY07"}
+  KY07:{name:"熊本市", pref:"熊本", prefId:"PR04", map:"KY07"},
+  KY08:{name:"阿蘇市", pref:"熊本", prefId:"PR04", map:"KY08"}
 };
-const FUTURE_HUBS = [["KY08","阿蘇市","熊本"],["KY09","別府市","大分"],["KY10","大分市","大分"],["KY11","宮崎市","宮崎"],["KY12","日南市","宮崎"],["KY13","霧島市","鹿児島"],["KY14","鹿児島市","鹿児島"],["KY15","那覇市","沖縄"],["KY16","名護市","沖縄"]];
+const FUTURE_HUBS = [["KY09","別府市","大分"],["KY10","大分市","大分"],["KY11","宮崎市","宮崎"],["KY12","日南市","宮崎"],["KY13","霧島市","鹿児島"],["KY14","鹿児島市","鹿児島"],["KY15","那覇市","沖縄"],["KY16","名護市","沖縄"]];
 
 /* ===== 住民と会話 ===== */
 const NPCS = {
+  asoGuide:{name:"阿蘇市の案内人", hub:"KY08", sprite:[PAL.sand,PAL.sea],
+    first:p=>[["案内人",`${p}さん、阿蘇市へようこそ。ここで旅を休められます。`],["案内人","探索区域と依頼はまだ開いていません。熊本市へは西の門から戻れます。"]],
+    normal:p=>[["案内人","宿屋や休憩所、編成ボードを使えます。次の道は準備中です。"]]},
   kumamotoGuide:{name:"熊本市の案内人", hub:"KY07", sprite:[PAL.sand,PAL.ink],
     first:p=>[["案内人",`${p}さん、熊本市へようこそ。川辺の小径から石垣の広場まで歩けます。`],["案内人","石垣の奥に声が残っています。依頼帳でM07を受け、街で調べてください。"]],
     normal:p=>[["案内人","川辺の小径・街路の通り・石垣の広場を探索できます。宿屋と休憩所もどうぞ。"]]},
@@ -467,7 +483,7 @@ const SCENES = {
   ]},
   RANK_B1:{title:"もえのランク B1", lines:p=>[
     ["もえ","熊本市の返事も、みんなに届いたね。"],
-    ["","もえのシナリオ到達ランクがB1になった。この先の地域は開発中です。"]
+    ["","もえのシナリオ到達ランクがB1になった。熊本市の東門から阿蘇市へ進めます。"]
   ]},
   S01_DONE:{title:"ふるさとの紹介文", lines:p=>[
     ["灯里","できた！『待ち合わせの広場。帰ってきた人に、おかえりを言う場所』。"],

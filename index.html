@@ -3589,8 +3589,10 @@ function migrate(s){
   if(!Array.isArray(s.visitedMaps)) s.visitedMaps=[];
   if(!Array.isArray(s.visitedHubs)) s.visitedHubs=[];
   if(!s.visitedMaps.includes(s.mapId)) s.visitedMaps.push(s.mapId);
-  const currentHub=MAPS[s.mapId].hub;
-  if(!s.visitedHubs.includes(currentHub)) s.visitedHubs.push(currentHub);
+  for(const mapId of s.visitedMaps){
+    const hub=MAPS[mapId]?.hub;
+    if(hub&&!s.visitedHubs.includes(hub)) s.visitedHubs.push(hub);
+  }
   if(s.vaultGold===undefined) s.vaultGold=0;
   if(s.itemVault===undefined) s.itemVault=[];
   if(!Array.isArray(s.pendingGifts)) s.pendingGifts=[];

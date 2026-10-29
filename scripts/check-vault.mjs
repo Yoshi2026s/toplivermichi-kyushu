@@ -151,6 +151,12 @@ if(!eventView.includes('応援団の差し入れ箱')||eventView.includes('休�
 ivState.sheetData={mode:'withdraw',id:null,qty:1,preview:null,query:'',filter:'gear',page:0};
 const gearView=runInNewContext(`${core}\n${vaultFns}\n${itemVaultViewFn}\nrenderItemVault()`,{G:ivState,canEditItemVault:()=>false,canViewItemVault:()=>true,esc:s=>String(s)});
 if(!gearView.includes('×1 <span class="small">装備</span>')||gearView.includes('休憩カード')||!gearView.includes('data-v="gear"')) throw new Error('gear vault filter failed');
+ivState.readOnly=false; ivState.st.pendingGifts=['JW01']; ivState.st.owned.JW01=8;
+const pendingBlockedView=runInNewContext(`${core}\n${vaultFns}\n${itemVaultViewFn}\nrenderItemVault()`,{G:ivState,canEditItemVault:()=>true,canViewItemVault:()=>true,esc:s=>String(s)});
+if(!pendingBlockedView.includes('受取保留の贈り物')||!/<button class="btn" data-a="pendingGiftClaim" data-v="JW01" disabled/.test(pendingBlockedView)) throw new Error('full pending gift must be shown but blocked');
+ivState.st.owned.JW01=7;
+const pendingReadyView=runInNewContext(`${core}\n${vaultFns}\n${itemVaultViewFn}\nrenderItemVault()`,{G:ivState,canEditItemVault:()=>true,canViewItemVault:()=>true,esc:s=>String(s)});
+if(!/<button class="btn" data-a="pendingGiftClaim" data-v="JW01" >/.test(pendingReadyView)) throw new Error('pending gift claim must unlock when space opens');
 const sheetDef=ui.match(/function openSheet\(k,data=\{\}\)\{[^\n]+\}\nfunction closeSheet\(\)\{[^\n]+\}/)?.[0];
 if(!sheetDef) throw new Error('sheet navigation missing');
 const navState={sheet:'itemVault',sheetData:{mode:'deposit'},walk:{path:[]},vaultSaving:true};

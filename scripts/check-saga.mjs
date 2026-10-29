@@ -7,8 +7,9 @@ const files=['data_enemies.js','data_saga_enemies.js','data_items.js','data_nati
 const source=files.map(f=>readFileSync(resolve(root,'src',f),'utf8')).join('\n');
 const ui=readFileSync(resolve(root,'src/ui.js'),'utf8');
 const migration=ui.match(/function migrate\(s\)\{[\s\S]*?\n\}/)?.[0];
-if(!migration) throw new Error('save migration missing');
-const game=runInNewContext(`${source}\nfunction soundPref(){return true}\n${migration}\n({newGame,completeQuest,createFieldRun,createBossRun,applyVictory,newStream,streamPlay,migrate,enemyDef,AREAS,QUESTS,SUPPORTS})`);
+const supportAvailable=ui.match(/function supportAvailable\(st,id\)\{[\s\S]*?\n\}/)?.[0];
+if(!migration||!supportAvailable) throw new Error('save migration missing');
+const game=runInNewContext(`${source}\nfunction soundPref(){return true}\n${supportAvailable}\n${migration}\n({newGame,completeQuest,createFieldRun,createBossRun,applyVictory,newStream,streamPlay,migrate,enemyDef,AREAS,QUESTS,SUPPORTS})`);
 const fail=msg=>{throw new Error(msg)};
 
 const fresh=game.newGame('確認用','女性');

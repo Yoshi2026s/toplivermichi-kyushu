@@ -1,0 +1,29 @@
+{
+  "version": "5.34",
+  "schemaVersion": 5,
+  "buildDate": "2026-10-30",
+  "sourceFileCount": 27,
+  "files": {
+    "index.html": {
+      "bytes": 636680,
+      "sha256": "eb62c887f2ad7b2f7f2529ccfc43313d22ca0c48062a0835d071560b27103bbd"
+    },
+    "README.md": {
+      "bytes": 2762,
+      "sha256": "abe64a2d24bff213bfd9644f0601a2fda9aef66f701ed6384598ced38ffad8b1"
+    },
+    "VERSION.txt": {
+      "bytes": 161,
+      "sha256": "e4b0f9b2a7f3d78ca52e68542e3d04c55da334a77b1d369947297cfc895ee8f0"
+    },
+    "GAME_SPEC.md": {
+      "bytes": 2283,
+      "sha256": "9bb83aca0d1409797cc1ff786441d68b9ef7f55db93588750522d52823d60f6a"
+    },
+    "GAME_SPEC.txt": {
+      "bytes": 2283,
+      "sha256": "9bb83aca0d1409797cc1ff786441d68b9ef7f55db93588750522d52823d60f6a"
+    }
+  },
+  "validation": "docs/validation-5.34.json"
+}

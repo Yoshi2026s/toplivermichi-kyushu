@@ -1,5 +1,5 @@
 /* ===== data: 福岡編と佐賀・唐津編 ===== */
-const GAME_VERSION = "5.33";
+const GAME_VERSION = "5.34";
 const SCHEMA_VERSION = 5;
 // A chapter opens only when the preceding chapter's registered main finale is complete.
 // M08 ends the current partial Kyushu story, not the whole Kyushu chapter.
@@ -22,7 +22,7 @@ const PAL = {
 /* 第06節・06A：操作キャラクター（福岡編で加入する5人＋将来分） */
 const CHARS = {
   hero:   { name:null, age:32, career:"社会福祉士", from:"福岡市", initJob:"J22", hair:PAL.brown, coat:PAL.red },
-  moe:    { name:"もえ", full:"雪餅羽 もえ", age:null, career:"アイドル（おやすみセカイ元メンバー）", from:null, initJob:"J08", hair:PAL.violet, coat:PAL.cream },
+  moe:    { name:"ヒロイン", full:"旅のヒロイン", age:null, career:"元アイドル", from:null, initJob:"J08", hair:PAL.violet, coat:PAL.cream },
   naoki:  { name:"直樹", full:"瀬尾 直樹", age:47, career:"電気工事士", from:"北九州", initJob:"J15", hair:PAL.slate, coat:PAL.gold },
   kohei:  { name:"航平", full:"久住 航平", age:39, career:"トラック運転手", from:"佐賀", initJob:"J01", hair:PAL.ink, coat:PAL.sea },
   mio:    { name:"澪", full:"芦田 澪", age:29, career:"看護師", from:"大分", initJob:"J13", hair:PAL.violet, coat:PAL.aqua },
@@ -409,16 +409,16 @@ const SCENES = {
   HS00:{title:"序章　福岡から", lines:p=>[
     ["","福岡市の実家。窓の外では、交流広場の準備が進んでいる。"],
     ["",`${p}は、今日の交流会を手伝う約束をしていた。`],
-    ["","交流広場。そこで、ひとりの女性が住民と話していた。"],
-    ["もえ","はじめまして。雪餅羽もえです。読み方は、のわんもえ。"],
-    ["もえ","アイドルグループ『おやすみセカイ』のメンバーとして活動していました。"],
-    ["もえ","おやすみセカイを脱退した今、Pocochaで新しい一歩を踏み出したい。目標はS6。"],
+    ["","交流広場。そこで、ひとりの旅人が住民と話していた。"],
+    ["もえ","はじめまして。もえです。名前を呼んでもらえるの、うれしいな。"],
+    ["もえ","以前はアイドルグループで活動していました。"],
+    ["もえ","グループを離れた今、配信を通じて新しい一歩を踏み出したい。目標はS6。"],
     ["もえ","今はE1から。一人ひとりの声に、ちゃんと返事ができる配信をしたいんです。"],
     [p,"その挑戦を支えるよ。配信の準備も旅も、一緒に進めよう。"],
     ["もえ","ありがとう。……ねえ、この街で好きな場所を、ひとつ教えてほしいな。"],
     ["","そのとき、交流会の仮想演出装置が乱れた。呼びかけと紹介の声が重なり、ノイズ体が生まれていく。"],
     ["もえ","声の順番が、ばらばらになってる……。私も一緒に行く。待ってるだけなんて、できないよ。"],
-    ["","雪餅羽もえが仲間に加わった（ジョブ：ライバー）。旅を続けると、各地で新しい仲間に出会えます。"],
+    ["","もえが仲間に加わった（職業：ライバー）。旅を続けると、各地で新しい仲間に出会えます。"],
     ["","依頼帳から「M01 故郷からの第一声」を受けて、通常敵を倒し、放送塔の丘のコメラモスへ挑もう。"]
   ]},
   RANK_D1:{title:"もえのランク D1", lines:p=>[

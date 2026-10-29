@@ -110,7 +110,7 @@ function statusBar(){
   return `<header class="status">
     <div class="srow"><span class="place">${esc(m.name)}</span><span>${st.day}日目</span></div>
     <div class="goal">${esc(objective())}</div>
-    <div class="srow small"><span>レベル${levelOf(st.xp,st)}・${st.gold.toLocaleString()}ゴールド・チケット${st.tickets.toLocaleString()}</span><span>もえ ${MOE_RANKS[st.moeRank]}</span></div>
+    <div class="srow small"><span>レベル${levelOf(st.xp,st)}・${st.gold.toLocaleString()}ゴールド・チケット${st.tickets.toLocaleString()}</span><span>${esc(charName(st,"moe"))} ${MOE_RANKS[st.moeRank]}</span></div>
     <div class="small" aria-live="polite">保存：<span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（別のタブで操作中のため閲覧のみ）":""}</div>
   </header>`;
 }
@@ -149,7 +149,7 @@ function renderNew(){
       <h2 class="label">確認</h2>
       <canvas id="heroPrev" width="16" height="24" class="sprite-lg" aria-hidden="true"></canvas>
       <dl class="kv"><dt>名前</dt><dd>${esc(v.value)}（${v.count}文字）</dd><dt>性別</dt><dd>${esc(n.gender)}</dd>
-      <dt>初期ジョブ</dt><dd>アイドルオタク</dd><dt>背景</dt><dd>32歳・福岡県福岡市出身・職歴は社会福祉士</dd></dl>
+      <dt>初期職業</dt><dd>アイドルオタク</dd><dt>背景</dt><dd>32歳・福岡県福岡市出身・職歴は社会福祉士</dd></dl>
       <p class="small">名前と性別はこの冒険で固定されます。性別による能力・成長・結末の差はありません。</p>
       <div class="stack"><button class="btn primary" data-a="startGame">この主人公で始める</button>
       <button class="btn" data-a="newBack">入力に戻る</button></div></section>`;
@@ -186,13 +186,13 @@ function attackPower(s,L){ return 10+2*L+Vof(L)*(s.wAtk+s.accAtk); }
 function defensePower(s,L){ return Vof(L)*s.armorD; }
 function partyStrip(){
   const st=G.st;
-  return `<button class="pstrip" data-a="openSheet" data-k="status" aria-label="パーティーのステータスを開く"><span class="pstop"><span>レベル${levelOf(st.xp,st)}・${st.gold.toLocaleString()}ゴールド・もえ ${MOE_RANKS[st.moeRank]}</span><span class="pmore">ステータス ▶</span></span>${st.party.map(cid=>{ const L=levelOf(st.xp,st), s=charStats(st,cid,L), v=vitalOf(cid);
+  return `<button class="pstrip" data-a="openSheet" data-k="status" aria-label="パーティーのステータスを開く"><span class="pstop"><span>レベル${levelOf(st.xp,st)}・${st.gold.toLocaleString()}ゴールド・${esc(charName(st,"moe"))} ${MOE_RANKS[st.moeRank]}</span><span class="pmore">ステータス ▶</span></span>${st.party.map(cid=>{ const L=levelOf(st.xp,st), s=charStats(st,cid,L), v=vitalOf(cid);
     return `<span class="pmini ${v.hp<=0?"ko":""} ${isLow(v.hp,s.maxHP)?"low":""}"><span class="pmline"><b>${esc(charName(st,cid))}</b><span class="small">体力${v.hp}/${s.maxHP} MP${v.c}${v.hp<=0?"・戦闘不能":isLow(v.hp,s.maxHP)?"・体力わずか":""}</span></span><span class="bar"><i style="width:${Math.round(100*v.hp/s.maxHP)}%"></i></span></span>`; }).join("")}</button>`;
 }
 function renderStatus(){
   const st=G.st; const L=levelOf(st.xp,st);
   const head=`<dl class="kv"><dt>共通レベル</dt><dd>${L}／上限${levelLimit(st)}</dd><dt>経験値</dt><dd>${st.xp.toLocaleString()}${L<levelLimit(st)?`（次のレベルまで ${Math.max(0,xpFor(L+1)-st.xp).toLocaleString()}）`:"（現在の上限）"}</dd>
-    <dt>所持ゴールド</dt><dd>${st.gold.toLocaleString()}</dd><dt>もえの到達ランク</dt><dd>${MOE_RANKS[st.moeRank]}</dd></dl>
+    <dt>所持ゴールド</dt><dd>${st.gold.toLocaleString()}</dd><dt>ヒロインの到達ランク</dt><dd>${MOE_RANKS[st.moeRank]}</dd></dl>
     <p class="small">本編進行の上限は${chapterCap(st)}。全国への訪問だけでは解放されません。以前の到達済みレベル・熟練度と記録は維持します。総合レベルは共通、熟練度は戦闘参加者別です。</p><p class="small">体力とMPは戦闘後も持ち越します。宿屋に泊まると全員が全回復します。</p>`;
   const cards=st.roster.map(cid=>{
     const s=charStats(st,cid,L), v=vitalOf(cid), e=st.equip[cid], jp=jpOf(st,cid,s.job), C=CHARS[cid];
@@ -200,11 +200,11 @@ function renderStatus(){
     const eqName=id=>id?esc(EQUIP[id].name):"なし";
     return `<section class="scard ${v.hp<=0?"ko":""} ${isLow(v.hp,s.maxHP)?"low":""}">
       <div class="who"><canvas class="sprite-md" data-char="${cid}" width="16" height="24" aria-hidden="true"></canvas>
-        <div><b class="sname">${esc(cid==="hero"?st.profile.name:C.full)}</b><br><span class="small">${inParty?"戦闘メンバー":"控え"}${v.hp<=0?"・戦闘不能":isLow(v.hp,s.maxHP)?"・体力わずか":""}</span></div></div>
+        <div><b class="sname">${esc(cid==="moe"?charName(st,"moe"):cid==="hero"?st.profile.name:C.full)}</b><br><span class="small">${inParty?"戦闘メンバー":"控え"}${v.hp<=0?"・戦闘不能":isLow(v.hp,s.maxHP)?"・体力わずか":""}</span></div></div>
       <dl class="kv">
         <dt>レベル</dt><dd>${L}</dd>
-        <dt>職業（ジョブ）</dt><dd>${esc(JOBS[s.job].name)}</dd>
-        <dt>ジョブ熟練度</dt><dd>${s.R}${s.R<jobLimit(st,cid,s.job)?`（次まで ${Math.max(0,jpFor(s.R+1)-jp)}）`:"（現在の上限）"}</dd>
+        <dt>職業</dt><dd>${esc(JOBS[s.job].name)}</dd>
+        <dt>職業熟練度</dt><dd>${s.R}${s.R<jobLimit(st,cid,s.job)?`（次まで ${Math.max(0,jpFor(s.R+1)-jp)}）`:"（現在の上限）"}</dd>
         <dt>体力（HP）</dt><dd><span class="bar wide"><i style="width:${Math.round(100*v.hp/s.maxHP)}%"></i></span>${v.hp}／最大${s.maxHP}</dd>
         <dt>MP</dt><dd>${v.c}／最大${s.startC}</dd>
         <dt>攻撃力</dt><dd>${attackPower(s,L)}</dd>
@@ -240,6 +240,8 @@ function renderExplore(){
       <button class="btn" data-a="openSheet" data-k="status" aria-label="ステータス"><span class="lw">ステータス</span><span class="sw">状態</span></button>
       <button class="btn" data-a="openSheet" data-k="party">編成</button>
       <button class="btn" data-a="openSheet" data-k="record">記録</button>
+      <button class="btn" data-a="openSheet" data-k="pets">ペット</button>
+      <button class="btn" data-a="openSheet" data-k="voyage">航海</button>
       <button class="btn" data-a="openSheet" data-k="dex">図鑑</button>
       <button class="btn" data-a="openSheet" data-k="settings">設定</button>
     </nav>
@@ -286,7 +288,7 @@ function drawMap(){
     else if(o.type==="inn"){ sprites.push({y:o.y-0.1,img:ART.object("inn",f),x:o.x}); img=ART.person("innkeeper",PAL.slate,PAL.navy,0,f2*2); }
     else if(o.type==="box") img=ART.object(st.boxes[o.box]?"boxOpen":"box",f);
     else if(o.type==="boss"){ if(st.bossDefeated[o.boss]) continue; img=ART.object("boss",f); }
-    else img=ART.object(o.fieldExit?"gate":o.type,f);
+    else img=ART.object(o.fieldExit?"gate":o.type==="jobcenter"?"board":o.type,f);
     sprites.push({y:o.y,x:o.x,img});
   }
   const moving=G.walk.path.length>0; const wf=moving?Math.floor(now/166)%4:0;
@@ -306,7 +308,7 @@ function drawMap(){
 }
 function startLoop(){
   cancelAnimationFrame(G.raf); G.lastTs=0;
-  const STEP=160;
+  const STEP=G.st?.settings?.moveSpeed==="fast"?110:160;
   const loop=ts=>{
     if(G.screen!=="explore"||document.hidden){ G.raf=0; return; }
     const dt = G.lastTs? Math.min(100, ts-G.lastTs) : 16; G.lastTs=ts; G.frame++;
@@ -343,12 +345,13 @@ function onMapTap(e){
   walkTo(Math.floor(lx/16), Math.floor((ly+4)/16));
 }
 function arrive(){
+  if(!G.st||G.readOnly||G.sheet||G.dlg||G.lock||document.hidden||G.screen!=="explore"||G.st.run)return;
   const st=G.st, m=MAPS[st.mapId]; const zone=zoneAt(m,st.pos.x,st.pos.y);
   if(SND.current!==(m.kind==="field"?"field":"fukuoka")) exploreBgm();
   if(m.kind==="field" && zone){
     // 第07A・23G節：危険タイル到着ごとに1/24の独立抽選（戦えるメンバーがいない時は抽選しない）
     const canFight = st.party.some(c=>vitalOf(c).hp>0);
-    if(canFight && randInt(24)===0){
+    if(canFight && randInt(m.encounterRate||24)===0){
       const rolls={count:randInt(2), picks:[randInt(10000),randInt(10000)]};
       G.walk.path=[]; G.walk.pending=null;
       startBattle(createFieldRun(st,zone,rolls)); return;
@@ -374,6 +377,7 @@ function interact(o){
   face();
   switch(o.type){
     case "npc": return talkNpc(o.npc);
+    case "jobcenter": return openSheet("jobcenter");
     case "shop": return openSheet("shop",{shop:o.shop, npc:o.npc, tab:"buy"});
     case "door": return travelMap(o.to,o.tx,o.ty);
     case "gate": return nationalRouteAvailable(st,curHub(),o.to)?openSheet("travel",{to:o.to,tx:o.tx,ty:o.ty,gateId:o.id}):say([["",nationalRouteUnlockReason(curHub(),o.to)]]);
@@ -419,7 +423,7 @@ function bossPrompt(bid){
   if(st.quests[qid]!=="bossReady") return say([["",`奥から大きな重なりを感じる（${b.name}・推奨レベル${b.q}）。依頼「${qid}」を受けて通常敵を倒すと挑戦できます。`]]);
   openSheet("boss",{bid});
 }
-function say(lines, after){ G.dlg={lines, i:0, after}; render(); }
+function say(lines, after){ if(G.st?.heroine?.name)lines=lines.map(([who,line])=>[who==="もえ"?charName(G.st,"moe"):who,String(line).replace(/雪餅羽[ ]?もえ|のわんもえ|もえ/g,charName(G.st,"moe"))]); G.dlg={lines, i:0, after}; render(); }
 function renderDialog(){
   const d=G.dlg; if(!d) return "";
   const [sp,tx]=d.lines[d.i];
@@ -455,7 +459,10 @@ function startBattle(run){
   const st=G.st; if(!run||MAPS[st.mapId].kind!=="field") return; st.run=run; st.runSeq=run.seq;
   for(const e of run.enemies) if(!e.boss) st.seen[e.id]=true;
   run.log=[`${run.enemies.map(e=>e.display).join("と")}が現れた！`];
+  startTurnCue(run);
+  if(typeof petTurnStart==="function")petTurnStart(st,run);
   G.cmd={}; G.sheet=null;
+  if(run.state==="won"){G.screen="battle";toResult();return;}
   commit(); SND.sfx("enc");
   if(reducedMotion()){ G.screen="battle"; render(); }
   else { const f=document.createElement("div"); f.className="flash"; document.body.appendChild(f); setTimeout(()=>{ f.remove(); G.screen="battle"; render(); },380); }
@@ -553,7 +560,7 @@ function renderCommand(run){
     }
   }
   if(c.type==="item"){
-    const usable=(run.bag||[]).filter(e=>e.n>0&&ITEMS[e.id]);
+    const usable=(run.bag||[]).filter(e=>e.n>0&&ITEMS[e.id]&&!ITEMS[e.id].petSupply);
     if(!usable.length) sub=`<span class="hint">使える道具を持っていません。ショップで買えます。</span>`;
     else { sub=usable.map(e=>chip("item",e.id,c.item===e.id,`${esc(ITEMS[e.id].name)}×${e.n}`)).join("");
       const it=c.item&&ITEMS[c.item];
@@ -740,7 +747,7 @@ function renderResult(){
     ${r.quest?`<div class="rquest done">依頼「${r.quest} ${esc(QUESTS[r.quest].name)}」完了！</div>`:r.kills&&r.killQuest?`<div class="rquest"><span>依頼 ${r.killQuest} 討伐</span><span class="bar"><i style="width:${pct(r.killNow,r.killNeed)}%"></i></span><b>${r.killNow}/${r.killNeed}</b></div>`:""}
     ${items.length||gifts.length?`<div class="rbox"><h3 class="label">手に入れたもの</h3><ul class="rlist">${[...items,...gifts].join("")}</ul></div>`:""}
     ${renderUsedItemHistory(r,usedItems)}
-    ${(r.newBadges||[]).length?`<div class="rbox"><h3 class="label">新しい戦闘バッジ</h3><ul class="rlist">${r.newBadges.map(id=>`<li>${id} ${esc(ITEM_BADGES[id]||GROWTH_BADGES[id]||PARTY_BADGES[id]||ACTION_BADGES[id]||HEAL_BADGES[id]||MP_BADGES[id]||CHEER_BADGES[id]||SPEED_BADGES[id]||ATTACK_BADGES[id]||GUARD_BADGES[id]||DEFENSE_BADGES[id]||id)}</li>`).join("")}</ul></div>`:""}
+    ${(r.newBadges||[]).length?`<div class="rbox"><h3 class="label">新しい戦闘バッジ</h3><ul class="rlist">${r.newBadges.map(id=>`<li>${id} ${esc(ITEM_BADGES[id]||GROWTH_BADGES[id]||PARTY_BADGES[id]||ACTION_BADGES[id]||HEAL_BADGES[id]||MP_BADGES[id]||CHEER_BADGES[id]||SPEED_BADGES[id]||ATTACK_BADGES[id]||GUARD_BADGES[id]||DEFENSE_BADGES[id]||EXTRA_BADGES[id]||id)}</li>`).join("")}</ul></div>`:""}
     <button class="btn" data-a="openSheet" data-k="record">戦闘バッジ一覧を見る</button>
     ${r.notes.filter(n=>!/効果量が上昇/.test(n)).map(n=>`<p class="good rnote">${esc(n)}</p>`).join("")}
     <h3 class="label">仲間</h3><div class="rmems">${mem}</div>
@@ -768,13 +775,13 @@ function resultDone(){
 }
 
 /* ---- シート（メニュー） ---- */
-function openSheet(k,data={}){ if(G.vaultSaving||G.shopSaving) return; G.sheet=k; G.sheetData=data; G.walk.path=[]; render(); const el=$(".sheet"); if(el) el.scrollTop=0; }
-function closeSheet(){ if(G.vaultSaving||G.shopSaving) return; G.sheet=null; render(); }
+function openSheet(k,data={}){ if(G.vaultSaving||G.shopSaving||G.petSaving||G.characterSaving||G.featureSaving) return; G.sheet=k; G.sheetData=data; G.walk.path=[]; render(); const el=$(".sheet"); if(el) el.scrollTop=0; }
+function closeSheet(){ if(G.vaultSaving||G.shopSaving||G.petSaving||G.characterSaving||G.featureSaving) return; G.sheet=null; render(); }
 function sheetWrap(title, body){ return `<div class="overlay" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="win sheet"><div class="sheet-head"><h2 class="label">${esc(title)}</h2><button class="btn" data-a="closeSheet" ${G.vaultSaving||G.shopSaving?"disabled":""}>戻る</button></div>${body}</div></div>`; }
 function renderSheet(){
   const k=G.sheet; if(!k) return ""; const st=G.st; const d=G.sheetData;
   switch(k){
-    case "about": return sheetWrap("この作品について",`<p>「ポコチャクエスト」は、配信文化を参考にした非公式の創作RPGです。人物・台詞・敵・数値・画像・音はゲーム用の創作で、実在のサービスの配信・課金・アカウント・ランキングとは連携しません。</p><p>雪餅羽もえ（のわんもえ）の「おやすみセカイ元メンバー・脱退後にPocochaでS6を目指す」という背景は、物語の設定です。作中のランクは物語上の到達記録で、実際のランク歴ではありません。</p><p>敵の名前は、配信・応援の言葉とRPGの語感を組み合わせた本作の創作名です。</p><p class="small">gameVersion ${GAME_VERSION}／schemaVersion ${SCHEMA_VERSION}</p>`);
+    case "about": return sheetWrap("この作品について",`<p>「ポコチャクエスト」は、配信文化を参考にした非公式の創作RPGです。人物・台詞・敵・数値・画像・音はゲーム用の創作で、実在のサービスの配信・課金・アカウント・ランキングとは連携しません。</p><p>アイドルグループを離れたヒロインが、旅を通じてS6を目指す背景は物語の設定です。作中のランクは物語上の到達記録で、実際のランク歴ではありません。</p><p>敵の名前は、配信・応援の言葉とRPGの語感を組み合わせた本作の創作名です。</p><p class="small">gameVersion ${GAME_VERSION}／schemaVersion ${SCHEMA_VERSION}</p>`);
     case "share": return sheetWrap("友だちに教える", renderShare());
     case "settings": return sheetWrap("設定と保存", renderSettings());
     case "nearby": { const near=nearbyObjects(); return sheetWrap("近くを調べる", near.length? `<div class="stack">${near.map(o=>`<button class="btn" data-a="interactId" data-v="${o.id}">${esc(o.label)}</button>`).join("")}</div>` : `<p>近くに調べられるものはありません。道しるべから目的地を選べます。</p>`); }
@@ -958,7 +965,7 @@ function renderParty(){
     return `<div class="who"><canvas class="sprite-md" data-char="${cid}" width="16" height="24" aria-hidden="true"></canvas><div><b>${esc(cid==="hero"?st.profile.name:C.full)}</b>　${[C.age?C.age+"歳":"",C.from?esc(C.from):""].filter(Boolean).join("・")}<br><span class="small">${cid==="moe"?"経歴":"職歴"}：${esc(C.career)}（ジョブとは別）</span></div></div>
       <dl class="kv"><dt>ジョブ</dt><dd>${esc(JOBS[cur.job].name)}　熟練度${cur.R}・技能強化${cur.S}</dd><dt>体力</dt><dd>${vitalOf(cid).hp}／${cur.maxHP}</dd><dt>MP</dt><dd>${vitalOf(cid).c}／${cur.startC}</dd>
       <dt>武器</dt><dd>${e.w?esc(EQUIP[e.w].name):"なし"}</dd><dt>防具</dt><dd>${e.a?esc(EQUIP[e.a].name):"なし"}</dd><dt>アクセサリー</dt><dd>${e.acc?esc(EQUIP[e.acc].name):"なし"}</dd></dl>
-      <div class="stack"><button class="btn" data-a="partyView" data-c="${cid}" data-v="job">ジョブを変える</button>
+      <div class="stack"><button class="btn" data-a="partyView" data-c="${cid}" data-v="job">職業を変える</button>
       <button class="btn" data-a="partyView" data-c="${cid}" data-v="eq:w">武器</button><button class="btn" data-a="partyView" data-c="${cid}" data-v="eq:a">防具</button><button class="btn" data-a="partyView" data-c="${cid}" data-v="eq:acc">アクセサリー</button>
       <button class="btn" data-a="partyView" data-c="" data-v="">一覧へ</button></div>`;
   }
@@ -977,21 +984,22 @@ function renderParty(){
     <button class="btn ${st.support==="PR03"?"on":""}" data-a="setSupport" data-v="PR03" ${nagasakiSupOk?"":"disabled"}>${st.support==="PR03"?"▶ ":""}長崎：戦闘開始時のエール＋14（佐世保市の案内人との会話・M05完了）</button></div>`;
 }
 function previewEquipFor(st,cid,job){ const e={...st.equip[cid]}; for(const s of ["w","a"]){ const it=e[s]&&EQUIP[e[s]]; if(it&&it.job&&it.job!==job) e[s]=null; } return e; }
-const PENDING_BADGES={B009:"締め前の余裕",B017:"会心の瞬間",B035:"ひらりと回避",B071:"ペットと共闘",B072:"小さな癒やし",B073:"頼れる補助役",B074:"二匹の力",B075:"ずっとそばに",B076:"ペットのMP補給",B077:"主人公を応援",B078:"もえを応援",B079:"息の合った攻撃",B080:"敵を足止め",B093:"実技を越える",B099:"固有必殺技",B100:"継承する技"};
+const PENDING_BADGES={};
+const EXTRA_BADGES={...(typeof EXPANDED_BADGES==="undefined"?{}:EXPANDED_BADGES),...(typeof PET_BADGES==="undefined"?{}:PET_BADGES)};
 const BADGE_GROUPS=["速攻","攻撃","連携","防御","回復","MP","応援","ペット","道具","成長"];
 function eligibleBattleBadges(run){
-  return [...(run.itemHistoryComplete===true?itemBattleBadges(run.itemHistory,run):[]),...growthBattleBadges(run),...partyBattleBadges(run),...actionBattleBadges(run),...healBattleBadges(run),...mpBattleBadges(run),...cheerBattleBadges(run),...speedBattleBadges(run),...attackBattleBadges(run),...guardBattleBadges(run),...defenseBattleBadges(run)];
+  return [...(run.itemHistoryComplete===true?itemBattleBadges(run.itemHistory,run):[]),...growthBattleBadges(run),...partyBattleBadges(run),...actionBattleBadges(run),...healBattleBadges(run),...mpBattleBadges(run),...cheerBattleBadges(run),...speedBattleBadges(run),...attackBattleBadges(run),...guardBattleBadges(run),...defenseBattleBadges(run),...(typeof expandedBattleBadges==="function"?expandedBattleBadges(run):[]),...(typeof petBattleBadges==="function"?petBattleBadges(run):[])];
 }
 const STABLE_BATTLE_BADGES=new Set(["B007","B011","B012","B013","B014","B015","B016","B018","B019","B020","B021","B022","B023","B024","B025","B026","B027","B028","B029","B030","B031","B032","B033","B034","B039","B040","B041","B042","B043","B044","B045","B046","B047","B048","B049","B050","B051","B052","B053","B054","B055","B057","B059","B061","B062","B063","B064","B065","B066","B067","B068","B069","B070","B083","B084","B085","B090","B094","B095","B097","B098"]);
 function renderBattleChallenges(){
   const run=G.st.run; if(!run) return "<p>戦闘中だけ確認できます。</p>";
-  const names={...ITEM_BADGES,...GROWTH_BADGES,...PARTY_BADGES,...ACTION_BADGES,...HEAL_BADGES,...MP_BADGES,...CHEER_BADGES,...SPEED_BADGES,...ATTACK_BADGES,...GUARD_BADGES,...DEFENSE_BADGES,...PENDING_BADGES};
+  const names={...ITEM_BADGES,...GROWTH_BADGES,...PARTY_BADGES,...ACTION_BADGES,...HEAL_BADGES,...MP_BADGES,...CHEER_BADGES,...SPEED_BADGES,...ATTACK_BADGES,...GUARD_BADGES,...DEFENSE_BADGES,...EXTRA_BADGES,...PENDING_BADGES};
   const owned=new Set(G.st.battleBadges||[]), f=run.actionFlags||{}, used=Array.isArray(run.itemHistory)?run.itemHistory.length:0;
   const eligible=new Set(eligibleBattleBadges(run));
   const speedImpossible={B001:run.turn>1,B002:run.turn>3,B003:run.turn>5,B004:run.actionHistoryComplete===true&&f.actionCount>run.party.length,B005:run.actionHistoryComplete===true&&f.enemyAttacked===true,B006:run.actionHistoryComplete===true&&f.restUsed===true,B007:run.actionHistoryComplete===true&&run.turn>1&&!f.firstTurnDamage,B008:run.turn>8,B010:run.actionHistoryComplete===true&&f.actionCount>6};
   const itemImpossible=run.itemHistoryComplete===true?{B081:used>0,B082:used>1,B086:f.cheerSpent===true,B088:used>0,B089:used>0}:{};
   const jobCount=new Set(run.party.map(m=>m.job)).size;
-  const outside=id=>(id==="B008"||id==="B092"||id==="B098")&&run.kind!=="boss" || id==="B091"&&run.kind!=="field" || ["B023","B032","B042","B055"].includes(id)&&run.party.length<2 || id==="B025"&&jobCount<2 || id==="B094"&&jobCount<3;
+  const outside=id=>typeof extraBadgeOutside==="function"&&extraBadgeOutside(run,id)||(id==="B008"||id==="B092"||id==="B098")&&run.kind!=="boss" || id==="B091"&&run.kind!=="field" || ["B023","B032","B042","B055"].includes(id)&&run.party.length<2 || id==="B025"&&jobCount<2 || id==="B094"&&jobCount<3;
   const progress={};
   if(run.actionHistoryComplete===true){
     const count=x=>new Set(Array.isArray(x)?x:[]).size;
@@ -1005,6 +1013,7 @@ function renderBattleChallenges(){
     track("B094",count(f.jobs),3);
   }
   if(run.itemHistoryComplete===true){progress.B082=`（${Math.min(used,1)}/1）`;progress.B084=`（${Math.min(new Set(run.itemHistory.map(x=>x.id)).size,2)}/2）`;}
+  if(run.petHistory){progress.B071=`（${Math.min(run.petHistory.actions||0,1)}/1）`;progress.B074=`（${Math.min(run.petHistory.species?.length||0,2)}/2）`;progress.B075=`（${Math.min(run.petHistory.actions||0,2)}/2）`;}
   const status=id=>{
     if(owned.has(id)) return "獲得済み";
     if(Object.hasOwn(PENDING_BADGES,id)) return "制作中";
@@ -1027,7 +1036,7 @@ function renderBattleChallenges(){
   return `<p class="small">獲得は勝利結果で確定します。達成済みの条件も戦闘を終えるまでは未保存です。制作中・対象外は今回の対象件数から除きます。</p><button class="btn" data-a="battleChallengeFilter" aria-pressed="${onlyActionable}">${onlyActionable?"すべて表示":"今回狙える条件のみ表示"}</button>${suggestion}${sections}`;
 }
 function renderBadgeRecord(st){
-  const implemented={...ITEM_BADGES,...GROWTH_BADGES,...PARTY_BADGES,...ACTION_BADGES,...HEAL_BADGES,...MP_BADGES,...CHEER_BADGES,...SPEED_BADGES,...ATTACK_BADGES,...GUARD_BADGES,...DEFENSE_BADGES};
+  const implemented={...ITEM_BADGES,...GROWTH_BADGES,...PARTY_BADGES,...ACTION_BADGES,...HEAL_BADGES,...MP_BADGES,...CHEER_BADGES,...SPEED_BADGES,...ATTACK_BADGES,...GUARD_BADGES,...DEFENSE_BADGES,...EXTRA_BADGES};
   const names={...implemented,...PENDING_BADGES};
   const owned=new Set(st.battleBadges||[]), onlyMissing=!!G.sheetData.badgeOnlyUnowned;
   const acquired=Object.keys(names).filter(id=>owned.has(id)).length;
@@ -1042,7 +1051,7 @@ function renderRecord(){
   const st=G.st; const L=levelOf(st.xp,st);
   const milestones=[["E1","新規開始"],["D1","M01完了"],["D2","M02完了"],["D3","M03完了"],["C1","M04完了"],["C2","M05完了"],["C3","M06完了"],["B1","M07完了"],["B2","M08完了"]];
   return `<dl class="kv"><dt>共通レベル</dt><dd>${L}（経験値 ${st.xp.toLocaleString()}${L<levelLimit(st)?`・次まで${Math.max(0,xpFor(L+1)-st.xp).toLocaleString()}`:"・最大"}）</dd>
-    <dt>もえのシナリオ到達ランク</dt><dd>${MOE_RANKS[st.moeRank]}</dd><dt>旅</dt><dd>${st.day}日目</dd></dl>
+    <dt>ヒロインのシナリオ到達ランク</dt><dd>${MOE_RANKS[st.moeRank]}</dd><dt>旅</dt><dd>${st.day}日目</dd></dl>
     <p class="small">もえのランクは物語上の到達記録です。レベル・熟練度・実際の応援ポイントとは別に表示します。</p>
     <ul class="list">${milestones.map(([r,c],i)=>`<li>${i<=st.moeRank?"●":"○"} ${r}：${c}</li>`).join("")}<li>全国の依頼を進めてS6へ。全51本編依頼完了で全国編エンディング。</li></ul>
     ${G.screen==="explore"&&isSafe()?`<h3 class="label">ゴールド金庫</h3><p class="small">全街共通・手数料と利息なし。金庫の残高は買物や敗北時の減額に使われません。</p><button class="btn" data-a="vaultOpen">金庫を開く（${(st.vaultGold||0).toLocaleString()}G）</button>`:""}
@@ -1079,7 +1088,7 @@ function renderDex(){
   }
   const list=AREAS[area].list.map((_,i)=>enemyDef(area,i));
   const seenN=list.filter(e=>st.seen[e.id]).length;
-  return `<div class="opts">${Object.keys(AREAS).map(a=>`<button class="btn opt ${a===area?"on":""}" data-a="dexNav" data-k="area" data-v="${a}">${a===area?"▶ ":""}${esc(MAPS[a.slice(0,4)].name)}・${esc(AREAS[a].name)}</button>`).join("")}</div>
+  return `<div class="opts">${Object.keys(AREAS).map(a=>`<button class="btn opt ${a===area?"on":""}" data-a="dexNav" data-k="area" data-v="${a}">${a===area?"▶ ":""}${esc(MAPS[a.slice(0,4)]?.name||HUBS[AREAS[a]?.hub]?.name||"海洋")}・${esc(AREAS[a].name)}</button>`).join("")}</div>
     <p class="small">${esc(AREAS[area].name)}：50件中 遭遇済み${seenN}件（${page*10+1}～${page*10+10}件目を表示）</p>
     <div class="stack">${list.slice(page*10,page*10+10).map((e,k)=>`<button class="btn dexrow" data-a="dexNav" data-k="detail" data-v="${area}|${page*10+k}"><span>${st.seen[e.id]?"●":"○"} ${esc(e.name)}</span><span class="small">${esc(e.species)}／${esc(e.attr)}／${"★".repeat(e.rarity)}</span></button>`).join("")}</div>
     <div class="row3"><button class="btn" data-a="dexNav" data-k="page" data-v="${page-1}" ${page>0?"":"disabled"}>前の10件</button><span></span><button class="btn" data-a="dexNav" data-k="page" data-v="${page+1}" ${page<4?"":"disabled"}>次の10件</button></div>`;
@@ -1194,7 +1203,7 @@ function vaultEntries(st,mode){
   if(mode==="withdraw") return st.itemVault;
   return [...st.bag,...Object.keys(st.owned).filter(id=>EQUIP[id]&&availableCount(st,id)>0).map(id=>({id,n:availableCount(st,id)}))];
 }
-function vaultCategory(id){ return EQUIP[id]?"gear":ITEMS[id]?.acq==="E"?"event":"normal"; }
+function vaultCategory(id){ return EQUIP[id]?"gear":ITEMS[id]?.petSupply?"pet":ITEMS[id]?.acq==="E"?"event":"normal"; }
 function vaultName(id){ return (ITEMS[id]||EQUIP[id])?.name||id; }
 function pendingGiftBlockReason(st,id){
   if((st.owned[id]||0)+bagCount(st.itemVault,id)>=8) return "同じ装備が8個あります";
@@ -1204,7 +1213,7 @@ function pendingGiftBlockReason(st,id){
 function renderItemVault(){
   const st=G.st,d=G.sheetData,mode=d.mode==="withdraw"?"withdraw":"deposit",source=vaultEntries(st,mode),query=String(d.query||"").trim().toLocaleLowerCase(),filter=d.filter||"all",list=source.filter(e=>(ITEMS[e.id]||EQUIP[e.id])&&(filter==="all"||filter===vaultCategory(e.id))&&(!query||e.id.toLocaleLowerCase().includes(query)||vaultName(e.id).toLocaleLowerCase().includes(query))),pages=Math.max(1,Math.ceil(list.length/10)),page=Math.max(0,Math.min(pages-1,d.page||0)),id=d.id||"",max=id?vaultTransferRoom(st,mode,id):0,qty=d.qty||1,can=canEditItemVault(),view=canViewItemVault(),p=d.preview;
   return `<p>道具袋 通常${bagKindCount(st.bag,false)}/${BAG_KINDS}種類・イベント${bagKindCount(st.bag,true)}/${EVENT_KINDS}種類・未装備品${unequippedGearCount(st)}/${UNEQUIPPED_GEAR_MAX}種類・金庫 ${itemVaultCount(st)}/${ITEM_VAULT_MAX}個</p>${G.readOnly?`<p class="small">閲覧専用：移動できません。</p>`:""}${st.pendingGifts?.length?`<h3 class="label">受取保留の贈り物</h3><p class="small">同じ装備の上限と手元・金庫の空きを確認して受け取れます。</p><div class="stack">${st.pendingGifts.map(id=>`<div><button class="btn" data-a="pendingGiftClaim" data-v="${id}" ${can&&!G.vaultSaving&&!pendingGiftBlockReason(st,id)?"":"disabled"}>${esc(EQUIP[id].name)}を受け取る</button>${pendingGiftBlockReason(st,id)?`<span class="small">${pendingGiftBlockReason(st,id)}</span>`:""}</div>`).join("")}</div>`:""}<div class="stack"><button class="btn ${mode==="deposit"?"on":""}" data-a="itemVaultMode" data-v="deposit" ${view&&!G.vaultSaving?"":"disabled"}>預け入れ</button><button class="btn ${mode==="withdraw"?"on":""}" data-a="itemVaultMode" data-v="withdraw" ${view&&!G.vaultSaving?"":"disabled"}>引き出し</button></div>
-    <div class="stack">${[["all","すべて"],["normal","通常の道具"],["event","イベント限定道具"],["gear","未装備品"]].map(([k,label])=>`<button class="btn ${filter===k?"on":""}" data-a="itemVaultFilter" data-v="${k}" aria-pressed="${filter===k}" ${view&&!G.vaultSaving?"":"disabled"}>${label}</button>`).join("")}</div><label class="label" for="itemVaultSearch">名前・IDで検索</label><input id="itemVaultSearch" value="${esc(d.query||"")}" maxlength="60"><button class="btn" data-a="itemVaultSearch" ${view&&!G.vaultSaving?"":"disabled"}>検索</button><div class="stack">${list.slice(page*10,page*10+10).map(e=>`<button class="btn ${id===e.id?"on":""}" data-a="itemVaultSelect" data-v="${e.id}" ${view&&!G.vaultSaving&&!p?"":"disabled"}>${esc(vaultName(e.id))} ×${e.n} <span class="small">${vaultCategory(e.id)==="gear"?"装備":vaultCategory(e.id)==="event"?"イベント限定":"道具"}</span></button>`).join("")||"該当する品はありません。"}</div><div class="row3"><button class="btn" data-a="itemVaultPage" data-v="${page-1}" ${view&&page>0?"":"disabled"}>前の10件</button><span>${page+1}/${pages}ページ</span><button class="btn" data-a="itemVaultPage" data-v="${page+1}" ${view&&page+1<pages?"":"disabled"}>次の10件</button></div>
+    <div class="stack">${[["all","すべて"],["normal","通常の道具"],["event","イベント限定道具"],["gear","未装備品"],["pet","ペット用品"]].map(([k,label])=>`<button class="btn ${filter===k?"on":""}" data-a="itemVaultFilter" data-v="${k}" aria-pressed="${filter===k}" ${view&&!G.vaultSaving?"":"disabled"}>${label}</button>`).join("")}</div><label class="label" for="itemVaultSearch">名前・IDで検索</label><input id="itemVaultSearch" value="${esc(d.query||"")}" maxlength="60"><button class="btn" data-a="itemVaultSearch" ${view&&!G.vaultSaving?"":"disabled"}>検索</button><div class="stack">${list.slice(page*10,page*10+10).map(e=>`<button class="btn ${id===e.id?"on":""}" data-a="itemVaultSelect" data-v="${e.id}" ${view&&!G.vaultSaving&&!p?"":"disabled"}>${esc(vaultName(e.id))} ×${e.n} <span class="small">${vaultCategory(e.id)==="gear"?"装備":vaultCategory(e.id)==="event"?"イベント限定":"道具"}</span></button>`).join("")||"該当する品はありません。"}</div><div class="row3"><button class="btn" data-a="itemVaultPage" data-v="${page-1}" ${view&&page>0?"":"disabled"}>前の10件</button><span>${page+1}/${pages}ページ</span><button class="btn" data-a="itemVaultPage" data-v="${page+1}" ${view&&page+1<pages?"":"disabled"}>次の10件</button></div>
     ${id&&(ITEMS[id]||EQUIP[id])?`<p>${esc(vaultName(id))}：移動できる数 ${max}個</p><div class="stack">${[["1個",1],["5個",5],["10個",10],[`最大（${max}個）`,max]].filter(([label])=>!label.startsWith("最大")||![1,5,10].includes(max)).map(([label,n])=>`<button class="btn" data-a="itemVaultQty" data-v="${n}" ${can&&!p&&n>=1&&n<=max?"":"disabled"}>${label}</button>`).join("")}</div><p>選択 ${qty}個</p>${p?`<p>${EQUIP[id]?"未装備":"袋"} ${p.bagBefore}→${p.bagAfter}個／金庫 ${p.vaultBefore}→${p.vaultAfter}個</p><button class="btn primary" data-a="itemVaultCommit" data-token="${p.token}" ${can?"":"disabled"}>移動を確定</button><button class="btn" data-a="itemVaultEdit" ${can?"":"disabled"}>選び直す</button>`:`<button class="btn primary" data-a="itemVaultPreview" ${can&&qty<=max?"":"disabled"}>数量を確認</button>`}`:""}<button class="btn" data-a="itemVaultBack" ${G.vaultSaving?"disabled":""}>道具へ戻る</button>`;
 }
 function qtyRow(q,max){ return `<div class="row3"><button class="btn" data-a="shopQty" data-v="${q-1}" ${q>1?"":"disabled"}>−</button><span class="qty">数量 ${q}個（最大${max}個）</span><button class="btn" data-a="shopQty" data-v="${q+1}" ${q<max?"":"disabled"}>＋</button></div>`; }
@@ -1212,7 +1221,7 @@ function renderMoe(){
   const st=G.st; const r=MOE_RANKS[st.moeRank];
   const line = st.moeRank===0?"まずは福岡の声を整えよう。放送塔の丘の奥で、大きな重なりが起きてるみたい。":st.moeRank===1?"北九州の街外へ行こう。港に響く声の乱れを、一緒に鎮めたいな。":st.moeRank===2?"福岡、ありがとう。唐津でも、一人ずつの声に返事をしていきたい。":st.moeRank===3?"唐津の声を聞けたね。次は佐賀市で、街の声をつなごう。":st.moeRank===4?"佐賀市の声も届けられたね。次は佐世保市で港からの返事を聞こう。":"佐世保市の返事も届けられたね。次の旅に向けて準備しよう。";
   const read=Object.keys(SCENES).filter(k=>st.scenes[k]);
-  return `<div class="who"><canvas class="sprite-md" data-char="moe" width="16" height="24" aria-hidden="true"></canvas><div><b>雪餅羽もえ</b>（のわんもえ）<br><span class="small">メインライバー・シナリオ到達ランク ${r}</span></div></div>
+  return `<div class="who"><canvas class="sprite-md" data-char="moe" width="16" height="24" aria-hidden="true"></canvas><div><b>${esc(charName(st,"moe"))}</b><br><span class="small">メインライバー・シナリオ到達ランク ${r}</span></div></div>
     <p class="dlg-text">「${esc(line)}」</p>
     <h3 class="label">物語を読み返す</h3><div class="stack">${read.length?read.map(k=>`<button class="btn" data-a="replay" data-v="${k}">${esc(SCENES[k].title)}</button>`).join(""):`<p class="small">まだありません。</p>`}</div>`;
 }
@@ -1235,7 +1244,7 @@ const ACT = {
     await commit(); G.starting=false; G.hasSave=true;
     G.screen="explore"; exploreBgm(); render(); playScene("HS00");
   },
-  async continue(){ const s=await loadSave(); if(!s) return toast("記録が見つかりません。"); const hadStream=!!s.state.stream||Object.values(s.state.quests||{}).includes("combatDone"),oldPos=s.state.pos&&{x:s.state.pos.x,y:s.state.pos.y}; G.st=migrate(s.state); G.soundWant=null; setSave(s.fromPrev?"前の記録から復旧":s.storage==="local"?"保存済み（簡易保存）":"保存済み"); if(G.st.settings.sound===false&&SND.on) SND.setOn(false); else if(G.st.settings.sound!==false&&!SND.on) SND.setOn(true);
+  async continue(){ const s=await loadSave(); if(!s) return toast("記録が見つかりません。"); const hadStream=!!s.state.stream||Object.values(s.state.quests||{}).includes("combatDone"),oldPos=s.state.pos&&{x:s.state.pos.x,y:s.state.pos.y}; G.st=migrate(s.state); if(typeof applySoundSettings==="function")applySoundSettings(G.st.settings); G.walk={path:[],prog:0,pending:null};G.walkPlan=null;G.sheetHistory=[]; G.dlg=null; G.sheet=null; G.cmd={}; G.auto=false;clearTimeout(G.autoT); G.soundWant=null; setSave(s.fromPrev?"前の記録から復旧":s.storage==="local"?"保存済み（簡易保存）":"保存済み"); if(G.st.settings.sound===false&&SND.on) SND.setOn(false); else if(G.st.settings.sound!==false&&!SND.on) SND.setOn(true);
     if(G.st.run){ G.screen="battle"; SND.play(G.st.run.kind==="boss"?"boss":"battle"); } else { G.screen="explore"; exploreBgm(); }
     render(); const notices=[]; if(s.fromPrev) notices.push("前の世代の記録から再開しました。設定からバックアップを確認できます。"); if(hadStream&&!G.st.stream) notices.push("配信イベントの廃止に伴い、討伐済みの依頼を完了しました。報酬と進行は引き継いでいます。"); if(!oldPos||oldPos.x!==G.st.pos.x||oldPos.y!==G.st.pos.y) notices.push("保存位置を現在の地形に合わせて拠点の安全地帯へ戻しました。"); if(notices.length) toast(notices.join(" ")); },
   toTitle(){ G.sheet=null; G.screen="title"; G.dlg=null; SND.play("title"); render(); },
@@ -1255,7 +1264,7 @@ const ACT = {
   },
   itemVaultBack(){ if(G.sheet!=="itemVault"||G.vaultSaving) return; openSheet("items"); },
   itemVaultMode(el){ if(!canViewItemVault()||G.vaultSaving||!['deposit','withdraw'].includes(el.dataset.v)) return; G.sheetData={mode:el.dataset.v,id:null,qty:1,preview:null,query:G.sheetData.query||"",filter:G.sheetData.filter||"all",page:0}; render(); },
-  itemVaultFilter(el){ if(!canViewItemVault()||G.vaultSaving||!["all","normal","event","gear"].includes(el.dataset.v)) return; G.sheetData.filter=el.dataset.v; G.sheetData.page=0; G.sheetData.id=null; G.sheetData.preview=null; render(); },
+  itemVaultFilter(el){ if(!canViewItemVault()||G.vaultSaving||!["all","normal","event","gear","pet"].includes(el.dataset.v)) return; G.sheetData.filter=el.dataset.v; G.sheetData.page=0; G.sheetData.id=null; G.sheetData.preview=null; render(); },
   itemVaultSearch(){ if(!canViewItemVault()||G.vaultSaving) return; G.sheetData.query=String($("#itemVaultSearch")?.value||"").slice(0,60); G.sheetData.page=0; G.sheetData.id=null; G.sheetData.preview=null; render(); },
   itemVaultPage(el){ if(!canViewItemVault()||G.vaultSaving) return; const d=G.sheetData,q=String(d.query||"").trim().toLocaleLowerCase(),filter=d.filter||"all",count=vaultEntries(G.st,d.mode).filter(e=>(ITEMS[e.id]||EQUIP[e.id])&&(filter==='all'||filter===vaultCategory(e.id))&&(!q||e.id.toLocaleLowerCase().includes(q)||vaultName(e.id).toLocaleLowerCase().includes(q))).length,pages=Math.max(1,Math.ceil(count/10)),next=Number(el.dataset.v); if(!Number.isInteger(next)||next<0||next>=pages) return; d.page=next; d.id=null; d.preview=null; render(); },
   itemVaultSelect(el){ if(!canViewItemVault()||G.vaultSaving||G.sheetData.preview||!(ITEMS[el.dataset.v]||EQUIP[el.dataset.v])) return; const id=el.dataset.v,source=vaultEntries(G.st,G.sheetData.mode); if(bagCount(source,id)<1) return; G.sheetData.id=id; G.sheetData.qty=1; render(); },
@@ -1324,7 +1333,7 @@ const ACT = {
   retreat(){ openSheet("retreat"); },
   doRetreat(){ const st=G.st; const run=st.run; storeVitals(st,run); if(run.bag) st.bag=clone(run.bag); st.run=null; st.mapId=run.returnPos.map; st.pos={x:run.returnPos.x,y:run.returnPos.y}; G.sheet=null; commit(); G.screen="explore"; exploreBgm(); render(); toast("撤退した。"); },
   pauseBattle(){ commit(); openSheet("pause"); },
-  setOpt(el){ const k=el.dataset.k; let v=el.dataset.v; if(v==="true")v=true; if(v==="false")v=false; const s=G.st?G.st.settings:(G.tmpSettings=G.tmpSettings||{difficulty:"std",sound:soundPref(),reduceMotion:false}); s[k]=v; if(G.st) commit(); render(); },
+  setOpt(el){ if(G.sheet!=="settings"||G.dlg||G.st?.run||G.walk.path.length)return;const k=el.dataset.k;let v=el.dataset.v;if(!["difficulty","reduceMotion","follow","dock"].includes(k))return;if(k==="difficulty"){if(!Object.hasOwn(DIFFICULTY,v))return;}else{if(!["true","false"].includes(v))return;v=v==="true";}const s=G.st?G.st.settings:(G.tmpSettings=G.tmpSettings||{difficulty:"std",sound:soundPref(),reduceMotion:false});s[k]=v;if(G.st)commit();render(); },
   setPad(el){ const v=el.dataset.v==="left"?"left":"right"; if(G.st){ G.st.settings.padSide=v; commit(); } else { G.tmpSettings=G.tmpSettings||{difficulty:"std",sound:soundPref(),reduceMotion:false}; G.tmpSettings.padSide=v; }
     try{ localStorage.setItem("tlr-kyushu-pad",v); }catch(e){} render(); toast(v==="right"?"スティックを右、A・Bボタンを左にしました。":"スティックを左、A・Bボタンを右にしました。"); },
   toggleSound(){ const want=!soundIsOn(); const on=SND.setOn(want); G.soundWant=want; try{ localStorage.setItem("tlr-kyushu-sound", want?"1":"0"); }catch(e){}
@@ -1337,7 +1346,7 @@ const ACT = {
       const oldPos=o.state.pos&&{x:o.state.pos.x,y:o.state.pos.y},next=migrate(o.state),previous=G.st,previousStatus=G.saveStatus; G.st=next;
       let saved=false; try{ saved=await commit(); }catch(e){}
       if(!saved){ G.st=previous; setSave(previousStatus); return toast("記録を保存できませんでした。元の記録を維持しています。バックアップの文字列を保管してください。"); }
-      G.auto=false; clearTimeout(G.autoT); G.walk={path:[],prog:0,pending:null}; G.dlg=null; G.cmd={}; G.hasSave=true; G.sheet=null; G.screen=G.st.run?"battle":"explore"; render(); toast("記録を読み込みました。"+(!oldPos||oldPos.x!==next.pos.x||oldPos.y!==next.pos.y?" 保存位置を現在の地形に合わせて拠点の安全地帯へ戻しました。":"")); }
+      if(typeof applySoundSettings==="function")applySoundSettings(G.st.settings); G.auto=false; clearTimeout(G.autoT); G.walk={path:[],prog:0,pending:null};G.walkPlan=null;G.sheetHistory=[]; G.dlg=null; G.cmd={}; G.hasSave=true; G.sheet=null; G.screen=G.st.run?"battle":"explore"; render(); toast("記録を読み込みました。"+(!oldPos||oldPos.x!==next.pos.x||oldPos.y!==next.pos.y?" 保存位置を現在の地形に合わせて拠点の安全地帯へ戻しました。":"")); }
     catch(e){ toast("読み込めませんでした。文字列が途中で切れていないか確認してください。"); } },
   partyView(el){ G.sheetData={cid:el.dataset.c||null, view:el.dataset.v||""}; render(); drawMiniSprites(); },
   partyUp(el){ if(!canEditParty()) return; const st=G.st,i=Number(el.dataset.v),c=el.dataset.c; if(!Number.isInteger(i)||i<1||i>=st.party.length||st.party[i]!==c) return toast("編成が変わりました。選び直してください。"); [st.party[i-1],st.party[i]]=[st.party[i],st.party[i-1]]; commit(); render(); },
@@ -1364,14 +1373,15 @@ const ACT = {
     finally{ G.shopSaving=false; }
     let rolledBack=false; if(!saved&&G.st===st&&st.saveGeneration===gen+1&&JSON.stringify(tradeSnapshot(st))===after){ restoreTrade(st,before); st.saveGeneration=gen; rolledBack=true; }
     if(G.st===st){ render(); if(saved) SND.sfx("buy"); toast(saved?`${it.name}×${q}を${offer.tab==="sell"?"売った":"買った"}。${vaulted?` ${vaulted}個は金庫へ保管しました。`:""}`:rolledBack?"取引を保存できなかったため取り消しました。":"取引を保存できませんでした。バックアップを書き出してください。"); } },
-  replay(el){ G.sheet=null; playScene(el.dataset.v); },
+  replay(el){const st=G.st,id=el.dataset.v;if(!st||G.screen!=="explore"||G.sheet!=="moe"||G.dlg||st.run||!Object.hasOwn(SCENES,id)||!st.scenes?.[id])return;G.sheet=null;say([["",SCENES[id].title],...SCENES[id].lines(st.profile.name)]);},
 
 };
 function drawMiniSprites(){
-  document.querySelectorAll("canvas[data-char]").forEach(c=>{ const g=c.getContext("2d"); g.clearRect(0,0,16,24); const id=c.dataset.char; g.drawImage(id==="moe"?ART.person("moe",PAL.violet,PAL.cream,0,0,{long:true,ribbon:PAL.coral}):charSprite(id,0,0),0,0); });
+  document.querySelectorAll("canvas[data-char]").forEach(c=>{ const g=c.getContext("2d"); g.clearRect(0,0,16,24); const id=c.dataset.char; g.drawImage(charSprite(id,0,0),0,0); });
   document.querySelectorAll("canvas[data-dex]").forEach(c=>{ const [a,i]=c.dataset.dex.split("|"); const e=enemyDef(a,+i); const g=c.getContext("2d"); g.imageSmoothingEnabled=false; g.drawImage(ART.enemy(e.profile,e.species,e.attr,a,0),0,0); });
 }
 function validateState(s){
+  if(typeof validateOceanState==="function")validateOceanState(s);
   const okNum=v=>Number.isFinite(v)&&v>=0;
   if(!okNum(s.xp)||!okNum(s.gold)||!okNum(s.tickets)||!MAPS[s.mapId]||!Array.isArray(s.roster)||!Array.isArray(s.party)||s.party.length<1||s.party.length>4||new Set(s.party).size!==s.party.length||s.party.some(c=>!CHARS[c]||!s.roster.includes(c))) throw new Error("bad");
   if(s.vaultGold!==undefined&&(!Number.isSafeInteger(s.vaultGold)||s.vaultGold<0)) throw new Error("bad vault");
@@ -1383,6 +1393,7 @@ function padSide(){ const s=G.st?G.st.settings:G.tmpSettings; if(s&&(s.padSide==
 function soundIsOn(){ if(G.soundWant!=null) return G.soundWant; if(G.st&&G.st.settings) return G.st.settings.sound!==false; return soundPref(); }
 function soundPref(){ try{ return localStorage.getItem("tlr-kyushu-sound")!=="0"; }catch(e){ return true; } }
 function supportAvailable(st,id){
+  if(typeof SUPPORT_REQUIREMENTS!=="undefined"&&Object.hasOwn(SUPPORT_REQUIREMENTS,id)){const r=SUPPORT_REQUIREMENTS[id];return !!r.quest&&st.quests?.[r.quest]==="complete"&&(!r.extra||st.quests?.[r.extra]==="complete")&&(!r.npc||!!st.talked?.[r.npc]);}
   if(id==="PR01") return !!st.talked?.akari&&st.quests?.M01==="complete"&&st.quests?.S01==="complete";
   if(id==="PR02") return !!st.talked?.karatsuGuide&&st.quests?.M03==="complete";
   if(id==="PR03") return !!st.talked?.saseboGuide&&st.quests?.M05==="complete";
@@ -1393,7 +1404,7 @@ function migrate(s){
   s.gameVersion=GAME_VERSION;
   const layoutChanged=s.mapLayoutVersion!==MAP_LAYOUT_VERSION;
   const map=MAPS[s.mapId],p=s.pos;
-  if(layoutChanged||!p||!Number.isInteger(p.x)||!Number.isInteger(p.y)||p.x<0||p.y<0||p.x>=map.w||p.y>=map.h||!".,123w=".includes(map.tiles[p.y]?.[p.x])||map.objects.some(o=>o.x===p.x&&o.y===p.y&&!o.walk)) s.pos={x:map.safeAnchor[0],y:map.safeAnchor[1]};
+  if(layoutChanged||!p||!Number.isInteger(p.x)||!Number.isInteger(p.y)||p.x<0||p.y<0||p.x>=map.w||p.y>=map.h||!(map.combatDomain==="sea"?".,123w=ESP":".,123w=").includes(map.tiles[p.y]?.[p.x])||map.objects.some(o=>o.x===p.x&&o.y===p.y&&!o.walk)) s.pos={x:map.safeAnchor[0],y:map.safeAnchor[1]};
   if(!Array.isArray(s.visitedMaps)) s.visitedMaps=[];
   if(!Array.isArray(s.visitedHubs)) s.visitedHubs=[];
   if(!s.visitedMaps.includes(s.mapId)) s.visitedMaps.push(s.mapId);
@@ -1445,6 +1456,10 @@ function migrate(s){
     s.run.returnPos={map:field,...s.pos};
   }
   s.mapLayoutVersion=MAP_LAYOUT_VERSION; s.gameVersion=GAME_VERSION;
+  if(typeof migrateCharacter==="function")migrateCharacter(s);
+  if(typeof migratePets==="function")migratePets(s);
+  if(typeof migrateOcean==="function")migrateOcean(s);
+  if(typeof migrateListeners==="function")migrateListeners(s);
   if(s.support&&!supportAvailable(s,s.support)) s.support=null;
   return s;
 }
@@ -1453,7 +1468,8 @@ document.addEventListener("click",e=>{
   const el=e.target.closest("[data-a]"); if(!el||el.disabled) return;
   if(el.getAttribute("aria-disabled")==="true") return;
   const f=ACT[el.dataset.a]; if(!f) return;
-  if(G.readOnly && !["replayStory","shareCopy","shareNative","openSheet","closeSheet","dlgNext","dlgBack","dlgSkip","toTitle","dexNav","partyView","shopTab","shopItem","vaultOpen","vaultBack"].includes(el.dataset.a)) return toast("別のタブで遊んでいるため、このタブは閲覧のみです。");
+  if(G.oceanSaving||G.characterSaving||G.featureSaving||(G.petSaving&&!el.dataset.a.startsWith("pet")))return;
+  if(G.readOnly && !(typeof READ_ONLY_ACTIONS!=="undefined"?READ_ONLY_ACTIONS.has(el.dataset.a):["replayStory","shareCopy","shareNative","openSheet","closeSheet","dlgNext","dlgBack","dlgSkip","toTitle","dexNav","partyView","shopTab","shopItem","vaultOpen","vaultBack"].includes(el.dataset.a))) return toast("別のタブで遊んでいるため、このタブは閲覧のみです。");
   f(el);
   if(el.dataset.a==="openSheet") drawMiniSprites();
 });

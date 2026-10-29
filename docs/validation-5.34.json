@@ -1,0 +1,256 @@
+{
+  "version": "5.34",
+  "generatedAtUTC": "2026-10-29T20:13:57.785Z",
+  "checks": [
+    {
+      "name": "check-audio-channels.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 308,
+      "stdout": "Audio channels: 17 scene/sea tracks, alternating melody, independent saved volume levels, zero music with effects enabled, 96-source ceiling, mute/suspend cleanup and idempotent resume passed",
+      "stderr": ""
+    },
+    {
+      "name": "check-audio-duck.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 174,
+      "stdout": "Audio: short duck, overlapping effects, stop reset, mute/unmute gain OK\nAudio: repeated settings and jingle cancellation OK\nAudio: visibility resume is idempotent OK",
+      "stderr": ""
+    },
+    {
+      "name": "check-auto-items.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 182,
+      "stdout": "Auto items: thresholds, purchasable recovery and immutable search OK",
+      "stderr": ""
+    },
+    {
+      "name": "check-badge-list.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 208,
+      "stdout": "Badge catalog: 100 IDs, 10 groups, live progress, recommendations and filter OK",
+      "stderr": ""
+    },
+    {
+      "name": "check-battle-log.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 124,
+      "stdout": "Battle log: 80-entry retention, newest/oldest pages, empty state OK",
+      "stderr": ""
+    },
+    {
+      "name": "check-expanded-battle.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 641,
+      "stdout": "Expanded battle: 5 abilities, 22 traits, 33 careers/66 equipment, 66 additional skills/22 inherited skills/9 signatures; crit/evasion RNG isolation, cooldowns, 66 job decisions, physical-field practice, reward and save guards passed\nComplete release UI: physical jobcenter, 66 decision flow, save rollback, read-only and facility guards, job change and battle skill entry passed",
+      "stderr": ""
+    },
+    {
+      "name": "check-integration.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 1376,
+      "stdout": "PASS all build modules load together\nPASS three-stage setup, IME, same names, drafts and atomic save rollback\nPASS custom partner name fully replaces fixed biography and profile names\nPASS new menus remain reachable through all render wrappers\nPASS all47 regional support unlocks and readonly mutation guard\nPASS all100 badge names and expanded/pet/challenge eligibility connect to main list\nPASS legacy5.33 inventories, quest progress, sea positions and saved battle migrate once\nPASS character save locks prevent cross-module callbacks and rollback races\nPASS readonly pet details and vault navigation do not mutate saved state\nPASS story replay rejects prototype IDs, unread scenes and stale readonly callbacks\nPASS autowalk tokens survive cancellation without reuse and save switches clear old plans\nPASS all51 quests complete through callbacks with new character and pet systems enabled\nIntegration: 12 combined build/module/UI/save/lock/campaign checks passed",
+      "stderr": ""
+    },
+    {
+      "name": "check-listeners.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 526,
+      "stdout": "Listeners: 352 contextual texts, 512+77 names, 1–5 timed bubbles, 650–1000ms spacing, 5sec lifetime, 12text/24name deduplication, independent save histories; 47 regional supports and 51 jobcenters passed",
+      "stderr": ""
+    },
+    {
+      "name": "check-management.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 484,
+      "stdout": "Management: six-item searchable shops, readonly views, quantity units, explicit equipment transfer/preview, six protected ticket gear, keeper conversations, atomic nearby inn/rest and save rollback passed",
+      "stderr": ""
+    },
+    {
+      "name": "check-merged-instructions.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 114,
+      "stdout": "Merged instructions: URL sharing, fallback/cancel/read-only, reduced motion, 12px minimum passed\nLow HP: 30% boundary, healthy and KO labels passed",
+      "stderr": ""
+    },
+    {
+      "name": "check-national-story.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 523,
+      "stdout": "National story: 51 main quests, 43 local stories/bosses, 6 boss patterns, 146 outdoor encounter victories; complete UI progression, old-save migration, rewards, ending/replay and chapter caps passed",
+      "stderr": ""
+    },
+    {
+      "name": "check-national.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 433,
+      "stdout": "National: 8 regions, 47 prefectures, 51 town/field hubs, 50 guarded routes, progression locks, safe travel, 7 atomic joins and directory OK",
+      "stderr": ""
+    },
+    {
+      "name": "check-nationwide.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 428,
+      "stdout": "Nationwide: 47 prefectures, 51 town/field pairs, 43 unique stories/bosses, 50 connected routes, 129 new outdoor areas and regional locks OK",
+      "stderr": ""
+    },
+    {
+      "name": "check-ocean.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 1116,
+      "stdout": "Ocean: 65 areas, 3,250 distinct enemy records, 8 connected routes (224 cells/216 sea), safe ports, 40 rendered forms, capped caches, isolated kills, transactional once-only events and save/read-only/stale guards passed",
+      "stderr": ""
+    },
+    {
+      "name": "check-pets.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 380,
+      "stdout": "Pets: 22 species, 88 learned skills, 264 supplies, 10 stages, care/daily/capacity, travel, two battle companions, once-per-turn/resume, UI guards passed",
+      "stderr": ""
+    },
+    {
+      "name": "check-saga.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 269,
+      "stdout": "Kyushu M01–M08: save compatibility, battles, direct boss completion, ranks, rewards and stale-result guards OK",
+      "stderr": ""
+    },
+    {
+      "name": "check-save.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 904,
+      "stdout": "Save recovery: generation choice, corrupt checksum, malformed JSON, invalid state, local fallback, visit migration, restore rollback OK",
+      "stderr": ""
+    },
+    {
+      "name": "check-selected-fixes.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 618,
+      "stdout": "Selected changes: chapter gating, over-cap legacy saves, 300 gear kinds, 8-copy cap, boss settlement, waiting JP, names and MP labels OK",
+      "stderr": ""
+    },
+    {
+      "name": "check-shop.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 117,
+      "stdout": "Shop offer bounds and stale token OK",
+      "stderr": ""
+    },
+    {
+      "name": "check-split-maps.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 411,
+      "stdout": "Split maps: 51 distinct safe towns, 51 distinct outdoor maps, every zone/object/exit reachable",
+      "stderr": ""
+    },
+    {
+      "name": "check-stream-actions.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 258,
+      "stdout": "Removed stream feature: no live actions/screens, pending saves complete once, orphaned saves preserve earned progress OK",
+      "stderr": ""
+    },
+    {
+      "name": "check-target.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 110,
+      "stdout": "Target weighting and KO exclusion OK",
+      "stderr": ""
+    },
+    {
+      "name": "check-vault.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 1762,
+      "stdout": "Gold and item vault: transfer, overflow, capacity and legacy save OK",
+      "stderr": ""
+    }
+  ],
+  "generatedHtmlSyntax": true,
+  "sourceSHA256": {
+    "art.js": "1e00fcb40115c77ab9083a7447a6e3c23f84fdd6b35798b0cd4c80856ab5de8b",
+    "audio.js": "db3a2bb43e559434861b87390c1dd83724799c634a2fb7d32849037e0a2cb9c0",
+    "core.js": "37eae337002b86e216739e23761ee7886f80188166eff99f621a41e99040f653",
+    "data.js": "562e378ae675b917e7db33d51e6b7bc125d45278db1e366a884fd9b863a8123b",
+    "data_character.js": "d4aae3b19d76239392c46087eca92bfc27de1609611d77f123b3e536ee5ebb35",
+    "data_enemies.js": "50c2c2aa3e6cd53f0cb8e237129a24efc1908cfaae40a29917e152a9e0f3127b",
+    "data_extras.js": "543416fbd1322dabb43e68cd6501535ad2c14541c1f346b3329a056c906f59f9",
+    "data_items.js": "6000d53ee1b8faef56b6bf37ec96cf11a5c6e3b303e7020dad4bd5b324630bf2",
+    "data_maps.js": "36d766bd1fadf87507e21bb3301d38252edc2d229114dab01c3ca585fe9271eb",
+    "data_national.js": "ba82df0b3b4a007b54df1407a80288833110caa9d799faca64c4c397ec059833",
+    "data_nationwide.js": "183bcf4b4d2faabfe1e59006b68339b096a2069510b037b026776e35fda2773b",
+    "data_nationwide_story.js": "8b76f798a172fdaec2ea5930f2fb732710b1630bab4ced65901bc35432ed6566",
+    "data_ocean.js": "ab4d8af70a8dc26d6573cde8d4e86fc7ff55300726f6a4f61f71ddb2c62f61bd",
+    "data_pets.js": "779a16f02071c9e5391ea0dffd0673d539ce977a8e1019393a2ade081a6e14b8",
+    "data_saga_enemies.js": "ad2b6c67bf4c929acd53268df4f4295a8cb717d7ca7a6a5e97a533526e88cc9c",
+    "input.js": "0ddb4eff90a7c04d979694e61057335a77ba982b596beb926771d477d3bceef6",
+    "listeners.js": "4d59877e6f1662cfd998033007dff45c259cdefc06f5fa7c96c1f703cba4de09",
+    "ocean.js": "d4d9dc317e002867f12a03267a0a32c805707e379da7c473d6df49c4ab7bbac5",
+    "pets.js": "23811b55f51118a5256fc1fba10cae05316c70b61b6382e2dd27a6866983acd5",
+    "README.md": "e99c872ac7c01053b95118add58c55301b95d00c3083fdfa76166a22864d61a1",
+    "share.js": "24f93403ce5da25aade5d44a56374d74301cd489368757c7a4321c1af14745c5",
+    "shell.html": "a7a77d6aed1f3df6e7986aca2c8a47b86f065c2fb1f4039ad00a73d0349f9bc9",
+    "ui.js": "eae7c7e99699220d97b2ce91f205029e4808aeae46355d2a63427ab492bdc96b",
+    "ui_character.js": "d272299061dfac4a74d910ddbb5a8a94fcfbd649a5cd611340ed74f814e003a2",
+    "ui_guards.js": "9bc2f48b997bb661a2c7285bdab5d69f7c8ba0e6eefdb02f4443d43550f276bf",
+    "ui_management.js": "8ab4e650a7f88741fb9fd988049f97d874ac18ab7762c3ed40d5152e0fa09daf",
+    "ui_ocean.js": "531f6dcaba86d6a080e722b7d1d6fc79e5af8cd12960dba051c39ec56e95dce4",
+    "ui_pets.js": "e198719ab9d46de8b65c0201f7504c47590859fbe820893e8eaeeb857f201836",
+    "ui_systems.js": "490f771549068d18d14919ea714d2ba4fc643f89d8db14b83cf03d6457e6f24d"
+  },
+  "browserVerification": {
+    "date": "2026-10-30",
+    "environment": "Desktop in-app browser; real source/CSS in isolated iframe for viewport examples",
+    "smoke": [
+      "New game: three steps, custom names and genders, career selection",
+      "Custom heroine name in introduction",
+      "Pet daily care changes bond/mood, duplicate daily action disabled",
+      "Pet companion selection and saved state after reload",
+      "Menus and guidance"
+    ],
+    "viewportResults": {
+      "battle": [
+        "実幅 240px / 内容幅 225px / 横あふれ 0件 / 同行ペット 味方枠内 / ",
+        "実幅 280px / 内容幅 265px / 横あふれ 0件 / 同行ペット 味方枠内 / ",
+        "実幅 320px / 内容幅 305px / 横あふれ 0件 / 同行ペット 味方枠内 / ",
+        "実幅 375px / 内容幅 360px / 横あふれ 0件 / 同行ペット 味方枠内 / ",
+        "実幅 390px / 内容幅 375px / 横あふれ 0件 / 同行ペット 味方枠内 / ",
+        "実幅 430px / 内容幅 415px / 横あふれ 0件 / 同行ペット 味方枠内 / "
+      ],
+      "pet": [
+        "実幅 240px / 内容幅 240px / 横あふれ 0件 / 同行ペット 味方枠内 / ",
+        "実幅 280px / 内容幅 280px / 横あふれ 0件 / 同行ペット 味方枠内 / ",
+        "実幅 320px / 内容幅 320px / 横あふれ 0件 / 同行ペット 味方枠内 / ",
+        "実幅 375px / 内容幅 375px / 横あふれ 0件 / 同行ペット 味方枠内 / ",
+        "実幅 390px / 内容幅 390px / 横あふれ 0件 / 同行ペット 味方枠内 / ",
+        "実幅 430px / 内容幅 430px / 横あふれ 0件 / 同行ペット 味方枠内 / "
+      ]
+    },
+    "limitations": [
+      "No smartphone or Bluetooth hardware test",
+      "No subjective listening test",
+      "No claim of exact recovery of unavailable v10.108/private v5.36 sources"
+    ]
+  }
+}

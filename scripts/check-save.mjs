@@ -98,7 +98,7 @@ let resumeStatus='',resumeMessage='';
 const resume=runInNewContext(`${actions}\nACT.continue`,{
   G:resumeState,loadSave:async()=>({state:old,storage:'indexeddb',fromPrev:true}),migrate:s=>s,
   setSave:value=>{resumeStatus=value;},toast:value=>{resumeMessage=value;},render:()=>{},
-  SND:{on:true,setOn:()=>{},play:()=>{}},exploreBgm:()=>{}
+  SND:{on:true,setOn:()=>{},play:()=>{}},exploreBgm:()=>{},clearTimeout:()=>{}
 });
 await resume();
 if(resumeState.screen!=='explore'||resumeStatus!=='前の記録から復旧'||!resumeMessage.includes('前の世代')||resumeMessage.includes('壊れ')) throw new Error('previous-save resume notice was misleading');
@@ -107,7 +107,7 @@ let positionMessage='';
 const resumePosition=runInNewContext(`${core}\n${migrate}\n${actions}\nACT.continue`,{
   G:{st:null,screen:'title',soundWant:null},loadSave:async()=>({state:positionState,storage:'indexeddb',fromPrev:false}),
   setSave:()=>{},toast:value=>{positionMessage=value;},render:()=>{},soundPref:()=>true,
-  SND:{on:true,setOn:()=>{},play:()=>{}},exploreBgm:()=>{}
+  SND:{on:true,setOn:()=>{},play:()=>{}},exploreBgm:()=>{},clearTimeout:()=>{}
 });
 await resumePosition();
 if(!atAnchor(positionState,'KY05')||!positionMessage.includes('保存位置を現在の地形')) throw new Error('position recovery was not explained on resume');

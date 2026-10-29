@@ -41,10 +41,10 @@ function bossReward(bossId){
 const Vof = L => 1+Math.floor((L-1)/20);
 const Kof = R => R>=10?3:R>=6?2:R>=3?1:0;
 const clone = o => JSON.parse(JSON.stringify(o));
-const charName = (st,cid) => cid==="hero" ? st.profile.name : CHARS[cid].name;
+const charName = (st,cid) => cid==="hero" ? st.profile.name : cid==="moe" ? (st.heroine?.name||CHARS.moe.name) : CHARS[cid].name;
 
 /* ---- 新規開始（第06D・16節） ---- */
-function newGame(name, gender){
+function newGame(name, gender, options={}){
   const st = {
     schemaVersion:SCHEMA_VERSION, gameVersion:GAME_VERSION, saveGeneration:0,
     mapLayoutVersion:typeof MAP_LAYOUT_VERSION==="undefined"?0:MAP_LAYOUT_VERSION,
@@ -65,6 +65,7 @@ function newGame(name, gender){
     st.equip[c]={w:null,a:null,acc:null};
   }
   for(const c of st.roster){ st.equip[c].w="CW01"; st.equip[c].a="CA01"; }
+  if(typeof CAREERS!=="undefined") configureNewCharacter(st,options);
   return st;
 }
 
@@ -93,13 +94,14 @@ function charStats(st, cid, L, jobOverride, equipOverride){
   const supportHP = 0;
   const maxHP = 50+6*(L-1) + 2*Math.floor(R/2) + V*(((A&&A.hp)||0)+((X&&X.hp)||0)+supportHP);
   const startC = Math.min(10, 8+(R>=5?1:0)+((W&&W.c)||0)+((A&&A.c)||0)+((X&&X.c)||0));
-  return { job, R, S, V, maxHP, startC,
+  const stats={ job, R, S, V, maxHP, startC,
     wAtk:(W&&W.atk)||0, accAtk:(X&&X.atk)||0, armorD:(A&&A.d)||0,
     commentA:((W&&W.commentA)||0)+((X&&X.commentA)||0),
     rest:((A&&A.rest)||0)+((X&&X.rest)||0),
     meter:((W&&W.meter)||0)+((X&&X.meter)||0),
     family:((W&&W.family)||0)+((X&&X.family)||0),
     pouch:!!(X&&X.pouch), jobWeapon: !!(W && W.job===job) };
+  return st.characterVersion===1&&typeof JOB_TRAITS!=="undefined"?expandedCharStats(st,cid,L,stats,[W,A,X]):stats;
 }
 
 /* ---- 乱数（抽選値はcommandへ固定する） ---- */
@@ -110,6 +112,7 @@ function randInt(n){ // 0..n-1 一様（棄却法）
 
 /* ---- 敵（第11・11E・11F・11J節） ---- */
 function enemyDef(areaId, idx){ // idx 0..49
+  if(typeof OCEAN_AREAS!=="undefined"&&OCEAN_AREAS[areaId]&&typeof oceanEnemyDef==="function") return oceanEnemyDef(areaId,idx);
   const ar = AREAS[areaId]; const [pn, rr] = ar.list[idx]; const p = PROFILES[pn-1];
   return { id:`EN-${areaId}-${String(idx+1).padStart(3,"0")}`, areaId, profile:p[0], name:`${ar.prefix}の${p[1]}`,
     species:p[2], attr:p[3], type:p[4], baseHP:p[5], baseDEF:p[6], cycle:p[7], trait:p[8], counter:p[9],
@@ -131,7 +134,7 @@ function buildParty(st, L, supportStartA){
   return st.party.map((cid,pos)=>{
     const s = charStats(st,cid,L);
     const v = (st.vitals&&st.vitals[cid]) || {hp:s.maxHP, c:s.startC};
-    return { cid, pos, name:charName(st,cid), job:s.job, R:s.R, S:s.S, maxHP:s.maxHP, hp:Math.max(0,Math.min(s.maxHP,v.hp)), c:Math.max(0,Math.min(10,v.c)),
+    return { ...s, cid, pos, name:charName(st,cid), maxMP:st.characterVersion===1?s.startC:10, learnedJobs:st.learnedJobs?.[cid]||[], learnedSkills:st.learnedSkills?.[cid]||[], cooldowns:{},signatureUsed:false,equip:clone(st.equip[cid]),job:s.job, R:s.R, S:s.S, maxHP:s.maxHP, hp:Math.max(0,Math.min(s.maxHP,v.hp)), c:Math.max(0,Math.min(st.characterVersion===1?s.startC:10,v.c)),
       ward:0, guard:false, acted:false, pouch:s.pouch, wAtk:s.wAtk, accAtk:s.accAtk, armorD:s.armorD,
       commentA:s.commentA, rest:s.rest, meter:s.meter, family:s.family, valid:0 };
   });
@@ -140,14 +143,19 @@ function baseRun(st, kind){
   const L = levelOf(st.xp,st), diff = DIFFICULTY[st.settings.difficulty];
   let A0 = diff.startA; const sup = st.support && SUPPORTS[st.support];
   if(sup) A0 += sup.startA||0;
-  return { seq: st.runSeq+1, kind, L, V:Vof(L), difficulty:st.settings.difficulty, support:st.support,
+  if(st.characterVersion===1&&typeof JOB_TRAITS!=="undefined") A0+=st.party.reduce((n,c)=>n+(JOB_TRAITS[st.jobs[c]]?.startA||0),0);
+  const run={ seq: st.runSeq+1, kind, L, V:Vof(L), difficulty:st.settings.difficulty, support:st.support,supportSnapshot:sup?{...sup}:null,
     party: buildParty(st,L), enemies:[], turn:1, A:Math.min(100,A0), B:0,
     chain:{stage:0, members:[]}, kiraDone:false, firstKill:false,
     cue:null, log:[], itemHistory:[], itemHistoryComplete:true,
     actionFlags:{damageHit:false,attackHit:false,multiHit:false,attackFinish:false,skillFinish:false,meterFinish:false,commentAttack:false,ignoreDefHit:false,bigHit:false,actionCount:0,enemyAttacked:false,restUsed:false,firstTurnDamage:false,cheerSpent:false,cheerPeak:Math.min(100,A0),commentLines:[],cheerAction:false,skillUsed:false,mpRestored:false,mpSpent:false,mpTargets:[],mpGuard:false,mpRest:false,mpSkill:false,mpItem:false,mpLow:false,guardUsed:false,guardActors:[],guardHit:false,wardHit:false,zeroHit:false,heavyGuardHit:false,criticalSurvive:false,actors:[],jobs:[],actionTypes:[],skills:[],healTargets:[],healMulti:false,familyHeal:false,itemHeal:false,selfHeal:false,otherHeal:false,fullHeal:false,revived:false,lowHeal:false,cueSolved:false,downSeen:false}, actionHistoryComplete:true,
     state:"input", rewardsApplied:false, bag:clone(st.bag||[]) };
+  if(st.characterVersion===1){run.expanded=true;run.rngState=rand16()||1;run.rngCount=0;for(const m of run.party){m.ward=Math.min(8,(m.trait?.startWard||0)+run.party.reduce((n,p)=>n+(p.trait?.teamWard||0),0));}}
+  if(typeof preparePetRun==="function") preparePetRun(st,run);
+  return run;
 }
 function createFieldRun(st, areaId, rolls){ // rolls: {count:0|1, picks:[r0,r1]}
+  if(typeof OCEAN_AREAS!=="undefined"&&OCEAN_AREAS[areaId]&&typeof createOceanRun==="function") return createOceanRun(st,areaId,rolls);
   const run = baseRun(st,"field"); const ar=AREAS[areaId]; const q=ar.q; const diff=DIFFICULTY[run.difficulty];
   run.areaId=areaId; run.q=q; run.hub=areaId.slice(0,4); run.returnPos={map:st.mapId,x:st.pos.x,y:st.pos.y};
   const n = rolls.count+1;
@@ -206,9 +214,10 @@ function startTurnCue(run){
 /* ---- 行動の検証と適用（第09・10・10F節） ---- */
 function singleDamage(run, actor, extra, enemy, opts={}){
   const L=run.L, V=run.V;
-  const def = opts.ignoreDef ? 0 : enemy.def;
+  const def = opts.ignoreDef ? 0 : Math.floor(enemy.def*(1-(run.expanded?actor.trait?.pierce||0:0)));
   const atk = opts.noGear ? 0 : actor.wAtk + actor.accAtk;
-  return Math.max(1, 10+2*L + V*(extra + atk + run.B) - def);
+  const bonus=run.expanded?(actor.trait?.single||0)+Math.floor((actor.strength||0)/6):0;
+  return Math.max(1, 10+2*L + V*(extra + atk + run.B+bonus+(actor.petAttackBonus||0)) - def);
 }
 function chainAdvance(run, actor, line){
   if(run.kiraDone) return false;
@@ -220,24 +229,26 @@ function cueProgress(run, actor, kind){
 }
 /* 行動の予測と可否。effects 配列は適用用の差分を表す */
 function planAction(run, idx, act){
-  const a = run.party[idx]; const S=a.S, V=run.V, L=run.L;
+  const a = run.party[idx]; if(!a) return {ok:false,reason:"対象の仲間がいません。"}; const S=a.S, V=run.V, L=run.L;
   if(!a || a.hp<=0) return {ok:false, reason:"戦闘不能です。"};
   if(a.acted) return {ok:false, reason:"このターンは行動済みです。"};
   if(run.state!=="input") return {ok:false, reason:"入力待ちではありません。"};
+  if(run.expanded&&act.type==="skill"&&(a.cooldowns?.["native:"+a.job]||0)>run.turn) return {ok:false,reason:`再使用まであと${a.cooldowns["native:"+a.job]-run.turn}ターンです。`};
+  if(run.expanded&&["extra","inherit","signature"].includes(act.type)) return planExpandedSkill(run,a,act);
   const al = alive(run); const en = run.enemies.filter(e=>e.hp>0);
   const p = { ok:true, cost:{c:0,a:0,hp:0}, dmg:[], heal:[], cgain:[], ward:[], aGain:0, setB:null, consumeB:false, chain:null, cue:null, text:[], valid:false, kind:act.type };
   const needEnemy = () => { const e = run.enemies.find(x=>x.slot===act.target && x.hp>0); return e; };
   const needAlly = (other) => { const t = run.party[act.ally]; if(!t||t.hp<=0) return null; if(other && t===a) return null; return t; };
   const heal = (t,amt)=>{ const g=Math.min(amt, t.maxHP-t.hp); p.heal.push({pos:t.pos, amt:g}); if(g>0) p.valid=true; return g; };
-  const addC = (t,amt,afterPay)=>{ const base = t===a? a.c - p.cost.c : t.c; const g=Math.min(amt, 10-base); p.cgain.push({pos:t.pos, amt:Math.max(0,g)}); if(g>0) p.valid=true; return g; };
+  const addC = (t,amt,afterPay)=>{ const base = t===a? a.c - p.cost.c : t.c; const g=Math.min(amt, battleMPCap(t)-base); p.cgain.push({pos:t.pos, amt:Math.max(0,g)}); if(g>0) p.valid=true; return g; };
   const addWard=(t,amt)=>{ const g=Math.min(amt, 8-t.ward); p.ward.push({pos:t.pos, amt:Math.max(0,g)}); if(g>0) p.valid=true; };
   const gainA=(amt)=>{ const g=Math.min(amt, 100-run.A-p.aGain+p.cost.a); p.aGain+=amt; if(g>0) p.valid=true; };
   const attackSingle=(extra,opts={})=>{
     const e=needEnemy(); if(!e) return false;
-    const d=singleDamage(run,a,extra,e,opts); p.dmg.push({slot:e.slot, amt:Math.min(d,e.hp), raw:d}); p.valid=true;
+    const d=singleDamage(run,a,extra,e,opts); p.dmg.push({slot:e.slot, amt:Math.min(d,e.hp), raw:d,defApplied:opts.ignoreDef?0:Math.floor(e.def*(1-(run.expanded?a.trait?.pierce||0:0)))}); if(opts.ignoreDef)p.ignoreDef=true; p.valid=true;
     p.consumeB=true; p.aGain+=8; return true;
   };
-  const payC=(n)=>{ if(a.c<n){ p.ok=false; p.reason=`MPが足りません（必要${n}）。`; return false;} p.cost.c=n; return true; };
+  const payC=(n)=>{ if(run.expanded&&["skill","comment"].includes(act.type)) n=Math.max(0,n-(a.trait?.mpDiscount||0)); if(a.c<n){ p.ok=false; p.reason=`MPが足りません（必要${n}）。`; return false;} p.cost.c=n; return true; };
   const commentLike=(baseA)=>{
     const line=act.line; if(!LINE_NAMES[line]){ p.ok=false; p.reason="台詞を選んでください。"; return; }
     if(!payC(1)) return;
@@ -257,10 +268,10 @@ function planAction(run, idx, act){
       if(a.job==="J02") commentLike(22+S); else commentLike(18);
       break;
     case "guard":
-      p.guard=true; p.cgain.push({pos:a.pos, amt:Math.min(1,10-a.c)}); p.cue = cueProgress(run,a,"guard")?"guard":null; p.valid=!!p.cue;
+      p.guard=true; p.cgain.push({pos:a.pos, amt:Math.min(1+(run.expanded?a.trait?.guardMP||0:0),battleMPCap(a)-a.c)}); p.cue = cueProgress(run,a,"guard")?"guard":null; p.valid=!!p.cue;
       break;
     case "rest": {
-      const g=Math.min(4+a.rest, 10-a.c); if(g<=0){ p.ok=false; p.reason="MPは最大です。"; break; }
+      const g=Math.min(4+a.rest+(run.expanded?a.trait?.rest||0:0), battleMPCap(a)-a.c); if(g<=0){ p.ok=false; p.reason="MPは最大です。"; break; }
       p.cgain.push({pos:a.pos, amt:g}); p.valid=false; break; }
     case "family": {
       if(run.A<40){ p.ok=false; p.reason="エールが40必要です。"; break; }
@@ -269,14 +280,16 @@ function planAction(run, idx, act){
       p.valid=any; if(!any){ p.ok=false; p.reason="全員の体力が満タンです。"; }
       break; }
     case "meter": {
-      if(run.A<80){ p.ok=false; p.reason="エールが80必要です。"; break; }
-      p.cost.a=80;
+      const meterCost=80-(run.expanded?a.trait?.meterDiscount||0:0);
+      if(run.A<meterCost){ p.ok=false; p.reason=`エールが${meterCost}必要です。`; break; }
+      p.cost.a=meterCost;
       for(const e of en){ const d=Math.max(1, 18+4*L + V*a.meter - e.def); p.dmg.push({slot:e.slot, amt:Math.min(d,e.hp), raw:d}); }
       p.valid=true; p.all=true; break; }
     case "item": planItem(run,a,act,p,{needEnemy,needAlly,heal,addC,V}); break;
     case "skill": planSkill(run,a,act,p,{needEnemy,needAlly,heal,addC,addWard,attackSingle,payC,commentLike,gainA,S,V,L,al,en}); break;
     default: p.ok=false; p.reason="不明な行動です。";
   }
+  if(run.expanded&&p.ok) applyPlanTraits(run,a,act,p);
   // コメント以外の確定行動は連携を0へ
   if(p.ok && !p.chain) p.chainReset = run.chain.stage>0;
   // 攻勢型ボス対処（道具は対処に数えない）
@@ -314,11 +327,15 @@ function planSkill(run,a,act,p,h){
     case "J19": if(!h.payC(3))return; if(!h.attackSingle(10+2*S)){p.ok=false;p.reason="対象の敵を選んでください。";return;} p.setBAfter=4; break;
     case "J20": if(!h.payC(2))return; h.gainA(12+S); if(run.B!==4)p.valid=true; p.setB=4; h.al.forEach(t=>h.addWard(t,1)); if(!p.valid){p.ok=false;p.reason="効果がありません。";} break;
     case "J21": if(!h.payC(4))return; if(!h.attackSingle(18+2*S)){p.ok=false;p.reason="対象の敵を選んでください。";} break;
-    case "J22": { if(!h.payC(3))return; const t=h.needAlly(true); if(!t){p.ok=false;p.reason="自分以外の生存者を選んでください。";return;} h.gainA(14+2*S); h.addC(t,2+Math.floor(S/2)); if(!p.valid){p.ok=false;p.reason="エール100かつ対象のMP10のため効果がありません。";} break; }
+    case "J22": { if(!h.payC(3))return; const t=h.needAlly(true); if(!t){p.ok=false;p.reason="自分以外の生存者を選んでください。";return;} h.gainA(14+2*S); h.addC(t,2+Math.floor(S/2)); if(!p.valid){p.ok=false;p.reason="エールも対象のMPも最大のため効果がありません。";} break; }
   }
 }
 /* 確定（validate → reduce）。戻り値はログ配列 */
 function applyAction(run, idx, act){
+  const pre=planAction(run,idx,act);
+  if(!pre.ok)return {ok:false,reason:pre.reason};
+  if(typeof petTurnStart==="function"&&run.petProcessedTurn!==run.turn) petTurnStart(null,run);
+  if(run.state!=="input") return {ok:false,reason:"戦闘は終了しています。"};
   const p = planAction(run, idx, act);
   if(!p.ok) return {ok:false, reason:p.reason};
   if(run.actionHistoryComplete===true && run.actionFlags){
@@ -327,7 +344,9 @@ function applyAction(run, idx, act){
     if(p.cost.a>0) run.actionFlags.cheerSpent=true;
     if(act.type==="comment" && Array.isArray(run.actionFlags.commentLines) && !run.actionFlags.commentLines.includes(act.line)) run.actionFlags.commentLines.push(act.line);
     if(act.type==="family" || act.type==="meter") run.actionFlags.cheerAction=true;
-    if(act.type==="skill") run.actionFlags.skillUsed=true;
+    if(["skill","inherit","extra","signature"].includes(act.type)) run.actionFlags.skillUsed=true;
+    if(act.type==="signature") run.actionFlags.signature=true;
+    if(["inherit","extra"].includes(act.type)) run.actionFlags.additional=true;
     if(act.type!=="item" && p.cgain.some(g=>g.amt>0)) run.actionFlags.mpRestored=true;
     if(p.cost.c>0) run.actionFlags.mpSpent=true;
     const restored=p.cgain.filter(g=>g.amt>0);
@@ -337,13 +356,13 @@ function applyAction(run, idx, act){
     }
     if(restored.length && act.type==="guard") run.actionFlags.mpGuard=true;
     if(restored.length && act.type==="rest") run.actionFlags.mpRest=true;
-    if(restored.length && act.type==="skill") run.actionFlags.mpSkill=true;
+    if(restored.length && ["skill","inherit","extra","signature"].includes(act.type)) run.actionFlags.mpSkill=true;
     if(restored.length && act.type==="item") run.actionFlags.mpItem=true;
-    if(restored.some(g=>run.party[g.pos].c-(g.pos===idx?p.cost.c:0)<=2)) run.actionFlags.mpLow=true;
+    if(restored.some(g=>run.party[g.pos].c-(g.pos===idx?p.cost.c:0)<=battleMPCap(run.party[g.pos])*.25)) run.actionFlags.mpLow=true;
     if(act.type==="guard") run.actionFlags.guardUsed=true;
     if(act.type==="guard" && Array.isArray(run.actionFlags.guardActors) && !run.actionFlags.guardActors.includes(run.party[idx].cid)) run.actionFlags.guardActors.push(run.party[idx].cid);
     if(Array.isArray(run.actionFlags.actionTypes) && !run.actionFlags.actionTypes.includes(act.type)) run.actionFlags.actionTypes.push(act.type);
-    if(act.type==="skill" && Array.isArray(run.actionFlags.skills) && !run.actionFlags.skills.includes(run.party[idx].job)) run.actionFlags.skills.push(run.party[idx].job);
+    if(["skill","inherit","extra","signature"].includes(act.type) && Array.isArray(run.actionFlags.skills)){const skillId=act.skillId||act.job||run.party[idx].job;if(!run.actionFlags.skills.includes(skillId))run.actionFlags.skills.push(skillId);}
     if(!run.actionFlags.actors.includes(run.party[idx].cid)) run.actionFlags.actors.push(run.party[idx].cid);
     if(!run.actionFlags.jobs.includes(run.party[idx].job)) run.actionFlags.jobs.push(run.party[idx].job);
     if(p.heal.some(h=>h.revive)) run.actionFlags.revived=true;
@@ -370,7 +389,15 @@ function applyAction(run, idx, act){
   let hitCount=0;
   for(const d of p.dmg){
     const e = run.enemies.find(x=>x.slot===d.slot); if(!e||e.hp<=0) continue;
-    const real = Math.min(d.raw, e.hp); e.hp -= real; log.push(`${e.display}に${real}ダメージ。`);
+    let damage=d.raw,critical=false;
+    if(run.expanded&&!run.simulation&&!p.item){
+      const miss=battleRandom(run)<(e.evasion??0.02);
+      if(miss){run.actionFlags.missed=true;log.push(`${e.display}は攻撃をかわした。`);continue;}
+      critical=battleRandom(run)<(a.criticalRate??0.04);
+      if(critical){damage=Math.ceil((damage+(d.defApplied??(p.ignoreDef?0:e.def)))*1.5);run.actionFlags.critical=true;}
+    }
+    const real = Math.min(damage, e.hp); e.hp -= real; log.push(`${critical?"会心の一撃！ ":""}${e.display}に${real}ダメージ。`);
+    if(real>0&&(a.petAttackBonus||0)>0&&run.petHistory) run.petHistory.boostedHit=true;
     if(real>0){
       hitCount++;
       if(run.actionHistoryComplete===true && run.actionFlags){
@@ -378,7 +405,7 @@ function applyAction(run, idx, act){
         f.damageHit=true;
         if(act.type==="attack") f.attackHit=true;
         if(p.consumeB && run.B>0) f.commentAttack=true;
-        if(act.type==="skill" && a.job==="J16") f.ignoreDefHit=true;
+        if((act.type==="skill" && a.job==="J16")||p.ignoreDef) f.ignoreDefHit=true;
         if(real>=e.maxHP/2) f.bigHit=true;
       }
     }
@@ -389,7 +416,7 @@ function applyAction(run, idx, act){
     if(hitCount>=2) run.actionFlags.multiHit=true;
     if(hitCount>0 && run.enemies.every(e=>e.hp<=0)){
       if(act.type==="attack") run.actionFlags.attackFinish=true;
-      if(act.type==="skill") run.actionFlags.skillFinish=true;
+      if(["skill","inherit","extra","signature"].includes(act.type)) run.actionFlags.skillFinish=true;
       if(act.type==="meter") run.actionFlags.meterFinish=true;
     }
   }
@@ -398,7 +425,7 @@ function applyAction(run, idx, act){
   if(p.aGain>0){ const before=run.A; run.A=Math.min(100,run.A+p.aGain); if(run.A>before) log.push(`エール＋${run.A-before}（${run.A}）`); }
   if(p.setB!=null){ run.B=p.setB; }
   for(const h of p.heal){ const t=run.party[h.pos]; if(h.revive){ t.hp=Math.min(h.amt,t.maxHP); t.acted=true; log.push(`${t.name}が復帰（体力${t.hp}）。`); } else if(h.amt>0){ t.hp+=h.amt; log.push(`${t.name}の体力＋${h.amt}`); } }
-  for(const g of p.cgain){ const t=run.party[g.pos]; if(g.amt>0){ t.c=Math.min(10,t.c+g.amt); log.push(`${t.name}のMP＋${g.amt}`); } }
+  for(const g of p.cgain){ const t=run.party[g.pos]; if(g.amt>0){ t.c=Math.min(battleMPCap(t),t.c+g.amt); log.push(`${t.name}のMP＋${g.amt}`); } }
   for(const w of p.ward){ const t=run.party[w.pos]; if(w.amt>0){ t.ward=Math.min(8,t.ward+w.amt); log.push(`${t.name}に防護${w.amt}`); } }
   if(p.guard){ a.guard=true; log.push(`${nm}は身構えた。`); }
   if(p.item){
@@ -417,7 +444,7 @@ function applyAction(run, idx, act){
     else if(adv && line==="plan"){ run.chain.stage=2; run.chain.members.push(a.cid); chainProg=true; }
     else if(adv && line==="thanks"){
       chainProg=true; run.kiraDone=true; run.chain={stage:0,members:[]};
-      const bonus = run.support==="PR06"?15:10; run.A=Math.min(100,run.A+bonus);
+      const bonus = 10+(run.supportSnapshot?.kiraBonus||(run.support==="PR06"?5:0)); run.A=Math.min(100,run.A+bonus);
       for(const t of alive(run)) t.ward=Math.min(8,t.ward+2);
       log.push(`キラコメ連携！ 光の文字が流れ、エール＋${bonus}、全員に防護2。`);
     } else { run.chain={stage:0,members:[]}; }
@@ -431,6 +458,7 @@ function applyAction(run, idx, act){
   if(killedNow>0 && !run.firstKill && !p.item){ run.firstKill=true; run.A=Math.min(100,run.A+10); log.push("パチパチ！ 拍手でエール＋10。"); }
   if(run.actionHistoryComplete===true && run.actionFlags && Number.isFinite(run.actionFlags.cheerPeak)) run.actionFlags.cheerPeak=Math.max(run.actionFlags.cheerPeak,run.A);
   a.acted=true;
+  if(run.expanded){a.cooldowns=a.cooldowns||{};if(act.type==="signature") a.signatureUsed=true; else if(["skill","inherit","extra"].includes(act.type)){const key=act.type==="extra"?act.skillId:act.type==="inherit"?"inherit:"+act.job:"native:"+a.job;a.cooldowns[key]=run.turn+(p.cooldown??(act.type==="skill"?1:2))+1;}}
   if(p.valid || chainProg) a.valid++;
   // 勝敗
   if(run.enemies.every(e=>e.hp<=0)){ run.state="won"; log.push("ノイズ体をすべて鎮めた！"); }
@@ -439,6 +467,9 @@ function applyAction(run, idx, act){
   return {ok:true, log};
 }
 function actLabel(run,a,act){
+  if(act.type==="signature") return typeof SIGNATURES!=="undefined"?SIGNATURES[a.cid].name:"固有必殺技";
+  if(act.type==="inherit") return `継承・${JOBS[act.job]?.skill||"技"}`;
+  if(act.type==="extra") return EXTRA_SKILLS[act.skillId]?.name||"追加技";
   if(act.type==="attack") return "アタック";
   if(act.type==="comment") return (a.job==="J02"?"コメント整理":"応援コメント")+`（${LINE_NAMES[act.line]}）`;
   if(act.type==="guard") return "ガード";
@@ -452,13 +483,21 @@ function actLabel(run,a,act){
 function enemyPhase(run){
   const log=[];
   for(const e of run.enemies.filter(x=>x.hp>0).sort((x,y)=>x.slot-y.slot)){
+    if(e.petStunTurns>0){e.petStunTurns--;if(run.petHistory)run.petHistory.stopped=true;log.push(`${e.display}は足止めされて動けない。`);continue;}
     const act = enemyAction(run,e);
     if(act.type==="c"){ log.push(`${e.display}は力をためている。`); continue; }
     if(run.actionHistoryComplete===true && run.actionFlags) run.actionFlags.enemyAttacked=true;
     const targets = act.type==="a" ? alive(run) : [run.party[act.target]].filter(Boolean);
     for(const t of targets){
-      let inc = Math.max(0, act.power - run.V*(t.armorD + t.ward));
+      let critical=false;
+      if(run.expanded&&!run.simulation){
+        if(battleRandom(run)<(t.evasionRate??0.02)){run.actionFlags.evaded=true;log.push(`${t.name}は${e.display}の攻撃をかわした！`);continue;}
+        critical=battleRandom(run)<(e.criticalRate??0.03);
+      }
+      let inc=critical?Math.ceil(act.power*1.5):Math.max(0,act.power-run.V*(t.armorD+t.ward)-(run.expanded?Math.floor((t.defense||0)/6):0));
+      if(!critical&&run.expanded) inc=Math.ceil(inc*(1-(t.trait?.reduction||0)));
       if(t.guard) inc = Math.ceil(inc/2);
+      if(critical){run.actionFlags.enemyCritical=true;log.push(`${e.display}の痛恨の一撃！`);}
       if(run.actionHistoryComplete===true && run.actionFlags){
         const flags=run.actionFlags;
         if(t.guard) flags.guardHit=true;
@@ -474,9 +513,11 @@ function enemyPhase(run){
     if(alive(run).length===0){ run.state="lost"; log.push("全員が戦闘不能になった……"); return log; }
   }
   if(run.cue&&run.enemies.some(e=>e.boss&&e.cycle[(run.turn-1)%e.cycle.length].heavy)){ run.cue.bits=[]; run.cue.ready=false; }
-  for(const m of run.party){ m.guard=false; m.ward=0; m.acted=false; }
+  if(run.turnLimit&&run.turn>=run.turnLimit){run.state="lost";log.push(`制限${run.turnLimit}ターンに達した。実技を中断した。`);return log;}
+  for(const m of run.party){ m.guard=false; m.ward=0; m.acted=false; m.petAttackBonus=0; }
   run.turn++; run.chain={stage:0,members:[]};
   startTurnCue(run);
+  if(typeof petTurnStart==="function") petTurnStart(null,run);
   return log;
 }
 
@@ -497,7 +538,7 @@ function applyVictory(st, run){
       if(roll===0) giveItem(st, dr[0], 1, res, `${e.display}が落とした`); }
     // 依頼の討伐数
     const qid = st.activeQuest;
-    if(qid && QUESTS[qid].hub===run.hub && ["active"].includes(st.quests[qid])){
+    if(qid && !run.oceanArea && QUESTS[qid].hub===run.hub && ["active"].includes(st.quests[qid])){
       st.qprog[qid]=Math.min(QUESTS[qid].kills,(st.qprog[qid]||0)+n);
       res.kills=n; res.killQuest=qid; res.killNow=st.qprog[qid]; res.killNeed=QUESTS[qid].kills;
       if(st.qprog[qid]>=QUESTS[qid].kills){
@@ -510,6 +551,7 @@ function applyVictory(st, run){
     const reward=bossReward(run.bossId);
     res.xp=addExperience(st,reward.xp); res.gold=reward.gold; st.gold+=reward.gold;
   }
+  if(run.kind==="challenge"){st.trainingWins=st.trainingWins||{};if(!st.trainingWins[run.trainingJob]){res.xp=addExperience(st,30+run.q);res.tickets=60;st.tickets+=60;st.trainingWins[run.trainingJob]=true;res.notes.push(`${JOBS[run.trainingJob].name}の実技を達成した。`);}}
   // JP
   for(const m of run.party){
     const base = run.turn<=3 ? 12 : 6+2*Math.min(3,m.valid);
@@ -529,6 +571,8 @@ function applyVictory(st, run){
   // レベルが上がった分だけ現在の体力も増やす（戦闘不能のままは増やさない）
   for(const cid of st.roster){ const v=st.vitals[cid]; if(v&&v.hp>0){ const d=charStats(st,cid,res.levelAfter).maxHP-max0[cid]; if(d>0) v.hp+=d; } }
   ensureVitals(st);
+  if(typeof recordOceanVictory==="function"&&run.oceanArea) recordOceanVictory(st,run,res);
+  if(st.characterVersion===1) learnCharacterSkills(st);
   run.rewardsApplied = true;
   return res;
 }
@@ -669,7 +713,7 @@ function aiCandidates(run, a){
   const downs=run.party.filter(m=>m.hp<=0).map(m=>m.pos);
   for(const e of (run.bag||[])){ const it=ITEMS[e.id]; if(!it||e.n<=0||it.stars>2||it.price<=0||!['S','SD'].includes(it.acq)||it.cat==="攻撃") continue;
     const nd=itemNeeds(it), effect=it.eff[0];
-    const needsHelp=m=>m.hp>0&&((effect.includes('hp')&&m.hp<m.maxHP&&(m.hp/m.maxHP<=0.85||aiIncoming(run,m)>=m.hp))||(effect.includes('c')&&m.c/10<=0.7));
+    const needsHelp=m=>m.hp>0&&((effect.includes('hp')&&m.hp<m.maxHP&&(m.hp/m.maxHP<=0.85||aiIncoming(run,m)>=m.hp))||(effect.includes('c')&&m.c/battleMPCap(m)<=0.7));
     if(nd==="ally") run.party.filter(needsHelp).forEach(m=>out.push({type:"item",item:e.id,ally:m.pos}));
     else if(nd==="down") downs.forEach(p=>out.push({type:"item",item:e.id,ally:p}));
     else if(nd==="downAll"&&downs.length) out.push({type:"item",item:e.id});
@@ -684,13 +728,14 @@ function aiCandidates(run, a){
     if(a.job==="J04"){ al.forEach(p=>out.push({type:"skill",mode:"hp",ally:p})); others.forEach(p=>out.push({type:"skill",mode:"c",ally:p})); }
     else en.forEach(t=>{ out.push({type:"skill",mode:"safe",target:t}); out.push({type:"skill",mode:"bold",target:t}); });
   }
+  if(run.expanded){for(const e of availableBattleSkills(run,a)){if(e.type==="signature")out.push({type:"signature"});else if(e.type==="inherit"){for(const act of inheritedCandidates(run,a,e.job))out.push(act);}else if(e.need==="enemy")en.forEach(target=>out.push({type:"extra",skillId:e.id,target}));else if(e.need==="ally")al.forEach(ally=>out.push({type:"extra",skillId:e.id,ally}));else out.push({type:"extra",skillId:e.id});}}
   return out;
 }
 function aiIncoming(run, m){
   if(m.hp<=0) return 0;
   const sim=JSON.parse(JSON.stringify(run)), before=sim.party[m.pos]?.hp;
   if(before==null) return 0;
-  enemyPhase(sim);
+  sim.simulation=true; enemyPhase(sim);
   return Math.max(0,before-sim.party[m.pos].hp);
 }
 function aiScore(before, after){
@@ -706,7 +751,7 @@ function aiScore(before, after){
     const eff = m.hp - pred;
     if(m.hp<=0) { s-=260; continue; }
     if(eff<=0) s-=220; else s += 150*Math.min(1,eff/m.maxHP) + 40;
-    s += Math.min(m.c,10)*3 + (m.c<3?-15:0);
+    s += Math.min(m.c,battleMPCap(m))*3 + (m.c<3?-15:0);
   }
   s += after.A*0.45 + after.B*3;
   if(after.cue && after.cue.ready && !(before.cue&&before.cue.ready)) s+=90;
@@ -840,8 +885,8 @@ function mpBattleBadges(run){
     if(f.mpRestored) out.push("B059");
     if(f.mpSpent && run.party.every(m=>m.c>=1)) out.push("B060");
   }
-  if(run.party.every(m=>m.c>=5)) out.push("B056");
-  if(run.party.every(m=>m.c>=3)) out.push("B058");
+  if(run.party.every(m=>m.c>=battleMPCap(m)*.5)) out.push("B056");
+  if(run.party.every(m=>m.c>=Math.ceil(battleMPCap(m)*.25))) out.push("B058");
   return out.sort();
 }
 function healBattleBadges(run){
@@ -898,7 +943,7 @@ function aiChoose(run){
     for(const act of aiCandidates(run,a)){
       const p=planAction(run,a.pos,act); if(!p.ok) continue;
       if(act.type==="item" && !aiItemUseful(run,p)) continue;
-      const sim=JSON.parse(JSON.stringify(run)); sim.log=[];
+      const sim=JSON.parse(JSON.stringify(run)); sim.log=[]; sim.simulation=true;
       const r=applyAction(sim,a.pos,act); if(!r.ok) continue;
       if(act.type==="item"&&sim.state!=="won"){
         const netGain=sim.party.some((m,i)=>m.hp>run.party[i].hp||m.c>run.party[i].c);
@@ -995,7 +1040,7 @@ function planItem(run,a,act,p,h){
   if(!it){ p.ok=false; p.reason="道具を選んでください。"; return; }
   if(bagCount(run.bag,it.id)<=0){ p.ok=false; p.reason="その道具は持っていません。"; return; }
   const need=itemNeeds(it), V=h.V, boost=a.pouch && it.cat!=="攻撃";
-  const healOne=(t)=>{ const hp=itemAmount(it,"hp",t.maxHP,V,boost); if(hp) h.heal(t,hp); const cc=itemC(it,10-t.c); if(cc) h.addC(t,cc); };
+  const healOne=(t)=>{ const hp=itemAmount(it,"hp",t.maxHP,V,boost); if(hp) h.heal(t,hp); const cc=itemC(it,battleMPCap(t)-t.c); if(cc) h.addC(t,cc); };
   if(need==="enemy"||need==="enemyAll"){
     const list = need==="enemy" ? [h.needEnemy()].filter(Boolean) : run.enemies.filter(e=>e.hp>0);
     if(!list.length){ p.ok=false; p.reason="対象の敵を選んでください。"; return; }
@@ -1036,3 +1081,152 @@ function useItemField(st, id, cid){
   bagRemove(st.bag,id,1);
   return {ok:true, log};
 }
+
+/* ---- 能力・職業の拡張。乱数を使うのは確定した攻撃の解決時だけ ---- */
+function configureNewCharacter(st,options={}){
+  if(typeof CAREERS==="undefined") return st;
+  const careerId=options.careerId||"CR01",heroine=options.heroine||{name:"もえ",gender:"女性"};
+  const name=validateName(heroine.name||"もえ");
+  if(!Object.hasOwn(CAREERS,careerId)||!name.ok||!["男性","女性"].includes(heroine.gender)||normalizeName(st.profile.name).normalize("NFKC").toLowerCase()===name.value.normalize("NFKC").toLowerCase()) throw Error("主人公・ヒロインの設定を確認してください。");
+  st.profile.careerId=careerId; st.profile.career=CAREERS[careerId].name;
+  st.heroine={name:name.value,gender:heroine.gender};
+  for(const [slot,id] of [["w",CAREERS[careerId].weapon],["a",CAREERS[careerId].armor]]){st.owned[id]=(st.owned[id]||0)+1;st.equip.hero[slot]=id;}
+  return migrateCharacter(st);
+}
+function migrateCharacter(st){
+  if(typeof CAREERS==="undefined") return st;
+  st.characterVersion=CHARACTER_SYSTEM_VERSION;
+  st.profile=st.profile||{};
+  if(!Object.hasOwn(CAREERS,st.profile.careerId)) st.profile.careerId="CR01";
+  st.profile.career=CAREERS[st.profile.careerId].name;
+  if(!st.heroine||!validateName(st.heroine.name||"").ok||!["男性","女性"].includes(st.heroine.gender)) st.heroine={name:"もえ",gender:"女性"};
+  st.jobEvents=st.jobEvents&&typeof st.jobEvents==="object"&&!Array.isArray(st.jobEvents)?st.jobEvents:{};
+  for(const id of Object.keys(st.jobEvents)) if(!JOBS[id]||st.jobEvents[id]!==true) delete st.jobEvents[id];
+  if(st.jobEvent&&(!Object.hasOwn(JOBS,st.jobEvent.job)||!Number.isInteger(st.jobEvent.stage)||st.jobEvent.stage<0||st.jobEvent.stage>2||!Array.isArray(st.jobEvent.answers)||st.jobEvent.answers.length!==st.jobEvent.stage||st.jobEvent.answers.some((choice,i)=>choice!==JOB_EVENTS[st.jobEvent.job]?.stages[i]?.correct))) st.jobEvent=null;
+  st.trainingWins=st.trainingWins||{};
+  st.learnedJobs=st.learnedJobs||{};st.learnedSkills=st.learnedSkills||{};
+  learnCharacterSkills(st);
+  if(st.run){
+    const run=st.run;run.expanded=true;run.rngState=Number.isInteger(run.rngState)&&run.rngState!==0?run.rngState:((run.seq||1)*2654435761)>>>0;run.rngCount=Number.isInteger(run.rngCount)?run.rngCount:0;
+    for(const m of run.party||[]){
+      const s=charStats(st,m.cid,run.L||levelOf(st.xp,st));
+      for(const key of ["vitality","strength","defense","agility","charm","criticalRate","evasionRate","trait"])m[key]=s[key];
+      m.learnedJobs=[...(st.learnedJobs[m.cid]||[])];m.learnedSkills=[...(st.learnedSkills[m.cid]||[])];m.cooldowns=m.cooldowns||{};m.signatureUsed=!!m.signatureUsed;m.name=charName(st,m.cid);
+    }
+  }
+  return st;
+}
+function expandedCharStats(st,cid,L,s,equipment){
+  const trait=JOB_TRAITS[s.job],mult=trait.mult;
+  const add=key=>equipment.reduce((n,e)=>n+(Number(e?.[key])||0),0);
+  const vitality=Math.max(1,Math.floor((25+3*(L-1)+Math.floor(s.R/2))*mult[0])+add("vitality"));
+  const strength=Math.max(1,Math.floor((10+2*(L-1)+Math.floor(s.R/3))*mult[1])+add("strength"));
+  const defense=Math.max(1,Math.floor((8+L-1+Math.floor(s.R/3))*mult[2])+add("defense"));
+  const agility=Math.max(1,Math.floor((8+L-1+Math.floor(s.R/4))*mult[3])+add("agility"));
+  const charm=Math.max(1,Math.floor((10+Math.floor((L-1)*.8)+Math.floor(s.R/3))*mult[4])+add("charm"));
+  const maxHP=Math.max(1,Math.floor(s.maxHP*mult[0])+add("vitality")*2);
+  return {...s,maxHP,vitality,strength,defense,agility,charm,trait,attackPower:10+2*L+s.V*(s.wAtk+s.accAtk+Math.floor(strength/6)+(trait.single||0)),defensePower:s.V*s.armorD+Math.floor(defense/6),criticalRate:Math.min(.30,.03+agility/1800+(trait.crit||0)),evasionRate:Math.min(.25,.02+agility/2000+(trait.evasion||0))};
+}
+function learnCharacterSkills(st){
+  if(typeof EXTRA_SKILLS==="undefined") return;
+  st.learnedJobs=st.learnedJobs||{};st.learnedSkills=st.learnedSkills||{};
+  const L=levelOf(st.xp||0,st);
+  for(const cid of st.roster||[]){
+    const learned=new Set((st.learnedJobs[cid]||[]).filter(j=>Object.hasOwn(JOBS,j)));
+    for(const [job,jp] of Object.entries(st.jp[cid]||{})) if(JOBS[job]&&rankOf(jp,jobLimit(st,cid,job))>=3) learned.add(job);
+    st.learnedJobs[cid]=[...learned];
+    const skills=new Set((st.learnedSkills[cid]||[]).filter(id=>Object.hasOwn(EXTRA_SKILLS,id)));
+    for(const skill of Object.values(EXTRA_SKILLS)) if(L>=skill.needLevel&&rankOf(st.jp[cid]?.[skill.job]||0,jobLimit(st,cid,skill.job))>=skill.needRank) skills.add(skill.id);
+    st.learnedSkills[cid]=[...skills];
+  }
+}
+function battleRandom(run){
+  let x=(run.rngState||1)>>>0;x^=x<<13;x^=x>>>17;x^=x<<5;run.rngState=x>>>0;run.rngCount=(run.rngCount||0)+1;return (x>>>0)/4294967296;
+}
+function applyPlanTraits(run,a,act,p){
+  if(!a.trait) return;
+  if(p.dmg.length&&a.trait.multi&&p.dmg.length>1) for(const d of p.dmg){d.raw=Math.ceil(d.raw*a.trait.multi);d.defApplied=Math.ceil((d.defApplied??run.enemies.find(e=>e.slot===d.slot)?.def??0)*a.trait.multi);d.amt=Math.min(d.raw,run.enemies.find(e=>e.slot===d.slot)?.hp||0);}
+  if(p.dmg.length&&!p.item) p.aGain+=a.trait.attackCheer||0;
+  if(p.aGain>0&&["comment","skill"].includes(act.type)) p.aGain+=(a.trait.cheer||0)+Math.floor((a.charm||0)/20);
+  for(const h of p.heal){const t=run.party[h.pos];if(h.amt>0&&!h.revive&&t.hp>0){const bonus=(a.trait.heal||1)*(p.item?a.trait.itemHeal||1:1);h.amt=Math.min(t.maxHP-t.hp,Math.ceil(h.amt*bonus));}}
+  if(act.type==="skill"&&a.trait.mpHeal) for(const g of p.cgain) if(g.amt>0)g.amt=Math.min(battleMPCap(run.party[g.pos])-run.party[g.pos].c,g.amt+a.trait.mpHeal);
+}
+function availableBattleSkills(run,a){
+  if(!run.expanded||typeof EXTRA_SKILLS==="undefined") return [];
+  const out=[];
+  for(const job of a.learnedJobs||[])if(job!==a.job&&JOBS[job])out.push({id:"inherit:"+job,type:"inherit",job,name:`継承・${JOBS[job].skill}`,description:`熟練度3で覚えた職業技。MPと対象は元の技に従う。再使用2ターン。`});
+  for(const id of a.learnedSkills||[]){const e=EXTRA_SKILLS[id];if(e)out.push({...e,type:"extra",need:["single","all"].includes(e.effect)?e.effect==="single"?"enemy":"none":["heal","ward","mp"].includes(e.effect)?"ally":"none"});}
+  if(run.L>=5&&SIGNATURES[a.cid])out.push({id:"signature",type:"signature",name:SIGNATURES[a.cid].name,description:"3ターン目から。MP4・エール50、1戦闘1回。"});
+  return out;
+}
+function inheritedCandidates(run,a,job){
+  const shadow={...run,party:run.party.map(m=>m===a?{...m,job,learnedJobs:[]}:m)};
+  return aiCandidates({...shadow,expanded:false},shadow.party[a.pos]).filter(act=>act.type==="skill").map(act=>({...act,type:"inherit",job}));
+}
+function planExpandedSkill(run,a,act){
+  if(!run.expanded||typeof EXTRA_SKILLS==="undefined")return {ok:false,reason:"この技はまだ使えません。"};
+  const key=act.type==="signature"?"signature":act.type==="inherit"?"inherit:"+act.job:act.skillId;
+  if((a.cooldowns?.[key]||0)>run.turn)return {ok:false,reason:`再使用まであと${a.cooldowns[key]-run.turn}ターンです。`};
+  if(act.type==="inherit"){
+    if(act.job===a.job||!Object.hasOwn(JOBS,act.job)||!(a.learnedJobs||[]).includes(act.job))return {ok:false,reason:"習得していない職業技です。"};
+    const shadow={...run,party:run.party.map(m=>m===a?{...m,job:act.job,cooldowns:{}}:m)};
+    const p=planAction(shadow,a.pos,{...act,type:"skill"});p.cooldown=2;p.kind="inherit";return p;
+  }
+  const p={ok:true,cost:{c:0,a:0,hp:0},dmg:[],heal:[],cgain:[],ward:[],aGain:0,setB:null,consumeB:false,chain:null,cue:null,text:[],valid:false,kind:act.type,chainReset:run.chain.stage>0};
+  let spec;
+  if(act.type==="signature"){
+    if(run.L<5||run.turn<3||a.signatureUsed||!SIGNATURES[a.cid])return {ok:false,reason:a.signatureUsed?"この戦闘では使用済みです。":"固有必殺技はLv5・3ターン目から使えます。"};
+    spec=SIGNATURES[a.cid];p.cost={c:4,a:50,hp:0};
+  }else{
+    spec=EXTRA_SKILLS[act.skillId];if(!Object.hasOwn(EXTRA_SKILLS,act.skillId)||!(a.learnedSkills||[]).includes(act.skillId))return {ok:false,reason:"習得していない追加技です。"};
+    p.cost.c=Math.max(0,spec.mp-(a.trait?.mpDiscount||0));p.cooldown=spec.cooldown;
+  }
+  if(a.c<p.cost.c||run.A<p.cost.a)return {ok:false,reason:`MP${p.cost.c}・エール${p.cost.a}が必要です。`};
+  const power=spec.power||12,all=run.party.filter(t=>t.hp>0),en=run.enemies.filter(e=>e.hp>0);
+  if(["single","pierce","all"].includes(spec.effect)){
+    const targets=spec.effect==="all"?en:[en.find(e=>e.slot===act.target)|| (act.type==="signature"?en[0]:null)].filter(Boolean);
+    if(!targets.length)return {ok:false,reason:"対象の敵を選んでください。"};
+    for(const e of targets){const d=singleDamage(run,a,power,e,{ignoreDef:spec.effect==="pierce"});p.dmg.push({slot:e.slot,raw:d,amt:Math.min(e.hp,d),defApplied:spec.effect==="pierce"?0:Math.floor(e.def*(1-(a.trait?.pierce||0)))});}p.consumeB=true;p.ignoreDef=spec.effect==="pierce";p.aGain=8;p.all=targets.length>1;
+  }else{
+    const group=spec.effect.endsWith("All")||spec.effect==="teamWard",targets=group?run.party:[run.party[act.ally]].filter(Boolean);
+    if(!targets.length)return {ok:false,reason:"対象の仲間を選んでください。"};
+    for(const t of targets){
+      if(spec.effect==="reviveAll"&&t.hp<=0)p.heal.push({pos:t.pos,amt:Math.min(t.maxHP,power*run.V+run.L*2),revive:true});
+      else if(t.hp>0){
+        if(["heal","healAll","reviveAll"].includes(spec.effect))p.heal.push({pos:t.pos,amt:Math.min(t.maxHP-t.hp,power*run.V+run.L)});
+        if(["mp","mpAll"].includes(spec.effect))p.cgain.push({pos:t.pos,amt:Math.min(battleMPCap(t)-t.c+(t===a?p.cost.c:0),spec.effect==="mpAll"?power:3)});
+        if(["ward","wardAll","teamWard"].includes(spec.effect))p.ward.push({pos:t.pos,amt:Math.min(8-t.ward,spec.effect==="wardAll"?power:3)});
+      }
+    }
+  }
+  p.valid=p.dmg.length>0||p.heal.some(h=>h.amt>0)||p.cgain.some(g=>g.amt>0)||p.ward.some(w=>w.amt>0);
+  if(!p.valid)return {ok:false,reason:"今は効果がありません。"};
+  applyPlanTraits(run,a,act,p);
+  if(!p.item&&p.dmg.length&&cueProgress(run,a,"damage"))p.cue="damage";
+  return p;
+}
+function expandedBattleBadges(run){
+  if(run.actionHistoryComplete!==true||!run.actionFlags)return [];
+  const f=run.actionFlags,out=[];
+  if(run.kind==="challenge"&&run.state==="won"){out.push("B093");if(run.turn<=Math.floor(run.turnLimit/2))out.push("B009");}
+  if(f.critical)out.push("B017");if(f.evaded)out.push("B035");if(f.signature)out.push("B099");if(f.additional)out.push("B100");return out;
+}
+function createTrainingRun(st,jobId){
+  if(!Object.hasOwn(JOBS,jobId)||!MAPS[st.mapId]||MAPS[st.mapId].kind!=="field")return null;
+  const run=baseRun(st,"challenge"),q=Math.max(1,Math.min(60,run.L));
+  run.trainingJob=jobId;run.turnLimit=10;run.q=q;run.hub=MAPS[st.mapId].hub;run.areaId=Object.keys(AREAS).find(id=>id.startsWith(run.hub+"-A"))||"KY01-A1";run.returnPos={map:st.mapId,...st.pos};
+  const hp=90+q*12;run.enemies=[{slot:0,id:"TRAIN-"+jobId,profile:"P01",species:"機材体",attr:"光",name:`${JOBS[jobId].name}の実技標的`,display:`${JOBS[jobId].name}の実技標的`,hp,maxHP:hp,def:Math.floor(q/5),cycle:[{t:"s",p:5+q},{t:"c",p:0},{t:"a",p:3+Math.floor(q/2)}]}];return run;
+}
+function canChangeJob(st,cid,job){return !!st?.roster?.includes(cid)&&Object.hasOwn(JOBS,job)&&(st.jobs[cid]===job||st.jobEvents?.[job]===true);}
+function startJobEvent(st,job){if(typeof JOB_EVENTS==="undefined"||!Object.hasOwn(JOB_EVENTS,job)||st.jobEvents?.[job])return false;st.jobEvent={job,stage:0,answers:[],wrong:null};return true;}
+function jobEventToken(st){const e=st.jobEvent;return e?`${e.job}:${e.stage}:${e.answers.join(",")}`:"";}
+function answerJobEvent(st,choice,token){
+  const e=st.jobEvent;if(!e||typeof JOB_EVENTS==="undefined"||!Object.hasOwn(JOB_EVENTS,e.job)||!Number.isInteger(choice)||choice<0||choice>2||token!==jobEventToken(st))return {ok:false};
+  const scene=JOB_EVENTS[e.job].stages[e.stage];
+  if(choice!==scene.correct){e.wrong=choice;return {ok:true,correct:false,message:scene.advice};}
+  e.answers.push(choice);e.stage++;e.wrong=null;
+  if(e.stage===3){st.jobEvents=st.jobEvents||{};st.jobEvents[e.job]=true;const job=e.job;st.jobEvent=null;return {ok:true,correct:true,complete:true,job};}
+  return {ok:true,correct:true,complete:false};
+}
+
+function battleMPCap(actor){return Number.isFinite(actor?.maxMP)?actor.maxMP:10;}

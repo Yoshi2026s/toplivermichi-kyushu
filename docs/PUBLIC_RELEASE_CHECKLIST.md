@@ -3,11 +3,15 @@
 ## 現在の状態
 
 - リポジトリ：`Yoshi2026s/toplivermichi-kyushu`
-- 更新版：v5.33 全国編。全47都道府県の固有物語・ボス、51街／51街外MAP、配信イベント廃止を実装。検査結果は [validation-5.33.json](validation-5.33.json)。
+- 更新版：v5.34 全国編・共通機能統合。全国物語・ボス・街外限定戦闘を維持し、ペット・海域・100バッジ・能力と職業・音響・コメントを追加。対応表は [EXECUTION_STATUS_5_34.md](EXECUTION_STATUS_5_34.md)、検査結果は [validation-5.34.json](validation-5.34.json)。
 - 公開URL：https://yoshi2026s.github.io/toplivermichi-kyushu/
-- 配信ワークフロー：https://github.com/Yoshi2026s/toplivermichi-kyushu/actions/runs/40836212154
-- 編集元：公開中v5.32を土台にv5.33へ更新。旧ローカルv5.30は作業用バックアップへ保管。
+- 配信ワークフロー：https://github.com/Yoshi2026s/toplivermichi-kyushu/actions
+- 編集元：公開中v5.33を土台にv5.34へ更新。旧ローカルv5.30は作業用バックアップへ保管。
 - 旧公開版：v10.108までの更新・検証記録がある。最新版のソース一式は未取得。
+
+## v5.34の公開範囲と検証
+
+全国編を維持した共通機能統合。全51本編の統合検査を含む23本の回帰、生成HTMLの構文検査に合格。ブラウザで新規開始・育成・保存、6幅×戦闘と育成の12例を確認。スマートフォン実機と音の聴感は未確認。
 
 ## v5.33の公開範囲と検証
 

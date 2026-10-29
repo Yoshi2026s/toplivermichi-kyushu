@@ -296,6 +296,20 @@ body.reduce-motion .flash,body.reduce-motion .hurtflash,body.reduce-motion .hitf
   *,*::before,*::after{animation:none!important;transition:none!important}
   .flash,.hurtflash,.hitfx,.pop{display:none!important}
 }
+.listener-comments{position:fixed;right:max(8px,calc((100vw - 960px)/2));top:80px;width:min(280px,38vw);display:flex;flex-direction:column;gap:5px;pointer-events:none;z-index:9}
+.confirmrow{grid-template-columns:minmax(0,1fr) minmax(56px,.8fr) minmax(56px,.8fr)}.confirmrow .btn{min-width:0;padding:6px;font-size:14px}.preview{min-width:0;overflow-wrap:anywhere}
+.enemies{grid-template-columns:repeat(auto-fit,minmax(88px,1fr));min-height:150px}.ecard{display:flex;flex-direction:column;justify-content:center;min-width:0;align-items:stretch}.einfo{display:contents}.ecard .esprite{align-self:center;width:88px;height:88px;max-width:100%;object-fit:contain}.ecard.isboss .esprite{width:120px;height:120px}.ecard .ename{text-align:center}.ecard.down .esprite{opacity:.5}
+@media(max-height:700px){.enemies{min-height:120px;grid-template-columns:repeat(auto-fit,minmax(72px,1fr))}.ecard .esprite{width:72px;height:72px}.ecard.isboss .esprite{width:96px;height:96px}}
+@media(max-width:430px){.battle{height:auto;overflow:visible;min-height:calc(100dvh - var(--dockH) - 24px)}.win.cmd{flex:none;overflow:visible}.chips{overflow:visible}.log{min-height:148px}}
+.listener-comment{background:rgba(16,24,32,.92);border:1px solid var(--aqua);padding:6px 8px;font-size:13px;line-height:1.4;overflow-wrap:anywhere;animation:listenerIn .18s ease-out}
+.listener-comment>span{color:var(--sand);font-size:12px}.listener-comment p{margin:2px 0 0}
+.dock-help{position:absolute;left:calc(50% - 32px);bottom:32px;min-height:38px;padding:4px 12px;font-size:14px;text-align:center}
+select.input{font-size:16px;max-width:100%}.pet-party{width:100%;box-sizing:border-box;border-top:1px solid var(--slate);padding-top:4px}
+@keyframes listenerIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:700px){.listener-comments{top:82px;right:8px;width:150px;max-height:190px;overflow:hidden}.listener-comment{font-size:12px;padding:4px}.listener-comment>span{font-size:12px}.dock-help{bottom:40px}}
+@media(max-width:300px){.menu-grid{grid-template-columns:repeat(4,1fr)}.listener-comments{width:125px;max-height:150px}.pstrip{font-size:12px}.party{gap:4px}.pcard{min-width:0}.pstat{white-space:normal;overflow:visible;overflow-wrap:anywhere}.cmdgrid{gap:3px}}
+body.reduce-motion .listener-comment{animation:none}
+@media(prefers-reduced-motion:reduce){.listener-comment{animation:none}}
 </style>
 <main id="screen" aria-live="off"></main>
 <div id="dock" class="dock" aria-label="ジョイコントローラー">

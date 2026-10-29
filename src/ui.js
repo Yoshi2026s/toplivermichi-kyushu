@@ -885,8 +885,7 @@ function worldTravelStatus(st,from,to,safe){
   const route=NATIONAL_ROUTES.find(r=>r.status==="playable"&&((r.from===from&&r.to===to)||(r.from===to&&r.to===from)));
   if(!route) return {available:false,reason:"現在地からの直通経路はありません。隣接する拠点を経由してください。"};
   if(!nationalRouteAvailable(st,from,to)) return {available:false,reason:route.unlock==="fukuokaClear"?"福岡編の完了後に開きます。":"唐津編M03の完了後に開きます。"};
-  const firstGate={KY02:"福岡市",KY03:"北九州",KY04:"唐津"};
-  if(firstGate[to]&&!(st.visitedHubs||[]).includes(to)) return {available:false,reason:`初回は${firstGate[to]}の東門から向かってください。`};
+  if(route.to===to&&route.firstArrival&&!(st.visitedHubs||[]).includes(to)) return {available:false,reason:`初回は${route.firstArrival}から向かってください。`};
   if(!safe) return {available:false,reason:"安全地帯から出発できます。"};
   if(st.slots<1) return {available:false,reason:"旅程枠が足りません。休息すると回復します。"};
   return {available:true,reason:""};

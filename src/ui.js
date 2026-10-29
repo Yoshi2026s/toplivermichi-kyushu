@@ -1055,7 +1055,7 @@ function renderShop(){
       <div class="stack"><button class="btn primary" data-a="shopDo" data-offer="${shopOfferToken(st,d)}" ${can?"":"disabled"}>${esc(it.name)}×${qty}を売る</button><button class="btn" data-a="shopItem" data-v="">一覧へ</button></div>`;
   }
   if(tab==="item"){
-    return head+`<div class="stack">${SHOP_ITEMS.map(id=>{const it=ITEMS[id]; return `<button class="btn dexrow" data-a="shopItem" data-v="${id}"><span>${esc(it.name)}　<span class="small">${"★".repeat(it.stars)}</span></span><span class="small">${it.price}ゴールド・${esc(itemText(it,Vof(levelOf(st.xp))))}・所持${bagCount(st.bag,id)}</span></button>`;}).join("")}</div><p class="small">道具袋は20種類まで、1種類9個まで。各県の店で品ぞろえが増えます（この版は福岡の品）。</p>`;
+    return head+`<div class="stack">${SHOP_ITEMS.map(id=>{const it=ITEMS[id]; return `<button class="btn dexrow" data-a="shopItem" data-v="${id}"><span>${esc(it.name)}　<span class="small">${"★".repeat(it.stars)}</span></span><span class="small">${it.price}ゴールド・${esc(itemText(it,Vof(levelOf(st.xp))))}・所持${bagCount(st.bag,id)}</span></button>`;}).join("")}</div><p class="small">道具袋は300種類まで、1種類99個まで。各県の店で品ぞろえが増えます（この版は福岡の品）。</p>`;
   }
   if(d.item){
     const it=EQUIP[d.item]; const qty=d.qty||1; const own=st.owned[d.item]||0;

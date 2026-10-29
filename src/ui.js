@@ -370,7 +370,7 @@ function interact(o){
     case "npc": return talkNpc(o.npc);
     case "shop": return openSheet("shop",{shop:o.shop, npc:o.npc, tab:"buy"});
     case "door": return travelMap(o.to,o.tx,o.ty);
-    case "gate": return nationalRouteAvailable(st,curHub(),o.to)?openSheet("travel",{to:o.to,tx:o.tx,ty:o.ty,gateId:o.id}):say([["",o.to==="KY03"?"唐津への道は福岡編の完了後に開きます。":"この先の道はまだ開いていません。"]]);
+    case "gate": return nationalRouteAvailable(st,curHub(),o.to)?openSheet("travel",{to:o.to,tx:o.tx,ty:o.ty,gateId:o.id}):say([["",nationalRouteUnlockReason(curHub(),o.to)]]);
     case "box": return openBox(o);
     case "sign": { const a=AREAS[o.area]; const b=Object.values(BOSSES).find(x=>x.areaId===o.area);
       return say([["案内板",`${a.name}（${o.area}）。強度q${a.q}・推奨レベル${a.q}。`+(b?`この奥に地域ボス「${b.name}」（推奨レベル${b.q}）。`:"")],["案内板",a.lore]]); }
@@ -891,11 +891,15 @@ function renderWorld(){
 function worldTravelStatus(st,from,to,safe){
   const route=NATIONAL_ROUTES.find(r=>r.status==="playable"&&((r.from===from&&r.to===to)||(r.from===to&&r.to===from)));
   if(!route) return {available:false,reason:"現在地からの直通経路はありません。隣接する拠点を経由してください。"};
-  if(!nationalRouteAvailable(st,from,to)) return {available:false,reason:route.unlock==="fukuokaClear"?"福岡編の完了後に開きます。":"唐津編M03の完了後に開きます。"};
+  if(!nationalRouteAvailable(st,from,to)) return {available:false,reason:nationalRouteUnlockReason(from,to)};
   if(route.to===to&&route.firstArrival&&!(st.visitedHubs||[]).includes(to)) return {available:false,reason:`初回は${route.firstArrival}から向かってください。`};
   if(!safe) return {available:false,reason:"安全地帯から出発できます。"};
   if(st.slots<1) return {available:false,reason:"旅程枠が足りません。休息すると回復します。"};
   return {available:true,reason:""};
+}
+function nationalRouteUnlockReason(from,to){
+  const route=NATIONAL_ROUTES.find(r=>r.status==="playable"&&((r.from===from&&r.to===to)||(r.from===to&&r.to===from)));
+  return route?.unlock==="fukuokaClear"?"福岡編の完了後に開きます。":route?.unlock==="karatsuClear"?"唐津編M03の完了後に開きます。":"この先の道はまだ開いていません。";
 }
 function nationalRouteAvailable(st,from,to){
   return NATIONAL_ROUTES.some(r=>r.status==="playable"&&((r.from===from&&r.to===to)||(r.from===to&&r.to===from))&&(r.unlock==="always"||r.unlock==="fukuokaClear"&&!!st.fukuokaClear||r.unlock==="karatsuClear"&&st.quests?.M03==="complete"));

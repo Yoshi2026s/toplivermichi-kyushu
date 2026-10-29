@@ -394,7 +394,7 @@ function openBox(o){
   st.boxes[o.box]=true; st.tickets+=40; st.cards.push(o.box);
   const ev=ITEM_EVENTS[o.box.slice(0,4)+"-BOX-"+o.box.slice(-1)]; let extra=[];
   if(ev){ const g=giveItem(st,ev[0],ev[1]); const nm=ITEMS[ev[0]].name;
-    if(g.got) extra.push(["",`道具「${nm}」×${g.got}も入っていた！（非売品）`]); if(g.kept) extra.push(["",`道具袋がいっぱいのため、${nm}×${g.kept}は宿屋の預かり所へ送った。`]); }
+    if(g.got) extra.push(["",`道具「${nm}」×${g.got}も入っていた！（非売品）`]); if(g.vaulted) extra.push(["",`道具袋がいっぱいのため、${nm}×${g.vaulted}はアイテム金庫へ送った。`]); if(g.kept) extra.push(["",`金庫もいっぱいのため、${nm}×${g.kept}は宿屋の預かり所へ送った。`]); }
   commit(); SND.sfx("ok");
   say([["",`応援箱を開けた！ チケット＋40、記念カード「${BOX_CARDS[o.box]}」を手に入れた。`],...extra]);
 }
@@ -694,8 +694,9 @@ function renderResult(){
       ${down?`<p class="small warn">戦闘不能。宿屋か蘇生の道具で回復しよう。</p>`:low?`<p class="small warn">体力わずか。回復しておこう。</p>`:""}
     </div>`; }).join("");
   const items=[...(r.items||[]).map(x=>`<li class="ritem"><span class="rst">${"★".repeat(ITEMS[x.id].stars)}</span>${esc(ITEMS[x.id].name)} ×${x.n}<span class="small">（${esc(x.why)}）</span></li>`),
+    ...(r.itemsVaulted||[]).map(x=>`<li class="ritem">${esc(ITEMS[x.id].name)} ×${x.n} はアイテム金庫へ</li>`),
     ...(r.itemsKept||[]).map(x=>`<li class="warn">${esc(ITEMS[x.id].name)} ×${x.n} は袋がいっぱいのため宿屋の預かり所へ</li>`),
-    ...(r.itemsLost||[]).map(x=>`<li class="warn">${esc(ITEMS[x.id].name)} ×${x.n} は預かり所もいっぱいで受け取れず</li>`)];
+    ...(r.itemsLost||[]).map(x=>`<li class="warn">${esc(ITEMS[x.id].name)} ×${x.n} は金庫と預かり所もいっぱいで受け取れず</li>`)];
   const gifts=r.gifts.map(g=>`<li class="ritem">専用品「${esc(EQUIP[g].name)}」を贈られた</li>`);
   const usedItems=(r.itemsUsed||[]).map(x=>{
     const effects=[x.hp>0?`体力＋${x.hp}`:"",x.c>0?`集中力＋${x.c}`:"",x.revives>0?`復帰${x.revives}人`:""].filter(Boolean);
@@ -1116,6 +1117,7 @@ function renderItems(){
   }
   return `<p class="small">道具袋 ${st.bag.length}/${BAG_KINDS}種類（1種類${BAG_STACK}個まで）。回復・蘇生は移動中にも使えます。</p>
     <div class="stack">${st.bag.map(e=>{const it=ITEMS[e.id]; return `<button class="btn dexrow" data-a="itemView" data-v="${e.id}"><span>${esc(it.name)}　×${e.n}　<span class="small">${"★".repeat(it.stars)}</span></span><span class="small">${esc(itemText(it,Vof(levelOf(st.xp))))}${it.battleOnly?"（戦闘のみ）":""}</span></button>`;}).join("")||`<p>道具を持っていません。ショップで買えます。</p>`}</div>
+    <h3 class="label">アイテム金庫（${itemVaultCount(st)}/${ITEM_VAULT_MAX}）</h3><p class="small">道具袋に入りきらない報酬を全街共通で保管します。出し入れ操作は準備中です。</p>${st.itemVault.length?`<ul class="list">${st.itemVault.map(e=>`<li>${esc(ITEMS[e.id].name)} ×${e.n}</li>`).join("")}</ul>`:""}
     ${st.keep&&st.keep.length?`<h3 class="label">宿屋の預かり所（${st.keep.length}/${KEEP_MAX}）</h3><p class="small">袋に空きができると、安全な場所で自動的に受け取ります。</p><ul class="list">${st.keep.map(id=>`<li>${esc(ITEMS[id].name)}</li>`).join("")}</ul>`:""}`;
 }
 function qtyRow(q,max){ return `<div class="row3"><button class="btn" data-a="shopQty" data-v="${q-1}" ${q>1?"":"disabled"}>−</button><span class="qty">数量 ${q}個（最大${max}個）</span><button class="btn" data-a="shopQty" data-v="${q+1}" ${q<max?"":"disabled"}>＋</button></div>`; }
@@ -1266,6 +1268,7 @@ function validateState(s){
   const okNum=v=>Number.isFinite(v)&&v>=0;
   if(!okNum(s.xp)||!okNum(s.gold)||!okNum(s.tickets)||!MAPS[s.mapId]||!Array.isArray(s.roster)||!Array.isArray(s.party)||s.party.length<1||s.party.length>4||new Set(s.party).size!==s.party.length||s.party.some(c=>!CHARS[c]||!s.roster.includes(c))) throw new Error("bad");
   if(s.vaultGold!==undefined&&(!Number.isSafeInteger(s.vaultGold)||s.vaultGold<0)) throw new Error("bad vault");
+  if(s.itemVault!==undefined&&(!Array.isArray(s.itemVault)||s.itemVault.some(e=>!ITEMS[e.id]||!Number.isSafeInteger(e.n)||e.n<1)||itemVaultCount(s)>ITEM_VAULT_MAX||new Set(s.itemVault.map(e=>e.id)).size!==s.itemVault.length)) throw new Error("bad item vault");
   for(const c of s.party) if(!JOBS[s.jobs[c]]) throw new Error("bad job");
 }
 function padSide(){ const s=G.st?G.st.settings:G.tmpSettings; if(s&&(s.padSide==="left"||s.padSide==="right")) return s.padSide; try{ const v=localStorage.getItem("tlr-kyushu-pad"); if(v==="left"||v==="right") return v; }catch(e){} return "right"; }
@@ -1273,6 +1276,7 @@ function soundIsOn(){ if(G.soundWant!=null) return G.soundWant; if(G.st&&G.st.se
 function soundPref(){ try{ return localStorage.getItem("tlr-kyushu-sound")!=="0"; }catch(e){ return true; } }
 function migrate(s){
   if(s.vaultGold===undefined) s.vaultGold=0;
+  if(s.itemVault===undefined) s.itemVault=[];
   if(!s.itemsVersion){ s.bag=INITIAL_ITEMS.map(([id,n])=>({id,n})); s.keep=[]; s.itemsVersion=1; s.gameVersion=GAME_VERSION; }
   if(s.run&&!s.run.bag) s.run.bag=clone(s.bag);
   if(s.run){

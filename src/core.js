@@ -18,7 +18,7 @@ function newGame(name, gender){
     roster:["hero","moe"], party:["hero","moe"], vitals:null,
     jobs:{}, jp:{}, equip:{}, owned:{CW01:8, CA01:8}, favorite:{},
     gold:0, vaultGold:0, tickets:200, gifts:{W:{},A:{}},
-    bag:INITIAL_ITEMS.map(([id,n])=>({id,n})), keep:[], itemsVersion:1,
+    bag:INITIAL_ITEMS.map(([id,n])=>({id,n})), keep:[], itemVault:[], itemsVersion:1,
     quests:{M01:"available", M02:"locked", M03:"locked", M04:"locked", S01:"locked", S02:"locked"}, qprog:{}, activeQuest:null,
     talked:{}, boxes:{}, cards:[], bossDefeated:{}, seen:{}, killCount:{},
     moeRank:0, run:null, runSeq:0, stream:null, lastResult:null, streamBest:{},
@@ -861,13 +861,24 @@ function bagCount(bag,id){ const e=(bag||[]).find(x=>x.id===id); return e?e.n:0;
 function bagRoom(bag,id){ const e=bag.find(x=>x.id===id); if(e) return BAG_STACK-e.n; return bag.length<BAG_KINDS?BAG_STACK:0; }
 function bagAdd(bag,id,n){ const add=Math.min(n,bagRoom(bag,id)); if(add<=0) return 0; const e=bag.find(x=>x.id===id); if(e) e.n+=add; else bag.push({id,n:add}); return add; }
 function bagRemove(bag,id,n){ const i=bag.findIndex(x=>x.id===id); if(i<0) return 0; const r=Math.min(n,bag[i].n); bag[i].n-=r; if(bag[i].n<=0) bag.splice(i,1); return r; }
+const ITEM_VAULT_MAX=999;
+function itemVaultCount(st){ return (st.itemVault||[]).reduce((n,e)=>n+e.n,0); }
+function itemVaultAdd(st,id,n){
+  if(!ITEMS[id]||!Number.isSafeInteger(n)||n<1) return 0;
+  st.itemVault=st.itemVault||[];
+  const room=Math.max(0,ITEM_VAULT_MAX-itemVaultCount(st)),add=Math.min(n,room);
+  if(!add) return 0;
+  const e=st.itemVault.find(x=>x.id===id); if(e) e.n+=add; else st.itemVault.push({id,n:add});
+  return add;
+}
 function giveItem(st,id,n,res,why){
   st.bag=st.bag||[]; st.keep=st.keep||[];
-  const got=bagAdd(st.bag,id,n); let rest=n-got, kept=0;
+  const got=bagAdd(st.bag,id,n); let rest=n-got, vaulted=0, kept=0;
+  if(rest>0){ vaulted=itemVaultAdd(st,id,rest); rest-=vaulted; }
   while(rest>0 && st.keep.length<KEEP_MAX){ st.keep.push(id); rest--; kept++; }
-  if(res){ res.items=res.items||[]; res.itemsKept=res.itemsKept||[]; res.itemsLost=res.itemsLost||[];
-    if(got) res.items.push({id,n:got,why}); if(kept) res.itemsKept.push({id,n:kept}); if(rest) res.itemsLost.push({id,n:rest}); }
-  return {got,kept,lost:rest};
+  if(res){ res.items=res.items||[]; res.itemsVaulted=res.itemsVaulted||[]; res.itemsKept=res.itemsKept||[]; res.itemsLost=res.itemsLost||[];
+    if(got) res.items.push({id,n:got,why}); if(vaulted) res.itemsVaulted.push({id,n:vaulted}); if(kept) res.itemsKept.push({id,n:kept}); if(rest) res.itemsLost.push({id,n:rest}); }
+  return {got,vaulted,kept,lost:rest};
 }
 function flushKeep(st){ // 預かり所から袋へ（安全地帯で呼ぶ）
   if(!st.keep||!st.keep.length) return 0; let moved=0; const left=[];

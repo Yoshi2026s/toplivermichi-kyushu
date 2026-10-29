@@ -2348,7 +2348,12 @@ function walkable(m,x,y){ const o=objAt(m,x,y); if(o) return !!o.walk; return ".
 function zoneAt(m,x,y){ const o=objAt(m,x,y); if(o&&o.walk) return null; return m.zones[tileAt(m,x,y)]||null; }
 function isSafe(){ return !zoneAt(MAPS[G.st.mapId],G.st.pos.x,G.st.pos.y); }
 function busyReason(){ const st=G.st; if(st.run) return "戦闘中です。"; return null; }
-function streamPending(){ return Object.keys(QUESTS).find(k=>G.st.quests[k]==="combatDone"); }
+function streamPending(){
+  const st=G.st, active=st?.activeQuest;
+  if(active&&st.quests[active]==="combatDone") return active;
+  const pending=Object.keys(QUESTS).filter(k=>st.quests[k]==="combatDone");
+  return pending.length===1&&!active?pending[0]:null;
+}
 function objective(){
   const st=G.st; const q=st.activeQuest;
   if(streamPending()) return `${streamPending()}：配信で80点以上を目指す（依頼帳から開始）`;
@@ -3699,7 +3704,7 @@ function soundIsOn(){ if(G.soundWant!=null) return G.soundWant; if(G.st&&G.st.se
 function soundPref(){ try{ return localStorage.getItem("tlr-kyushu-sound")!=="0"; }catch(e){ return true; } }
 function savedStreamUsable(s,st){
   if(!s||typeof s!=="object"||!HUBS[s.hub]||HUBS[s.hub].prefId!==s.prefId||!st.roster.includes(s.host)||!STREAM_THEMES[s.theme]||!["video","voice"].includes(s.style)) return false;
-  if(!Object.entries(QUESTS).some(([id,q])=>q.hub===s.hub&&st.quests[id]==="combatDone")) return false;
+  if(!Object.entries(QUESTS).some(([id,q])=>q.hub===s.hub&&st.quests[id]==="combatDone"&&(!st.activeQuest||st.activeQuest===id))) return false;
   const request=STREAM_REQ[s.prefId];
   if(!Array.isArray(request)||!Array.isArray(s.requestIds)||s.requestIds.length!==4||s.requestIds.some((id,i)=>id!==request[i])) return false;
   if(!Number.isInteger(s.hand)||s.hand<0||s.hand>4||typeof s.done!=="boolean"||s.done!==(s.hand===4)||!Number.isFinite(s.score)||s.score<0) return false;

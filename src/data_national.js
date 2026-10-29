@@ -1,4 +1,4 @@
-/* 全国編の地理台帳。ゲームに未実装の拠点・経路・物語を推測で生成しない。 */
+/* 全国編の地理台帳。追加の探索拠点と経路は data_nationwide.js に定義する。 */
 const NATIONAL_REGIONS = [
   ["RG01","北海道"], ["RG02","東北"], ["RG03","関東"], ["RG04","中部"],
   ["RG05","近畿"], ["RG06","中国"], ["RG07","四国"], ["RG08","九州・沖縄"]
@@ -13,7 +13,7 @@ const NATIONAL_PREFECTURES = [
   ["JP36","徳島県","RG07"], ["JP37","香川県","RG07"], ["JP38","愛媛県","RG07"], ["JP39","高知県","RG07"],
   ["JP40","福岡県","RG08"], ["JP41","佐賀県","RG08"], ["JP42","長崎県","RG08"], ["JP43","熊本県","RG08"], ["JP44","大分県","RG08"], ["JP45","宮崎県","RG08"], ["JP46","鹿児島県","RG08"], ["JP47","沖縄県","RG08"]
 ].map(([id,name,regionId])=>({id,name,regionId}));
-/* 実際に遊べる拠点だけを列挙。未収録の県には移動先を作らない。 */
+/* 既存の本編拠点。追加の訪問拠点は data_nationwide.js で登録する。 */
 const NATIONAL_IMPLEMENTED_HUBS = {JP40:["KY01","KY02"],JP41:["KY03","KY04"],JP42:["KY05","KY06"],JP43:["KY07","KY08"]};
 /* 経路は実装状態と解放条件を分ける。planned は地図の移動先にしない。 */
 const NATIONAL_ROUTES = [
@@ -25,3 +25,4 @@ const NATIONAL_ROUTES = [
   {id:"RT-KY06-KY07",from:"KY06",to:"KY07",mode:"road",status:"playable",unlock:"nagasakiClear",firstArrival:"長崎市の東門",firstGateId:"gate_kumamoto"},
   {id:"RT-KY07-KY08",from:"KY07",to:"KY08",mode:"road",status:"playable",unlock:"kumamotoClear",firstArrival:"熊本市の東門",firstGateId:"gate_aso"}
 ];
+

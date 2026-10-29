@@ -856,7 +856,7 @@ function aiChoose(run){
   return best;
 }
 
-/* ---- 道具袋（20種類×各9個。入らない分は預かり所へ） ---- */
+/* ---- 道具袋（300種類×各99個。入らない分は金庫、次に預かり所へ） ---- */
 function bagCount(bag,id){ const e=(bag||[]).find(x=>x.id===id); return e?e.n:0; }
 function bagRoom(bag,id){ const e=bag.find(x=>x.id===id); if(e) return BAG_STACK-e.n; return bag.length<BAG_KINDS?BAG_STACK:0; }
 function bagAdd(bag,id,n){ const add=Math.min(n,bagRoom(bag,id)); if(add<=0) return 0; const e=bag.find(x=>x.id===id); if(e) e.n+=add; else bag.push({id,n:add}); return add; }
@@ -957,4 +957,3 @@ function useItemField(st, id, cid){
   bagRemove(st.bag,id,1);
   return {ok:true, log};
 }
-

@@ -2,8 +2,42 @@
 const XP_CAP = 10029900, JP_CAP = 1997996;
 const xpFor = L => 10*(L-1)*(L+6);
 const jpFor = R => 2*R*(R+1)-4;
-function levelOf(xp){ let lo=1,hi=999; while(lo<hi){const m=(lo+hi+1)>>1; if(xpFor(m)<=xp) lo=m; else hi=m-1;} return lo; }
-function rankOf(jp){ let lo=1,hi=999; while(lo<hi){const m=(lo+hi+1)>>1; if(jpFor(m)<=jp) lo=m; else hi=m-1;} return lo; }
+function levelOf(xp,st){ let lo=1,hi=st?levelLimit(st):999; while(lo<hi){const m=(lo+hi+1)>>1; if(xpFor(m)<=xp) lo=m; else hi=m-1;} return lo; }
+function rankOf(jp,limit=999){ let lo=1,hi=limit; while(lo<hi){const m=(lo+hi+1)>>1; if(jpFor(m)<=jp) lo=m; else hi=m-1;} return lo; }
+function chapterCap(st){
+  let cap=STORY_CHAPTERS[0].cap;
+  for(let i=0;i<STORY_CHAPTERS.length-1;i++){
+    const finale=STORY_CHAPTERS[i].completionQuest;
+    if(!finale||!QUESTS[finale]?.main||st.quests?.[finale]!=="complete") break;
+    cap=STORY_CHAPTERS[i+1].cap;
+  }
+  return Math.min(999,cap);
+}
+function legacyLevel(st){ return st.growthVersion===1 ? Math.max(1,Math.min(999,Number(st.legacyGrowth?.level)||1)) : levelOf(st.xp||0); }
+function levelLimit(st){ return Math.max(chapterCap(st),legacyLevel(st)); }
+function jobLimit(st,cid,job){
+  const floor=st.growthVersion===1 ? Number(st.legacyGrowth?.jobs?.[cid]?.[job])||1 : rankOf(jpOf(st,cid,job));
+  return Math.max(chapterCap(st),Math.min(999,Math.max(1,floor)));
+}
+function migrateGrowth(st){
+  if(st.growthVersion!==1){
+    const jobs={};
+    for(const [cid,entries] of Object.entries(st.jp||{})){
+      jobs[cid]={}; for(const [job,jp] of Object.entries(entries)) jobs[cid][job]=rankOf(jp);
+    }
+    st.legacyGrowth={level:levelOf(st.xp||0),jobs}; st.growthVersion=1;
+  }
+  return st;
+}
+function addExperience(st,amount){
+  const ceiling=Math.max(st.xp,Math.min(XP_CAP,xpFor(levelLimit(st))));
+  const gain=Math.max(0,Math.min(amount,ceiling-st.xp)); st.xp+=gain; return gain;
+}
+function bossReward(bossId){
+  const q=BOSSES[bossId]?.q;
+  // Three ordinary enemies of the same strength; quest rewards remain separate.
+  return q?{xp:3*(8+3*q),gold:3*(20+2*q)}:{xp:0,gold:0};
+}
 const Vof = L => 1+Math.floor((L-1)/20);
 const Kof = R => R>=10?3:R>=6?2:R>=3?1:0;
 const clone = o => JSON.parse(JSON.stringify(o));
@@ -13,7 +47,7 @@ const charName = (st,cid) => cid==="hero" ? st.profile.name : CHARS[cid].name;
 function newGame(name, gender){
   const st = {
     schemaVersion:SCHEMA_VERSION, gameVersion:GAME_VERSION, saveGeneration:0,
-    profile:{name, gender}, day:1, slots:6, mapId:"KY01", pos:{x:19,y:19}, dir:0,
+    profile:{name, gender}, day:1, growthVersion:1, legacyGrowth:{level:1,jobs:{}}, mapId:"KY01", pos:{x:19,y:19}, dir:0,
     visitedMaps:["KY01"], visitedHubs:["KY01"], xp:0,
     roster:["hero","moe"], party:["hero","moe"], vitals:null,
     jobs:{}, jp:{}, equip:{}, owned:{CW01:8, CA01:8}, pendingGifts:[], favorite:{},
@@ -48,7 +82,7 @@ function transferVaultGold(st,mode,amount){
 function jpOf(st,cid,job){ return (st.jp[cid]&&st.jp[cid][job])||0; }
 function charStats(st, cid, L, jobOverride, equipOverride){
   const job = jobOverride || st.jobs[cid];
-  const R = rankOf(jpOf(st,cid,job));
+  const R = rankOf(jpOf(st,cid,job),jobLimit(st,cid,job));
   const V = Vof(L);
   const eq = equipOverride || st.equip[cid];
   const w = eq.w?EQUIP[eq.w]:null, a = eq.a?EQUIP[eq.a]:null, acc = eq.acc?EQUIP[eq.acc]:null;
@@ -102,7 +136,7 @@ function buildParty(st, L, supportStartA){
   });
 }
 function baseRun(st, kind){
-  const L = levelOf(st.xp), diff = DIFFICULTY[st.settings.difficulty];
+  const L = levelOf(st.xp,st), diff = DIFFICULTY[st.settings.difficulty];
   let A0 = diff.startA; const sup = st.support && SUPPORTS[st.support];
   if(sup) A0 += sup.startA||0;
   return { seq: st.runSeq+1, kind, L, V:Vof(L), difficulty:st.settings.difficulty, support:st.support,
@@ -201,7 +235,7 @@ function planAction(run, idx, act){
     const d=singleDamage(run,a,extra,e,opts); p.dmg.push({slot:e.slot, amt:Math.min(d,e.hp), raw:d}); p.valid=true;
     p.consumeB=true; p.aGain+=8; return true;
   };
-  const payC=(n)=>{ if(a.c<n){ p.ok=false; p.reason=`集中力が足りません（必要${n}）。`; return false;} p.cost.c=n; return true; };
+  const payC=(n)=>{ if(a.c<n){ p.ok=false; p.reason=`MPが足りません（必要${n}）。`; return false;} p.cost.c=n; return true; };
   const commentLike=(baseA)=>{
     const line=act.line; if(!LINE_NAMES[line]){ p.ok=false; p.reason="台詞を選んでください。"; return; }
     if(!payC(1)) return;
@@ -224,7 +258,7 @@ function planAction(run, idx, act){
       p.guard=true; p.cgain.push({pos:a.pos, amt:Math.min(1,10-a.c)}); p.cue = cueProgress(run,a,"guard")?"guard":null; p.valid=!!p.cue;
       break;
     case "rest": {
-      const g=Math.min(4+a.rest, 10-a.c); if(g<=0){ p.ok=false; p.reason="集中力は最大です。"; break; }
+      const g=Math.min(4+a.rest, 10-a.c); if(g<=0){ p.ok=false; p.reason="MPは最大です。"; break; }
       p.cgain.push({pos:a.pos, amt:g}); p.valid=false; break; }
     case "family": {
       if(run.A<40){ p.ok=false; p.reason="エールが40必要です。"; break; }
@@ -263,14 +297,14 @@ function planSkill(run,a,act,p,h){
       if(act.mode==="bold"){ if(a.hp < 10*V+1){p.ok=false;p.reason=`強気には体力${10*V+1}以上が必要です。`;return;} p.cost.hp=10*V; if(!h.attackSingle(18+2*S)){p.ok=false;p.reason="対象の敵を選んでください。";return;} }
       else { if(!h.attackSingle(10+2*S)){p.ok=false;p.reason="対象の敵を選んでください。";return;} h.addWard(a,1); }
       break; }
-    case "J07": h.addC(a,5); h.addWard(a,2+Math.floor(S/2)); if(!p.valid){p.ok=false;p.reason="集中力も防護も最大のため効果がありません。";} break;
+    case "J07": h.addC(a,5); h.addWard(a,2+Math.floor(S/2)); if(!p.valid){p.ok=false;p.reason="MPも防護も最大のため効果がありません。";} break;
     case "J08": { if(!h.payC(2))return; const t=h.needAlly(); if(!t){p.ok=false;p.reason="回復する対象を選んでください。";return;} h.gainA(24+S); h.heal(t,(8+S)*V); if(!p.valid){p.ok=false;p.reason="効果がありません。";} break; }
     case "J09": if(!h.payC(3))return; if(!h.attackSingle(6+2*S)){p.ok=false;p.reason="対象の敵を選んでください。";return;} h.al.forEach(t=>h.addWard(t,1)); break;
     case "J10": { if(!h.payC(3))return; for(const e of h.en){ const d=Math.max(1,2*L+(5+S)*V-e.def); p.dmg.push({slot:e.slot,amt:Math.min(d,e.hp),raw:d}); } p.valid=true; p.all=true; break; }
     case "J11": if(!h.payC(3))return; h.gainA(16+2*S); h.al.forEach(t=>h.addWard(t,2)); if(!p.valid){p.ok=false;p.reason="効果がありません。";} break;
     case "J12": if(!h.payC(3))return; h.al.forEach(t=>{h.heal(t,(8+S)*V); h.addC(t,1);}); if(!p.valid){p.ok=false;p.reason="効果がありません。";} break;
     case "J13": { if(!h.payC(3))return; const t=h.needAlly(); if(!t){p.ok=false;p.reason="対象を選んでください。";return;} h.heal(t,(18+3*S)*V+2*L); if(!p.valid){p.ok=false;p.reason="対象のHPは満タンです。";} break; }
-    case "J14": if(!h.payC(3))return; h.al.filter(t=>t!==a).forEach(t=>h.addC(t,2+Math.floor(S/2))); if(!p.valid){p.ok=false;p.reason="ほかの全員の集中力が最大です。";} break;
+    case "J14": if(!h.payC(3))return; h.al.filter(t=>t!==a).forEach(t=>h.addC(t,2+Math.floor(S/2))); if(!p.valid){p.ok=false;p.reason="ほかの全員のMPが最大です。";} break;
     case "J15": if(!h.payC(3))return; if(!h.attackSingle(12+2*S)){p.ok=false;p.reason="対象の敵を選んでください。";} break;
     case "J16": if(!h.payC(2))return; if(!h.attackSingle(4+S,{ignoreDef:true})){p.ok=false;p.reason="対象の敵を選んでください。";} break;
     case "J17": if(!h.payC(3))return; h.al.forEach(t=>h.addWard(t,3+Math.floor(S/2))); if(!p.valid){p.ok=false;p.reason="全員の防護が最大です。";} break;
@@ -278,7 +312,7 @@ function planSkill(run,a,act,p,h){
     case "J19": if(!h.payC(3))return; if(!h.attackSingle(10+2*S)){p.ok=false;p.reason="対象の敵を選んでください。";return;} p.setBAfter=4; break;
     case "J20": if(!h.payC(2))return; h.gainA(12+S); if(run.B!==4)p.valid=true; p.setB=4; h.al.forEach(t=>h.addWard(t,1)); if(!p.valid){p.ok=false;p.reason="効果がありません。";} break;
     case "J21": if(!h.payC(4))return; if(!h.attackSingle(18+2*S)){p.ok=false;p.reason="対象の敵を選んでください。";} break;
-    case "J22": { if(!h.payC(3))return; const t=h.needAlly(true); if(!t){p.ok=false;p.reason="自分以外の生存者を選んでください。";return;} h.gainA(14+2*S); h.addC(t,2+Math.floor(S/2)); if(!p.valid){p.ok=false;p.reason="エール100かつ対象の集中力10のため効果がありません。";} break; }
+    case "J22": { if(!h.payC(3))return; const t=h.needAlly(true); if(!t){p.ok=false;p.reason="自分以外の生存者を選んでください。";return;} h.gainA(14+2*S); h.addC(t,2+Math.floor(S/2)); if(!p.valid){p.ok=false;p.reason="エール100かつ対象のMP10のため効果がありません。";} break; }
   }
 }
 /* 確定（validate → reduce）。戻り値はログ配列 */
@@ -362,7 +396,7 @@ function applyAction(run, idx, act){
   if(p.aGain>0){ const before=run.A; run.A=Math.min(100,run.A+p.aGain); if(run.A>before) log.push(`エール＋${run.A-before}（${run.A}）`); }
   if(p.setB!=null){ run.B=p.setB; }
   for(const h of p.heal){ const t=run.party[h.pos]; if(h.revive){ t.hp=Math.min(h.amt,t.maxHP); t.acted=true; log.push(`${t.name}が復帰（体力${t.hp}）。`); } else if(h.amt>0){ t.hp+=h.amt; log.push(`${t.name}の体力＋${h.amt}`); } }
-  for(const g of p.cgain){ const t=run.party[g.pos]; if(g.amt>0){ t.c=Math.min(10,t.c+g.amt); log.push(`${t.name}の集中力＋${g.amt}`); } }
+  for(const g of p.cgain){ const t=run.party[g.pos]; if(g.amt>0){ t.c=Math.min(10,t.c+g.amt); log.push(`${t.name}のMP＋${g.amt}`); } }
   for(const w of p.ward){ const t=run.party[w.pos]; if(w.amt>0){ t.ward=Math.min(8,t.ward+w.amt); log.push(`${t.name}に防護${w.amt}`); } }
   if(p.guard){ a.guard=true; log.push(`${nm}は身構えた。`); }
   if(p.item){
@@ -446,14 +480,14 @@ function enemyPhase(run){
 
 /* ---- 戦闘報酬（第17B・17H節）。一度だけ適用 ---- */
 function applyVictory(st, run){
-  const res = { xp:0, gold:0, tickets:0, jp:[], levelBefore:levelOf(st.xp), levelAfter:0, gifts:[], quest:null, kills:0, notes:[] };
+  const res = { xp:0, gold:0, tickets:0, jp:[], levelBefore:levelOf(st.xp,st), levelAfter:0, gifts:[], quest:null, kills:0, notes:[] };
   if(run.rewardsApplied) return res;
   storeVitals(st, run); st.bag = clone(run.bag||st.bag||[]); res.items=[]; res.itemsKept=[]; res.itemsLost=[];
-  const L0 = levelOf(st.xp); const max0 = Object.fromEntries(st.roster.map(cid=>[cid,charStats(st,cid,L0).maxHP]));
+  const L0 = levelOf(st.xp,st); const max0 = Object.fromEntries(st.roster.map(cid=>[cid,charStats(st,cid,L0).maxHP]));
   const n = run.enemies.length;
   if(run.kind==="field"){
-    res.xp = Math.min(XP_CAP-st.xp, n*(8+3*run.q)); res.gold = n*(20+2*run.q);
-    st.xp += res.xp; st.gold += res.gold;
+    res.xp = addExperience(st,n*(8+3*run.q)); res.gold = n*(20+2*run.q);
+    st.gold += res.gold;
     for(const e of run.enemies) st.killCount[e.id]=(st.killCount[e.id]||0)+1;
     // 道具のドロップ：倒した敵ごとに1回だけ抽選（1体から最大1個）
     for(const e of run.enemies){ const dr=ITEM_DROPS[e.id]; if(!dr) continue;
@@ -470,11 +504,16 @@ function applyVictory(st, run){
       }
     }
   }
+  if(run.kind==="boss"){
+    const reward=bossReward(run.bossId);
+    res.xp=addExperience(st,reward.xp); res.gold=reward.gold; st.gold+=reward.gold;
+  }
   // JP
   for(const m of run.party){
     const base = run.turn<=3 ? 12 : 6+2*Math.min(3,m.valid);
-    const cur = jpOf(st,m.cid,m.job); const R0=rankOf(cur);
-    const gain = Math.min(JP_CAP-cur, base); st.jp[m.cid][m.job]=cur+gain; const R1=rankOf(cur+gain);
+    const cur = jpOf(st,m.cid,m.job); const R0=rankOf(cur,jobLimit(st,m.cid,m.job));
+    const ceiling=Math.max(cur,Math.min(JP_CAP,jpFor(jobLimit(st,m.cid,m.job))));
+    const gain = Math.max(0,Math.min(ceiling-cur,base)); st.jp[m.cid][m.job]=cur+gain; const R1=rankOf(cur+gain,jobLimit(st,m.cid,m.job));
     res.jp.push({cid:m.cid, name:m.name, job:m.job, gain, R0, R1});
     if(R0<4 && R1>=4) giftCheck(st,m.job,"W",res);
     if(R0<7 && R1>=7) giftCheck(st,m.job,"A",res);
@@ -487,7 +526,7 @@ function applyVictory(st, run){
       else completeQuest(st,qid,res);
     }
   }
-  res.levelAfter = levelOf(st.xp);
+  res.levelAfter = levelOf(st.xp,st);
   // レベルが上がった分だけ現在の体力も増やす（戦闘不能のままは増やさない）
   for(const cid of st.roster){ const v=st.vitals[cid]; if(v&&v.hp>0){ const d=charStats(st,cid,res.levelAfter).maxHP-max0[cid]; if(d>0) v.hp+=d; } }
   ensureVitals(st);
@@ -498,14 +537,14 @@ function giftCheck(st, job, kind, res){
   if(st.gifts[kind][job]) return;
   st.gifts[kind][job]=true; const id=(kind==="W"?"JW":"JA")+job.slice(1);
   const total=(st.owned[id]||0)+bagCount(st.itemVault||[],id);
-  if(total<8&&unequippedGearCount(st)<UNEQUIPPED_GEAR_MAX){ st.owned[id]=(st.owned[id]||0)+1; res.gifts.push(id); }
+  if(total<8&&gearReceiveRoom(st,id)>0){ st.owned[id]=(st.owned[id]||0)+1; res.gifts.push(id); }
   else if(total<8&&itemVaultAdd(st,id,1)){ res.gifts.push(id); res.notes.push(`${EQUIP[id].name}はアイテム金庫に保管した。`); }
   else { st.pendingGifts=st.pendingGifts||[]; st.pendingGifts.push(id); res.notes.push(`${EQUIP[id].name}は所持上限のため受取保留。安全地帯のアイテム金庫で受け取れる。`); }
 }
 function claimPendingGift(st,id){
   if(!EQUIP[id]||!st.pendingGifts?.includes(id)||(st.owned[id]||0)+bagCount(st.itemVault||[],id)>=8) return null;
   let destination=null;
-  if(unequippedGearCount(st)<UNEQUIPPED_GEAR_MAX){ st.owned[id]=(st.owned[id]||0)+1; destination="手元"; }
+  if(gearReceiveRoom(st,id)>0){ st.owned[id]=(st.owned[id]||0)+1; destination="手元"; }
   else if(itemVaultAdd(st,id,1)) destination="アイテム金庫";
   if(destination) st.pendingGifts.splice(st.pendingGifts.indexOf(id),1);
   return destination;
@@ -513,9 +552,9 @@ function claimPendingGift(st,id){
 function completeQuest(st, qid, res){
   if(st.quests[qid]==="complete") return;
   const Q=QUESTS[qid]; st.quests[qid]="complete"; st.activeQuest=null;
-  const xp = Q.main?40:10, tk = Q.main?200:80;
+  const xp = addExperience(st,Q.main?40:10), tk = Q.main?200:80;
   const ev = ITEM_EVENTS[qid]; if(ev) giveItem(st, ev[0], ev[1], res, `依頼${qid}の達成`);
-  st.xp=Math.min(XP_CAP, st.xp+xp); st.tickets+=tk;
+  st.tickets+=tk;
   if(res){ res.xp+=xp; res.tickets+=tk; res.quest=qid; }
   if(qid==="M01"){ st.moeRank=Math.max(st.moeRank,1); st.quests.M02="available"; }
   if(qid==="M02"){ st.moeRank=Math.max(st.moeRank,2); st.fukuokaClear=true; st.quests.M03="available"; }
@@ -527,15 +566,15 @@ function completeQuest(st, qid, res){
   if(qid==="M08") st.moeRank=Math.max(st.moeRank,8);
   unlockSide(st);
 }
-/* ---- 体力・集中力の持ち越し（ユーザー指定：戦闘後も残り、宿屋で全回復） ---- */
+/* ---- 体力・MPの持ち越し（ユーザー指定：戦闘後も残り、宿屋で全回復） ---- */
 function ensureVitals(st){
-  st.vitals=st.vitals||{}; const L=levelOf(st.xp);
+  st.vitals=st.vitals||{}; const L=levelOf(st.xp,st);
   for(const cid of st.roster){ const s=charStats(st,cid,L); const v=st.vitals[cid];
     if(!v) st.vitals[cid]={hp:s.maxHP, c:s.startC};
     else { v.hp=Math.max(0,Math.min(s.maxHP,v.hp)); v.c=Math.max(0,Math.min(s.startC,v.c)); } }
 }
 function storeVitals(st, run){
-  st.vitals=st.vitals||{}; const L=levelOf(st.xp);
+  st.vitals=st.vitals||{}; const L=levelOf(st.xp,st);
   for(const m of run.party){ const s=charStats(st,m.cid,L); st.vitals[m.cid]={hp:Math.max(0,Math.min(s.maxHP,m.hp)), c:Math.max(0,Math.min(s.startC,m.c))}; }
 }
 function restoreAll(st){ st.vitals={}; ensureVitals(st); }
@@ -552,7 +591,16 @@ function unlockSide(st){
 }
 function equippedCount(st,id){ let n=0; for(const c of st.roster){ const e=st.equip[c]; if(e.w===id)n++; if(e.a===id)n++; if(e.acc===id)n++; } return n; }
 function availableCount(st,id){ return (st.owned[id]||0)-equippedCount(st,id); }
-function unequippedGearCount(st){ return Object.keys(st.owned).reduce((n,id)=>n+Math.max(0,availableCount(st,id)),0); }
+function unequippedGearCount(st){ return Object.keys(st.owned).filter(id=>availableCount(st,id)>0).length; }
+function gearReceiveRoom(st,id,fromVault=false){
+  const same=Math.max(0,8-(st.owned[id]||0)-(fromVault?0:bagCount(st.itemVault||[],id)));
+  return availableCount(st,id)>0||unequippedGearCount(st)<UNEQUIPPED_GEAR_MAX?same:0;
+}
+function equipmentSetFits(st,cid,equip){
+  const candidate={...st,equip:{...st.equip,[cid]:equip}};
+  return unequippedGearCount(candidate)<=Math.max(UNEQUIPPED_GEAR_MAX,unequippedGearCount(st));
+}
+function equipmentChangeFits(st,cid,slot,id){ return equipmentSetFits(st,cid,{...st.equip[cid],[slot]:id}); }
 
 /* ---- 配信（第13・13A節） ---- */
 function newStream(st, hub, host, theme, style){
@@ -898,7 +946,7 @@ function transferVaultItem(st,mode,id,n){
       if(availableCount(st,id)<n||total+n>ITEM_VAULT_MAX) return false;
       st.owned[id]-=n; itemVaultAdd(st,id,n);
     }else{
-      if(stored<n||(st.owned[id]||0)+n>8||unequippedGearCount(st)+n>UNEQUIPPED_GEAR_MAX) return false;
+      if(stored<n||gearReceiveRoom(st,id,true)<n) return false;
       bagRemove(st.itemVault,id,n); st.owned[id]=(st.owned[id]||0)+n;
     }
     return true;
@@ -969,13 +1017,13 @@ function planItem(run,a,act,p,h){
   if(!effect){ p.ok=false; p.reason="今は効果がありません。"; return; }
   p.valid=false; p.aGain=0;
 }
-/* 移動中の道具（攻撃道具は使えない）。集中力の上限は最大集中力 */
+/* 移動中の道具（攻撃道具は使えない）。MPの上限は最大MP */
 function useItemField(st, id, cid){
   const it=ITEMS[id]; if(!it) return {ok:false, reason:"道具がありません。"};
   if(it.battleOnly) return {ok:false, reason:"戦闘中だけ使える道具です。"};
   if(st.run) return {ok:false, reason:"戦闘中は戦闘の道具コマンドから使います。"};
   if(bagCount(st.bag,id)<=0) return {ok:false, reason:"その道具は持っていません。"};
-  ensureVitals(st); const L=levelOf(st.xp), V=Vof(L), need=itemNeeds(it);
+  ensureVitals(st); const L=levelOf(st.xp,st), V=Vof(L), need=itemNeeds(it);
   const all = need==="allyAll"||need==="downAll";
   const targets = all ? st.roster.slice() : [cid];
   const log=[]; let any=false;
@@ -985,7 +1033,7 @@ function useItemField(st, id, cid){
     if(v.hp<=0){ continue; }
     const hp=Math.min(itemAmount(it,"hp",s.maxHP,V,boost), s.maxHP-v.hp); const cc=Math.min(itemC(it,s.startC-v.c), s.startC-v.c);
     if(hp>0){ v.hp+=hp; any=true; log.push(`${charName(st,c)}の体力＋${hp}`); }
-    if(cc>0){ v.c+=cc; any=true; log.push(`${charName(st,c)}の集中力＋${cc}`); }
+    if(cc>0){ v.c+=cc; any=true; log.push(`${charName(st,c)}のMP＋${cc}`); }
   }
   if(!any) return {ok:false, reason: (need==="down"||need==="downAll") ? "戦闘不能の仲間がいません。" : "今は効果がありません（戦闘不能の人には回復道具が効きません）。"};
   bagRemove(st.bag,id,1);

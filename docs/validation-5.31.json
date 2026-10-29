@@ -1,0 +1,87 @@
+{
+  "base_commit": "fc4c777147bf06232e109d80333970d7d3496211",
+  "version": "5.31",
+  "results": [
+    {
+      "test": "scripts/check-audio-duck.mjs",
+      "ok": true,
+      "output": "Audio: short duck, overlapping effects, stop reset, mute/unmute gain OK\nAudio: repeated settings and jingle cancellation OK\nAudio: visibility resume is idempotent OK"
+    },
+    {
+      "test": "scripts/check-auto-items.mjs",
+      "ok": true,
+      "output": "Auto items: thresholds, purchasable recovery and immutable search OK"
+    },
+    {
+      "test": "scripts/check-badge-list.mjs",
+      "ok": true,
+      "output": "Badge catalog: 100 IDs, 10 groups, live progress, recommendations and filter OK"
+    },
+    {
+      "test": "scripts/check-battle-log.mjs",
+      "ok": true,
+      "output": "Battle log: 80-entry retention, newest/oldest pages, empty state OK"
+    },
+    {
+      "test": "scripts/check-national.mjs",
+      "ok": true,
+      "output": "National registry: 8 regions, 47 prefectures, 8 connected hubs, Aso city M08 and route OK"
+    },
+    {
+      "test": "scripts/check-nationwide.mjs",
+      "ok": true,
+      "output": "Nationwide: 47 prefectures, 51 hubs, 50 connected routes, 129 new areas, gates and unlock OK"
+    },
+    {
+      "test": "scripts/check-saga.mjs",
+      "ok": true,
+      "output": "Saga, Nagasaki and Kumamoto M03-M08: old saves, battles, bosses, streams, ranks and rewards OK"
+    },
+    {
+      "test": "scripts/check-save.mjs",
+      "ok": true,
+      "output": "Save recovery: generation choice, corrupt checksum, malformed JSON, invalid state, local fallback, visit migration, restore rollback OK"
+    },
+    {
+      "test": "scripts/check-selected-fixes.mjs",
+      "ok": true,
+      "output": "Selected changes: chapter gating, over-cap legacy saves, 300 gear kinds, 8-copy cap, boss settlement, waiting JP, names and MP labels OK"
+    },
+    {
+      "test": "scripts/check-shop.mjs",
+      "ok": true,
+      "output": "Shop offer bounds and stale token OK"
+    },
+    {
+      "test": "scripts/check-stream-actions.mjs",
+      "ok": true,
+      "output": "Stream actions: active turn, stale buttons, retry, exit and saved-state guards OK"
+    },
+    {
+      "test": "scripts/check-target.mjs",
+      "ok": true,
+      "output": "Target weighting and KO exclusion OK"
+    },
+    {
+      "test": "scripts/check-vault.mjs",
+      "ok": true,
+      "output": "Gold and item vault: transfer, overflow, capacity and legacy save OK"
+    },
+    {
+      "test": "generated-html-script",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "test": "git-diff-check",
+      "ok": true,
+      "output": ""
+    }
+  ],
+  "generated_html_sha256": "5e77943e5bc32ec56227f497fca73118e8457f88d9e0a8294eec3dbe0531ef31",
+  "limitations": [
+    "スマートフォン実機未確認",
+    "実際の旧セーブ・音の聴感未確認",
+    "ライブ公開配信は別工程で照合"
+  ]
+}

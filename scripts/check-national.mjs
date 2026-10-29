@@ -132,7 +132,7 @@ if(!worldSaga.includes('訪問済みは2/4県・4/8拠点')) fail('Saga city vis
 if(!worldSaga.includes('唐津市')||worldSaga.includes('佐賀市 → 唐津市 → 北九州市 → 福岡市')) fail('map must avoid distant travel cards');
 if(!worldSaga.includes('佐賀市 ↔ 佐世保市：佐賀市編M04の完了後に開きます。')) fail('Sasebo route directory did not report locked leg');
 const worldLowSlots=runInNewContext(`${source}\n${worldFn}\n${statusFn}\n${routeFn}\n${itineraryFn}\n${unlockFn}\nrenderWorld()`,{G:{st:{visitedHubs:['KY01','KY02','KY03','KY04'],quests:{M03:'complete'},fukuokaClear:true,slots:0}},HUBS:hubs,FUTURE_HUBS:future,isSafe:()=>true,curHub:()=> 'KY04',esc:s=>String(s)});
-if(!worldLowSlots.includes('旅程枠が足りません')) fail('adjacent travel did not report insufficient slots');
+if(worldLowSlots.includes('旅程枠')||worldLowSlots.includes('残り0枠')) fail('obsolete travel budget was rendered');
 if(!worldSaga.includes('初回：佐賀市の東門')) fail('Sasebo first-arrival entrance missing');
 if(!worldVisited.includes('北九州市 ↔ 唐津市：経路解放済み')||!worldVisited.includes('唐津市 ↔ 佐賀市：唐津編M03の完了後に開きます。')) fail('route directory did not follow quest progress');
 const travelStatus=runInNewContext(`${source}\n${routeFn}\n${statusFn}\n${unlockFn}\nworldTravelStatus`);
@@ -143,7 +143,7 @@ if(!travelStatus(base,'KY01','KY02',true).available||!travelStatus(base,'KY01','
 if(!travelStatus({...base,visitedHubs:['KY01']},'KY01','KY02',true).reason.includes('福岡市の東門')) fail('first visit to Kitakyushu bypassed the gate');
 if(!travelStatus({...base,fukuokaClear:true},'KY02','KY03',true).reason.includes('東門')||!travelStatus({...base,fukuokaClear:true,visitedHubs:[...base.visitedHubs,'KY03']},'KY03','KY04',true).reason.includes('M03')) fail('national map unlock reasons failed');
 const open={...base,fukuokaClear:true,visitedHubs:['KY01','KY02','KY03','KY04'],quests:{M03:'complete'}};
-if(!travelStatus(open,'KY03','KY04',true).available||!travelStatus(open,'KY03','KY04',false).reason.includes('安全地帯')||!travelStatus({...open,slots:0},'KY03','KY04',true).reason.includes('旅程枠')) fail('national map travel readiness failed');
+if(!travelStatus(open,'KY03','KY04',true).available||!travelStatus(open,'KY03','KY04',false).reason.includes('安全地帯')||!travelStatus({...open,slots:0},'KY03','KY04',true).available) fail('national map travel readiness failed');
 if(!travelStatus({...open,quests:{M04:'complete'}},'KY04','KY05',true).reason.includes('佐賀市の東門')||!travelStatus({...open,visitedHubs:[...open.visitedHubs,'KY05'],quests:{M04:'complete'}},'KY05','KY04',true).available) fail('Sasebo first arrival or return guard failed');
 if(!travelStatus({...open,quests:{M05:'complete'}},'KY05','KY06',true).reason.includes('佐世保市の東門')||!travelStatus({...open,visitedHubs:[...open.visitedHubs,'KY06'],quests:{M05:'complete'}},'KY06','KY05',true).available) fail('Nagasaki city first arrival or return guard failed');
 if(!travelStatus({...open,quests:{M06:'complete'}},'KY06','KY07',true).reason.includes('長崎市の東門')||!travelStatus({...open,visitedHubs:[...open.visitedHubs,'KY07'],quests:{M06:'complete'}},'KY07','KY06',true).available) fail('Kumamoto city first arrival or return guard failed');
@@ -157,8 +157,7 @@ worldGo({dataset:{v:'KY03'}});
 if(moves||!lastMessage.includes('東門')) fail('stale map action bypassed first-visit gate');
 actionState.st.visitedHubs.push('KY03');actionState.st.slots=0;
 worldGo({dataset:{v:'KY03'}});
-if(moves||!lastMessage.includes('旅程枠')) fail('stale map action bypassed travel slots');
-actionState.st.slots=1;worldGo({dataset:{v:'KY03'}});
+if(moves!==1||actionState.st.slots!==0) fail('legacy zero slots blocked travel or were modified');
 if(moves!==1||actionState.sheet!==null) fail('valid map travel was rejected');
 const gateState={st:{...base,visitedHubs:['KY01','KY02'],slots:2},screen:'explore',sheet:'travel',sheetData:{to:'KY03',tx:2,ty:24,gateId:'gate_saga'},dlg:null,readOnly:false,walk:{path:[]}};
 let gateMoves=0;
@@ -219,9 +218,9 @@ let saved=0,dialogs=[];const savedStates=[];
 const journey=runInNewContext(`${core}\n${travelMapFn}\n${travelHubFn}\n({newGame,travelHub,G})`,{G:{st:null,walk:{path:[]},fol:null,sheet:null},commit:()=>{saved++;savedStates.push(JSON.parse(JSON.stringify(journey.G.st)));},render:()=>{},say:lines=>{dialogs.push(lines);},openSheet:()=>{throw new Error('unexpected rest sheet');}});
 const traveler=journey.newGame('旅人','女性');traveler.mapId='KY04';traveler.pos={x:37,y:20};traveler.visitedMaps.push('KY04');traveler.visitedHubs.push('KY04');traveler.quests.M04='complete';traveler.slots=2;journey.G.st=traveler;
 journey.travelHub('KY05',2,20);
-if(traveler.mapId!=='KY05'||traveler.pos.x!==2||traveler.pos.y!==20||traveler.slots!==1||!traveler.visitedHubs.includes('KY05')||!traveler.roster.includes('kayo')||!traveler.vitals.kayo||saved!==1||savedStates[0].mapId!=='KY05'||!savedStates[0].roster.includes('kayo')||dialogs.length!==1) fail('Sasebo first arrival, atomic save, or Kayo join failed');
+if(traveler.mapId!=='KY05'||traveler.pos.x!==2||traveler.pos.y!==20||traveler.slots!==2||!traveler.visitedHubs.includes('KY05')||!traveler.roster.includes('kayo')||!traveler.vitals.kayo||saved!==1||savedStates[0].mapId!=='KY05'||!savedStates[0].roster.includes('kayo')||dialogs.length!==1) fail('Sasebo first arrival, atomic save, or Kayo join failed');
 journey.travelHub('KY04',37,20);
-if(traveler.mapId!=='KY04'||traveler.slots!==0||traveler.roster.filter(cid=>cid==='kayo').length!==1||saved!==2) fail('Sasebo return duplicated join or lost travel state');
+if(traveler.mapId!=='KY04'||traveler.slots!==2||traveler.roster.filter(cid=>cid==='kayo').length!==1||saved!==2) fail('Sasebo return duplicated join or lost travel state');
 const questViewFn=ui.match(/function renderQuests\(\)\{[\s\S]*?\n\}/)?.[0];
 if(!questViewFn) fail('quest UI missing');
 traveler.mapId='KY05';
@@ -229,7 +228,7 @@ const saseboQuests=runInNewContext(`${core}\n${questViewFn}\nrenderQuests()`,{G:
 if(!saseboQuests.includes('佐世保市のM05と3区域を遊べます')||!saseboQuests.includes('M05 港から届く返事')) fail('Sasebo quest board did not show M05');
 traveler.mapId='KY05';traveler.pos={x:37,y:20};traveler.slots=2;traveler.quests.M05='complete';traveler.quests.M06='available';
 journey.travelHub('KY06',2,20);
-if(traveler.mapId!=='KY06'||traveler.pos.x!==2||traveler.pos.y!==20||traveler.slots!==1||!traveler.visitedHubs.includes('KY06')||saved!==3||savedStates[2].mapId!=='KY06') fail('Nagasaki city arrival or save failed');
+if(traveler.mapId!=='KY06'||traveler.pos.x!==2||traveler.pos.y!==20||traveler.slots!==2||!traveler.visitedHubs.includes('KY06')||saved!==3||savedStates[2].mapId!=='KY06') fail('Nagasaki city arrival or save failed');
 const nagasakiQuests=runInNewContext(`${core}\n${questViewFn}\nrenderQuests()`,{G:{st:traveler},curHub:()=> 'KY06',isSafe:()=>true,esc:s=>String(s)});
 if(!nagasakiQuests.includes('M06と3区域')||!nagasakiQuests.includes('M06 丘から返る声')) fail('Nagasaki city board did not show M06');
 traveler.slots=2;traveler.quests.M06='complete';traveler.quests.M07='available';journey.travelHub('KY07',2,20);
@@ -246,7 +245,7 @@ traveler.slots=1;journey.travelHub('KY06',37,20);
 if(traveler.mapId!=='KY06') fail('Kumamoto city return failed');
 traveler.slots=1;
 journey.travelHub('KY05',37,20);
-if(traveler.mapId!=='KY05'||traveler.slots!==0||saved!==8) fail('Nagasaki city return failed');
+if(traveler.mapId!=='KY05'||traveler.slots!==1||saved!==8) fail('Nagasaki city return failed');
 console.log('National registry: 8 regions, 47 prefectures, 8 connected hubs, Aso city M08 and route OK');
 
 

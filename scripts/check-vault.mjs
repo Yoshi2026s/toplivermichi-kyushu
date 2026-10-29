@@ -79,13 +79,13 @@ if(game.transferVaultItem(gearSave,'deposit',gearId,gearFree+1)) throw new Error
 game.transferVaultItem(gearSave,'deposit',gearId,1); gearSave.owned[gearId]=8;
 if(game.transferVaultItem(gearSave,'withdraw',gearId,1)) throw new Error('same gear limit ignored on withdrawal');
 gearSave.owned[gearId]=gearOwned-1; gearSave.owned.OTHER=300;
-if(game.transferVaultItem(gearSave,'withdraw',gearId,1)) throw new Error('unequipped gear limit ignored on withdrawal');
+if(!game.transferVaultItem(gearSave,'withdraw',gearId,1)) throw new Error('copies of an existing kind must not consume a kind slot');
 const giftSave=game.newGame('贈り物','女性'),giftResult={gifts:[],notes:[]}; giftSave.owned.JW01=8;
 game.giftCheck(giftSave,'J01','W',giftResult);
 if(giftResult.gifts.length||giftSave.pendingGifts[0]!=='JW01'||!giftResult.notes[0]?.includes('受取保留')) throw new Error('full gear gift was lost');
 giftSave.owned.JW01=7;
 if(game.claimPendingGift(giftSave,'JW01')!=='手元'||giftSave.owned.JW01!==8||giftSave.pendingGifts.length) throw new Error('pending gift was not claimed');
-const vaultGift=game.newGame('贈り物金庫','女性'),vaultResult={gifts:[],notes:[]}; vaultGift.owned.OTHER=300;
+const vaultGift=game.newGame('贈り物金庫','女性'),vaultResult={gifts:[],notes:[]}; for(let i=0;i<300;i++) vaultGift.owned['FILL'+i]=1;
 game.giftCheck(vaultGift,'J01','W',vaultResult);
 if(game.bagCount(vaultGift.itemVault,'JW01')!==1||vaultGift.pendingGifts.length||!vaultResult.notes[0]?.includes('アイテム金庫')) throw new Error('gift did not overflow to vault');
 const actDef=ui.match(/const ACT = \{[\s\S]*?\n\};/)?.[0], checksumDef=ui.match(/function checksum\(str\)\{[^\n]+/)?.[0];
@@ -162,7 +162,7 @@ if(!pendingBlockedView.includes('受取保留の贈り物')||!pendingBlockedView
 ivState.st.owned.JW01=7;
 const pendingReadyView=runInNewContext(`${core}\n${vaultFns}\n${itemVaultViewFn}\nrenderItemVault()`,{G:ivState,canEditItemVault:()=>true,canViewItemVault:()=>true,esc:s=>String(s)});
 if(!/<button class="btn" data-a="pendingGiftClaim" data-v="JW01" >/.test(pendingReadyView)) throw new Error('pending gift claim must unlock when space opens');
-ivState.st.owned.JW01=7; ivState.st.owned.CW01=300; ivState.st.itemVault=[{id:'IT001',n:999}];
+ivState.st.owned.JW01=0; ivState.st.owned.CW01=8; for(let i=0;i<300;i++) ivState.st.owned['FILL'+i]=1; ivState.st.itemVault=[{id:'IT001',n:999}];
 const fullVaultGiftView=runInNewContext(`${core}\n${vaultFns}\n${itemVaultViewFn}\nrenderItemVault()`,{G:ivState,canEditItemVault:()=>true,canViewItemVault:()=>true,esc:s=>String(s)});
 if(!fullVaultGiftView.includes('手元と金庫が満杯です')||!/<button class="btn" data-a="pendingGiftClaim" data-v="JW01" disabled/.test(fullVaultGiftView)) throw new Error('full hand and vault reason missing');
 const sheetDef=ui.match(/function openSheet\(k,data=\{\}\)\{[^\n]+\}\nfunction closeSheet\(\)\{[^\n]+\}/)?.[0];

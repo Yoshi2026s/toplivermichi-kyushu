@@ -71,7 +71,7 @@ function objective(){
   const st=G.st; const q=st.activeQuest;
   if(streamPending()) return `${streamPending()}：配信で80点以上を目指す（依頼帳から開始）`;
   if(q){ const Q=QUESTS[q]; if(st.quests[q]==="bossReady") return `${q}：${BOSSES[Q.boss].name}に挑む（${MAPS[Q.hub].name}の奥地）`; return `${q}：通常敵 ${st.qprog[q]||0}/${Q.kills}体（${HUBS[Q.hub].name}のA1～A3）`; }
-  const avail=["M01","M02","M03","M04","M05","M06","M07","M08"].find(k=>st.quests[k]==="available"); if(avail) return `依頼帳で「${avail} ${QUESTS[avail].name}」を受ける（2枠）`;
+  const avail=["M01","M02","M03","M04","M05","M06","M07","M08"].find(k=>st.quests[k]==="available"); if(avail) return `依頼帳で「${avail} ${QUESTS[avail].name}」を受ける`;
   if(st.quests.M08==="complete"){
     const visited=NATIONAL_PREFECTURES.filter(p=>(NATIONAL_IMPLEMENTED_HUBS[p.id]||[]).some(id=>st.visitedHubs?.includes(id))).length;
     return visited===47?"全国47都道府県を踏破しました！":`全国の旅：${visited}/47都道府県を訪問。地図で次の交通路を確認しよう`;
@@ -115,9 +115,9 @@ function render(){
 function statusBar(){
   const st=G.st; const m=MAPS[st.mapId];
   return `<header class="status">
-    <div class="srow"><span class="place">${esc(m.name)}</span><span>${st.day}日目・残り${st.slots}枠</span></div>
+    <div class="srow"><span class="place">${esc(m.name)}</span><span>${st.day}日目</span></div>
     <div class="goal">${esc(objective())}</div>
-    <div class="srow small"><span>レベル${levelOf(st.xp)}・${st.gold.toLocaleString()}ゴールド・チケット${st.tickets.toLocaleString()}</span><span>もえ ${MOE_RANKS[st.moeRank]}</span></div>
+    <div class="srow small"><span>レベル${levelOf(st.xp,st)}・${st.gold.toLocaleString()}ゴールド・チケット${st.tickets.toLocaleString()}</span><span>もえ ${MOE_RANKS[st.moeRank]}</span></div>
     <div class="small" aria-live="polite">保存：<span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（別のタブで操作中のため閲覧のみ）":""}</div>
   </header>`;
 }
@@ -192,14 +192,14 @@ function attackPower(s,L){ return 10+2*L+Vof(L)*(s.wAtk+s.accAtk); }
 function defensePower(s,L){ return Vof(L)*s.armorD; }
 function partyStrip(){
   const st=G.st;
-  return `<button class="pstrip" data-a="openSheet" data-k="status" aria-label="パーティーのステータスを開く"><span class="pstop"><span>レベル${levelOf(st.xp)}・${st.gold.toLocaleString()}ゴールド・もえ ${MOE_RANKS[st.moeRank]}</span><span class="pmore">ステータス ▶</span></span>${st.party.map(cid=>{ const L=levelOf(st.xp), s=charStats(st,cid,L), v=vitalOf(cid);
-    return `<span class="pmini ${v.hp<=0?"ko":""} ${isLow(v.hp,s.maxHP)?"low":""}"><span class="pmline"><b>${esc(charName(st,cid))}</b><span class="small">体力${v.hp}/${s.maxHP} 集中力${v.c}</span></span><span class="bar"><i style="width:${Math.round(100*v.hp/s.maxHP)}%"></i></span></span>`; }).join("")}</button>`;
+  return `<button class="pstrip" data-a="openSheet" data-k="status" aria-label="パーティーのステータスを開く"><span class="pstop"><span>レベル${levelOf(st.xp,st)}・${st.gold.toLocaleString()}ゴールド・もえ ${MOE_RANKS[st.moeRank]}</span><span class="pmore">ステータス ▶</span></span>${st.party.map(cid=>{ const L=levelOf(st.xp,st), s=charStats(st,cid,L), v=vitalOf(cid);
+    return `<span class="pmini ${v.hp<=0?"ko":""} ${isLow(v.hp,s.maxHP)?"low":""}"><span class="pmline"><b>${esc(charName(st,cid))}</b><span class="small">体力${v.hp}/${s.maxHP} MP${v.c}</span></span><span class="bar"><i style="width:${Math.round(100*v.hp/s.maxHP)}%"></i></span></span>`; }).join("")}</button>`;
 }
 function renderStatus(){
-  const st=G.st; const L=levelOf(st.xp);
-  const head=`<dl class="kv"><dt>共通レベル</dt><dd>${L}</dd><dt>経験値</dt><dd>${st.xp.toLocaleString()}${L<999?`（次のレベルまで ${(xpFor(L+1)-st.xp).toLocaleString()}）`:"（最大）"}</dd>
+  const st=G.st; const L=levelOf(st.xp,st);
+  const head=`<dl class="kv"><dt>共通レベル</dt><dd>${L}／上限${levelLimit(st)}</dd><dt>経験値</dt><dd>${st.xp.toLocaleString()}${L<levelLimit(st)?`（次のレベルまで ${Math.max(0,xpFor(L+1)-st.xp).toLocaleString()}）`:"（現在の上限）"}</dd>
     <dt>所持ゴールド</dt><dd>${st.gold.toLocaleString()}</dd><dt>もえの到達ランク</dt><dd>${MOE_RANKS[st.moeRank]}</dd></dl>
-    <p class="small">体力と集中力は戦闘後も持ち越します。宿屋に泊まると全員が全回復します。</p>`;
+    <p class="small">本編進行の上限は${chapterCap(st)}。全国への訪問だけでは解放されません。以前の到達済みレベル・熟練度と記録は維持します。総合レベルは共通、熟練度は戦闘参加者別です。</p><p class="small">体力とMPは戦闘後も持ち越します。宿屋に泊まると全員が全回復します。</p>`;
   const cards=st.roster.map(cid=>{
     const s=charStats(st,cid,L), v=vitalOf(cid), e=st.equip[cid], jp=jpOf(st,cid,s.job), C=CHARS[cid];
     const inParty=st.party.includes(cid);
@@ -210,12 +210,12 @@ function renderStatus(){
       <dl class="kv">
         <dt>レベル</dt><dd>${L}</dd>
         <dt>職業（ジョブ）</dt><dd>${esc(JOBS[s.job].name)}</dd>
-        <dt>ジョブ熟練度</dt><dd>${s.R}${s.R<999?`（次まで ${jpFor(s.R+1)-jp}）`:"（最大）"}</dd>
+        <dt>ジョブ熟練度</dt><dd>${s.R}${s.R<jobLimit(st,cid,s.job)?`（次まで ${Math.max(0,jpFor(s.R+1)-jp)}）`:"（現在の上限）"}</dd>
         <dt>体力（HP）</dt><dd><span class="bar wide"><i style="width:${Math.round(100*v.hp/s.maxHP)}%"></i></span>${v.hp}／最大${s.maxHP}</dd>
-        <dt>集中力（CP）</dt><dd>${v.c}／最大${s.startC}</dd>
+        <dt>MP</dt><dd>${v.c}／最大${s.startC}</dd>
         <dt>攻撃力</dt><dd>${attackPower(s,L)}</dd>
         <dt>防御力</dt><dd>${defensePower(s,L)}</dd>
-        <dt>技能</dt><dd>${esc(JOBS[s.job].skill)}（集中力${JOBS[s.job].cost}・技能強化${s.S}）</dd>
+        <dt>技能</dt><dd>${esc(JOBS[s.job].skill)}（MP${JOBS[s.job].cost}・技能強化${s.S}）</dd>
         <dt>武器</dt><dd>${eqName(e.w)}</dd><dt>防具</dt><dd>${eqName(e.a)}</dd><dt>アクセサリー</dt><dd>${eqName(e.acc)}</dd>
       </dl></section>`; }).join("");
   return head+`<div class="stack">${cards}</div><p class="small">攻撃力＝通常攻撃で与える基本ダメージ（敵の防御力を引く前）。防御力＝敵の攻撃1回ごとに減らせるダメージ。</p>`;
@@ -231,7 +231,7 @@ function renderExplore(){
   const ar=zone?AREAS[zone]:null;
   return `<section class="explore">
     <header class="xhead">
-      <div class="srow"><span class="place">${esc(m.name)}</span><span>${st.day}日目・残り${st.slots}枠</span></div>
+      <div class="srow"><span class="place">${esc(m.name)}</span><span>${st.day}日目</span></div>
       <div class="goal">${esc(objective())}</div>
       <div class="xsave small" aria-live="polite">保存：<span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（閲覧のみ）":""}</div>
     </header>
@@ -445,8 +445,7 @@ function travelMap(to,tx,ty,save=true){
   if(save) commit(); G.sheet=null; render();
 }
 function travelHub(to,tx,ty){
-  const st=G.st; if(st.slots<1){ return openSheet("rest",{reason:"旅程枠が足りません。休息すると翌日6枠になります。"}); }
-  st.slots-=1; const first=!st.visitedHubs.includes(to);
+  const st=G.st; const first=!st.visitedHubs.includes(to);
   travelMap(to,tx,ty,false);
   const j=JOIN_PLAN.find(x=>x.hub===to);
   const joined=j&&joinMember(st,j.cid);
@@ -474,7 +473,7 @@ function partyCard(m,i,run){
   return `<button class="pcard ${sel?"on":""} ${ko?"ko":""} ${isLow(m.hp,m.maxHP)?"low":""} ${m.acted?"done":""}" data-a="pickActor" data-i="${i}" ${ko||m.acted||run.state!=="input"?"aria-disabled=\"true\"":""}>
     <span class="pline"><b>${sel?"▶":""}${esc(m.name)}</b><span class="pjob">${esc(JOBS[m.job].name)} 熟練度${m.R}</span>${badges.map(t=>`<span class="pst">${t}</span>`).join("")}</span>
     <span class="bar"><i style="width:${pct}%"></i></span>
-    <span class="pstat">体力<b>${m.hp}</b>/${m.maxHP} 集中力<b>${m.c}</b></span>
+    <span class="pstat">体力<b>${m.hp}</b>/${m.maxHP} MP<b>${m.c}</b></span>
   </button>`;
 }
 function cueText(run){
@@ -520,12 +519,12 @@ function renderBattleLog(){
 function skillNeeds(job){ return ({J01:"enemy",J02:"line",J03:"ally",J04:"mode",J05:"enemy",J06:"mode",J07:"none",J08:"ally",J09:"enemy",J10:"none",J11:"none",J12:"none",J13:"ally",J14:"none",J15:"enemy",J16:"enemy",J17:"none",J18:"ally",J19:"enemy",J20:"none",J21:"enemy",J22:"allyOther"})[job]; }
 function renderCommand(run){
   if(run.state==="won") return `<div class="win cmd"><p>勝利！ ノイズ体をすべて鎮めた。</p><button class="btn primary wide" data-a="toResult">結果を見る</button></div>`;
-  if(run.state==="lost") return `<div class="win cmd"><p class="small">全員が戦闘不能。この戦闘の報酬は0。所持ゴールドの半分を失い、全員の体力と集中力を回復して安全な場所へ戻ります。受注・討伐数・経験値・熟練度・所持品は保持。</p><button class="btn primary wide" data-a="defeatReturn">安全な場所へ戻る</button></div>`;
+  if(run.state==="lost") return `<div class="win cmd"><p class="small">全員が戦闘不能。この戦闘の報酬は0。所持ゴールドの半分を失い、全員の体力とMPを回復して安全な場所へ戻ります。受注・討伐数・経験値・熟練度・所持品は保持。</p><button class="btn primary wide" data-a="defeatReturn">安全な場所へ戻る</button></div>`;
   if(G.auto){
     const al2=run.party.filter(m=>m.hp>0&&!m.acted);
     return `<div class="win cmd autopanel" aria-live="polite">
       <p class="autotitle">オート戦闘中</p>
-      <p class="small">AIが状況を見て、敵の予告・体力・集中力・エールから一番よい行動を選んでいます。</p>
+      <p class="small">AIが状況を見て、敵の予告・体力・MP・エールから一番よい行動を選んでいます。</p>
       <p class="autolast">${G.autoLast?esc(G.autoLast):"考え中…"}</p>
       <p class="small">このターンの未行動：${al2.map(m=>esc(m.name)).join("・")||"なし"}</p>
       <div class="confirmrow"><span></span><button class="btn primary stopauto" data-a="autoOff">中断</button></div></div>`;
@@ -542,10 +541,10 @@ function renderCommand(run){
   const liveE=run.enemies.filter(e=>e.hp>0); if(liveE.length===1) c.target=liveE[0].slot;
   let sub="", info="";
   if(c.type==="attack") sub=enemyPick();
-  if(c.type==="comment"){ sub=linePick(); info=`集中力1・エール＋${(a.job==="J02"?22+S:18)+a.commentA}・コメント連携4`+(c.line?`「${COMMENT_LINES[c.line][run.turn%3]}」`:""); }
+  if(c.type==="comment"){ sub=linePick(); info=`MP1・エール＋${(a.job==="J02"?22+S:18)+a.commentA}・コメント連携4`+(c.line?`「${COMMENT_LINES[c.line][run.turn%3]}」`:""); }
   if(c.type==="skill"){
     const need=skillNeeds(a.job);
-    info=`集中力${JOBS[a.job].cost}・${JOBS[a.job].desc(S)}`;
+    info=`MP${JOBS[a.job].cost}・${JOBS[a.job].desc(S)}`;
     if(need==="enemy") sub=enemyPick();
     if(need==="ally") sub=allyPick(false);
     if(need==="allyOther") sub=allyPick(true);
@@ -566,8 +565,8 @@ function renderCommand(run){
         if(nd==="enemy") sub+=`<span class="chipbreak"></span>`+enemyPick(); if(nd==="ally") sub+=`<span class="chipbreak"></span>`+allyPick(false);
         if(nd==="down") sub+=`<span class="chipbreak"></span><span class="chiplabel">対象</span>`+(run.party.filter(m=>m.hp<=0).map(m=>chip("ally",m.pos,c.ally===m.pos,esc(m.name))).join("")||`<span class="hint">戦闘不能の仲間はいません</span>`); } }
   }
-  if(c.type==="guard") info="受けるダメージ半分・集中力＋1";
-  if(c.type==="rest") info=`自分の集中力＋${4+a.rest}`;
+  if(c.type==="guard") info="受けるダメージ半分・MP＋1";
+  if(c.type==="rest") info=`自分のMP＋${4+a.rest}`;
   if(c.type==="other"){
     sub=chip("o","meter",c.o==="meter",`メーター突破`)+chip("o","family",c.o==="family",`ファミリー応援`)
       +`<button class="chip" data-a="retreat">撤退</button><button class="chip" data-a="pauseBattle">休止</button>`;
@@ -607,15 +606,15 @@ function buildAct(a){
 }
 function previewText(run,a,p){
   const out=[];
-  if(p.cost.c) out.push(`集中力−${p.cost.c}`); if(p.cost.a) out.push(`エール−${p.cost.a}`); if(p.cost.hp) out.push(`体力−${p.cost.hp}`);
+  if(p.cost.c) out.push(`MP−${p.cost.c}`); if(p.cost.a) out.push(`エール−${p.cost.a}`); if(p.cost.hp) out.push(`体力−${p.cost.hp}`);
   for(const d of p.dmg){ const e=run.enemies.find(x=>x.slot===d.slot); out.push(`${e.display}に${d.raw}ダメージ${d.raw>=e.hp?"（鎮まる）":""}`); }
   for(const h of p.heal){ const t=run.party[h.pos]; if(h.revive) out.push(`${t.name}が復帰`); else if(h.amt>0) out.push(`${t.name} 体力＋${h.amt}`); }
-  for(const g of p.cgain){ if(g.amt>0) out.push(`${run.party[g.pos].name} 集中力＋${g.amt}`); }
+  for(const g of p.cgain){ if(g.amt>0) out.push(`${run.party[g.pos].name} MP＋${g.amt}`); }
   for(const w of p.ward){ if(w.amt>0) out.push(`${run.party[w.pos].name} 防護＋${w.amt}`); }
   if(p.aGain) out.push(`エール＋${Math.min(p.aGain,100-run.A+p.cost.a)}`);
   if(p.consumeB&&run.B) out.push(`コメント連携${run.B}を使用`);
   if(p.setB!=null) out.push("コメント連携を4に");
-  if(p.guard) out.push("受けるダメージ半分・集中力＋1");
+  if(p.guard) out.push("受けるダメージ半分・MP＋1");
   if(p.chain){ out.push(p.chain.adv? (run.chain.stage===2?"キラコメ連携が発動！":`連携が進む（${run.chain.stage+1}/3）`) : "連携は進まない"); }
   if(p.chainReset) out.push("この行動で連携は途切れます");
   if(p.cue) out.push("ボス対処に参加");
@@ -662,7 +661,7 @@ function confirmAct(forced){
   const dealt = run.enemies.some(e=>e.hp<before.e[e.slot]);
   const killed = run.enemies.some(e=>e.hp<=0&&before.e[e.slot]>0);
   const atkSnd = act.type==="meter"?"meter": !dealt?null : act.type==="attack"?"slash" : run.enemies.filter(e=>e.hp<before.e[e.slot]).length>1?"allhit":"skillhit";
-  SND.sfx(atkSnd || (r.log.some(l=>/体力＋|集中力＋|防護/.test(l))?"heal":"ok"));
+  SND.sfx(atkSnd || (r.log.some(l=>/体力＋|MP＋|防護/.test(l))?"heal":"ok"));
   if(killed && run.state!=="won") setTimeout(()=>SND.sfx("defeat"),180);
   if(r.log.some(l=>l.startsWith("パチパチ"))) SND.sfx("clap");
   if(r.log.some(l=>l.startsWith("キラコメ"))) SND.sfx("kira");
@@ -695,7 +694,7 @@ function toResult(){
   const newBadges=eligible.filter(id=>!st.battleBadges.includes(id));
   st.battleBadges.push(...newBadges);
   if(res.levelAfter>res.levelBefore && Vof(res.levelAfter)>Vof(res.levelBefore)) res.notes.push("技能・装備の効果量が上昇（V"+Vof(res.levelAfter)+"）");
-  const L0=res.levelBefore, L1=levelOf(st.xp);
+  const L0=res.levelBefore, L1=levelOf(st.xp,st);
   st.lastResult={seq:run.seq, kind:run.kind, bossId:run.bossId||null, turns:run.turn, ...res,
     itemsUsed:clone(Array.isArray(run.itemHistory)?run.itemHistory:[]), itemsUsedKnown:run.itemHistoryComplete===true, newBadges,
     enemies:run.enemies.map(e=>({name:e.display||e.name, boss:!!e.boss, rarity:e.rarity||0})),
@@ -707,22 +706,22 @@ function toResult(){
 }
 function renderResult(){
   const st=G.st, r=st.lastResult; if(!r) return "";
-  const L=levelOf(st.xp), up=r.levelAfter>r.levelBefore;
+  const L=levelOf(st.xp,st), up=r.levelAfter>r.levelBefore;
   const pct=(a,b)=>Math.max(0,Math.min(100,Math.round(a/b*100)));
-  const xpNow=st.xp-xpFor(L), xpSpan=L<999?xpFor(L+1)-xpFor(L):1;
+  const xpNow=st.xp-xpFor(L), xpSpan=L<levelLimit(st)?xpFor(L+1)-xpFor(L):1;
   const foes=r.enemies||[];
   const title = r.kind==="boss" ? "ボスを鎮めた！" : "勝利！";
   const sub = (r.turns?`${r.turns}ターン`:"")+(foes.length?`・${foes.map(e=>esc(e.name)).join("、")}を鎮めた`:"");
   const card=(lab,val,cls="")=>`<div class="rstat ${cls}"><span class="rlab">${lab}</span><span class="rval">${val}</span></div>`;
   const mem=(r.members||[]).map(x=>{
     const j=(r.jp||[]).find(y=>y.cid===x.cid)||{gain:0}; const s=charStats(st,x.cid,L); const v=vitalOf(x.cid);
-    const jp=jpOf(st,x.cid,s.job), R=rankOf(jp), jpA=jpFor(R), jpB=R<999?jpFor(R+1):jpA+1;
+    const jp=jpOf(st,x.cid,s.job), R=rankOf(jp,jobLimit(st,x.cid,s.job)), jpA=jpFor(R), jpB=R<999?jpFor(R+1):jpA+1;
     const low=isLow(v.hp,s.maxHP), down=v.hp<=0;
     return `<div class="rmem ${low||down?"low":""}">
       <div class="rmh"><b>${esc(charName(st,x.cid))}</b><span class="small">${esc(JOBS[s.job].name)}</span>${j.R1>j.R0?`<span class="rbadge">熟練度 ${j.R0}→${j.R1}</span>`:""}</div>
       <div class="gauge"><span>熟練度${R}</span><span class="bar jp"><i style="width:${pct(jp-jpA,jpB-jpA)}%"></i></span><b>＋${j.gain}</b></div>
       <div class="gauge"><span>体力</span><span class="bar"><i style="width:${pct(v.hp,s.maxHP)}%"></i></span><b>${v.hp}/${s.maxHP}</b></div>
-      <div class="gauge"><span>集中力</span><span class="bar cp"><i style="width:${pct(v.c,s.startC)}%"></i></span><b>${v.c}/${s.startC}</b></div>
+      <div class="gauge"><span>MP</span><span class="bar cp"><i style="width:${pct(v.c,s.startC)}%"></i></span><b>${v.c}/${s.startC}</b></div>
       ${up&&x.maxAfter>x.maxBefore?`<p class="small good">最大体力 ${x.maxBefore} → ${x.maxAfter}</p>`:""}
       ${down?`<p class="small warn">戦闘不能。宿屋か蘇生の道具で回復しよう。</p>`:low?`<p class="small warn">体力わずか。回復しておこう。</p>`:""}
     </div>`; }).join("");
@@ -732,7 +731,7 @@ function renderResult(){
     ...(r.itemsLost||[]).map(x=>`<li class="warn">${esc(ITEMS[x.id].name)} ×${x.n} は金庫と預かり所もいっぱいで受け取れず</li>`)];
   const gifts=r.gifts.map(g=>`<li class="ritem">専用品「${esc(EQUIP[g].name)}」を贈られた</li>`);
   const usedItems=(r.itemsUsed||[]).map(x=>{
-    const effects=[x.hp>0?`体力＋${x.hp}`:"",x.c>0?`集中力＋${x.c}`:"",x.revives>0?`復帰${x.revives}人`:""].filter(Boolean);
+    const effects=[x.hp>0?`体力＋${x.hp}`:"",x.c>0?`MP＋${x.c}`:"",x.revives>0?`復帰${x.revives}人`:""].filter(Boolean);
     const actor=x.actor==="hero"||CHARS[x.actor]?`${esc(charName(st,x.actor))}：`:"";
     return `<li>${Number.isInteger(x.turn)&&x.turn>0?`${x.turn}ターン目・`:""}${actor}${esc(ITEMS[x.id]?.name||x.id)}${effects.length?`（${effects.join("・")}）`:""}</li>`;
   });
@@ -741,7 +740,7 @@ function renderResult(){
     <div class="rbanner ${r.kind==="boss"?"boss":""}"><h2 id="rtitle">${title}</h2><p>${sub}</p></div>
     ${up?`<div class="rlevel"><b>レベルアップ！</b><span>レベル${r.levelBefore} → <b class="big">${r.levelAfter}</b></span>${Vof(r.levelAfter)>Vof(r.levelBefore)?`<span class="small">技能・装備・道具の効果量が上昇</span>`:""}</div>`:""}
     <div class="rgrid">${card("経験値",`＋${r.xp.toLocaleString()}`)}${card("ゴールド",`＋${r.gold.toLocaleString()}`,"gold")}${r.tickets?card("チケット",`＋${r.tickets.toLocaleString()}`):card("所持金",`${st.gold.toLocaleString()}G`)}</div>
-    <div class="gauge rxp"><span>レベル${L}</span><span class="bar xp"><i style="width:${pct(xpNow,xpSpan)}%"></i></span><b>${L<999?`次まで${(xpSpan-xpNow).toLocaleString()}`:"最大"}</b></div>
+    <div class="gauge rxp"><span>レベル${L}</span><span class="bar xp"><i style="width:${pct(xpNow,xpSpan)}%"></i></span><b>${L<levelLimit(st)?`次まで${Math.max(0,xpSpan-xpNow).toLocaleString()}`:"最大"}</b></div>
     ${r.quest?`<div class="rquest done">依頼「${r.quest} ${esc(QUESTS[r.quest].name)}」完了！</div>`:r.kills&&r.killQuest?`<div class="rquest"><span>依頼 ${r.killQuest} 討伐</span><span class="bar"><i style="width:${pct(r.killNow,r.killNeed)}%"></i></span><b>${r.killNow}/${r.killNeed}</b></div>`:""}
     ${items.length||gifts.length?`<div class="rbox"><h3 class="label">手に入れたもの</h3><ul class="rlist">${[...items,...gifts].join("")}</ul></div>`:""}
     ${renderUsedItemHistory(r,usedItems)}
@@ -781,7 +780,7 @@ function renderStream(){
       <h2 class="label">22時00分　締め</h2><p class="big">${s.score}点・${esc(streamGrade(s.score))}</p>
       <div class="meter"><i style="width:${Math.min(100,s.score/170*100)}%"></i><span class="line" style="left:${80/170*100}%"></span></div>
       <p>${pass?"目標80点を達成！":"80点に届かなかった。要望に合う行動を、まだ使っていない順に選ぶと点が伸びます。"}</p>
-      <div class="stack">${pass?`<button class="btn primary" data-a="streamFinish">配信を終える</button>`:`<button class="btn primary" data-a="streamRetry">同じ配信に再挑戦（0枠）</button><button class="btn" data-a="streamLeave">いったん終える（配信待ちを保持）</button>`}</div></section>`;
+      <div class="stack">${pass?`<button class="btn primary" data-a="streamFinish">配信を終える</button>`:`<button class="btn primary" data-a="streamRetry">同じ配信に再挑戦</button><button class="btn" data-a="streamLeave">いったん終える（配信待ちを保持）</button>`}</div></section>`;
   }
   const comments = [`初見です！ ${STREAM_ACTS[req[s.hand]].req}`, "こんばんは〜", s.hand>0?`${STREAM_ACTS[s.picks[s.hand-1].act].name}よかった！`:s.hub==="KY08"?"阿蘇市から見てます":s.hub==="KY07"?"熊本市から見てます":s.hub==="KY06"?"長崎市から見てます":s.prefId==="PR03"?"佐世保から見てます":s.hub==="KY04"?"佐賀市から見てます":s.prefId==="PR02"?"唐津から見てます":"港から見てます"];
   return statusBar()+`<section class="win stream">
@@ -831,14 +830,14 @@ function renderSheet(){
     case "guide": { const m=MAPS[st.mapId]; return sheetWrap("道しるべ", `<p class="small">選ぶと、その場所まで実際に歩きます（途中の遭遇エリアでは抽選があります）。</p><div class="stack">${m.objects.filter(o=>o.type!=="tower").map(o=>{ const a=o.area?AREAS[o.area]:null; return `<button class="btn" data-a="guideTo" data-v="${o.id}">${esc(o.label)}${a?`（推奨レベル${a.q}）`:""}</button>`; }).join("")}</div>`); }
     case "quests": return sheetWrap("依頼帳", renderQuests());
     case "map": return sheetWrap("全国の旅の地図", renderWorld());
-    case "travel": return sheetWrap("移動", `<p>${esc(HUBS[d.to].name)}へ向かいますか？（旅程枠1を使います。残り${st.slots}枠）</p><div class="stack"><button class="btn primary" data-a="doTravel">向かう</button><button class="btn" data-a="closeSheet">やめる</button></div>`);
-    case "rest": return sheetWrap("休息", `${d.reason?`<p class="warn">${esc(d.reason)}</p>`:""}<p>日付を進めると翌日になり、旅程枠が6に戻ります（費用なし）。体力と集中力は回復しません。回復は宿屋で。今は${st.day}日目・残り${st.slots}枠。</p><div class="stack"><button class="btn primary" data-a="doRest">日付を進める</button><button class="btn" data-a="closeSheet">やめる</button></div>`);
+    case "travel": return sheetWrap("移動", `<p>${esc(HUBS[d.to].name)}へ向かいますか？</p><div class="stack"><button class="btn primary" data-a="doTravel">向かう</button><button class="btn" data-a="closeSheet">やめる</button></div>`);
+    case "rest": return sheetWrap("休息", `${d.reason?`<p class="warn">${esc(d.reason)}</p>`:""}<p>日付を進めると翌日になります（費用なし）。体力とMPは回復しません。回復は宿屋で。今は${st.day}日目。</p><div class="stack"><button class="btn primary" data-a="doRest">日付を進める</button><button class="btn" data-a="closeSheet">やめる</button></div>`);
     case "party": return sheetWrap("編成", renderParty());
     case "status": return sheetWrap("パーティーのステータス", renderStatus());
     case "inn": { const hub=curHub(); const per=INN_PRICE[hub]||10; const n=st.roster.length; const total=per*n; const can=st.gold>=total;
       return sheetWrap(d.label||"宿屋", `<p>「いらっしゃいませ。お一人さま${per}ゴールド、${n}人で${total}ゴールドです。」</p>
-      <p class="small">泊まると翌朝になり、全員の体力と集中力が全回復し、旅程枠が6に戻ります。所持${st.gold.toLocaleString()}ゴールド → 宿泊後${(st.gold-total).toLocaleString()}ゴールド。</p>
-      <ul class="list">${st.roster.map(cid=>{const s=charStats(st,cid,levelOf(st.xp)),v=vitalOf(cid); return `<li>${esc(charName(st,cid))}：体力 ${v.hp}/${s.maxHP}・集中力 ${v.c}/${s.startC}</li>`;}).join("")}</ul>
+      <p class="small">泊まると翌朝になり、全員の体力とMPが全回復します。所持${st.gold.toLocaleString()}ゴールド → 宿泊後${(st.gold-total).toLocaleString()}ゴールド。</p>
+      <ul class="list">${st.roster.map(cid=>{const s=charStats(st,cid,levelOf(st.xp,st)),v=vitalOf(cid); return `<li>${esc(charName(st,cid))}：体力 ${v.hp}/${s.maxHP}・MP ${v.c}/${s.startC}</li>`;}).join("")}</ul>
       ${can?"":`<p class="warn">ゴールドが足りません（あと${total-st.gold}）。通常敵を倒すとゴールドが手に入ります。</p>`}
       <div class="stack"><button class="btn primary" data-a="doInn" ${can?"":"disabled"}>泊まる（${total}ゴールド）</button><button class="btn" data-a="closeSheet">やめる</button></div>`); }
     case "record": return sheetWrap("記録", renderRecord());
@@ -849,11 +848,11 @@ function renderSheet(){
     case "dex": return sheetWrap("ノイズ図鑑", renderDex());
     case "shop": return sheetWrap(SHOPS[d.shop].name, renderShop());
     case "moe": return sheetWrap("もえ", renderMoe());
-    case "boss": { const b=BOSSES[d.bid]; const ps=bossScale(d.bid, st.party.length); const df=DIFFICULTY[st.settings.difficulty]; const pw=x=>Math.ceil(x*df.atk*ps.atk); return sheetWrap("地域ボス", `<p><b>${esc(b.name)}</b>（${d.bid}）　強度q${b.q}・推奨レベル${b.q}。現在レベル${levelOf(st.xp)}。</p><p class="small">体力${Math.ceil((100+36*b.q)*df.hp*ps.hp)}（${df.name}）。${st.party.length<4&&(ps.hp<1||ps.atk<1)?`戦闘メンバー${st.party.length}人のため、体力×${ps.hp}・攻撃×${ps.atk}の少人数補正（挑戦時の人数で固定）。`:""}</p><p class="small">行動周期：1人へ攻撃${pw(12+b.q)} → 全員へ攻撃${pw(6+Math.floor(b.q/2))} → ため → 全員へ強攻撃${pw(10+3*b.q)}。ため予告中に<b>異なる2人がガード</b>すると、直後の強攻撃が20%減ります（静観型）。</p><p class="small">敗北・撤退しても受注と討伐数は保持され、0枠で再挑戦できます。</p><div class="stack"><button class="btn primary" data-a="bossGo" data-v="${d.bid}">挑戦する</button><button class="btn" data-a="closeSheet">準備する</button></div>`); }
+    case "boss": { const b=BOSSES[d.bid]; const ps=bossScale(d.bid, st.party.length); const df=DIFFICULTY[st.settings.difficulty]; const pw=x=>Math.ceil(x*df.atk*ps.atk); return sheetWrap("地域ボス", `<p><b>${esc(b.name)}</b>（${d.bid}）　強度q${b.q}・推奨レベル${b.q}。現在レベル${levelOf(st.xp,st)}。</p><p class="small">体力${Math.ceil((100+36*b.q)*df.hp*ps.hp)}（${df.name}）。${st.party.length<4&&(ps.hp<1||ps.atk<1)?`戦闘メンバー${st.party.length}人のため、体力×${ps.hp}・攻撃×${ps.atk}の少人数補正（挑戦時の人数で固定）。`:""}</p><p class="small">行動周期：1人へ攻撃${pw(12+b.q)} → 全員へ攻撃${pw(6+Math.floor(b.q/2))} → ため → 全員へ強攻撃${pw(10+3*b.q)}。ため予告中に<b>異なる2人がガード</b>すると、直後の強攻撃が20%減ります（静観型）。</p><p class="small">報酬：経験値${bossReward(d.bid).xp}・${bossReward(d.bid).gold}ゴールド（経験値は現在の上限まで）。依頼達成報酬は別です。</p><p class="small">敗北・撤退しても受注と討伐数は保持され、再挑戦できます。</p><div class="stack"><button class="btn primary" data-a="bossGo" data-v="${d.bid}">挑戦する</button><button class="btn" data-a="closeSheet">準備する</button></div>`); }
     case "streamSetup": return sheetWrap("配信の準備", renderStreamSetup());
     case "battleLog": return sheetWrap("戦闘ログ", renderBattleLog());
     case "pause": return sheetWrap("休止中", `<p>戦闘はターン${st.run.turn}の入力待ちで保存されています。再開しても撤退・回復・報酬は発生しません。</p><div class="stack"><button class="btn primary" data-a="closeSheet">再開する</button></div>`);
-    case "retreat": return sheetWrap("撤退", `<p>撤退は必ず成功します。この戦闘の報酬は0、旅程枠も使いません。遭遇した位置へ戻ります。</p><div class="stack"><button class="btn primary" data-a="doRetreat">撤退する</button><button class="btn" data-a="closeSheet">戦闘を続ける</button></div>`);
+    case "retreat": return sheetWrap("撤退", `<p>撤退は必ず成功します。この戦闘の報酬は0です。遭遇した位置へ戻ります。</p><div class="stack"><button class="btn primary" data-a="doRetreat">撤退する</button><button class="btn" data-a="closeSheet">戦闘を続ける</button></div>`);
   }
   return "";
 }
@@ -881,13 +880,13 @@ function renderSettings(){
 function renderQuests(){
   const st=G.st; const hub=curHub(); const safe=isSafe();
   const stat={locked:"未解放",available:"受注できる",active:"受注中",bossReady:"ボスに挑戦できる",combatDone:"配信待ち",complete:"完了"};
-  let h=`<p class="small">受注は同時に1件。本編・任意とも受注時に旅程枠2を使います（残り${st.slots}枠）。</p>${hub==="KY05"?'<p class="note">佐世保市のM05と3区域を遊べます。M05完了後は東門から長崎市へ進めます。</p>':hub==="KY06"?'<p class="note">長崎市のM06と3区域を遊べます。M06完了後は東門から熊本市へ進めます。</p>':hub==="KY07"?'<p class="note">熊本市のM07と3区域を遊べます。M07完了後は東門から阿蘇市へ進めます。</p>':hub==="KY08"?'<p class="note">阿蘇市のM08完了後、交通路から全国へ進めます。</p>':hub.startsWith("NW")?'<p class="note">この地域は訪問・探索ができます。本編依頼と固有物語は制作中です。</p>':""}`;
+  let h=`<p class="small">受注は同時に1件です。</p>${hub==="KY05"?'<p class="note">佐世保市のM05と3区域を遊べます。M05完了後は東門から長崎市へ進めます。</p>':hub==="KY06"?'<p class="note">長崎市のM06と3区域を遊べます。M06完了後は東門から熊本市へ進めます。</p>':hub==="KY07"?'<p class="note">熊本市のM07と3区域を遊べます。M07完了後は東門から阿蘇市へ進めます。</p>':hub==="KY08"?'<p class="note">阿蘇市のM08完了後、交通路から全国へ進めます。</p>':hub.startsWith("NW")?'<p class="note">この地域は訪問・探索ができます。本編依頼と固有物語は制作中です。</p>':""}`;
   for(const [id,Q] of Object.entries(QUESTS)){
     const s=st.quests[id]; const prog = ["active","bossReady","combatDone","complete"].includes(s)?`討伐 ${st.qprog[id]||0}/${Q.kills}`:"";
     let btn="";
-    if(s==="available"){ const can = !st.activeQuest && hub===Q.hub && safe; btn=`<button class="btn primary" data-a="acceptQuest" data-v="${id}" ${can?"":"disabled"}>受注する（2枠）</button>${can?"":`<p class="small">${st.activeQuest?"ほかの依頼を受注中です。":`${HUBS[Q.hub].name}の安全地帯で受注できます。`}</p>`}`; }
-    if(s==="active"||s==="bossReady") btn=`<button class="btn" data-a="abandonQuest" data-v="${id}">放棄する（受注費は戻りません）</button>`;
-    if(s==="combatDone") btn=`<button class="btn primary" data-a="openSheet" data-k="streamSetup" ${hub===Q.hub&&safe?"":"disabled"}>配信を始める（0枠）</button>${hub===Q.hub?"":`<p class="small">${HUBS[Q.hub].name}で始められます。</p>`}`;
+    if(s==="available"){ const can = !st.activeQuest && hub===Q.hub && safe; btn=`<button class="btn primary" data-a="acceptQuest" data-v="${id}" ${can?"":"disabled"}>受注する</button>${can?"":`<p class="small">${st.activeQuest?"ほかの依頼を受注中です。":`${HUBS[Q.hub].name}の安全地帯で受注できます。`}</p>`}`; }
+    if(s==="active"||s==="bossReady") btn=`<button class="btn" data-a="abandonQuest" data-v="${id}">放棄する</button>`;
+    if(s==="combatDone") btn=`<button class="btn primary" data-a="openSheet" data-k="streamSetup" ${hub===Q.hub&&safe?"":"disabled"}>配信を始める</button>${hub===Q.hub?"":`<p class="small">${HUBS[Q.hub].name}で始められます。</p>`}`;
     const lockNote = s==="locked"? (Q.main?"前の本編依頼の完了で解放":`代表の住民（${NPCS[Q.npc].name}）と初めて話すと解放`):"";
     h+=`<div class="qcard ${s}"><div class="srow"><b>${id} ${esc(Q.name)}</b><span class="tag">${stat[s]}</span></div><p class="small">${esc(HUBS[Q.hub].name)}・${Q.main?"本編":"任意"}　${prog}</p><p>${esc(Q.goal)}</p>${lockNote?`<p class="small">${lockNote}</p>`:""}${btn}</div>`;
   }
@@ -895,7 +894,7 @@ function renderQuests(){
 }
 function renderWorld(){
   const st=G.st; const safe=isSafe();
-  let h=`<p class="small">拠点間の移動は旅程枠1。安全地帯から出発できます。地図では現在地に隣接する拠点を表示します。</p><div class="stack">`;
+  let h=`<p class="small">拠点間の移動は安全地帯から出発できます。地図では現在地に隣接する拠点を表示します。</p><div class="stack">`;
   const current=curHub();
   const adjacent=new Set([current]);
   for(const route of NATIONAL_ROUTES.filter(r=>r.status==="playable")){
@@ -912,7 +911,7 @@ function renderWorld(){
       return route?.firstArrival&&!(st.visitedHubs||[]).includes(step)?[`${HUBS[step].name}の初回到達：${route.firstArrival}から向かってください。`]:[];
     })||[];
     h+=`<div class="qcard"><div class="srow"><b>${id} ${esc(H.pref)}・${esc(H.name)}${H.home?"（故郷）":""}</b><span class="tag">${here?"現在地":visited?"訪問済み":"未訪問"}</span></div>
-      ${here?"":`<button class="btn" data-a="worldGo" data-v="${id}" ${travel.available?"":"disabled"}>向かう（1枠）</button>${itinerary?.length>2?`<p class="small">経由：${itinerary.map(step=>esc(HUBS[step].name)).join(" → ")}（計${itinerary.length-1}枠${lockedLegs.length?"・未解放区間あり":""}${st.slots<itinerary.length-1?"・現在の旅程枠では不足":""}）</p>${[...lockedLegs,...firstArrivalLegs].map(note=>`<p class="small">${esc(note)}</p>`).join("")}`:""}${travel.reason?`<p class="small">${esc(travel.reason)}</p>`:""}`}</div>`;
+      ${here?"":`<button class="btn" data-a="worldGo" data-v="${id}" ${travel.available?"":"disabled"}>向かう</button>${itinerary?.length>2?`<p class="small">経由：${itinerary.map(step=>esc(HUBS[step].name)).join(" → ")}${lockedLegs.length?"（未解放区間あり）":""}</p>${[...lockedLegs,...firstArrivalLegs].map(note=>`<p class="small">${esc(note)}</p>`).join("")}`:""}${travel.reason?`<p class="small">${esc(travel.reason)}</p>`:""}`}</div>`;
   }
   const playablePrefs=NATIONAL_PREFECTURES.filter(p=>(NATIONAL_IMPLEMENTED_HUBS[p.id]||[]).some(id=>Object.hasOwn(HUBS,id)));
   const visitedPrefs=playablePrefs.filter(p=>(NATIONAL_IMPLEMENTED_HUBS[p.id]||[]).some(id=>(st.visitedHubs||[]).includes(id)));
@@ -938,7 +937,6 @@ function worldTravelStatus(st,from,to,safe){
   if(!nationalRouteAvailable(st,from,to)) return {available:false,reason:nationalRouteUnlockReason(from,to)};
   if(route.to===to&&route.firstArrival&&!(st.visitedHubs||[]).includes(to)) return {available:false,reason:`初回は${route.firstArrival}から向かってください。`};
   if(!safe) return {available:false,reason:"安全地帯から出発できます。"};
-  if(st.slots<1) return {available:false,reason:"旅程枠が足りません。休息すると回復します。"};
   return {available:true,reason:""};
 }
 function nationalRouteUnlockReason(from,to){
@@ -965,7 +963,7 @@ function nationalItinerary(st,from,to){
   return null;
 }
 function renderParty(){
-  const st=G.st; const d=G.sheetData; const L=levelOf(st.xp);
+  const st=G.st; const d=G.sheetData; const L=levelOf(st.xp,st);
   const locked = !!st.run || !isSafe() || !!streamPending();
   const lockMsg = st.run?"戦闘中は変更できません。":!isSafe()?"安全地帯でのみ変更できます。":streamPending()?"配信待ちの間はジョブと装備を変更できません。":"";
   if(d.cid){
@@ -973,9 +971,9 @@ function renderParty(){
     if(d.view==="job"){
       return `<p><b>${esc(charName(st,cid))}</b>のジョブ（現在：${esc(JOBS[cur.job].name)}）</p>${lockMsg?`<p class="warn">${lockMsg}</p>`:""}
       <div class="stack">${JOB_IDS.map(j=>{ const nx=charStats(st,cid,L,j,previewEquipFor(st,cid,j)); const jp=jpOf(st,cid,j);
-        return `<div class="jcard ${j===cur.job?"on":""}"><div class="srow"><b>${j===cur.job?"▶ ":""}${j} ${esc(JOBS[j].name)}</b><span>熟練度${nx.R}${nx.R>=999?"・最大":`・次まで${jpFor(nx.R+1)-jp}`}</span></div>
-        <p class="small">${esc(JOBS[j].field)}｜${esc(JOBS[j].skill)}：集中力${JOBS[j].cost}。${esc(JOBS[j].desc(nx.S))}</p>
-        <p class="small">変更後：最大体力${nx.maxHP}（今${cur.maxHP}）・最大集中力${nx.startC}（今${cur.startC}）・技能強化${nx.S}</p>
+        return `<div class="jcard ${j===cur.job?"on":""}"><div class="srow"><b>${j===cur.job?"▶ ":""}${j} ${esc(JOBS[j].name)}</b><span>熟練度${nx.R}${nx.R>=jobLimit(st,cid,j)?"・最大":`・次まで${jpFor(nx.R+1)-jp}`}</span></div>
+        <p class="small">${esc(JOBS[j].field)}｜${esc(JOBS[j].skill)}：MP${JOBS[j].cost}。${esc(JOBS[j].desc(nx.S))}</p>
+        <p class="small">変更後：最大体力${nx.maxHP}（今${cur.maxHP}）・最大MP${nx.startC}（今${cur.startC}）・技能強化${nx.S}</p>
         ${j===cur.job?"":`<button class="btn" data-a="setJob" data-c="${cid}" data-v="${j}" ${locked?"disabled":""}>このジョブにする</button>`}</div>`; }).join("")}</div>
       <button class="btn" data-a="partyView" data-c="${cid}" data-v="">人物へ戻る</button>`;
     }
@@ -985,14 +983,14 @@ function renderParty(){
         <div class="stack"><button class="btn" data-a="setEquip" data-c="${cid}" data-s="${slot}" data-v="" ${locked?"disabled":""}>外す</button>
         ${items.map(id=>{ const it=EQUIP[id]; const mine=st.equip[cid][slot]===id; const avail=availableCount(st,id)+(mine?1:0);
           const elig=!it.job || (it.job===cur.job && cur.R>=it.needR); const eq2={...st.equip[cid],[slot]:id}; const nx=charStats(st,cid,L,null,eq2);
-          return `<div class="jcard ${mine?"on":""}"><div class="srow"><b>${mine?"▶ ":""}${esc(it.name)}</b><span>所持${st.owned[id]}・未装備${availableCount(st,id)}</span></div><p class="small">${esc(itemText(it,Vof(levelOf(st.xp))))}</p>
-          <p class="small">装備後：最大体力${nx.maxHP}・最大集中力${nx.startC}・攻撃力${attackPower(nx,L)}・防御力${defensePower(nx,L)}</p>
+          return `<div class="jcard ${mine?"on":""}"><div class="srow"><b>${mine?"▶ ":""}${esc(it.name)}</b><span>所持${st.owned[id]}・未装備${availableCount(st,id)}</span></div><p class="small">${esc(itemText(it,Vof(levelOf(st.xp,st))))}</p>
+          <p class="small">装備後：最大体力${nx.maxHP}・最大MP${nx.startC}・攻撃力${attackPower(nx,L)}・防御力${defensePower(nx,L)}</p>
           ${mine?"":`<button class="btn" data-a="setEquip" data-c="${cid}" data-s="${slot}" data-v="${id}" ${locked||!elig||avail<=0?"disabled":""}>装備する</button>${elig?"":`<p class="small">現在のジョブと熟練では装備できません。</p>`}`}</div>`; }).join("")}</div>
         <button class="btn" data-a="partyView" data-c="${cid}" data-v="">人物へ戻る</button>`;
     }
     const e=st.equip[cid]; const C=CHARS[cid];
     return `<div class="who"><canvas class="sprite-md" data-char="${cid}" width="16" height="24" aria-hidden="true"></canvas><div><b>${esc(cid==="hero"?st.profile.name:C.full)}</b>　${[C.age?C.age+"歳":"",C.from?esc(C.from):""].filter(Boolean).join("・")}<br><span class="small">${cid==="moe"?"経歴":"職歴"}：${esc(C.career)}（ジョブとは別）</span></div></div>
-      <dl class="kv"><dt>ジョブ</dt><dd>${esc(JOBS[cur.job].name)}　熟練度${cur.R}・技能強化${cur.S}</dd><dt>体力</dt><dd>${vitalOf(cid).hp}／${cur.maxHP}</dd><dt>集中力</dt><dd>${vitalOf(cid).c}／${cur.startC}</dd>
+      <dl class="kv"><dt>ジョブ</dt><dd>${esc(JOBS[cur.job].name)}　熟練度${cur.R}・技能強化${cur.S}</dd><dt>体力</dt><dd>${vitalOf(cid).hp}／${cur.maxHP}</dd><dt>MP</dt><dd>${vitalOf(cid).c}／${cur.startC}</dd>
       <dt>武器</dt><dd>${e.w?esc(EQUIP[e.w].name):"なし"}</dd><dt>防具</dt><dd>${e.a?esc(EQUIP[e.a].name):"なし"}</dd><dt>アクセサリー</dt><dd>${e.acc?esc(EQUIP[e.acc].name):"なし"}</dd></dl>
       <div class="stack"><button class="btn" data-a="partyView" data-c="${cid}" data-v="job">ジョブを変える</button>
       <button class="btn" data-a="partyView" data-c="${cid}" data-v="eq:w">武器</button><button class="btn" data-a="partyView" data-c="${cid}" data-v="eq:a">防具</button><button class="btn" data-a="partyView" data-c="${cid}" data-v="eq:acc">アクセサリー</button>
@@ -1014,7 +1012,7 @@ function renderParty(){
 }
 function previewEquipFor(st,cid,job){ const e={...st.equip[cid]}; for(const s of ["w","a"]){ const it=e[s]&&EQUIP[e[s]]; if(it&&it.job&&it.job!==job) e[s]=null; } return e; }
 const PENDING_BADGES={B009:"締め前の余裕",B017:"会心の瞬間",B035:"ひらりと回避",B071:"ペットと共闘",B072:"小さな癒やし",B073:"頼れる補助役",B074:"二匹の力",B075:"ずっとそばに",B076:"ペットのMP補給",B077:"主人公を応援",B078:"もえを応援",B079:"息の合った攻撃",B080:"敵を足止め",B093:"実技を越える",B099:"固有必殺技",B100:"継承する技"};
-const BADGE_GROUPS=["速攻","攻撃","連携","防御","回復","集中力","応援","ペット","道具","成長"];
+const BADGE_GROUPS=["速攻","攻撃","連携","防御","回復","MP","応援","ペット","道具","成長"];
 function eligibleBattleBadges(run){
   return [...(run.itemHistoryComplete===true?itemBattleBadges(run.itemHistory,run):[]),...growthBattleBadges(run),...partyBattleBadges(run),...actionBattleBadges(run),...healBattleBadges(run),...mpBattleBadges(run),...cheerBattleBadges(run),...speedBattleBadges(run),...attackBattleBadges(run),...guardBattleBadges(run),...defenseBattleBadges(run)];
 }
@@ -1075,9 +1073,9 @@ function renderBadgeRecord(st){
   return `<h3 class="label">戦闘バッジ</h3><p class="small">獲得${acquired}/100種。実装済み${Object.keys(implemented).length}種、制作中${Object.keys(PENDING_BADGES).length}種。</p><button class="btn" data-a="badgeFilter" aria-pressed="${onlyMissing}">${onlyMissing?"すべて表示":"未獲得のみ表示"}</button>${sections.join("")}`;
 }
 function renderRecord(){
-  const st=G.st; const L=levelOf(st.xp);
+  const st=G.st; const L=levelOf(st.xp,st);
   const milestones=[["E1","新規開始"],["D1","M01完了"],["D2","M02完了"],["D3","M03完了"],["C1","M04完了"],["C2","M05完了"],["C3","M06完了"],["B1","M07完了"],["B2","M08完了"]];
-  return `<dl class="kv"><dt>共通レベル</dt><dd>${L}（経験値 ${st.xp.toLocaleString()}${L<999?`・次まで${(xpFor(L+1)-st.xp).toLocaleString()}`:"・最大"}）</dd>
+  return `<dl class="kv"><dt>共通レベル</dt><dd>${L}（経験値 ${st.xp.toLocaleString()}${L<levelLimit(st)?`・次まで${Math.max(0,xpFor(L+1)-st.xp).toLocaleString()}`:"・最大"}）</dd>
     <dt>もえのシナリオ到達ランク</dt><dd>${MOE_RANKS[st.moeRank]}</dd><dt>旅</dt><dd>${st.day}日目</dd></dl>
     <p class="small">もえのランクは物語上の到達記録です。レベル・熟練度・実際の応援ポイントとは別に表示します。</p>
     <ul class="list">${milestones.map(([r,c],i)=>`<li>${i<=st.moeRank?"●":"○"} ${r}：${c}</li>`).join("")}<li class="dim">…S6：M16完了（この版には未収録）</li></ul>
@@ -1127,19 +1125,19 @@ function renderShop(){
   if(d.item && ITEMS[d.item]){
     const it=ITEMS[d.item]; const qty=d.qty||1; const own=bagCount(st.bag,d.item);
     if(tab==="item"){ const room=itemPurchaseRoom(st,d.item),bagSpace=bagRoom(st.bag,d.item); const total=it.price*qty; const can=!locked&&qty<=room&&st.gold>=total;
-      return head+`<p><b>${esc(it.name)}</b>（${esc(ITEM_RARITY[it.stars])}）</p><p>${esc(itemText(it,Vof(levelOf(st.xp))))}。${it.battleOnly?"戦闘中だけ使えます。":"戦闘中・移動中に使えます。"}</p><p>単価${it.price}ゴールド・所持${own}/${BAG_STACK}</p>${qtyRow(qty,Math.max(1,room))}${qty>bagSpace?`<p class="small">袋に入らない${qty-bagSpace}個はアイテム金庫へ保管します。</p>`:""}<p>合計${total}ゴールド → 取引後${(st.gold-total).toLocaleString()}ゴールド</p>${can?"":`<p class="warn">${room<=0?"道具袋と金庫がいっぱいです。":qty>room?`あと${room}個までしか受け取れません。`:st.gold<total?"ゴールドが足りません。":""}</p>`}
+      return head+`<p><b>${esc(it.name)}</b>（${esc(ITEM_RARITY[it.stars])}）</p><p>${esc(itemText(it,Vof(levelOf(st.xp,st))))}。${it.battleOnly?"戦闘中だけ使えます。":"戦闘中・移動中に使えます。"}</p><p>単価${it.price}ゴールド・所持${own}/${BAG_STACK}</p>${qtyRow(qty,Math.max(1,room))}${qty>bagSpace?`<p class="small">袋に入らない${qty-bagSpace}個はアイテム金庫へ保管します。</p>`:""}<p>合計${total}ゴールド → 取引後${(st.gold-total).toLocaleString()}ゴールド</p>${can?"":`<p class="warn">${room<=0?"道具袋と金庫がいっぱいです。":qty>room?`あと${room}個までしか受け取れません。`:st.gold<total?"ゴールドが足りません。":""}</p>`}
       <div class="stack"><button class="btn primary" data-a="shopDo" data-offer="${shopOfferToken(st,d)}" ${can?"":"disabled"}>${esc(it.name)}×${qty}を買う</button><button class="btn" data-a="shopItem" data-v="">一覧へ</button></div>`; }
     const unit=it.sell; const can=!locked&&unit>=0&&qty<=own;
     return head+`<p><b>${esc(it.name)}</b>　所持${own}</p>${unit<0?`<p class="warn">この道具は売れません（${esc(ITEM_ACQ[it.acq])}）。</p>`:`<p>買取単価${unit}ゴールド</p>${qtyRow(qty,Math.max(1,own))}<p>受取${unit*qty}ゴールド → 取引後${(st.gold+unit*qty).toLocaleString()}ゴールド</p>`}
       <div class="stack"><button class="btn primary" data-a="shopDo" data-offer="${shopOfferToken(st,d)}" ${can?"":"disabled"}>${esc(it.name)}×${qty}を売る</button><button class="btn" data-a="shopItem" data-v="">一覧へ</button></div>`;
   }
   if(tab==="item"){
-    return head+`<div class="stack">${SHOP_ITEMS.map(id=>{const it=ITEMS[id]; return `<button class="btn dexrow" data-a="shopItem" data-v="${id}"><span>${esc(it.name)}　<span class="small">${"★".repeat(it.stars)}</span></span><span class="small">${it.price}ゴールド・${esc(itemText(it,Vof(levelOf(st.xp))))}・所持${bagCount(st.bag,id)}</span></button>`;}).join("")}</div><p class="small">道具袋は通常300種類・イベント400種類、1種類99個まで。各県の店で品ぞろえが増えます（この版は福岡の品）。</p>`;
+    return head+`<div class="stack">${SHOP_ITEMS.map(id=>{const it=ITEMS[id]; return `<button class="btn dexrow" data-a="shopItem" data-v="${id}"><span>${esc(it.name)}　<span class="small">${"★".repeat(it.stars)}</span></span><span class="small">${it.price}ゴールド・${esc(itemText(it,Vof(levelOf(st.xp,st))))}・所持${bagCount(st.bag,id)}</span></button>`;}).join("")}</div><p class="small">道具袋は通常300種類・イベント400種類、1種類99個まで。各県の店で品ぞろえが増えます（この版は福岡の品）。</p>`;
   }
   if(d.item){
     const it=EQUIP[d.item]; const qty=d.qty||1; const own=st.owned[d.item]||0;
     if(tab==="buy"){ const total=it.price*qty,room=shopOffer(st,{shop:d.shop,tab:"buy",item:d.item,qty})?.max||0,can=!locked&&qty<=room&&st.gold>=total;
-      return head+`<p><b>${esc(it.name)}</b>：${esc(itemText(it,Vof(levelOf(st.xp))))}</p><p>単価${it.price}ゴールド・手元${own}個・金庫${bagCount(st.itemVault,d.item)}個（合計上限8）・未装備品${unequippedGearCount(st)}/${UNEQUIPPED_GEAR_MAX}</p>${qtyRow(qty,Math.max(1,room))}<p>合計${total}ゴールド → 取引後${(st.gold-total).toLocaleString()}ゴールド</p>${can?"":`<p class="warn">${own+bagCount(st.itemVault,d.item)+qty>8?"金庫の分を含め、同じ装備の所持上限8を超えます。":qty>room?"未装備品の上限300個を超えます。":st.gold<total?"ゴールドが足りません。":""}</p>`}
+      return head+`<p><b>${esc(it.name)}</b>：${esc(itemText(it,Vof(levelOf(st.xp,st))))}</p><p>単価${it.price}ゴールド・手元${own}個・金庫${bagCount(st.itemVault,d.item)}個（合計上限8）・未装備品${unequippedGearCount(st)}/${UNEQUIPPED_GEAR_MAX}</p>${qtyRow(qty,Math.max(1,room))}<p>合計${total}ゴールド → 取引後${(st.gold-total).toLocaleString()}ゴールド</p>${can?"":`<p class="warn">${own+bagCount(st.itemVault,d.item)+qty>8?"金庫の分を含め、同じ装備の所持上限8を超えます。":qty>room?"未装備品の上限300種類を超えます。":st.gold<total?"ゴールドが足りません。":""}</p>`}
       <div class="stack"><button class="btn primary" data-a="shopDo" data-offer="${shopOfferToken(st,d)}" ${can?"":"disabled"}>${esc(it.name)}×${qty}を買う</button><button class="btn" data-a="shopItem" data-v="">一覧へ</button></div>`; }
     const sellable=availableCount(st,d.item); const unit=Math.floor(it.price/2); const can=!locked&&qty<=sellable;
     return head+`<p><b>${esc(it.name)}</b>　所持${own}・装備中${equippedCount(st,d.item)}・売却可能${sellable}</p><p>買取単価${unit}ゴールド${unit===0?"（返却してもゴールドは増えません）":""}</p>${qtyRow(qty,Math.max(1,sellable))}<p>受取${unit*qty}ゴールド → 取引後${(st.gold+unit*qty).toLocaleString()}ゴールド</p>
@@ -1147,7 +1145,7 @@ function renderShop(){
   }
   if(tab==="buy"){
     const ex=[...JOB_IDS.filter(j=>st.gifts.W[j]).map(j=>"JW"+j.slice(1)), ...JOB_IDS.filter(j=>st.gifts.A[j]).map(j=>"JA"+j.slice(1))];
-    return head+`<div class="stack">${[...S.items,...ex].map(id=>{const it=EQUIP[id]; const who=st.roster.filter(c=>!it.job||(st.jobs[c]===it.job&&rankOf(jpOf(st,c,it.job))>=it.needR)).length; return `<button class="btn dexrow" data-a="shopItem" data-v="${id}"><span>${esc(it.name)}</span><span class="small">${it.price}ゴールド・${esc(itemText(it,Vof(levelOf(st.xp))))}・装備できる人${who}</span></button>`;}).join("")}</div><p class="small">地域の強化品は各県の店で順次追加されます（この版は福岡の共通品と専用品）。</p>`;
+    return head+`<div class="stack">${[...S.items,...ex].map(id=>{const it=EQUIP[id]; const who=st.roster.filter(c=>!it.job||(st.jobs[c]===it.job&&rankOf(jpOf(st,c,it.job),jobLimit(st,c,it.job))>=it.needR)).length; return `<button class="btn dexrow" data-a="shopItem" data-v="${id}"><span>${esc(it.name)}</span><span class="small">${it.price}ゴールド・${esc(itemText(it,Vof(levelOf(st.xp,st))))}・装備できる人${who}</span></button>`;}).join("")}</div><p class="small">地域の強化品は各県の店で順次追加されます（この版は福岡の共通品と専用品）。</p>`;
   }
   const ids=Object.keys(st.owned).filter(id=>st.owned[id]>0);
   return head+`<h3 class="label">装備</h3><div class="stack">${ids.map(id=>`<button class="btn dexrow" data-a="shopItem" data-v="${id}"><span>${esc(EQUIP[id].name)}</span><span class="small">所持${st.owned[id]}・売却可能${availableCount(st,id)}・買取${Math.floor(EQUIP[id].price/2)}ゴールド</span></button>`).join("")}</div>
@@ -1165,7 +1163,7 @@ function shopOffer(st,d){
     if(!SHOPS[d.shop].items.includes(id)&&!gifts.includes(id)) return null;
   }
   const own=item?bagCount(st.bag,id):(st.owned[id]||0);
-  const max=d.tab==="item"?itemPurchaseRoom(st,id):d.tab==="buy"?Math.max(0,Math.min(8-own-bagCount(st.itemVault,id),UNEQUIPPED_GEAR_MAX-unequippedGearCount(st))):item?own:availableCount(st,id);
+  const max=d.tab==="item"?itemPurchaseRoom(st,id):d.tab==="buy"?gearReceiveRoom(st,id):item?own:availableCount(st,id);
   const unit=d.tab==="sell"?(item?ITEMS[id].sell:Math.floor(EQUIP[id].price/2)):(item?ITEMS[id].price:EQUIP[id].price);
   return {shop:d.shop,tab:d.tab,item:id,qty:d.qty,unit,own,max,gold:st.gold};
 }
@@ -1205,18 +1203,18 @@ function canManageQuests(){ return !!G.st&&!G.readOnly&&G.screen==="explore"&&G.
 function canTravelFrom(sheet){ return !!G.st&&!G.readOnly&&G.screen==="explore"&&G.sheet===sheet&&!G.dlg&&!G.st.run&&!G.walk.path.length&&isSafe(); }
 function dropToken(st,id){ return ITEMS[id]?checksum(JSON.stringify([id,bagCount(st.bag,id),st.bag.length])):""; }
 function renderItems(){
-  const st=G.st, d=G.sheetData||{}; const L=levelOf(st.xp);
+  const st=G.st, d=G.sheetData||{}; const L=levelOf(st.xp,st);
   if(d.item && ITEMS[d.item] && bagCount(st.bag,d.item)>0){
     const it=ITEMS[d.item], n=bagCount(st.bag,d.item), nd=itemNeeds(it);
     let use="";
     if(it.battleOnly) use=`<p class="small">攻撃の道具は戦闘中の「道具」から使います。</p>`;
     else if(nd==="allyAll"||nd==="downAll") use=`<button class="btn primary" data-a="itemUse">使う（${nd==="downAll"?"戦闘不能の全員":"全員"}）</button>`;
-    else use=`<h3 class="label">誰に使う？</h3>`+st.roster.map(c=>{const s=charStats(st,c,L),v=vitalOf(c); const dis = nd==="down"? v.hp>0 : v.hp<=0; return `<button class="btn ${isLow(v.hp,s.maxHP)?"low":""}" data-a="itemUse" data-c="${c}" ${dis?"disabled":""}>${esc(charName(st,c))}　体力 ${v.hp}/${s.maxHP}・集中力 ${v.c}/${s.startC}${v.hp<=0?"（戦闘不能）":""}</button>`;}).join("");
-    return `<p><b>${esc(it.name)}</b>　×${n}</p><p class="small">${esc(ITEM_RARITY[it.stars])}・${esc(it.cat)}・入手：${esc(ITEM_ACQ[it.acq])}${it.sell>=0?`・売値${it.sell}ゴールド`:"・売却不可"}</p><p>${esc(itemText(it,Vof(levelOf(st.xp))))}。${it.battleOnly?"戦闘中だけ使えます。":"戦闘中・移動中に使えます。"}</p>
+    else use=`<h3 class="label">誰に使う？</h3>`+st.roster.map(c=>{const s=charStats(st,c,L),v=vitalOf(c); const dis = nd==="down"? v.hp>0 : v.hp<=0; return `<button class="btn ${isLow(v.hp,s.maxHP)?"low":""}" data-a="itemUse" data-c="${c}" ${dis?"disabled":""}>${esc(charName(st,c))}　体力 ${v.hp}/${s.maxHP}・MP ${v.c}/${s.startC}${v.hp<=0?"（戦闘不能）":""}</button>`;}).join("");
+    return `<p><b>${esc(it.name)}</b>　×${n}</p><p class="small">${esc(ITEM_RARITY[it.stars])}・${esc(it.cat)}・入手：${esc(ITEM_ACQ[it.acq])}${it.sell>=0?`・売値${it.sell}ゴールド`:"・売却不可"}</p><p>${esc(itemText(it,Vof(levelOf(st.xp,st))))}。${it.battleOnly?"戦闘中だけ使えます。":"戦闘中・移動中に使えます。"}</p>
       <div class="stack">${use}${d.confirmDrop?`<p class="warn">${esc(it.name)}を1個捨てますか？ ${it.acq==="E"?"イベントの品は二度と手に入りません。":""}</p><button class="btn" data-a="itemDropDo" data-drop="${dropToken(st,d.item)}">捨てる</button><button class="btn" data-a="itemDropNo">やめる</button>`:`<button class="btn" data-a="itemDrop">1個捨てる</button>`}<button class="btn" data-a="itemView" data-v="">一覧へ</button></div>`;
   }
   return `<p class="small">道具袋 通常${bagKindCount(st.bag,false)}/${BAG_KINDS}種類・イベント${bagKindCount(st.bag,true)}/${EVENT_KINDS}種類（1種類${BAG_STACK}個まで）。回復・蘇生は移動中にも使えます。</p>
-    <div class="stack">${st.bag.map(e=>{const it=ITEMS[e.id]; return `<button class="btn dexrow" data-a="itemView" data-v="${e.id}"><span>${esc(it.name)}　×${e.n}　<span class="small">${"★".repeat(it.stars)}</span></span><span class="small">${esc(itemText(it,Vof(levelOf(st.xp))))}${it.battleOnly?"（戦闘のみ）":""}</span></button>`;}).join("")||`<p>道具を持っていません。ショップで買えます。</p>`}</div>
+    <div class="stack">${st.bag.map(e=>{const it=ITEMS[e.id]; return `<button class="btn dexrow" data-a="itemView" data-v="${e.id}"><span>${esc(it.name)}　×${e.n}　<span class="small">${"★".repeat(it.stars)}</span></span><span class="small">${esc(itemText(it,Vof(levelOf(st.xp,st))))}${it.battleOnly?"（戦闘のみ）":""}</span></button>`;}).join("")||`<p>道具を持っていません。ショップで買えます。</p>`}</div>
     <h3 class="label">アイテム金庫（${itemVaultCount(st)}/${ITEM_VAULT_MAX}）</h3><p class="small">道具と未装備品を全街共通で保管します。${st.pendingGifts?.length?`受取保留の贈り物が${st.pendingGifts.length}件あります。`:""}</p>${st.itemVault.length?`<ul class="list">${st.itemVault.map(e=>`<li>${esc((ITEMS[e.id]||EQUIP[e.id]).name)} ×${e.n}</li>`).join("")}</ul>`:""}${G.screen==="explore"&&isSafe()?`<button class="btn" data-a="itemVaultOpen">金庫の${G.readOnly?"中身を見る":"品物を出し入れ"}</button>`:""}
     ${st.keep&&st.keep.length?`<h3 class="label">宿屋の預かり所（${st.keep.length}/${KEEP_MAX}）</h3><p class="small">安全な場所で、袋またはアイテム金庫に空きがあれば自動的に受け取ります。</p><ul class="list">${st.keep.map(id=>`<li>${esc(ITEMS[id].name)}</li>`).join("")}</ul>`:""}`;
 }
@@ -1224,7 +1222,7 @@ function vaultHeldCount(st,id){ return EQUIP[id]?availableCount(st,id):bagCount(
 function vaultTransferRoom(st,mode,id){
   if(mode==="deposit") return Math.min(vaultHeldCount(st,id),ITEM_VAULT_MAX-itemVaultCount(st));
   const stored=bagCount(st.itemVault,id);
-  return EQUIP[id]?Math.min(stored,8-(st.owned[id]||0),UNEQUIPPED_GEAR_MAX-unequippedGearCount(st)):Math.min(stored,bagRoom(st.bag,id));
+  return EQUIP[id]?Math.min(stored,gearReceiveRoom(st,id,true)):Math.min(stored,bagRoom(st.bag,id));
 }
 function vaultEntries(st,mode){
   if(mode==="withdraw") return st.itemVault;
@@ -1234,12 +1232,12 @@ function vaultCategory(id){ return EQUIP[id]?"gear":ITEMS[id]?.acq==="E"?"event"
 function vaultName(id){ return (ITEMS[id]||EQUIP[id])?.name||id; }
 function pendingGiftBlockReason(st,id){
   if((st.owned[id]||0)+bagCount(st.itemVault,id)>=8) return "同じ装備が8個あります";
-  if(unequippedGearCount(st)>=UNEQUIPPED_GEAR_MAX&&itemVaultCount(st)>=ITEM_VAULT_MAX) return "手元と金庫が満杯です";
+  if(gearReceiveRoom(st,id)<1&&itemVaultCount(st)>=ITEM_VAULT_MAX) return "手元と金庫が満杯です";
   return "";
 }
 function renderItemVault(){
   const st=G.st,d=G.sheetData,mode=d.mode==="withdraw"?"withdraw":"deposit",source=vaultEntries(st,mode),query=String(d.query||"").trim().toLocaleLowerCase(),filter=d.filter||"all",list=source.filter(e=>(ITEMS[e.id]||EQUIP[e.id])&&(filter==="all"||filter===vaultCategory(e.id))&&(!query||e.id.toLocaleLowerCase().includes(query)||vaultName(e.id).toLocaleLowerCase().includes(query))),pages=Math.max(1,Math.ceil(list.length/10)),page=Math.max(0,Math.min(pages-1,d.page||0)),id=d.id||"",max=id?vaultTransferRoom(st,mode,id):0,qty=d.qty||1,can=canEditItemVault(),view=canViewItemVault(),p=d.preview;
-  return `<p>道具袋 通常${bagKindCount(st.bag,false)}/${BAG_KINDS}種類・イベント${bagKindCount(st.bag,true)}/${EVENT_KINDS}種類・未装備品${unequippedGearCount(st)}/${UNEQUIPPED_GEAR_MAX}個・金庫 ${itemVaultCount(st)}/${ITEM_VAULT_MAX}個</p>${G.readOnly?`<p class="small">閲覧専用：移動できません。</p>`:""}${st.pendingGifts?.length?`<h3 class="label">受取保留の贈り物</h3><p class="small">同じ装備の上限と手元・金庫の空きを確認して受け取れます。</p><div class="stack">${st.pendingGifts.map(id=>`<div><button class="btn" data-a="pendingGiftClaim" data-v="${id}" ${can&&!G.vaultSaving&&!pendingGiftBlockReason(st,id)?"":"disabled"}>${esc(EQUIP[id].name)}を受け取る</button>${pendingGiftBlockReason(st,id)?`<span class="small">${pendingGiftBlockReason(st,id)}</span>`:""}</div>`).join("")}</div>`:""}<div class="stack"><button class="btn ${mode==="deposit"?"on":""}" data-a="itemVaultMode" data-v="deposit" ${view&&!G.vaultSaving?"":"disabled"}>預け入れ</button><button class="btn ${mode==="withdraw"?"on":""}" data-a="itemVaultMode" data-v="withdraw" ${view&&!G.vaultSaving?"":"disabled"}>引き出し</button></div>
+  return `<p>道具袋 通常${bagKindCount(st.bag,false)}/${BAG_KINDS}種類・イベント${bagKindCount(st.bag,true)}/${EVENT_KINDS}種類・未装備品${unequippedGearCount(st)}/${UNEQUIPPED_GEAR_MAX}種類・金庫 ${itemVaultCount(st)}/${ITEM_VAULT_MAX}個</p>${G.readOnly?`<p class="small">閲覧専用：移動できません。</p>`:""}${st.pendingGifts?.length?`<h3 class="label">受取保留の贈り物</h3><p class="small">同じ装備の上限と手元・金庫の空きを確認して受け取れます。</p><div class="stack">${st.pendingGifts.map(id=>`<div><button class="btn" data-a="pendingGiftClaim" data-v="${id}" ${can&&!G.vaultSaving&&!pendingGiftBlockReason(st,id)?"":"disabled"}>${esc(EQUIP[id].name)}を受け取る</button>${pendingGiftBlockReason(st,id)?`<span class="small">${pendingGiftBlockReason(st,id)}</span>`:""}</div>`).join("")}</div>`:""}<div class="stack"><button class="btn ${mode==="deposit"?"on":""}" data-a="itemVaultMode" data-v="deposit" ${view&&!G.vaultSaving?"":"disabled"}>預け入れ</button><button class="btn ${mode==="withdraw"?"on":""}" data-a="itemVaultMode" data-v="withdraw" ${view&&!G.vaultSaving?"":"disabled"}>引き出し</button></div>
     <div class="stack">${[["all","すべて"],["normal","通常の道具"],["event","イベント限定道具"],["gear","未装備品"]].map(([k,label])=>`<button class="btn ${filter===k?"on":""}" data-a="itemVaultFilter" data-v="${k}" aria-pressed="${filter===k}" ${view&&!G.vaultSaving?"":"disabled"}>${label}</button>`).join("")}</div><label class="label" for="itemVaultSearch">名前・IDで検索</label><input id="itemVaultSearch" value="${esc(d.query||"")}" maxlength="60"><button class="btn" data-a="itemVaultSearch" ${view&&!G.vaultSaving?"":"disabled"}>検索</button><div class="stack">${list.slice(page*10,page*10+10).map(e=>`<button class="btn ${id===e.id?"on":""}" data-a="itemVaultSelect" data-v="${e.id}" ${view&&!G.vaultSaving&&!p?"":"disabled"}>${esc(vaultName(e.id))} ×${e.n} <span class="small">${vaultCategory(e.id)==="gear"?"装備":vaultCategory(e.id)==="event"?"イベント限定":"道具"}</span></button>`).join("")||"該当する品はありません。"}</div><div class="row3"><button class="btn" data-a="itemVaultPage" data-v="${page-1}" ${view&&page>0?"":"disabled"}>前の10件</button><span>${page+1}/${pages}ページ</span><button class="btn" data-a="itemVaultPage" data-v="${page+1}" ${view&&page+1<pages?"":"disabled"}>次の10件</button></div>
     ${id&&(ITEMS[id]||EQUIP[id])?`<p>${esc(vaultName(id))}：移動できる数 ${max}個</p><div class="stack">${[["1個",1],["5個",5],["10個",10],[`最大（${max}個）`,max]].filter(([label])=>!label.startsWith("最大")||![1,5,10].includes(max)).map(([label,n])=>`<button class="btn" data-a="itemVaultQty" data-v="${n}" ${can&&!p&&n>=1&&n<=max?"":"disabled"}>${label}</button>`).join("")}</div><p>選択 ${qty}個</p>${p?`<p>${EQUIP[id]?"未装備":"袋"} ${p.bagBefore}→${p.bagAfter}個／金庫 ${p.vaultBefore}→${p.vaultAfter}個</p><button class="btn primary" data-a="itemVaultCommit" data-token="${p.token}" ${can?"":"disabled"}>移動を確定</button><button class="btn" data-a="itemVaultEdit" ${can?"":"disabled"}>選び直す</button>`:`<button class="btn primary" data-a="itemVaultPreview" ${can&&qty<=max?"":"disabled"}>数量を確認</button>`}`:""}<button class="btn" data-a="itemVaultBack" ${G.vaultSaving?"disabled":""}>道具へ戻る</button>`;
 }
@@ -1349,11 +1347,11 @@ const ACT = {
   guideTo(el){ const o=MAPS[G.st.mapId].objects.find(x=>x.id===el.dataset.v); G.sheet=null; render(); walkTo(o.x,o.y); },
   doTravel(){ if(!canTravelFrom("travel")) return; const d=G.sheetData; const from=curHub(); if(!d||typeof d.to!=="string"||!Number.isInteger(d.tx)||!Number.isInteger(d.ty)||typeof d.gateId!=="string") return toast("移動先が変わりました。門を調べ直してください。"); const route=NATIONAL_ROUTES.find(r=>r.status==="playable"&&((r.from===from&&r.to===d.to)||(r.from===d.to&&r.to===from))); const first=!(G.st.visitedHubs||[]).includes(d.to); if(!HUBS[d.to]||from===d.to||!route||!nationalRouteAvailable(G.st,from,d.to)||first&&route.from===from&&route.firstGateId!==d.gateId||!nearbyObjects().some(o=>o.type==="gate"&&o.id===d.gateId&&o.to===d.to&&o.tx===d.tx&&o.ty===d.ty)) return toast("移動先が変わりました。門を調べ直してください。"); G.sheet=null; travelHub(d.to,d.tx,d.ty); },
   worldGo(el){ if(!canTravelFrom("map")) return; const to=el.dataset.v; if(!Object.hasOwn(HUBS,to)||curHub()===to) return toast("行先を選び直してください。"); const status=worldTravelStatus(G.st,curHub(),to,true); if(!status.available) return toast(status.reason); const map=MAPS[to]; if(!map||!Array.isArray(map.safeAnchor)) return toast("この行先にはまだ移動できません。"); const s=map.safeAnchor; G.sheet=null; travelHub(to,s[0],s[1]); },
-  doInn(el){ if(G.readOnly||G.screen!=="explore"||G.sheet!=="inn"||G.dlg||G.st.run||!isSafe()) return; const st=G.st; const total=(INN_PRICE[curHub()]||10)*st.roster.length; if(st.gold<total) return toast(`ゴールドが足りません（あと${total-st.gold}）。`); el.disabled=true; G.sheet=null; st.gold-=total; restoreAll(st); st.day++; st.slots=6; commit(); render(); SND.sfx("heal"); say([["",`${total}ゴールドを払って泊まった。`],["",`${st.day}日目の朝。全員の体力と集中力が全回復した！`]]); },
-  doRest(){ if(G.readOnly||G.screen!=="explore"||G.sheet!=="rest"||G.dlg||G.st.run||!isSafe()) return; const st=G.st; G.sheet=null; st.day++; st.slots=6; commit(); render(); toast(`${st.day}日目の朝。旅程枠が6に戻った。`); },
-  acceptQuest(el){ if(!canManageQuests()) return; const st=G.st, id=el.dataset.v, q=QUESTS[id]; if(!q||st.quests[id]!=="available"||st.activeQuest||curHub()!==q.hub||!isSafe()) return toast("依頼の状態が変わりました。選び直してください。"); if(st.slots<2) return openSheet("rest",{reason:"受注には旅程枠2が必要です。"});
+  doInn(el){ if(G.readOnly||G.screen!=="explore"||G.sheet!=="inn"||G.dlg||G.st.run||!isSafe()) return; const st=G.st; const total=(INN_PRICE[curHub()]||10)*st.roster.length; if(st.gold<total) return toast(`ゴールドが足りません（あと${total-st.gold}）。`); el.disabled=true; G.sheet=null; st.gold-=total; restoreAll(st); st.day++; commit(); render(); SND.sfx("heal"); say([["",`${total}ゴールドを払って泊まった。`],["",`${st.day}日目の朝。全員の体力とMPが全回復した！`]]); },
+  doRest(){ if(G.readOnly||G.screen!=="explore"||G.sheet!=="rest"||G.dlg||G.st.run||!isSafe()) return; const st=G.st; G.sheet=null; st.day++; commit(); render(); toast(`${st.day}日目の朝になった。`); },
+  acceptQuest(el){ if(!canManageQuests()) return; const st=G.st, id=el.dataset.v, q=QUESTS[id]; if(!q||st.quests[id]!=="available"||st.activeQuest||curHub()!==q.hub||!isSafe()) return toast("依頼の状態が変わりました。選び直してください。");
     el.disabled=true;
-    st.slots-=2; st.quests[id]="active"; st.activeQuest=id; st.qprog[id]=st.qprog[id]||0; commit(); G.sheet=null; render();
+    st.quests[id]="active"; st.activeQuest=id; st.qprog[id]=st.qprog[id]||0; commit(); G.sheet=null; render();
     say([["",`依頼「${id} ${QUESTS[id].name}」を受けた。`],["もえ",id==="M01"?"呼びかけと紹介の順番が重なってる……。始まりと返事の順番を取り戻そう。":id==="M02"?"港の声を、ひとつずつ届けたいな。":id==="M03"?"唐津の海辺で聞いた返事を、配信でも届けたいな。":id==="M04"?"佐賀市の川沿いと駅前で、街の声を集めよう。":id==="M05"?"佐世保市の港沿いと坂道で、届いた返事を集めよう。":id==="M06"?"長崎市の港と丘で、街の声を届けよう。":id==="M07"?"熊本市の川辺と石垣で、届いた声を集めよう。":id==="M08"?"阿蘇市の風の中で、返事を集めよう。":"一緒に考えよう。"],["",QUESTS[id].goal]]); },
   abandonQuest(el){ if(!canManageQuests()) return; const st=G.st, id=el.dataset.v; if(!QUESTS[id]||st.activeQuest!==id||!["active","bossReady"].includes(st.quests[id])) return toast("依頼の状態が変わりました。選び直してください。"); el.disabled=true; st.quests[id]="available"; st.qprog[id]=0; st.activeQuest=null; commit(); render(); toast("依頼を放棄した。受注費は戻りません。"); },
   bossGo(el){ const st=G.st,bid=el.dataset.v,qid=Object.keys(QUESTS).find(k=>QUESTS[k].boss===bid); if(!st||G.readOnly||G.screen!=="explore"||G.sheet!=="boss"||G.sheetData.bid!==bid||G.dlg||st.run||G.walk.path.length||!qid||st.activeQuest!==qid||st.quests[qid]!=="bossReady"||st.bossDefeated[bid]||!nearbyObjects().some(o=>o.type==="boss"&&o.boss===bid)) return toast("ボスへの挑戦条件が変わりました。調べ直してください。"); el.disabled=true; startBattle(createBossRun(st,bid)); },
@@ -1366,7 +1364,7 @@ const ACT = {
   toResult(){ toResult(); },
   resultDone(){ resultDone(); },
   defeatReturn(){ const st=G.st; const run=st.run; if(run.bag) st.bag=clone(run.bag); st.run=null; const m=MAPS[run.returnPos.map]; st.mapId=run.returnPos.map; st.pos={x:m.safeAnchor[0],y:m.safeAnchor[1]}; G.fol={...st.pos};
-    const lost=Math.floor(st.gold/2); st.gold-=lost; restoreAll(st); commit(); G.screen="explore"; exploreBgm(); render(); say([["",`安全な場所へ運ばれた。所持ゴールドの半分（${lost}）を失った。`],["","全員の体力と集中力が回復した。"]]); },
+    const lost=Math.floor(st.gold/2); st.gold-=lost; restoreAll(st); commit(); G.screen="explore"; exploreBgm(); render(); say([["",`安全な場所へ運ばれた。所持ゴールドの半分（${lost}）を失った。`],["","全員の体力とMPが回復した。"]]); },
   retreat(){ openSheet("retreat"); },
   doRetreat(){ const st=G.st; const run=st.run; storeVitals(st,run); if(run.bag) st.bag=clone(run.bag); st.run=null; st.mapId=run.returnPos.map; st.pos={x:run.returnPos.x,y:run.returnPos.y}; G.sheet=null; commit(); G.screen="explore"; exploreBgm(); render(); toast("撤退した。"); },
   pauseBattle(){ commit(); openSheet("pause"); },
@@ -1390,10 +1388,10 @@ const ACT = {
   partyLeave(el){ if(!canEditParty()) return; const st=G.st,i=Number(el.dataset.v),c=el.dataset.c; if(!Number.isInteger(i)||i<0||i>=st.party.length||st.party[i]!==c) return toast("編成が変わりました。選び直してください。"); if(st.party.length<=1) return toast("最後の1人は待機にできません。"); st.party.splice(i,1); commit(); render(); toast(`${charName(st,c)}を待機にした。`); },
   partyIn(el){ if(!canEditParty()) return; const st=G.st,c=el.dataset.v; if(!st.roster.includes(c)||st.party.includes(c)||st.party.length>=4) return toast("この仲間は追加できません。編成を確認してください。"); st.party.push(c); commit(); render(); toast(`${charName(st,c)}を戦闘メンバーに入れた。`); },
   partySwap(el){ if(!canEditParty()) return; const st=G.st,c=el.dataset.v,i=Number(el.dataset.i),old=el.dataset.c; if(!Number.isInteger(i)||i<0||i>=st.party.length||st.party[i]!==old||!st.roster.includes(c)||st.party.includes(c)) return toast("編成が変わりました。選び直してください。"); st.party[i]=c; commit(); render(); toast(`${charName(st,old)}と${charName(st,c)}を入れ替えた。`); },
-  setJob(el){ if(!canEditParty()||streamPending()) return; const st=G.st,cid=el.dataset.c,j=el.dataset.v; if(!st.roster.includes(cid)||!Object.hasOwn(JOBS,j)||G.sheetData.cid!==cid||G.sheetData.view!=="job") return; st.jobs[cid]=j; st.equip[cid]=previewEquipFor(st,cid,j);
+  setJob(el){ if(!canEditParty()||streamPending()) return; const st=G.st,cid=el.dataset.c,j=el.dataset.v; if(!st.roster.includes(cid)||!Object.hasOwn(JOBS,j)||G.sheetData.cid!==cid||G.sheetData.view!=="job") return; const nextEquip=previewEquipFor(st,cid,j); if(!equipmentSetFits(st,cid,nextEquip)) return toast("未装備品が300種類を超えます。金庫へ預けてください。"); st.jobs[cid]=j; st.equip[cid]=nextEquip;
     for(const [s,id] of [["w","CW01"],["a","CA01"]]) if(!st.equip[cid][s]&&availableCount(st,id)>0) st.equip[cid][s]=id;
     commit(); G.sheetData={cid,view:""}; render(); drawMiniSprites(); toast(`${charName(st,cid)}のジョブを${JOBS[j].name}にした。`); },
-  setEquip(el){ if(!canEditParty()||streamPending()) return; const st=G.st,cid=el.dataset.c,s=el.dataset.s,id=el.dataset.v||null; if(!st.roster.includes(cid)||!["w","a","acc"].includes(s)||G.sheetData.cid!==cid||G.sheetData.view!==`eq:${s}`) return; if(id&&(!Object.hasOwn(EQUIP,id)||EQUIP[id].slot!==s)) return; if(id){ const it=EQUIP[id], cur=charStats(st,cid,levelOf(st.xp)); if(it.job&&(it.job!==cur.job||cur.R<it.needR)) return toast("現在の職業と熟練度では装備できません。"); } if(id&&availableCount(st,id)<=0&&st.equip[cid][s]!==id) return toast("未装備の在庫がありません。"); st.equip[cid][s]=id; commit(); G.sheetData={cid,view:""}; render(); drawMiniSprites(); },
+  setEquip(el){ if(!canEditParty()||streamPending()) return; const st=G.st,cid=el.dataset.c,s=el.dataset.s,id=el.dataset.v||null; if(!st.roster.includes(cid)||!["w","a","acc"].includes(s)||G.sheetData.cid!==cid||G.sheetData.view!==`eq:${s}`) return; if(id&&(!Object.hasOwn(EQUIP,id)||EQUIP[id].slot!==s)) return; if(id){ const it=EQUIP[id], cur=charStats(st,cid,levelOf(st.xp,st)); if(it.job&&(it.job!==cur.job||cur.R<it.needR)) return toast("現在の職業と熟練度では装備できません。"); } if(id&&availableCount(st,id)<=0&&st.equip[cid][s]!==id) return toast("未装備の在庫がありません。"); if(!equipmentChangeFits(st,cid,s,id)) return toast("未装備品が300種類を超えます。金庫へ預けてください。"); st.equip[cid][s]=id; commit(); G.sheetData={cid,view:""}; render(); drawMiniSprites(); },
   setSupport(el){ if(!canEditParty()||streamPending()) return; const v=el.dataset.v||null; if(v!==null&&!supportAvailable(G.st,v)) return toast("この地域支援はまだ使えません。"); G.st.support=v; commit(); render(); },
   dexNav(el){ const k=el.dataset.k, v=el.dataset.v; if(k==="area"){ G.sheetData={area:v,page:0}; } else if(k==="page"){ G.sheetData.page=+v; } else { G.sheetData.detail=v||null; } render(); drawMiniSprites(); const s=$(".sheet"); if(s) s.scrollTop=0; },
   shopTab(el){ if(G.sheet!=="shop"||G.shopSaving||!["buy","item","sell"].includes(el.dataset.v)) return; G.sheetData.tab=el.dataset.v; G.sheetData.item=null; render(); },
@@ -1452,6 +1450,8 @@ function supportAvailable(st,id){
   return false;
 }
 function migrate(s){
+  migrateGrowth(s);
+  s.gameVersion=GAME_VERSION;
   const map=MAPS[s.mapId],p=s.pos;
   if(!p||!Number.isInteger(p.x)||!Number.isInteger(p.y)||p.x<0||p.y<0||p.x>=map.w||p.y>=map.h||!".,123w=".includes(map.tiles[p.y]?.[p.x])||map.objects.some(o=>o.x===p.x&&o.y===p.y&&!o.walk)) s.pos={x:map.safeAnchor[0],y:map.safeAnchor[1]};
   if(!Array.isArray(s.visitedMaps)) s.visitedMaps=[];

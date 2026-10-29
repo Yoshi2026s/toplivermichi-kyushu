@@ -1,6 +1,16 @@
 /* ===== data: 福岡編と佐賀・唐津編 ===== */
-const GAME_VERSION = "5.30";
+const GAME_VERSION = "5.31";
 const SCHEMA_VERSION = 5;
+// A chapter opens only when the preceding chapter's registered main finale is complete.
+// M08 ends the current partial Kyushu story, not the whole Kyushu chapter.
+const STORY_CHAPTERS = [
+  {id:"kyushu",name:"九州編",cap:100,completionQuest:null},
+  {id:"chugoku-shikoku",name:"中国・四国編",cap:200,completionQuest:null},
+  {id:"kinki-tokai",name:"近畿・東海編",cap:300,completionQuest:null},
+  {id:"hokuriku-koshinetsu",name:"北陸・甲信越編",cap:400,completionQuest:null},
+  {id:"tohoku-hokkaido",name:"東北・北海道編",cap:500,completionQuest:null},
+  {id:"kanto",name:"関東編",cap:600,completionQuest:null}
+];
 
 const PAL = {
   ink:"#101820", navy:"#23364D", slate:"#455A68", mist:"#8B9BA0",
@@ -35,25 +45,25 @@ const JOBS = {
   J01:{name:"トラック運転手",   field:"攻撃と自己防護", skill:"巡回ストライク",   cost:3, desc:S=>`敵1体に攻撃（追加${8+2*S}）。自分に防護2。`},
   J02:{name:"システムエンジニア",field:"コメント効率",   skill:"コメント整理",     cost:1, desc:S=>`応援コメントの代わりに使う。エール＋${22+S}、コメント連携4。挨拶・作戦・感謝を選ぶ。`},
   J03:{name:"グラビアアイドル", field:"見せ場と防護",   skill:"ベストショット",   cost:2, desc:S=>`味方1人に防護${4+Math.floor(S/2)}、コメント連携4。`},
-  J04:{name:"ショップ店員",     field:"状況別の補給",   skill:"ぴったり提案",     cost:1, desc:S=>`体力補給（集中力1）：1人の体力を(${10+2*S})×成長係数＋レベル回復。集中補給（集中力2）：自分以外1人の集中力＋${3+Math.floor(S/2)}。`},
+  J04:{name:"ショップ店員",     field:"状況別の補給",   skill:"ぴったり提案",     cost:1, desc:S=>`体力補給（MP1）：1人の体力を(${10+2*S})×成長係数＋レベル回復。集中補給（MP2）：自分以外1人のMP＋${3+Math.floor(S/2)}。`},
   J05:{name:"スーパーレジ打ち", field:"攻撃とエール",   skill:"スキャン連携",     cost:2, desc:S=>`敵1体に攻撃（追加${3+S}）。通常のエール＋8に加えてエール＋4。`},
   J06:{name:"ギャンブラー",     field:"危険を選ぶ攻撃", skill:"勝負の一手",       cost:3, desc:S=>`堅実：敵1体に攻撃（追加${10+2*S}）、自分に防護1。強気：体力10×成長係数も払い、敵1体に攻撃（追加${18+2*S}）。`},
-  J07:{name:"ニート",           field:"充電と自己防護", skill:"マイペース充電",   cost:0, desc:S=>`集中力の消費なし。自分の集中力＋5、自分に防護${2+Math.floor(S/2)}。`},
+  J07:{name:"ニート",           field:"充電と自己防護", skill:"マイペース充電",   cost:0, desc:S=>`MPの消費なし。自分のMP＋5、自分に防護${2+Math.floor(S/2)}。`},
   J08:{name:"ライバー",         field:"応援と回復",     skill:"コールアンドレスポンス", cost:2, desc:S=>`エール＋${24+S}、味方1人の体力を${8+S}×成長係数回復。`},
   J09:{name:"工場作業者",       field:"攻撃と全体防護", skill:"品質チェック",     cost:3, desc:S=>`敵1体に攻撃（追加${6+2*S}）。味方全員に防護1。`},
   J10:{name:"ユーチューバー",   field:"複数の敵への攻撃",skill:"ダイジェスト編集", cost:3, desc:S=>`敵全体に レベル×2＋(${5+S})×成長係数−防御力 のダメージ。エール＋8とコメント連携は使わない。`},
   J11:{name:"インフルエンサー", field:"応援と全体防護", skill:"シェアウェーブ",   cost:3, desc:S=>`エール＋${16+2*S}、味方全員に防護2。`},
-  J12:{name:"専業主婦",         field:"全体の立て直し", skill:"暮らしの段取り",   cost:3, desc:S=>`味方全員の体力を${8+S}×成長係数回復し、集中力＋1。`},
+  J12:{name:"専業主婦",         field:"全体の立て直し", skill:"暮らしの段取り",   cost:3, desc:S=>`味方全員の体力を${8+S}×成長係数回復し、MP＋1。`},
   J13:{name:"看護師",           field:"大きな単体回復", skill:"ケアコール",       cost:3, desc:S=>`味方1人の体力を(${18+3*S})×成長係数＋レベル×2回復。`},
-  J14:{name:"調理師",           field:"全体への集中力補給",skill:"キッチンリズム", cost:3, desc:S=>`自分以外の味方全員の集中力＋${2+Math.floor(S/2)}。`},
+  J14:{name:"調理師",           field:"全体へのMP補給",skill:"キッチンリズム", cost:3, desc:S=>`自分以外の味方全員のMP＋${2+Math.floor(S/2)}。`},
   J15:{name:"電気工事士",       field:"単体への集中攻撃",skill:"ライトパルス",    cost:3, desc:S=>`敵1体に攻撃（追加${12+2*S}）。`},
   J16:{name:"配管工",           field:"防御を越える攻撃",skill:"音声ルート",      cost:2, desc:S=>`敵の防御力を0として、敵1体に攻撃（追加${4+S}）。`},
   J17:{name:"建築士",           field:"全体防護",       skill:"光のステージ",     cost:3, desc:S=>`味方全員に防護${3+Math.floor(S/2)}。`},
   J18:{name:"社会福祉士",       field:"回復と攻撃準備", skill:"はじめまして案内", cost:2, desc:S=>`味方1人の体力を(${12+2*S})×成長係数＋レベル×2回復、コメント連携4。`},
   J19:{name:"素人カメラマン",   field:"攻撃と次の攻撃支援",skill:"フラッシュショット",cost:3, desc:S=>`敵1体に攻撃（追加${10+2*S}）。コメント連携を使った後、コメント連携を4に戻す。`},
   J20:{name:"観光ガイド",       field:"応援と攻撃準備", skill:"ルートガイド",     cost:2, desc:S=>`エール＋${12+S}、コメント連携4、味方全員に防護1。`},
-  J21:{name:"プロカメラマン",   field:"集中力を使う単体攻撃",skill:"精密フレーミング",cost:4, desc:S=>`敵1体に攻撃（追加${18+2*S}）。コメント連携を使い、戻さない。`},
-  J22:{name:"アイドルオタク",   field:"応援と集中力補給",skill:"推し色コール",    cost:3, desc:S=>`エール＋${14+2*S}、自分以外の味方1人の集中力＋${2+Math.floor(S/2)}。`}
+  J21:{name:"プロカメラマン",   field:"MPを使う単体攻撃",skill:"精密フレーミング",cost:4, desc:S=>`敵1体に攻撃（追加${18+2*S}）。コメント連携を使い、戻さない。`},
+  J22:{name:"アイドルオタク",   field:"応援とMP補給",skill:"推し色コール",    cost:3, desc:S=>`エール＋${14+2*S}、自分以外の味方1人のMP＋${2+Math.floor(S/2)}。`}
 };
 const JOB_IDS = Object.keys(JOBS);
 const H_TYPE = new Set(["J01","J03","J05","J08","J09","J12","J13","J15","J16","J17","J19"]);
@@ -63,19 +73,19 @@ const EQUIP = {
   CW01:{slot:"w",name:"はじめの配信マイク",price:0,atk:2,text:"単体攻撃力＋2。"},
   CW02:{slot:"w",name:"声合わせハンドマイク",price:180,atk:1,commentA:1,text:"単体攻撃力＋1。応援コメントのエール＋1。"},
   CW03:{slot:"w",name:"光つなぎの指示棒",price:240,atk:3,text:"単体攻撃力＋3。"},
-  CW04:{slot:"w",name:"記録のペン型リモコン",price:180,atk:0,c:1,text:"単体攻撃力＋0。最大集中力＋1。"},
+  CW04:{slot:"w",name:"記録のペン型リモコン",price:180,atk:0,c:1,text:"単体攻撃力＋0。最大MP＋1。"},
   CW05:{slot:"w",name:"小窓のミニライト",price:240,atk:1,meter:1,text:"単体攻撃力＋1。メーター突破＋1。"},
   CW06:{slot:"w",name:"返事のチャイムマイク",price:240,atk:1,family:1,text:"単体攻撃力＋1。ファミリー応援の回復＋1。"},
   CA01:{slot:"a",name:"控室パーカー",price:0,d:1,text:"防御1。"},
   CA02:{slot:"a",name:"巡回ライトベスト",price:180,d:0,hp:6,text:"防御0、最大体力＋6。"},
-  CA03:{slot:"a",name:"音守りヘッドセット",price:180,d:0,c:1,text:"防御0、最大集中力＋1。"},
+  CA03:{slot:"a",name:"音守りヘッドセット",price:180,d:0,c:1,text:"防御0、最大MP＋1。"},
   CA04:{slot:"a",name:"風よけ配信ジャケット",price:300,d:2,text:"防御2。"},
   CA05:{slot:"a",name:"携行プロテクトバッグ",price:240,d:1,hp:2,text:"防御1、最大体力＋2。"},
-  CA06:{slot:"a",name:"配信用リストサポーター",price:240,d:1,rest:1,text:"防御1、ひと息つくの集中力回復＋1。"},
+  CA06:{slot:"a",name:"配信用リストサポーター",price:240,d:1,rest:1,text:"防御1、ひと息つくのMP回復＋1。"},
   AC01:{slot:"acc",name:"携帯マイク",price:200,atk:2,text:"単体攻撃力＋2。"},
   AC02:{slot:"acc",name:"コメント手帳",price:200,commentA:2,text:"応援コメントのエール＋2。"},
-  AC03:{slot:"acc",name:"保温ボトル",price:200,rest:1,text:"ひと息つくの集中力回復＋1。"},
-  AC04:{slot:"acc",name:"予備バッテリー",price:200,c:1,text:"最大集中力＋1。"},
+  AC03:{slot:"acc",name:"保温ボトル",price:200,rest:1,text:"ひと息つくのMP回復＋1。"},
+  AC04:{slot:"acc",name:"予備バッテリー",price:200,c:1,text:"最大MP＋1。"},
   AC05:{slot:"acc",name:"折り畳みライト",price:300,hp:5,text:"最大体力＋5。"},
   AC06:{slot:"acc",name:"携帯スピーカー",price:300,meter:2,text:"メーター突破＋2。"},
   AC07:{slot:"acc",name:"応援タオル",price:300,family:2,text:"ファミリー応援の回復＋2。"},
@@ -87,7 +97,7 @@ JOB_IDS.forEach((j,i)=>{
   const n=j.slice(1);
   EQUIP["JW"+n]={slot:"w",name:JW_NAMES[i],price:320,atk:2,job:j,needR:4,text:`${JOBS[j].name}専用・熟練度4以上。単体攻撃力＋2、技能強化＋1。`};
   const h=H_TYPE.has(j);
-  EQUIP["JA"+n]={slot:"a",name:JA_NAMES[i],price:320,d:1,hp:h?4:0,c:h?0:1,job:j,needR:7,text:`${JOBS[j].name}専用・熟練度7以上。防御1、${h?"最大体力＋4":"最大集中力＋1"}。`};
+  EQUIP["JA"+n]={slot:"a",name:JA_NAMES[i],price:320,d:1,hp:h?4:0,c:h?0:1,job:j,needR:7,text:`${JOBS[j].name}専用・熟練度7以上。防御1、${h?"最大体力＋4":"最大MP＋1"}。`};
 });
 const SHOPS = {
   SH01:{name:"広場の道具店", items:["CW01","CW02","CW03","CA01","CA02","CA04","AC01","AC02","AC03","AC04"]},
@@ -112,7 +122,7 @@ const BOSS_PARTY_SCALE = { 1:{hp:0.5,atk:0.8}, 2:{hp:0.7,atk:0.85}, 3:{hp:0.85,a
 const BOSS_SCALE_OVERRIDE = { LB01:{ 2:{hp:0.9,atk:1} } };
 function bossScale(bid, n){ n=Math.min(4,Math.max(1,n)); const o=BOSS_SCALE_OVERRIDE[bid]; return (o&&o[n]) || BOSS_PARTY_SCALE[n]; }
 
-/* 宿屋：1人あたりの宿泊料（ゴールド）。泊まると翌朝になり、体力と集中力が全回復 */
+/* 宿屋：1人あたりの宿泊料（ゴールド）。泊まると翌朝になり、体力とMPが全回復 */
 const INN_PRICE = { KY01:6, KY02:10, KY03:12, KY04:12, KY05:14, KY06:14, KY07:16, KY08:16 };
 
 /* 第05D節：もえのシナリオ到達ランク */

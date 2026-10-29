@@ -63,6 +63,15 @@ if(loaded.state.profile.name!=='古い記録'||loaded.storage!=='indexeddb'||loa
 db.auto={...db.auto,sum:'wrong'}; db['auto-prev']=makeRecord(old,4);
 loaded=await game.loadSave();
 if(loaded.state.profile.name!=='古い記録'||!loaded.fromPrev) throw new Error('newer previous save was ignored');
+const resumeState={st:null,screen:'title',soundWant:null};
+let resumeStatus='',resumeMessage='';
+const resume=runInNewContext(`${actions}\nACT.continue`,{
+  G:resumeState,loadSave:async()=>({state:old,storage:'indexeddb',fromPrev:true}),migrate:s=>s,
+  setSave:value=>{resumeStatus=value;},toast:value=>{resumeMessage=value;},render:()=>{},
+  SND:{on:true,setOn:()=>{},play:()=>{}},exploreBgm:()=>{}
+});
+await resume();
+if(resumeState.screen!=='explore'||resumeStatus!=='前の記録から復旧'||!resumeMessage.includes('前の世代')||resumeMessage.includes('壊れ')) throw new Error('previous-save resume notice was misleading');
 const current=game.newGame('維持する記録','男性'),incoming=game.newGame('復元する記録','女性');
 const uiState={st:current,screen:'explore',sheet:'settings',readOnly:false,saveStatus:'保存済み',hasSave:true,walk:{path:[]},dlg:null,cmd:{}};
 let saveSucceeds=false,rendered=0,message='';

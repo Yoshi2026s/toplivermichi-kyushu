@@ -75,8 +75,12 @@ for(const zone of ['1','2','3']){
 if(!joins.some(j=>j.hub==='KY05'&&j.cid==='kayo')) fail('Sasebo join plan missing');
 const nagasakiGate=maps.KY05.objects.find(o=>o.id==='gate_nagasaki'),nagasakiReturn=maps.KY06.objects.find(o=>o.id==='gate_sasebo');
 if(!nagasakiGate||!nagasakiReturn||nagasakiGate.to!=='KY06'||nagasakiReturn.to!=='KY05'||nagasakiGate.tx!==2||nagasakiGate.ty!==20||nagasakiReturn.tx!==37||nagasakiReturn.ty!==20) fail('Nagasaki city gates are not reciprocal');
-if(!reachable(maps.KY06,[2,20],maps.KY06.safeAnchor)||!reachable(maps.KY06,maps.KY06.safeAnchor,[2,20])||Object.keys(maps.KY06.zones).length) fail('Nagasaki city safety or return path failed');
+if(!reachable(maps.KY06,[2,20],maps.KY06.safeAnchor)||!reachable(maps.KY06,maps.KY06.safeAnchor,[2,20])) fail('Nagasaki city safety or return path failed');
 for(const type of ['npc','inn','rest','board','shelf']) if(!maps.KY06.objects.some(o=>o.type===type)) fail(`Nagasaki city ${type} missing`);
+for(const zone of ['1','2','3']){
+  const id=maps.KY06.zones[zone],tile=maps.KY06.tiles.flatMap((row,y)=>row.map((value,x)=>value===zone?[x,y]:null)).find(Boolean);
+  if(id!==`KY06-A${zone}`||!tile||!reachable(maps.KY06,maps.KY06.safeAnchor,tile)||!maps.KY06.objects.some(o=>o.type==='sign'&&o.area===id)) fail(`Nagasaki city exploration zone ${zone} is incomplete`);
+}
 const playable=new Set(Object.values(implemented).flat());
 const known=new Set([...playable,...[...data.matchAll(/\["(KY\d+)","[^"]+","[^"]+"\]/g)].map(m=>m[1])]);
 if(new Set(routes.map(r=>r.id)).size!==routes.length) fail('duplicate route ID');
@@ -182,6 +186,7 @@ if(nagasakiMoves!==1) fail('valid Nagasaki city first-arrival gate was rejected'
 const core=['data_enemies.js','data_saga_enemies.js','data_items.js','data_national.js','data.js','core.js'].map(name=>readFileSync(resolve(root,'src',name),'utf8')).join('\n');
 const areaDefs=runInNewContext(`${core}\nAREAS`);
 for(const zone of ['1','2','3']) if(!areaDefs[`KY05-A${zone}`]||areaDefs[`KY05-A${zone}`].list.length<1) fail(`Sasebo area ${zone} has no enemies`);
+for(const zone of ['1','2','3']) if(!areaDefs[`KY06-A${zone}`]||areaDefs[`KY06-A${zone}`].list.length<1) fail(`Nagasaki city area ${zone} has no enemies`);
 const travelMapFn=ui.match(/function travelMap\(to,tx,ty,save=true\)\{[\s\S]*?\n\}/)?.[0],travelHubFn=ui.match(/function travelHub\(to,tx,ty\)\{[\s\S]*?\n\}/)?.[0];
 if(!travelMapFn||!travelHubFn) fail('hub travel implementation missing');
 let saved=0,dialogs=[];const savedStates=[];
@@ -200,9 +205,9 @@ traveler.mapId='KY05';traveler.pos={x:37,y:20};traveler.slots=2;traveler.quests.
 journey.travelHub('KY06',2,20);
 if(traveler.mapId!=='KY06'||traveler.pos.x!==2||traveler.pos.y!==20||traveler.slots!==1||!traveler.visitedHubs.includes('KY06')||saved!==3||savedStates[2].mapId!=='KY06') fail('Nagasaki city arrival or save failed');
 const nagasakiQuests=runInNewContext(`${core}\n${questViewFn}\nrenderQuests()`,{G:{st:traveler},curHub:()=> 'KY06',isSafe:()=>true,esc:s=>String(s)});
-if(!nagasakiQuests.includes('依頼・探索・配信はまだ収録していません')) fail('Nagasaki city board did not identify unfinished content');
+if(!nagasakiQuests.includes('探索3区域')||!nagasakiQuests.includes('依頼・配信はまだ収録していません')) fail('Nagasaki city board did not identify unfinished content');
 journey.travelHub('KY05',37,20);
 if(traveler.mapId!=='KY05'||traveler.slots!==0||saved!==4) fail('Nagasaki city return failed');
-console.log('National registry: 8 regions, 47 prefectures, 6 connected hubs, Nagasaki city safe route OK');
+console.log('National registry: 8 regions, 47 prefectures, 6 connected hubs, Nagasaki city exploration and route OK');
 
 

@@ -7,6 +7,7 @@ const actions=ui.match(/const ACT = \{[\s\S]*?\n\};/)?.[0];
 if(!actions) throw new Error('stream actions missing');
 const savedStream=ui.match(/function savedStreamUsable\(s,st\)\{[\s\S]*?\n\}/)?.[0];
 if(!savedStream||!ui.includes('if(s.stream&&!savedStreamUsable(s.stream,s)) s.stream=null;')) throw new Error('saved stream migration guard missing');
+if(!ui.includes('if(hadStream&&!G.st.stream) notices.push("配信記録に欠損があったため解除しました。依頼帳で状態を確認してください。")')) throw new Error('discarded stream recovery notice missing');
 const usable=runInNewContext(`${savedStream}\nsavedStreamUsable`,{HUBS:{KY04:{prefId:'PR02'}},STREAM_REQ:{PR02:['first','first','first','first']},STREAM_THEMES:{local:{}},STREAM_ACTS:{first:{}}});
 const saved={hub:'KY04',prefId:'PR02',host:'moe',theme:'local',style:'voice',requestIds:['first','first','first','first'],hand:1,score:20,used:['first'],picks:[{act:'first',total:20}],done:false};
 if(!usable(saved,{roster:['moe']})||!usable({...saved,hand:4,picks:Array(4).fill({act:'first'}),done:true},{roster:['moe']})) throw new Error('valid saved stream rejected');

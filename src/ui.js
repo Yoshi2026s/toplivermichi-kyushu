@@ -1403,6 +1403,7 @@ function soundIsOn(){ if(G.soundWant!=null) return G.soundWant; if(G.st&&G.st.se
 function soundPref(){ try{ return localStorage.getItem("tlr-kyushu-sound")!=="0"; }catch(e){ return true; } }
 function savedStreamUsable(s,st){
   if(!s||typeof s!=="object"||!HUBS[s.hub]||HUBS[s.hub].prefId!==s.prefId||!st.roster.includes(s.host)||!STREAM_THEMES[s.theme]||!["video","voice"].includes(s.style)) return false;
+  if(!Object.entries(QUESTS).some(([id,q])=>q.hub===s.hub&&st.quests[id]==="combatDone")) return false;
   const request=STREAM_REQ[s.prefId];
   if(!Array.isArray(request)||!Array.isArray(s.requestIds)||s.requestIds.length!==4||s.requestIds.some(id=>!Object.hasOwn(STREAM_ACTS,id))) return false;
   if(!Number.isInteger(s.hand)||s.hand<0||s.hand>4||typeof s.done!=="boolean"||s.done!==(s.hand===4)||!Number.isFinite(s.score)||s.score<0) return false;

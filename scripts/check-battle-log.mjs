@@ -5,6 +5,8 @@ import {resolve} from 'node:path';
 const root=resolve(import.meta.dirname,'..');
 const ui=readFileSync(resolve(root,'src/ui.js'),'utf8');
 const core=readFileSync(resolve(root,'src/core.js'),'utf8');
+const shell=readFileSync(resolve(root,'src/shell.html'),'utf8');
+if(!shell.includes('.battle .log:not(.expanded) .log-entry:not(:last-child){display:none}')) throw new Error('compact battle log must target current entry buttons');
 const fn=ui.match(/function renderBattleLog\(\)\{[\s\S]*?\n\}/)?.[0];
 if(!fn||!core.includes('run.log = [...(run.log||[]), ...log].slice(-80)')) throw new Error('battle log retention missing');
 const state={st:{run:{log:Array.from({length:83},(_,i)=>`記録${i+1}`)}},sheetData:{page:0}};

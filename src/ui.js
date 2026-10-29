@@ -48,6 +48,11 @@ function acquireLock(){
   try{ if(navigator.locks){ navigator.locks.request("toplivermichi-kyushu-owner",{ifAvailable:true}, lock=>{ if(!lock){ G.readOnly=true; render(); return; } return new Promise(()=>{}); }); } }catch(e){}
 }
 
+/* OSの演出抑制も、保存内の設定を変えずに尊重する。 */
+function reducedMotion(){
+  const settings=G.st?.settings||G.tmpSettings;
+  return !!settings?.reduceMotion || !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+}
 /* ===== ui 共通 ===== */
 const $ = s=>document.querySelector(s);
 const esc = s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -107,7 +112,7 @@ function render(){
   const dockOff = s==="new" || (G.st? G.st.settings.dock===false : (G.tmpSettings&&G.tmpSettings.dock===false));
   document.body.classList.toggle("no-dock", !!dockOff);
   document.body.classList.toggle("stick-left", padSide()==="left");
-  document.body.classList.toggle("reduce-motion", !!(G.st&&G.st.settings.reduceMotion));
+  document.body.classList.toggle("reduce-motion", reducedMotion());
   const dh=document.querySelector("#dock .hint"); if(dh) dh.textContent = (s==="explore"&&!G.sheet&&!G.dlg)?"スティック：移動／決定：調べる":"スティック：カーソル／決定・戻る";
   if(G.dlg){ const b=$("#dlgNext"); if(b) b.focus({preventScroll:true}); }
   PAD.restore();
@@ -133,6 +138,7 @@ function renderTitle(){
       <button class="btn" data-a="continue" ${G.hasSave?"":"disabled"}>つづきから${G.hasSave?"":"（記録なし）"}</button>
       <button class="btn" data-a="openSheet" data-k="settings">設定</button>
       <button class="btn" data-a="openSheet" data-k="about">この作品について</button>
+      <button class="btn" data-a="openSheet" data-k="share">友だちに教える（URLを共有）</button>
     </div>
     <p class="note">配信文化を参考にした非公式の創作ゲームです。実在のサービス・アカウントとは連携しません。BGMと効果音は最初からONです（画面に触れると鳴り始めます。設定で消音にできます）。</p>
     <p class="note">この公開版はM01～M08に加え、47都道府県を訪問・探索できます。全国の追加拠点と交通路は本版の新規制作です。M09以降の本編と参照版v10.108の再現は制作中です。</p>
@@ -193,7 +199,7 @@ function defensePower(s,L){ return Vof(L)*s.armorD; }
 function partyStrip(){
   const st=G.st;
   return `<button class="pstrip" data-a="openSheet" data-k="status" aria-label="パーティーのステータスを開く"><span class="pstop"><span>レベル${levelOf(st.xp,st)}・${st.gold.toLocaleString()}ゴールド・もえ ${MOE_RANKS[st.moeRank]}</span><span class="pmore">ステータス ▶</span></span>${st.party.map(cid=>{ const L=levelOf(st.xp,st), s=charStats(st,cid,L), v=vitalOf(cid);
-    return `<span class="pmini ${v.hp<=0?"ko":""} ${isLow(v.hp,s.maxHP)?"low":""}"><span class="pmline"><b>${esc(charName(st,cid))}</b><span class="small">体力${v.hp}/${s.maxHP} MP${v.c}</span></span><span class="bar"><i style="width:${Math.round(100*v.hp/s.maxHP)}%"></i></span></span>`; }).join("")}</button>`;
+    return `<span class="pmini ${v.hp<=0?"ko":""} ${isLow(v.hp,s.maxHP)?"low":""}"><span class="pmline"><b>${esc(charName(st,cid))}</b><span class="small">体力${v.hp}/${s.maxHP} MP${v.c}${v.hp<=0?"・戦闘不能":isLow(v.hp,s.maxHP)?"・体力わずか":""}</span></span><span class="bar"><i style="width:${Math.round(100*v.hp/s.maxHP)}%"></i></span></span>`; }).join("")}</button>`;
 }
 function renderStatus(){
   const st=G.st; const L=levelOf(st.xp,st);
@@ -206,7 +212,7 @@ function renderStatus(){
     const eqName=id=>id?esc(EQUIP[id].name):"なし";
     return `<section class="scard ${v.hp<=0?"ko":""} ${isLow(v.hp,s.maxHP)?"low":""}">
       <div class="who"><canvas class="sprite-md" data-char="${cid}" width="16" height="24" aria-hidden="true"></canvas>
-        <div><b class="sname">${esc(cid==="hero"?st.profile.name:C.full)}</b><br><span class="small">${inParty?"戦闘メンバー":"控え"}${v.hp<=0?"・戦闘不能":""}</span></div></div>
+        <div><b class="sname">${esc(cid==="hero"?st.profile.name:C.full)}</b><br><span class="small">${inParty?"戦闘メンバー":"控え"}${v.hp<=0?"・戦闘不能":isLow(v.hp,s.maxHP)?"・体力わずか":""}</span></div></div>
       <dl class="kv">
         <dt>レベル</dt><dd>${L}</dd>
         <dt>職業（ジョブ）</dt><dd>${esc(JOBS[s.job].name)}</dd>
@@ -279,7 +285,7 @@ function playerPixel(){
 function drawMap(){
   const cv=G.cv; if(!cv||!cv.isConnected) return; const g=cv.getContext("2d"); g.imageSmoothingEnabled=false;
   const st=G.st, m=MAPS[st.mapId]; const cam=camera(); const now=performance.now();
-  const still=st.settings.reduceMotion; const f=still?0:Math.floor(now/320)%4, f2=still?0:Math.floor(now/600)%2;
+  const still=reducedMotion(); const f=still?0:Math.floor(now/320)%4, f2=still?0:Math.floor(now/600)%2;
   g.fillStyle=PAL.ink; g.fillRect(0,0,cv.width,cv.height);
   const layer=ART.mapLayer(st.mapId,f);
   const sx=Math.max(0,cam.x), sy=Math.max(0,cam.y), w=Math.min(cv.width,layer.width-sx), h=Math.min(cv.height,layer.height-sy);
@@ -462,14 +468,14 @@ function startBattle(run){
   run.log=[`${run.enemies.map(e=>e.display).join("と")}が現れた！`];
   G.cmd={}; G.sheet=null;
   commit(); SND.sfx("enc");
-  if(st.settings.reduceMotion){ G.screen="battle"; render(); }
+  if(reducedMotion()){ G.screen="battle"; render(); }
   else { const f=document.createElement("div"); f.className="flash"; document.body.appendChild(f); setTimeout(()=>{ f.remove(); G.screen="battle"; render(); },380); }
   SND.play(run.kind==="boss"?"boss":"battle");
 }
 function partyCard(m,i,run){
   const sel=G.cmd.actor===i; const pct=Math.round(100*m.hp/m.maxHP);
   const ko=m.hp<=0;
-  const badges=[ko?"戦闘不能":m.acted?"行動済":"", m.ward?`防護${m.ward}`:"", m.guard?"ガード中":""].filter(Boolean);
+  const badges=[ko?"戦闘不能":isLow(m.hp,m.maxHP)?"体力わずか":"",m.acted?"行動済":"", m.ward?`防護${m.ward}`:"", m.guard?"ガード中":""].filter(Boolean);
   return `<button class="pcard ${sel?"on":""} ${ko?"ko":""} ${isLow(m.hp,m.maxHP)?"low":""} ${m.acted?"done":""}" data-a="pickActor" data-i="${i}" ${ko||m.acted||run.state!=="input"?"aria-disabled=\"true\"":""}>
     <span class="pline"><b>${sel?"▶":""}${esc(m.name)}</b><span class="pjob">${esc(JOBS[m.job].name)} 熟練度${m.R}</span>${badges.map(t=>`<span class="pst">${t}</span>`).join("")}</span>
     <span class="bar"><i style="width:${pct}%"></i></span>
@@ -621,7 +627,7 @@ function previewText(run,a,p){
   return `<span class="pv">${out.map(esc).join("／")}</span>`;
 }
 function drawEnemies(){
-  const run=G.st.run; if(!run) return; const now=Date.now(); const still=G.st.settings.reduceMotion;
+  const run=G.st.run; if(!run) return; const now=Date.now(); const still=reducedMotion();
   const f=still?0:Math.floor(now/500)%2;
   const bg=document.querySelector("canvas.stagebg"); if(bg){ const g=bg.getContext("2d"); g.imageSmoothingEnabled=false; g.drawImage(ART.stage(run.areaId, still?0:Math.floor(now/400)%4),0,0); }
   document.querySelectorAll("canvas[data-enemy]").forEach(c=>{
@@ -640,17 +646,17 @@ function battleFx(before){
   if(hurt){
     const ko=run.party.some((m,i)=>m.hp<=0&&before.p[i]>0);
     setTimeout(()=>SND.sfx(ko?"down":"damage"),dealtBy(before)?380:90);
-    if(!G.st.settings.reduceMotion){ const sc=document.querySelector(".battle"); if(sc){ sc.classList.remove("quake"); void sc.offsetWidth; sc.classList.add("quake"); setTimeout(()=>sc.classList.remove("quake"),420); }
+    if(!reducedMotion()){ const sc=document.querySelector(".battle"); if(sc){ sc.classList.remove("quake"); void sc.offsetWidth; sc.classList.add("quake"); setTimeout(()=>sc.classList.remove("quake"),420); }
       const fl=document.createElement("div"); fl.className="hurtflash"; document.body.appendChild(fl); setTimeout(()=>fl.remove(),260); }
   }
-  if(G.st.settings.reduceMotion) return;
+  if(reducedMotion()) return;
   const slots=[];
   run.enemies.forEach(e=>{ const d=before.e[e.slot]-e.hp; if(d>0){ slots.push(e.slot); pop($("#ec"+e.slot),`-${d}`,"dmg"); } });
   run.party.forEach((m,i)=>{ const d=m.hp-before.p[i]; const el=document.querySelector(`.pcard[data-i="${i}"]`); if(d<0){ pop(el,`${d}`,"hurt"); el&&el.classList.add("shake"); } else if(d>0) pop(el,`+${d}`,"heal"); });
   if(slots.length){ G.flash={slots, until:Date.now()+360}; let n=0; const t=setInterval(()=>{ drawEnemies(); if(++n>7) clearInterval(t); },60); }
 }
 function pop(el,text,cls){ if(!el) return; const s=document.createElement("span"); s.className="pop "+cls; s.textContent=text; el.appendChild(s); setTimeout(()=>s.remove(),900); }
-function startBattleTimer(){ stopBattleTimer(); if(!G.st.settings.reduceMotion) G.battleTimer=setInterval(drawEnemies,250); }
+function startBattleTimer(){ stopBattleTimer(); if(!reducedMotion()) G.battleTimer=setInterval(drawEnemies,250); }
 function stopBattleTimer(){ if(G.battleTimer){ clearInterval(G.battleTimer); G.battleTimer=0; } }
 function confirmAct(forced){
   const st=G.st, run=st.run; const a=run.party[G.cmd.actor]; const act=forced||buildAct(a); if(!act) return;
@@ -682,7 +688,7 @@ function autoStep(){
   G.autoLast=`${pick.name}：${pick.label}`;
   G.cmd={actor:pick.idx}; G.autoAct=pick.act;
   confirmAct(pick.act);
-  if(G.auto && run.state==="input") G.autoT=setTimeout(autoStep, st.settings.reduceMotion?250:650);
+  if(G.auto && run.state==="input") G.autoT=setTimeout(autoStep, reducedMotion()?250:650);
   else { G.auto=false; render(); }
 }
 function toResult(){
@@ -825,6 +831,7 @@ function renderSheet(){
   const k=G.sheet; if(!k) return ""; const st=G.st; const d=G.sheetData;
   switch(k){
     case "about": return sheetWrap("この作品について",`<p>「ポコチャクエスト」は、配信文化を参考にした非公式の創作RPGです。人物・台詞・敵・数値・画像・音はゲーム用の創作で、実在のサービスの配信・課金・アカウント・ランキングとは連携しません。</p><p>雪餅羽もえ（のわんもえ）の「おやすみセカイ元メンバー・脱退後にPocochaでS6を目指す」という背景は、物語の設定です。作中のランクは物語上の到達記録で、実際のランク歴ではありません。</p><p>敵の名前は、配信・応援の言葉とRPGの語感を組み合わせた本作の創作名です。</p><p class="small">gameVersion ${GAME_VERSION}／schemaVersion ${SCHEMA_VERSION}</p>`);
+    case "share": return sheetWrap("友だちに教える", renderShare());
     case "settings": return sheetWrap("設定と保存", renderSettings());
     case "nearby": { const near=nearbyObjects(); return sheetWrap("近くを調べる", near.length? `<div class="stack">${near.map(o=>`<button class="btn" data-a="interactId" data-v="${o.id}">${esc(o.label)}</button>`).join("")}</div>` : `<p>近くに調べられるものはありません。道しるべから目的地を選べます。</p>`); }
     case "guide": { const m=MAPS[st.mapId]; return sheetWrap("道しるべ", `<p class="small">選ぶと、その場所まで実際に歩きます（途中の遭遇エリアでは抽選があります）。</p><div class="stack">${m.objects.filter(o=>o.type!=="tower").map(o=>{ const a=o.area?AREAS[o.area]:null; return `<button class="btn" data-a="guideTo" data-v="${o.id}">${esc(o.label)}${a?`（推奨レベル${a.q}）`:""}</button>`; }).join("")}</div>`); }
@@ -856,6 +863,18 @@ function renderSheet(){
   }
   return "";
 }
+function renderShare(){
+  const links=SHARE.links();
+  return `<label class="field-label" for="shareUrl">ゲームのURL</label>
+    <textarea id="shareUrl" class="input mono" rows="3" readonly>${esc(SHARE.url())}</textarea>
+    <div class="stack">
+    ${typeof navigator.share==="function"?'<button class="btn" data-a="shareNative">スマホの共有メニューを開く</button>':""}
+    <button class="btn" data-a="shareCopy" data-v="url">URLだけコピー</button>
+    <button class="btn" data-a="shareCopy" data-v="intro">紹介文つきでコピー</button>
+    <a class="btn" href="${esc(links.line)}" target="_blank" rel="noopener noreferrer">LINEで送る</a>
+    <a class="btn" href="${esc(links.x)}" target="_blank" rel="noopener noreferrer">Xでポスト</a></div>
+    <p class="small">記録（セーブ）は送られません。受け取った人は「はじめから」で遊べます。</p>`;
+}
 function renderSettings(){
   const st=G.st; const s=st?st.settings:G.tmpSettings||(G.tmpSettings={difficulty:"std",sound:soundPref(),reduceMotion:false});
   const busy = st&&st.run;
@@ -875,7 +894,8 @@ function renderSettings(){
     <h3 class="label">復元</h3><p class="small">保管したバックアップの文字列を貼り付けて読み込みます（現在の記録は置き換わります）。</p>
     <textarea id="restoreIn" class="input mono" rows="4" aria-label="バックアップの貼り付け"></textarea>
     <div class="stack"><button class="btn" data-a="restore">貼り付けた記録を読み込む</button>
-    ${st&&G.screen!=="title"?`<button class="btn" data-a="toTitle">タイトルへ戻る</button>`:""}</div>`;
+    ${st&&G.screen!=="title"?`<button class="btn" data-a="toTitle">タイトルへ戻る</button>`:""}</div>
+    <h3 class="label">共有</h3><button class="btn" data-a="openSheet" data-k="share">友だちに教える（URLを共有）</button>`;
 }
 function renderQuests(){
   const st=G.st; const hub=curHub(); const safe=isSafe();
@@ -1266,6 +1286,8 @@ function renderStreamSetup(){
 
 /* ===== 操作の受付 ===== */
 const ACT = {
+  shareCopy(el){ return SHARE.copy(el.dataset.v==="intro"); },
+  shareNative(){ return SHARE.native(); },
   battleLogLine(el){ if(G.screen!=="battle"||!G.st?.run||G.dlg||!['battleLog',null].includes(G.sheet)) return; const lines=Array.isArray(G.st.run.log)?G.st.run.log:[],index=Number(el.dataset.v),first=Math.max(0,lines.length-80); if(!Number.isInteger(index)||index<first||index>=lines.length) return; const reversed=lines.length-1-index; G.sheet='battleLog'; G.sheetData={page:Math.floor(reversed/8),line:reversed}; render(); },
   battleLogBack(){ if(G.screen!=="battle"||G.sheet!=="battleLog"||!G.st?.run) return; delete G.sheetData.line; render(); },
   battleLogExpand(){ if(G.screen!=="battle"||G.sheet||G.dlg||!G.st?.run) return; if(G.auto){G.auto=false;clearTimeout(G.autoT);G.autoLast=null;G.cmd={};G.cursorSig=null;} G.logExpanded=!G.logExpanded; render(); },
@@ -1501,7 +1523,7 @@ document.addEventListener("click",e=>{
   const el=e.target.closest("[data-a]"); if(!el||el.disabled) return;
   if(el.getAttribute("aria-disabled")==="true") return;
   const f=ACT[el.dataset.a]; if(!f) return;
-  if(G.readOnly && !["openSheet","closeSheet","dlgNext","dlgBack","dlgSkip","toTitle","dexNav","partyView","shopTab","shopItem","vaultOpen","vaultBack"].includes(el.dataset.a)) return toast("別のタブで遊んでいるため、このタブは閲覧のみです。");
+  if(G.readOnly && !["shareCopy","shareNative","openSheet","closeSheet","dlgNext","dlgBack","dlgSkip","toTitle","dexNav","partyView","shopTab","shopItem","vaultOpen","vaultBack"].includes(el.dataset.a)) return toast("別のタブで遊んでいるため、このタブは閲覧のみです。");
   f(el);
   if(el.dataset.a==="openSheet") drawMiniSprites();
 });

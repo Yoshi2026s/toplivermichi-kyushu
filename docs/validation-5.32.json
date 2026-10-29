@@ -1,0 +1,74 @@
+{
+  "version": "5.32",
+  "base_commit": "76d945e5ce27be9c834241088755220ff8248937",
+  "recorded_at": "2026-10-30T04:06:54.765161+09:00",
+  "tests": [
+    {
+      "program": "scripts/check-audio-duck.mjs",
+      "status": "passed"
+    },
+    {
+      "program": "scripts/check-auto-items.mjs",
+      "status": "passed"
+    },
+    {
+      "program": "scripts/check-badge-list.mjs",
+      "status": "passed"
+    },
+    {
+      "program": "scripts/check-battle-log.mjs",
+      "status": "passed"
+    },
+    {
+      "program": "scripts/check-merged-instructions.mjs",
+      "status": "passed"
+    },
+    {
+      "program": "scripts/check-national.mjs",
+      "status": "passed"
+    },
+    {
+      "program": "scripts/check-nationwide.mjs",
+      "status": "passed"
+    },
+    {
+      "program": "scripts/check-saga.mjs",
+      "status": "passed"
+    },
+    {
+      "program": "scripts/check-save.mjs",
+      "status": "passed"
+    },
+    {
+      "program": "scripts/check-selected-fixes.mjs",
+      "status": "passed"
+    },
+    {
+      "program": "scripts/check-shop.mjs",
+      "status": "passed"
+    },
+    {
+      "program": "scripts/check-stream-actions.mjs",
+      "status": "passed"
+    },
+    {
+      "program": "scripts/check-target.mjs",
+      "status": "passed"
+    },
+    {
+      "program": "scripts/check-vault.mjs",
+      "status": "passed"
+    }
+  ],
+  "source_syntax": "passed",
+  "generated_script_syntax": "passed",
+  "git_diff_check": "passed",
+  "index_sha256": "97c73a84b6c006a4417379b3f18125d837c748883f9c0f6dba4ec08036e731cc",
+  "limits": [
+    "VM/Node checks only",
+    "No real smartphone or audio listening tests",
+    "No real user saves accessed",
+    "Private v5.36 source and song data not supplied",
+    "Large features remain development candidates per selected item 08"
+  ]
+}

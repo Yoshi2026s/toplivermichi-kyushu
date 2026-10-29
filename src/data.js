@@ -1,5 +1,5 @@
 /* ===== data: 福岡編と佐賀・唐津編 ===== */
-const GAME_VERSION = "5.31";
+const GAME_VERSION = "5.32";
 const SCHEMA_VERSION = 5;
 // A chapter opens only when the preceding chapter's registered main finale is complete.
 // M08 ends the current partial Kyushu story, not the whole Kyushu chapter.

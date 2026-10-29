@@ -1412,9 +1412,12 @@ function savedStreamUsable(s,st){
   if(!s||typeof s!=="object"||!HUBS[s.hub]||HUBS[s.hub].prefId!==s.prefId||!st.roster.includes(s.host)||!STREAM_THEMES[s.theme]||!["video","voice"].includes(s.style)) return false;
   if(!Object.entries(QUESTS).some(([id,q])=>q.hub===s.hub&&st.quests[id]==="combatDone")) return false;
   const request=STREAM_REQ[s.prefId];
-  if(!Array.isArray(request)||!Array.isArray(s.requestIds)||s.requestIds.length!==4||s.requestIds.some(id=>!Object.hasOwn(STREAM_ACTS,id))) return false;
+  if(!Array.isArray(request)||!Array.isArray(s.requestIds)||s.requestIds.length!==4||s.requestIds.some((id,i)=>id!==request[i])) return false;
   if(!Number.isInteger(s.hand)||s.hand<0||s.hand>4||typeof s.done!=="boolean"||s.done!==(s.hand===4)||!Number.isFinite(s.score)||s.score<0) return false;
   if(!Array.isArray(s.used)||s.used.some(id=>!Object.hasOwn(STREAM_ACTS,id))||!Array.isArray(s.picks)||s.picks.length!==s.hand||s.picks.some(p=>!p||!Object.hasOwn(STREAM_ACTS,p.act))) return false;
+  const replay={requestIds:request.slice(),theme:s.theme,hand:0,score:0,used:[],themeBonusUsed:false,picks:[],done:false};
+  for(const pick of s.picks){ const step=streamPlay(replay,pick.act); if(pick.total!==step.total) return false; }
+  if(s.score!==replay.score||s.themeBonusUsed!==replay.themeBonusUsed||s.used.length!==replay.used.length||s.used.some((id,i)=>id!==replay.used[i])) return false;
   return true;
 }
 function migrate(s){

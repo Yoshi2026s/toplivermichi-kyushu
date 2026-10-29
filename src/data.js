@@ -397,8 +397,8 @@ const DIFFICULTY = {
   hard:{name:"手応え",hp:1.2,atk:1.15,startA:0}
 };
 
-/* ---- 道具（ユーザー指定：20種類×各9個まで。v5.29 第16P節） ---- */
-const BAG_KINDS = 20, BAG_STACK = 9, KEEP_MAX = 20;
+/* ---- 道具袋の拡張上限（参照v10.73～10.80）。旧セーブの所持数は維持 ---- */
+const BAG_KINDS = 300, BAG_STACK = 99, KEEP_MAX = 20;
 const ITEM_RARITY = {1:"★1 ありふれた",2:"★2 ときどき見る",3:"★3 めずらしい",4:"★4 とてもめずらしい",5:"★5 まぼろし"};
 const ITEM_ACQ = {S:"ショップ",E:"イベント限定",DS:"モンスター限定（売却可）",DN:"モンスター限定（売却不可）",SD:"ショップ・モンスター"};
 const ITEMS = {};

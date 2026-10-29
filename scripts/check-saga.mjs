@@ -22,6 +22,7 @@ const fresh=game.newGame('確認用','女性');
 if(fresh.quests.M03!=='locked') fail('M03 must start locked');
 if(fresh.quests.M04!=='locked') fail('M04 must start locked');
 if(fresh.quests.M05!=='locked') fail('M05 must start locked');
+if(fresh.quests.M06!=='locked') fail('M06 must start locked');
 fresh.quests.M02='combatDone';
 game.completeQuest(fresh,'M02',{xp:0,tickets:0});
 if(fresh.quests.M03!=='available'||!fresh.fukuokaClear) fail('M02 must unlock M03');
@@ -38,8 +39,10 @@ const karatsuOld=game.newGame('唐津済','女性'); karatsuOld.quests.M03='comp
 if(game.migrate(JSON.parse(JSON.stringify(karatsuOld))).quests.M04!=='available') fail('Karatsu save must unlock M04');
 const sagaCityOld=game.newGame('佐賀市済','女性');sagaCityOld.quests.M04='complete';delete sagaCityOld.quests.M05;
 if(game.migrate(JSON.parse(JSON.stringify(sagaCityOld))).quests.M05!=='available') fail('Saga city save must unlock M05');
+const saseboOld=game.newGame('佐世保済','女性');saseboOld.quests.M05='complete';delete saseboOld.quests.M06;
+if(game.migrate(JSON.parse(JSON.stringify(saseboOld))).quests.M06!=='available') fail('Sasebo save must unlock M06');
 
-for(const id of ['KY03-A1','KY03-A2','KY03-A3','KY04-A1','KY04-A2','KY04-A3','KY05-A1','KY05-A2','KY05-A3']){
+for(const id of ['KY03-A1','KY03-A2','KY03-A3','KY04-A1','KY04-A2','KY04-A3','KY05-A1','KY05-A2','KY05-A3','KY06-A1','KY06-A2','KY06-A3']){
   if(game.AREAS[id]?.list.length!==50||!game.enemyDef(id,0).id.startsWith(`EN-${id}-`)) fail(`${id} enemy catalog invalid`);
   const run=game.createFieldRun(fresh,id,{count:0,picks:[0,0]});
   if(run.hub!==id.slice(0,4)||run.areaId!==id||run.enemies.length!==1) fail(`${id} battle creation failed`);
@@ -82,6 +85,7 @@ if(!saseboStream.done||saseboStream.score<80||saseboStream.hub!=='KY05'||saseboS
 fresh.quests.M05='combatDone';
 const saseboBefore=fresh.tickets;game.completeQuest(fresh,'M05',{xp:0,tickets:0});
 if(fresh.quests.M05!=='complete'||fresh.moeRank!==5||fresh.tickets<=saseboBefore) fail('M05 completion failed');
+if(fresh.quests.M06!=='available') fail('M05 must unlock M06');
 const saseboOnce=fresh.tickets;game.completeQuest(fresh,'M05',{xp:0,tickets:0});
 if(fresh.tickets!==saseboOnce) fail('M05 reward duplicated');
 const flow=game.newGame('佐世保進行','女性');
@@ -102,4 +106,18 @@ if(game.SUPPORTS.PR03.startA!==14) fail('Nagasaki support bonus invalid');
 flow.support='PR03';
 const supportedSasebo=game.createFieldRun(flow,'KY05-A1',{count:0,picks:[0,0]});
 if(supportedSasebo.A!==game.createFieldRun({...flow,support:null},'KY05-A1',{count:0,picks:[0,0]}).A+14) fail('Nagasaki support battle bonus invalid');
-console.log('Saga and Sasebo M03-M05: old saves, battles, bosses, streams, ranks and rewards OK');
+flow.quests.M06='active';flow.activeQuest='M06';
+for(let i=0;i<2;i++) game.applyVictory(flow,game.createFieldRun(flow,'KY06-A1',{count:0,picks:[0,0]}));
+if(flow.qprog.M06!==2||flow.quests.M06!=='bossReady') fail('M06 field victories did not unlock boss');
+const nagasakiBoss=game.createBossRun(flow,'B05');
+if(nagasakiBoss.hub!=='KY06'||nagasakiBoss.areaId!=='KY06-A3'||nagasakiBoss.enemies[0].id!=='B05') fail('Nagasaki city boss battle invalid');
+game.applyVictory(flow,nagasakiBoss);
+if(!flow.bossDefeated.B05||flow.quests.M06!=='combatDone') fail('M06 boss victory did not unlock stream');
+const nagasakiStream=game.newStream(flow,'KY06','hero','local','voice');
+for(const act of ['local','first','reply','thanks']) game.streamPlay(nagasakiStream,act);
+if(!nagasakiStream.done||nagasakiStream.score<80||nagasakiStream.hub!=='KY06'||nagasakiStream.prefId!=='PR03') fail('M06 stream failed');
+const nagasakiBefore=flow.tickets;game.completeQuest(flow,'M06',{xp:0,tickets:0});
+if(flow.quests.M06!=='complete'||flow.activeQuest!==null||flow.moeRank!==6||flow.tickets<=nagasakiBefore) fail('M06 flow did not complete');
+const nagasakiOnce=flow.tickets;game.completeQuest(flow,'M06',{xp:0,tickets:0});
+if(flow.tickets!==nagasakiOnce) fail('M06 reward duplicated');
+console.log('Saga and Nagasaki M03-M06: old saves, battles, bosses, streams, ranks and rewards OK');

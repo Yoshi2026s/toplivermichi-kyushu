@@ -3586,6 +3586,11 @@ function padSide(){ const s=G.st?G.st.settings:G.tmpSettings; if(s&&(s.padSide==
 function soundIsOn(){ if(G.soundWant!=null) return G.soundWant; if(G.st&&G.st.settings) return G.st.settings.sound!==false; return soundPref(); }
 function soundPref(){ try{ return localStorage.getItem("tlr-kyushu-sound")!=="0"; }catch(e){ return true; } }
 function migrate(s){
+  if(!Array.isArray(s.visitedMaps)) s.visitedMaps=[];
+  if(!Array.isArray(s.visitedHubs)) s.visitedHubs=[];
+  if(!s.visitedMaps.includes(s.mapId)) s.visitedMaps.push(s.mapId);
+  const currentHub=MAPS[s.mapId].hub;
+  if(!s.visitedHubs.includes(currentHub)) s.visitedHubs.push(currentHub);
   if(s.vaultGold===undefined) s.vaultGold=0;
   if(s.itemVault===undefined) s.itemVault=[];
   if(!Array.isArray(s.pendingGifts)) s.pendingGifts=[];

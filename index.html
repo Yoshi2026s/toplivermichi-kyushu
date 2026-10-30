@@ -3362,6 +3362,7 @@ const SND = (()=>{
   let musicBus=null, sfxBus=null, revIn=null, dlyIn=null, dly=null, duckUntil=0, revOutput=null, delayOutput=null;
   let musicVolume=1,effectVolume=1;
   const activeSources=new Map();
+  const pageHidden=()=>typeof document!=="undefined"&&document.hidden;
   function trackSource(node,out,cleanup){activeSources.set(node,out===sfxBus?'sfx':'music');node.onended=()=>{activeSources.delete(node);try{node.disconnect();}catch(e){}if(cleanup)cleanup();};}
   function stopSources(group){for(const [node,kind] of activeSources){if(group&&kind!==group)continue;try{node.stop();node.disconnect();}catch(e){}activeSources.delete(node);}}
   const musicGain=()=>0.5*musicVolume;
@@ -3452,7 +3453,7 @@ const SND = (()=>{
     if(jingleT){ clearTimeout(jingleT); jingleT=null; }
     if(cur===name && (timer||!on)) return;
     cur=name; stopBgm();
-    if(!on||!ac||!SONGS[name]) return;
+    if(!on||!ac||pageHidden()||!SONGS[name]) return;
     song=compile(SONGS[name]); step=0; nextT=ac.currentTime+0.06; if(dly) dly.delayTime.setValueAtTime(Math.min(1.2,60/song.bpm*0.75),ac.currentTime);
     schedule(); timer=setInterval(schedule,25);
   }
@@ -3467,7 +3468,7 @@ const SND = (()=>{
     clearTimeout(jingleT);
     const J=JINGLES[name]; if(!J) return;
     stopBgm(); cur=next||null;
-    if(!on||!ac){ return; }
+    if(!on||!ac||pageHidden()){ return; }
     const sd=60/J.bpm/2; let t0=ac.currentTime+0.05, steps=0;
     const lane=(str,wave,vol,o)=>{ const toks=str.replace(/\|/g," ").trim().split(/\s+/); steps=Math.max(steps,toks.length);
       toks.forEach((tk,i)=>{ const n=midi(tk); if(n==null) return; let len=1; while(toks[i+len]==="-") len++; voice(hz(n),t0+i*sd,sd*len*0.92,wave,vol,{vib:len>2,...o}); }); };
@@ -3508,7 +3509,7 @@ const SND = (()=>{
     gain.linearRampToValueAtTime(musicGain(),duckUntil+0.38);
   }
   function sfx(name){
-    if(!on||!ac) return; const parts=SFX[name]||[]; if(!parts.length) return; let t=ac.currentTime+0.01;
+    if(!on||!ac||pageHidden()) return; const parts=SFX[name]||[]; if(!parts.length) return; let t=ac.currentTime+0.01;
     duckBgm(parts.reduce((n,s)=>n+(s[0]==="noise"||s[0]===null?s[1]:s[2]),0)+0.08);
     for(const s of parts){
       if(s[0]==="noise"){ noise(t,s[1]+0.03,0.36,1200,{type:"bandpass",q:0.5,out:sfxBus,rev:0.15}); noise(t,0.02,0.20,5000,{out:sfxBus}); t+=s[1]; }

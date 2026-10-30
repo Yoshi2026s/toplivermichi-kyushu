@@ -138,7 +138,7 @@ function renderNew(){
     const v=validateName(n.name);
     return `<section class="win">
       <h2 class="label">確認</h2>
-      <canvas id="heroPrev" width="16" height="24" class="sprite-lg" aria-hidden="true"></canvas>
+      <canvas id="heroPrev" width="32" height="48" class="sprite-lg" aria-hidden="true"></canvas>
       <dl class="kv"><dt>名前</dt><dd>${esc(v.value)}（${v.count}文字）</dd><dt>性別</dt><dd>${esc(n.gender)}</dd>
       <dt>初期職業</dt><dd>アイドルオタク</dd><dt>背景</dt><dd>32歳・福岡県福岡市出身・職歴は社会福祉士</dd></dl>
       <p class="small">名前と性別はこの冒険で固定されます。性別による能力・成長・結末の差はありません。</p>
@@ -153,13 +153,13 @@ function renderNew(){
     <fieldset class="gender"><legend class="field-label">性別（ゲーム内の主人公設定）</legend>
       ${["男性","女性"].map(g=>`<button class="btn choice ${n.gender===g?"on":""}" data-a="pickGender" data-v="${g}" aria-pressed="${n.gender===g}">${n.gender===g?"▶ ":""}${g}</button>`).join("")}
     </fieldset>
-    <canvas id="heroPrev" width="16" height="24" class="sprite-lg" aria-hidden="true"></canvas>
+    <canvas id="heroPrev" width="32" height="48" class="sprite-lg" aria-hidden="true"></canvas>
     <div class="stack"><button class="btn primary" id="toConfirm" data-a="newNext">確認へ</button>
     <button class="btn" data-a="toTitle">タイトルへ戻る</button></div>
   </section>`;
 }
 function mountNew(){
-  const pv=$("#heroPrev"); if(pv){ const g=pv.getContext("2d"); g.clearRect(0,0,16,24); if(G.newGame.gender) g.drawImage(heroSprite(0,0,G.newGame.gender),0,0); }
+  const pv=$("#heroPrev"); if(pv){ const g=pv.getContext("2d"); g.clearRect(0,0,pv.width,pv.height); if(G.newGame.gender) g.drawImage(heroSprite(0,0,G.newGame.gender),0,0,pv.width,pv.height); }
   const inp=$("#nameInput"); if(!inp) return;
   const upd=()=>{ const help=$("#nameHelp"); if(G.newGame.composing){ help.textContent="変換中"; return; }
     G.newGame.name=inp.value; const v=validateName(inp.value);
@@ -190,7 +190,7 @@ function renderStatus(){
     const inParty=st.party.includes(cid);
     const eqName=id=>id?esc(EQUIP[id].name):"なし";
     return `<section class="scard ${v.hp<=0?"ko":""} ${isLow(v.hp,s.maxHP)?"low":""}">
-      <div class="who"><canvas class="sprite-md" data-char="${cid}" width="16" height="24" aria-hidden="true"></canvas>
+      <div class="who"><canvas class="sprite-md" data-char="${cid}" width="32" height="48" aria-hidden="true"></canvas>
         <div><b class="sname">${esc(cid==="moe"?charName(st,"moe"):cid==="hero"?st.profile.name:C.full)}</b><br><span class="small">${inParty?"戦闘メンバー":"控え"}${v.hp<=0?"・戦闘不能":isLow(v.hp,s.maxHP)?"・体力わずか":""}</span></div></div>
       <dl class="kv">
         <dt>レベル</dt><dd>${L}</dd>
@@ -247,7 +247,7 @@ function mountCanvas(){
   G.scale = (Math.floor(A/32)>=7 && Math.floor(H/32)>=4) ? 2 : 1;
   G.vw=Math.max(5,Math.min(14,Math.floor(A/(16*G.scale))));
   G.vh=Math.max(3,Math.min(14,Math.floor(H/(16*G.scale))));
-  cv.width=G.vw*16; cv.height=G.vh*16; cv.style.width=(G.vw*16*G.scale)+"px"; cv.style.height=(G.vh*16*G.scale)+"px";
+  G.mapRenderScale=2; cv.width=G.vw*16*G.mapRenderScale; cv.height=G.vh*16*G.mapRenderScale; cv.style.width=(G.vw*16*G.scale)+"px"; cv.style.height=(G.vh*16*G.scale)+"px";
   cv.addEventListener("pointerup", onMapTap);
   drawMap(); startLoop();
 }
@@ -267,10 +267,11 @@ function drawMap(){
   const cv=G.cv; if(!cv||!cv.isConnected) return; const g=cv.getContext("2d"); g.imageSmoothingEnabled=false;
   const st=G.st, m=MAPS[st.mapId]; const cam=camera(); const now=performance.now();
   const still=reducedMotion(); const f=still?0:Math.floor(now/320)%4, f2=still?0:Math.floor(now/600)%2;
-  g.fillStyle=PAL.ink; g.fillRect(0,0,cv.width,cv.height);
+  const ratio=G.mapRenderScale||1,vw=G.vw*16,vh=G.vh*16;g.setTransform(ratio,0,0,ratio,0,0);
+  g.fillStyle=PAL.ink; g.fillRect(0,0,vw,vh);
   const layer=ART.mapLayer(st.mapId,f);
-  const sx=Math.max(0,cam.x), sy=Math.max(0,cam.y), w=Math.min(cv.width,layer.width-sx), h=Math.min(cv.height,layer.height-sy);
-  g.drawImage(layer,sx,sy,w,h,sx-cam.x,sy-cam.y,w,h);
+  const sx=Math.max(0,cam.x), sy=Math.max(0,cam.y), w=Math.min(vw,layer.width/(layer.artScale||1)-sx), h=Math.min(vh,layer.height/(layer.artScale||1)-sy);
+  const lr=layer.artScale||1;g.drawImage(layer,sx*lr,sy*lr,w*lr,h*lr,sx-cam.x,sy-cam.y,w,h);
   const sprites=[];
   for(const o of m.objects){
     let img;
@@ -294,7 +295,7 @@ function drawMap(){
   }
   sprites.push({y:pp.y/16+0.01, px:pp, img:charSprite(lead,st.dir,wf)});
   sprites.sort((a,b)=>a.y-b.y);
-  for(const s of sprites){ const x=s.px?s.px.x:s.x*16, y=s.px?s.px.y:s.y*16; g.fillStyle='rgba(6,17,28,.27)'; g.beginPath(); g.ellipse(x+8-cam.x,y+13-cam.y,6,2,0,0,Math.PI*2); g.fill(); g.drawImage(s.img,x-cam.x,y-8-cam.y); }
+  for(const s of sprites){ const x=s.px?s.px.x:s.x*16, y=s.px?s.px.y:s.y*16; g.fillStyle='rgba(6,17,28,.27)'; g.beginPath(); g.ellipse(x+8-cam.x,y+13-cam.y,6,2,0,0,Math.PI*2); g.fill(); g.drawImage(s.img,x-cam.x,y-8-cam.y,16,24); }
   if(moving){ const d=G.walk.path[G.walk.path.length-1]; const bl=Math.floor(now/250)%2; g.strokeStyle=bl?PAL.cream:PAL.gold; g.strokeRect(d.x*16-cam.x+3.5,d.y*16-cam.y+3.5,9,9); }
 }
 function startLoop(){
@@ -335,7 +336,7 @@ function walkTo(x,y,pending){
 }
 function onMapTap(e){
   if(G.sheet||G.dlg) return; const r=G.cv.getBoundingClientRect(); const cam=camera();
-  const lx=(e.clientX-r.left)*(G.cv.width/r.width)+cam.x, ly=(e.clientY-r.top)*(G.cv.height/r.height)+cam.y;
+  const lx=(e.clientX-r.left)*(G.cv.width/(G.mapRenderScale||1)/r.width)+cam.x, ly=(e.clientY-r.top)*(G.cv.height/(G.mapRenderScale||1)/r.height)+cam.y;
   walkTo(Math.floor(lx/16), Math.floor((ly+4)/16));
 }
 function arrive(){
@@ -971,7 +972,7 @@ function renderParty(){
         <button class="btn" data-a="partyView" data-c="${cid}" data-v="">人物へ戻る</button>`;
     }
     const e=st.equip[cid]; const C=CHARS[cid];
-    return `<div class="who"><canvas class="sprite-md" data-char="${cid}" width="16" height="24" aria-hidden="true"></canvas><div><b>${esc(cid==="hero"?st.profile.name:C.full)}</b>　${[C.age?C.age+"歳":"",C.from?esc(C.from):""].filter(Boolean).join("・")}<br><span class="small">${cid==="moe"?"経歴":"職歴"}：${esc(C.career)}（ジョブとは別）</span></div></div>
+    return `<div class="who"><canvas class="sprite-md" data-char="${cid}" width="32" height="48" aria-hidden="true"></canvas><div><b>${esc(cid==="hero"?st.profile.name:C.full)}</b>　${[C.age?C.age+"歳":"",C.from?esc(C.from):""].filter(Boolean).join("・")}<br><span class="small">${cid==="moe"?"経歴":"職歴"}：${esc(C.career)}（ジョブとは別）</span></div></div>
       <dl class="kv"><dt>ジョブ</dt><dd>${esc(JOBS[cur.job].name)}　熟練度${cur.R}・技能強化${cur.S}</dd><dt>体力</dt><dd>${vitalOf(cid).hp}／${cur.maxHP}</dd><dt>MP</dt><dd>${vitalOf(cid).c}／${cur.startC}</dd>
       <dt>武器</dt><dd>${e.w?esc(EQUIP[e.w].name):"なし"}</dd><dt>防具</dt><dd>${e.a?esc(EQUIP[e.a].name):"なし"}</dd><dt>アクセサリー</dt><dd>${e.acc?esc(EQUIP[e.acc].name):"なし"}</dd></dl>
       <div class="stack"><button class="btn" data-a="partyView" data-c="${cid}" data-v="job">職業を変える</button>
@@ -1230,7 +1231,7 @@ function renderMoe(){
   const st=G.st; const r=MOE_RANKS[st.moeRank];
   const line = st.moeRank===0?"まずは福岡の声を整えよう。放送塔の丘の奥で、大きな重なりが起きてるみたい。":st.moeRank===1?"北九州の街外へ行こう。港に響く声の乱れを、一緒に鎮めたいな。":st.moeRank===2?"福岡、ありがとう。唐津でも、一人ずつの声に返事をしていきたい。":st.moeRank===3?"唐津の声を聞けたね。次は佐賀市で、街の声をつなごう。":st.moeRank===4?"佐賀市の声も届けられたね。次は佐世保市で港からの返事を聞こう。":"佐世保市の返事も届けられたね。次の旅に向けて準備しよう。";
   const read=Object.keys(SCENES).filter(k=>st.scenes[k]);
-  return `<div class="who"><canvas class="sprite-md" data-char="moe" width="16" height="24" aria-hidden="true"></canvas><div><b>${esc(charName(st,"moe"))}</b><br><span class="small">メインライバー・シナリオ到達ランク ${r}</span></div></div>
+  return `<div class="who"><canvas class="sprite-md" data-char="moe" width="32" height="48" aria-hidden="true"></canvas><div><b>${esc(charName(st,"moe"))}</b><br><span class="small">メインライバー・シナリオ到達ランク ${r}</span></div></div>
     <p class="dlg-text">「${esc(line)}」</p>
     <h3 class="label">物語を読み返す</h3><div class="stack">${read.length?read.map(k=>`<button class="btn" data-a="replay" data-v="${k}">${esc(SCENES[k].title)}</button>`).join(""):`<p class="small">まだありません。</p>`}</div>`;
 }
@@ -1394,7 +1395,7 @@ const ACT = {
 
 };
 function drawMiniSprites(){
-  document.querySelectorAll("canvas[data-char]").forEach(c=>{ const g=c.getContext("2d"); g.clearRect(0,0,16,24); const id=c.dataset.char; g.drawImage(charSprite(id,0,0),0,0); });
+  document.querySelectorAll("canvas[data-char]").forEach(c=>{ const g=c.getContext("2d"); g.clearRect(0,0,c.width,c.height); const id=c.dataset.char; g.drawImage(charSprite(id,0,0),0,0,c.width,c.height); });
   document.querySelectorAll("canvas[data-dex]").forEach(c=>{ const [a,i]=c.dataset.dex.split("|"); const e=enemyDef(a,+i); const g=c.getContext("2d"); g.imageSmoothingEnabled=false; g.drawImage(ART.enemy(e.profile,e.species,e.attr,a,0),0,0); });
 }
 function validateState(s){

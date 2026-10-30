@@ -5,12 +5,12 @@
   "sourceFileCount": 33,
   "files": {
     "index.html": {
-      "bytes": 3887361,
-      "sha256": "bba311a64666e4ad96618103fcaab270644218ad7328e7b0f2b127b094e088da"
+      "bytes": 4457039,
+      "sha256": "013a79171147a8d8a6a1756261268f63fd7bf81614947bd1f64f0ff3b71a170d"
     },
     "README.md": {
-      "bytes": 3676,
-      "sha256": "dbf3ce285c446128cefb9d09fc9cf3e3c61e15da31503a4099039694a9ecfac6"
+      "bytes": 4259,
+      "sha256": "11a206c3fd3cc622150c12de1e25ca449090bac53d8c79ea452486a7c3334cd2"
     },
     "VERSION.txt": {
       "bytes": 187,
@@ -53,6 +53,10 @@
     "assets/semireal/party-back.webp": {
       "bytes": 423576,
       "sha256": "22de3938abc7e227678cbe0f790606a3d361d2a183e836fee107ffa59beffe7c"
+    },
+    "assets/semireal/party-side.webp": {
+      "bytes": 425012,
+      "sha256": "8f8d8a19347e6c2979b8f2424fe4962e6a7512200225296d95a9cbf230ac9808"
     },
     "assets/fonts/quest-mincho-800.woff2": {
       "bytes": 295932,

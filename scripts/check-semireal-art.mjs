@@ -5,14 +5,14 @@ import {createRequire} from 'node:module';
 import {createCanvas} from './canvas-runtime.mjs';
 const require=createRequire(import.meta.url),{Image}=require(process.env.CANVAS_MODULE_PATH||'@napi-rs/canvas');
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
-const sources={__PARTY_FRONT_DATA_URI__:'front',__PARTY_BACK_DATA_URI__:'back'};
-let code=read('src/semireal_frames.js')+'\n'+read('src/walk_animation.js')+'\n'+read('src/semireal_art.js');
+const sources={__PARTY_FRONT_DATA_URI__:'front',__PARTY_BACK_DATA_URI__:'back',__PARTY_SIDE_DATA_URI__:'side'};
+let code=read('src/character_art.js')+'\n'+read('src/semireal_frames.js')+'\n'+read('src/walk_animation.js')+'\n'+'\nconst profilePerson=ART.person;ART.person=(...args)=>{fallbackCallsProbe();return profilePerson(...args);};\n'+read('src/semireal_art.js');
 for(const [token,name] of Object.entries(sources))code=code.replaceAll(token,'data:image/webp;base64,'+readFileSync(new URL('../assets/semireal/party-'+name+'.webp',import.meta.url)).toString('base64'));
 const pending=[];
 class AtlasImage extends Image{set src(v){pending.push(new Promise((resolve,reject)=>{this.onload=resolve;this.onerror=reject;super.src=v;}));}}
 let fallbackCalls=0;
 const api=runInNewContext(code+'\n({art:SEMIREAL_ART,frames:SEMIREAL_FRAMES,person:ART.person})',{
- Image:AtlasImage,ART:{person:()=>{fallbackCalls++;return createCanvas(64,96);}},G:{st:{profile:{gender:'男性'},heroine:{gender:'女性'}}},
+ fallbackCallsProbe:()=>{fallbackCalls++;},Image:AtlasImage,ART:{person:()=>{fallbackCalls++;return createCanvas(64,96);}},G:{st:{profile:{gender:'男性'},heroine:{gender:'女性'}}},
  document:{createElement:()=>createCanvas(1,1),querySelector:()=>null},
 });
 assert.equal(api.person('hero','#000','#000',0,0,{}).width,64,'fallback available while decoding');
@@ -35,6 +35,6 @@ for(const [i,id]of ids.entries()){
 assert.equal(digests.size,11,'all identities and both gender variants have distinct portraits');
 const calls=fallbackCalls;api.person('village-npc','#000','#000');assert.equal(fallbackCalls,calls+1,'NPC rendering remains available');
 assert(api.art.stats().entries<=192);
-const manifest=JSON.parse(read('release-manifest.json'));assert.equal(Object.keys(manifest.assets).filter(p=>p.startsWith('assets/semireal/')).length,6);
+const manifest=JSON.parse(read('release-manifest.json'));assert.equal(Object.keys(manifest.assets).filter(p=>p.startsWith('assets/semireal/')).length,7);
 mkdirSync(new URL('../.task/',import.meta.url),{recursive:true});writeFileSync(new URL('../.task/semireal-contact.png',import.meta.url),sheet.toBuffer('image/png'));
 console.log('11 party/gender identities, front/back/left/right, all movement phases, full alpha decoding, distinct high-resolution portraits, NPC fallback, cache bound and embedded assets pass');

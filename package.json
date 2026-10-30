@@ -9,9 +9,13 @@
     "build": "node scripts/build.mjs",
     "test": "node scripts/check-all.mjs",
     "build:check": "node scripts/build.mjs --check",
-    "release:prepare": "node scripts/prepare-release.mjs"
+    "release:prepare": "node scripts/prepare-release.mjs",
+    "mobile": "node scripts/mobile-preview.mjs",
+    "test:mobile": "node scripts/test-mobile.mjs",
+    "test:battle-ui": "node scripts/test-battle-readability.mjs"
   },
   "devDependencies": {
-    "@napi-rs/canvas": "0.1.100"
+    "@napi-rs/canvas": "0.1.100",
+    "playwright": "1.62.1"
   }
 }

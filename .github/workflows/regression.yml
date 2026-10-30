@@ -17,3 +17,30 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run build:check
       - run: npm test
+  mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:mobile
+        env:
+          MOBILE_BROWSER: chromium
+      - run: npm run test:battle-ui
+        env:
+          MOBILE_BROWSER: chromium
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile-emulation
+          path: |
+            .task/battle-readability-*.png
+            .task/result-readability-*.png
+            .task/mobile/reports/latest.json
+            .task/mobile/reports/run-*/*.json
+            .task/mobile/reports/run-*/*.png
+          if-no-files-found: ignore

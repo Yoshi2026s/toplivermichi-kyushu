@@ -15,11 +15,17 @@ assert(left[0]<24&&right[0]>40,'opposite feet step apart instead of scaling the 
 assert(gait.pose(40,91,0,1)[1]<gait.pose(24,91,0,1)[1],'one foot is lifted');
 assert(gait.pose(24,91,0,5)[1]<gait.pose(40,91,0,5)[1],'the next half-cycle lifts the other foot');
 assert(gait.pose(16,48,2,3)[0]>16&&gait.pose(48,48,2,3)[0]<48,'arms counter-swing');
-let code=read('src/semireal_frames.js')+'\n'+walkSource+'\n'+read('src/semireal_art.js');
-for(const side of ['front','back'])code=code.replaceAll('__PARTY_'+side.toUpperCase()+'_DATA_URI__','data:image/webp;base64,'+readFileSync(new URL('../assets/semireal/party-'+side+'.webp',import.meta.url)).toString('base64'));
+let code=read('src/character_art.js')+'\n'+read('src/semireal_frames.js')+'\n'+walkSource+'\n'+read('src/semireal_art.js');
+for(const side of ['front','back','side'])code=code.replaceAll('__PARTY_'+side.toUpperCase()+'_DATA_URI__','data:image/webp;base64,'+readFileSync(new URL('../assets/semireal/party-'+side+'.webp',import.meta.url)).toString('base64'));
 const pending=[];class AtlasImage extends Image{set src(value){pending.push(new Promise((resolve,reject)=>{this.onload=resolve;this.onerror=reject;super.src=value;}));}}
 const api=runInNewContext(code+'\n({ART,SEMIREAL_ART})',{Image:AtlasImage,document:{createElement:()=>createCanvas(1,1),querySelector:()=>null},ART:{person:()=>createCanvas(64,96)}});
 await Promise.all(pending);
+const sprite=dir=>api.ART.person('hero','#000','#000',dir,0,{long:false}).getContext('2d').getImageData(0,0,64,96).data;
+const front=sprite(0),leftProfile=sprite(2),rightProfile=sprite(3);
+assert.notDeepEqual(leftProfile,front,'lateral view must use the side atlas, not the frontal painting');
+// Mirrored canvas resampling can round an antialiased channel by one level.
+let mirrorError=0;for(let y=0;y<96;y++)for(let x=0;x<64;x++)for(let c=0;c<4;c++)mirrorError+=Math.abs(leftProfile[(y*64+x)*4+c]-rightProfile[(y*64+63-x)*4+c]);
+assert(mirrorError/(64*96*4)<1,'right view mirrors the left profile within canvas antialiasing tolerance');
 const sheet=createCanvas(9*96,4*150),g=sheet.getContext('2d');g.fillStyle='#294341';g.fillRect(0,0,sheet.width,sheet.height);
 for(let dir=0;dir<4;dir++){
  const lower=new Set(),upper=new Set();

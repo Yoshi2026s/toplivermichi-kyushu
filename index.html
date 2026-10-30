@@ -4238,8 +4238,10 @@ function drawMap(){
 }
 function startLoop(){
   cancelAnimationFrame(G.raf); G.lastTs=0;
+  const token=G.mapLoopToken=(G.mapLoopToken||0)+1;
   const STEP=G.st?.settings?.moveSpeed==="fast"?110:160;
   const loop=ts=>{
+    if(G.mapLoopToken!==token)return;
     if(G.screen!=="explore"||document.hidden){ G.raf=0; return; }
     const dt = G.lastTs? Math.min(100, ts-G.lastTs) : 16; G.lastTs=ts; G.frame++;
     const w=G.walk;
@@ -4248,6 +4250,7 @@ function startLoop(){
       w.prog+=dt/STEP;
       if(w.prog>=1){ w.prog=0; w.path.shift(); G.fol={...G.st.pos}; G.st.pos={x:n.x,y:n.y}; arrive(); }
     }
+    if(G.mapLoopToken!==token)return;
     drawMap();
     G.raf=requestAnimationFrame(loop);
   };

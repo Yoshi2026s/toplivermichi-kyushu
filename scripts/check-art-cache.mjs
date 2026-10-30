@@ -1,9 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
-import {createRequire} from 'node:module';
-const require=createRequire(import.meta.url);
-const {createCanvas}=require('C:/Users/User/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/@napi-rs/canvas');
+import {createCanvas} from './canvas-runtime.mjs';
 const root=new URL('../',import.meta.url),read=name=>readFileSync(new URL(name,root),'utf8');
 const files=[...read('scripts/build.mjs').match(/const files = \[([^\]]+)\]/)[1].matchAll(/'([^']+)'/g)].map(m=>m[1]);
 const data=files.slice(0,files.indexOf('core.js')+1).map(n=>read('src/'+n)).join('\n');

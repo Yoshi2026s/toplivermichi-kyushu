@@ -5,3 +5,4 @@ reference/
 docs/SOURCE_RECOVERY_STATUS.md
 
 .task/
+node_modules/

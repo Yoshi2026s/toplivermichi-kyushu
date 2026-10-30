@@ -118,7 +118,7 @@ function statusBar(){
 function renderTitle(){
   return `<section class="title-screen">
     <div class="title-visual"><img id="titleArt" src="__TITLE_ART_DATA_URI__" width="960" height="640" alt="夕暮れの港町と星空を望む、ふたりの旅人" fetchpriority="high" decoding="async">
-    <div class="title-caption"><p class="title-kicker">ふたりの声が、旅になる。</p><h1 class="logo"><span class="main">ポコチャクエスト</span><span class="sub">全国編</span></h1></div></div>
+    <div class="title-caption"><p class="title-kicker">ふたりの声が、旅になる。</p><h1 class="logo" aria-label="ポコチャクエスト 全国編"><span class="main" aria-hidden="true"><span>ポコチャ</span><span>クエスト</span></span><span class="sub">全国編</span></h1></div></div>
     <p class="lead">元アイドルのもえをS6へ導く、昭和風ドットRPG。</p>
     <div class="menu">
       <button class="btn primary" data-a="newGame">はじめから</button>

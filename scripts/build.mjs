@@ -21,8 +21,15 @@ for (const [token,name] of [['__TITLE_ART_DATA_URI__','title-journey'],['__COAST
   assetFiles[path]={bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};
   embeddedArt[token]='data:image/webp;base64,'+bytes.toString('base64');
 }
+for(const [token,name]of [['__DISPLAY_FONT_DATA_URI__','quest-mincho-800'],['__BODY_FONT_DATA_URI__','quest-gothic-variable']]){
+ const path='assets/fonts/'+name+'.woff2',bytes=await readFile(resolve(root,path));
+ assetFiles[path]={bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};
+ embeddedArt[token]='data:font/woff2;base64,'+bytes.toString('base64');
+}
 const embedArt = text => Object.entries(embeddedArt).reduce((out,[token,uri])=>out.replaceAll(token,uri),text);
 const shell = embedArt(await source('shell.html'));
+const fontLicenses=(await Promise.all(['OFL-Shippori-Mincho.txt','OFL-Noto-Sans-JP.txt'].map(name=>textFile('assets/fonts/'+name)))).join('\n\n');
+const licenseTemplate='<template id="font-licenses">'+fontLicenses.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')+'</template>\n';
 const scripts = await Promise.all(files.map(source));
 const header = `<!doctype html><html lang="ja"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -32,7 +39,7 @@ const header = `<!doctype html><html lang="ja"><head><meta charset="utf-8">
 <script>window.TLR_PUBLIC=true;window.TLR_BUILD="2026-10-30";</script>
 </head><body>
 `;
-const output = header + shell.trimEnd() + '\n<script>\n' + scripts.map(s => embedArt(s.trimEnd())).join('\n\n') + '\n</script>\n</body></html>\n';
+const output = header + licenseTemplate + shell.trimEnd() + '\n<script>\n' + scripts.map(s => embedArt(s.trimEnd())).join('\n\n') + '\n</script>\n</body></html>\n';
 await emitArtifact('index.html', output);
 for(const name of ['README.md','VERSION.txt','GAME_SPEC.md'])await emitArtifact(name,await textFile(name));
 await emitArtifact('GAME_SPEC.txt', await textFile('GAME_SPEC.md'));
@@ -42,5 +49,5 @@ for(const name of ['index.html','README.md','VERSION.txt','GAME_SPEC.md','GAME_S
 }
 const version=(scripts[files.indexOf('data.js')].match(/const GAME_VERSION = "([^"]+)"/)||[])[1];
 await emitArtifact('release-manifest.json',JSON.stringify({version,schemaVersion:5,buildDate:'2026-10-30',sourceFileCount:files.length,files:releaseFiles,assets:assetFiles,validation:'docs/validation-5.34.json'},null,2)+'\n');
-console.log(`${checkOnly?"Verified":"Built"} index.html from ${files.length} source files and ${Object.keys(assetFiles).length} embedded art assets`);
+console.log(`${checkOnly?"Verified":"Built"} index.html from ${files.length} source files and ${Object.keys(assetFiles).length} embedded graphics/font assets`);
 

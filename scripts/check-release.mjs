@@ -9,11 +9,20 @@ for(const match of readFileSync(resolve(root,'README.md'),'utf8').matchAll(/\[[^
  const target=match[1];if(!/^(?:https?:|#)/.test(target))assert(existsSync(resolve(root,target.split('#')[0])),'README link is missing: '+target);
 }
 const manifest=JSON.parse(readFileSync(resolve(root,'release-manifest.json'),'utf8'));
-assert.equal(Object.keys(manifest.assets).length,3,'all three pieces of artwork are tracked');
+assert.equal(Object.keys(manifest.assets).filter(n=>n.endsWith('.webp')).length,3,'all three pieces of artwork are tracked');
+assert.equal(Object.keys(manifest.assets).filter(n=>n.endsWith('.woff2')).length,2,'both Japanese fonts are tracked');
 for(const name of Object.keys(manifest.assets)){
- const bytes=readFileSync(resolve(root,name));assert.equal(bytes.subarray(0,4).toString(),'RIFF');assert.equal(bytes.subarray(8,12).toString(),'WEBP');
+ const bytes=readFileSync(resolve(root,name));if(name.endsWith('.webp')){assert.equal(bytes.subarray(0,4).toString(),'RIFF');assert.equal(bytes.subarray(8,12).toString(),'WEBP');}else assert.equal(bytes.subarray(0,4).toString(),'wOF2');
  assert(readFileSync(resolve(root,'index.html'),'utf8').includes(bytes.toString('base64')),name+' works without an image request');
 }
+assert(readFileSync(resolve(root,'index.html'),'utf8').includes('SIL OPEN FONT LICENSE Version 1.1'),'standalone HTML includes font licenses');
+const fonts=JSON.parse(readFileSync(resolve(root,'assets/fonts/SOURCES.json'),'utf8')).fonts;
+for(const font of fonts){
+ assert(existsSync(resolve(root,'assets/fonts',font.license)),'font license must ship with the subset');
+ const coverage=new Set(font.codepoints);
+ for(const char of 'ポコチャクエスト全国編やる事オート移動メニュー地図道具ステータス編成記録ペット航海図鑑設定解説戻決体力MP0123456789')assert(coverage.has(char.codePointAt(0)),font.family+' lacks '+char);
+}
+assert(!readFileSync(resolve(root,'src/shell.html'),'utf8').includes('fonts.googleapis.com'),'game typography must not depend on an external font service');
 // Run real build checks in an isolated copy; never alter the working game.
 mkdirSync(resolve(fixture,'scripts'),{recursive:true});
 for(const name of ['src','assets'])cpSync(resolve(root,name),resolve(fixture,name),{recursive:true});
@@ -28,4 +37,4 @@ failed=run(fixture,'--check');assert.notEqual(failed.status,0,'changed art must 
 unlinkSync(resolve(fixture,art));failed=run(fixture,'--check');assert.notEqual(failed.status,0,'missing art must block rebuilding');
 copyFileSync(resolve(root,art),resolve(fixture,art));
 appendFileSync(resolve(fixture,'release-manifest.json'),' ');failed=run(fixture,'--check');assert.notEqual(failed.status,0);assert.match(failed.stderr,/release-manifest.json is missing or stale/);
-console.log('Release checks reject stale HTML, modified/missing art and stale manifests; all embedded WebP assets and README links are present');
+console.log('Release checks reject stale HTML, modified/missing art and stale manifests; all embedded graphics/fonts and README links are present');

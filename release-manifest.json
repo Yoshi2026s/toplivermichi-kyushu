@@ -5,24 +5,24 @@
   "sourceFileCount": 27,
   "files": {
     "index.html": {
-      "bytes": 1532311,
-      "sha256": "74032039f25d52cdea8f22536817d82cc8a948963a011742b6ec6ebb446b2c00"
+      "bytes": 2509429,
+      "sha256": "90dbb4c975c94af0c4f3110f0bb2db09f23402537f17370b90e15853a13fcd4c"
     },
     "README.md": {
-      "bytes": 3147,
-      "sha256": "65385085e0f32632efdf5a4fc92ce4cd2631c76acbdf9095e3d9092d9f4be783"
+      "bytes": 3202,
+      "sha256": "a08bb3eb08b79eafb65c19b9f770f168eda75b19c2a908002ce6ca6c42306cae"
     },
     "VERSION.txt": {
-      "bytes": 152,
-      "sha256": "b0f5df1606042182f651803b202325a59138f1df5d38e510971bb12a6d019332"
+      "bytes": 187,
+      "sha256": "da83d08bd96384763c8e6d731bec5e8385a299af75c8fe81a469b46fa76fd0ed"
     },
     "GAME_SPEC.md": {
-      "bytes": 3457,
-      "sha256": "86fb07bc690b41874e614eb110af42dbeebe2433c5f38a8283189357307c8e64"
+      "bytes": 3773,
+      "sha256": "3a389f3d47a241edee9dc0ca063dabea211664788e370c90a970a0214865d3a2"
     },
     "GAME_SPEC.txt": {
-      "bytes": 3457,
-      "sha256": "86fb07bc690b41874e614eb110af42dbeebe2433c5f38a8283189357307c8e64"
+      "bytes": 3773,
+      "sha256": "3a389f3d47a241edee9dc0ca063dabea211664788e370c90a970a0214865d3a2"
     }
   },
   "assets": {
@@ -37,6 +37,14 @@
     "assets/battle-forest.webp": {
       "bytes": 184598,
       "sha256": "5bdcf89b0bade6f7d43ea5367e6114e46c90c780f569dbe1d499c19b1300b9fd"
+    },
+    "assets/fonts/quest-mincho-800.woff2": {
+      "bytes": 295932,
+      "sha256": "1101ec5a92682c54b9276f75ec770000827884439322046384c483ef07bf6fc3"
+    },
+    "assets/fonts/quest-gothic-variable.woff2": {
+      "bytes": 426040,
+      "sha256": "5c21bcbfc88a04203864145e13de1925af02ddcb72647a0a77e6a42d31b47d37"
     }
   },
   "validation": "docs/validation-5.34.json"

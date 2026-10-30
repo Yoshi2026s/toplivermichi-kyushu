@@ -470,6 +470,22 @@ h1,h2,h3{line-height:1.45}b,strong{font-weight:750}
 
 .rbanner h2,.autotitle,.rlevel b{font-family:var(--f-display);font-weight:800;letter-spacing:.08em;line-height:1.4;text-shadow:0 2px 4px #0005}
 .rval{font-family:var(--f-ui);font-weight:700;letter-spacing:.015em}.rquest.done{font-family:var(--f-ui);font-weight:650}
+
+.member-art{width:52px;height:78px;flex:none;image-rendering:auto;pointer-events:none}.prow .grow:has(.member-art){display:flex;align-items:center;gap:8px;text-align:left;min-width:0}.prow .grow:has(.member-art) span{min-width:0;overflow-wrap:anywhere}
+@media(max-width:300px){.member-art{width:32px;height:54px}.prow .grow:has(.member-art){gap:3px;padding:3px}}
+/* Semi-real painted party: high-resolution portraits share the same atlas as MAP figures. */
+.sprite-lg,.sprite-md,.party-portrait,#map{image-rendering:auto}
+.sprite-lg{width:144px;max-width:60vw;background:radial-gradient(ellipse at 45% 25%,#65776d,#1b303c 80%);border-color:#a99773}
+.sprite-md{width:64px;height:96px;background:radial-gradient(ellipse at 42% 25%,#65776d,#1b303c 85%);border-color:#a99773}
+.party-portrait{position:absolute;left:3px;bottom:1px;width:48px;height:64px;pointer-events:none;filter:drop-shadow(0 2px 2px #081b2688)}
+.pcard{padding-left:55px;min-height:72px;background:linear-gradient(120deg,#344a4a,#182c3a);border-color:#78857c;border-radius:8px}
+.pcard.on{background:linear-gradient(120deg,#535442,#24393b);border-color:#e3c684;box-shadow:inset 0 0 12px #e4c58c18}
+.pcard .pline{min-width:0;overflow-wrap:anywhere}.pcard .pstat{font-size:12px}.pcard.ko .party-portrait{filter:grayscale(1)}
+.enemies[data-terrain="mountain"]{background-image:linear-gradient(180deg,#122b3320,#09172465),url('__MOUNTAIN_ART_DATA_URI__')}
+.enemies[data-terrain="plain"]{background-image:linear-gradient(180deg,#122b3310,#09172465),url('__PLAIN_ART_DATA_URI__')}
+.mapwrap{background:#29423c;box-shadow:inset 0 0 28px #0c233c55}
+@media(max-height:700px){.pcard{min-height:60px;padding-left:46px}.party-portrait{width:40px;height:54px}}
+@media(max-width:300px){.pcard{padding-left:34px;min-height:64px}.party-portrait{width:29px;height:48px}.pcard .pstat{font-size:12px}}
 </style>
 <main id="screen" aria-live="off"></main>
 <div id="dock" class="dock" aria-label="ジョイコントローラー">

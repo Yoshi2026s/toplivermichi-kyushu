@@ -194,7 +194,7 @@ function renderStatus(){
     const inParty=st.party.includes(cid);
     const eqName=id=>id?esc(EQUIP[id].name):"なし";
     return `<section class="scard ${v.hp<=0?"ko":""} ${isLow(v.hp,s.maxHP)?"low":""}">
-      <div class="who"><canvas class="sprite-md" data-char="${cid}" width="64" height="96" aria-hidden="true"></canvas>
+      <div class="who"><canvas class="sprite-md" data-char="${cid}" width="192" height="288" aria-hidden="true"></canvas>
         <div><b class="sname">${esc(cid==="moe"?charName(st,"moe"):cid==="hero"?st.profile.name:C.full)}</b><br><span class="small">${inParty?"戦闘メンバー":"控え"}${v.hp<=0?"・戦闘不能":isLow(v.hp,s.maxHP)?"・体力わずか":""}</span></div></div>
       <dl class="kv">
         <dt>レベル</dt><dd>${L}</dd>
@@ -268,7 +268,7 @@ function playerPixel(){
   return {x:Math.round(x), y:Math.round(y)};
 }
 function drawMap(){
-  const cv=G.cv; if(!cv||!cv.isConnected) return; const g=cv.getContext("2d"); g.imageSmoothingEnabled=false;
+  const cv=G.cv; if(!cv||!cv.isConnected) return; const g=cv.getContext("2d"); g.imageSmoothingEnabled=true; g.imageSmoothingQuality="high";
   const st=G.st, m=MAPS[st.mapId]; const cam=camera(); const now=performance.now();
   const still=reducedMotion(); const f=still?0:Math.floor(now/320)%4, f2=still?0:Math.floor(now/600)%2;
   const ratio=G.mapRenderScale||1,vw=G.vw*16,vh=G.vh*16;g.setTransform(ratio,0,0,ratio,0,0);
@@ -477,7 +477,7 @@ function partyCard(m,i,run){
   const ko=m.hp<=0;
   const badges=[ko?"戦闘不能":isLow(m.hp,m.maxHP)?"体力わずか":"",m.acted?"行動済":"", m.ward?`防護${m.ward}`:"", m.guard?"ガード中":""].filter(Boolean);
   return `<button class="pcard ${sel?"on":""} ${ko?"ko":""} ${isLow(m.hp,m.maxHP)?"low":""} ${m.acted?"done":""}" data-a="pickActor" data-i="${i}" ${ko||m.acted||run.state!=="input"?"aria-disabled=\"true\"":""}>
-    <span class="pline"><b>${sel?"▶":""}${esc(m.name)}</b><span class="pjob">${esc(JOBS[m.job].name)} 熟練度${m.R}</span>${badges.map(t=>`<span class="pst">${t}</span>`).join("")}</span>
+    <canvas class="party-portrait" data-char="${m.cid}" width="128" height="160" aria-hidden="true"></canvas><span class="pline"><b>${sel?"▶":""}${esc(m.name)}</b><span class="pjob">${esc(JOBS[m.job].name)} 熟練度${m.R}</span>${badges.map(t=>`<span class="pst">${t}</span>`).join("")}</span>
     <span class="bar"><i style="width:${pct}%"></i></span>
     <span class="pstat">体力<b>${m.hp}</b>/${m.maxHP} MP<b>${m.c}</b></span>
   </button>`;
@@ -970,7 +970,7 @@ function renderParty(){
         <button class="btn" data-a="partyView" data-c="${cid}" data-v="">人物へ戻る</button>`;
     }
     const e=st.equip[cid]; const C=CHARS[cid];
-    return `<div class="who"><canvas class="sprite-md" data-char="${cid}" width="64" height="96" aria-hidden="true"></canvas><div><b>${esc(cid==="hero"?st.profile.name:C.full)}</b>　${[C.age?C.age+"歳":"",C.from?esc(C.from):""].filter(Boolean).join("・")}<br><span class="small">${cid==="moe"?"経歴":"職歴"}：${esc(C.career)}（ジョブとは別）</span></div></div>
+    return `<div class="who"><canvas class="sprite-md" data-char="${cid}" width="192" height="288" aria-hidden="true"></canvas><div><b>${esc(cid==="hero"?st.profile.name:C.full)}</b>　${[C.age?C.age+"歳":"",C.from?esc(C.from):""].filter(Boolean).join("・")}<br><span class="small">${cid==="moe"?"経歴":"職歴"}：${esc(C.career)}（ジョブとは別）</span></div></div>
       <dl class="kv"><dt>ジョブ</dt><dd>${esc(JOBS[cur.job].name)}　熟練度${cur.R}・技能強化${cur.S}</dd><dt>体力</dt><dd>${vitalOf(cid).hp}／${cur.maxHP}</dd><dt>MP</dt><dd>${vitalOf(cid).c}／${cur.startC}</dd>
       <dt>武器</dt><dd>${e.w?esc(EQUIP[e.w].name):"なし"}</dd><dt>防具</dt><dd>${e.a?esc(EQUIP[e.a].name):"なし"}</dd><dt>アクセサリー</dt><dd>${e.acc?esc(EQUIP[e.acc].name):"なし"}</dd></dl>
       <div class="stack"><button class="btn" data-a="partyView" data-c="${cid}" data-v="job">職業を変える</button>
@@ -983,8 +983,8 @@ function renderParty(){
   const nagasakiSupOk = supportAvailable(st,"PR03");
   const partyLocked=G.readOnly||G.screen!=="explore"||G.sheet!=="party"||!!G.dlg||!!st.run||!!G.walk.path.length||!isSafe();
   return `${lockMsg?`<p class="warn">${lockMsg}</p>`:""}<p class="small">出撃は1～4人。先頭が前衛です。加入済みの仲間から選び、待機メンバーとは出撃枠を指定して直接入れ替えられます。</p>
-    <h3 class="label">戦闘メンバー</h3><div class="stack">${st.party.map((c,i)=>`<div class="prow"><button class="btn grow" data-a="partyView" data-c="${c}" data-v="">${i+1}. ${esc(charName(st,c))}・${esc(JOBS[st.jobs[c]].name)}</button>${i?`<button class="btn sq" data-a="partyUp" data-v="${i}" data-c="${c}" aria-label="${esc(charName(st,c))}を前へ" ${partyLocked?"disabled":""}>↑</button>`:""}${st.party.length>1?`<button class="btn sq" data-a="partyLeave" data-v="${i}" data-c="${c}" aria-label="${esc(charName(st,c))}を待機へ" ${partyLocked?"disabled":""}>待機</button>`:""}</div>`).join("")}</div>
-    ${st.roster.length>st.party.length?`<h3 class="label">控え</h3><div class="stack">${st.roster.filter(c=>!st.party.includes(c)).map(c=>`<div class="prow"><button class="btn grow" data-a="partyView" data-c="${c}" data-v="">${esc(charName(st,c))}・${esc(JOBS[st.jobs[c]].name)}</button>${st.party.length<4?`<button class="btn" data-a="partyIn" data-v="${c}" ${partyLocked?"disabled":""}>出撃に加える</button>`:""}${st.party.map((target,i)=>`<button class="btn" data-a="partySwap" data-v="${c}" data-i="${i}" data-c="${target}" ${partyLocked?"disabled":""}>${i+1}番の${esc(charName(st,target))}と入替</button>`).join("")}</div>`).join("")}</div>`:""}
+    <h3 class="label">戦闘メンバー</h3><div class="stack">${st.party.map((c,i)=>`<div class="prow"><button class="btn grow" data-a="partyView" data-c="${c}" data-v=""><canvas class="member-art" data-char="${c}" data-full width="128" height="192" aria-hidden="true"></canvas><span>${i+1}. ${esc(charName(st,c))}・${esc(JOBS[st.jobs[c]].name)}</span></button>${i?`<button class="btn sq" data-a="partyUp" data-v="${i}" data-c="${c}" aria-label="${esc(charName(st,c))}を前へ" ${partyLocked?"disabled":""}>↑</button>`:""}${st.party.length>1?`<button class="btn sq" data-a="partyLeave" data-v="${i}" data-c="${c}" aria-label="${esc(charName(st,c))}を待機へ" ${partyLocked?"disabled":""}>待機</button>`:""}</div>`).join("")}</div>
+    ${st.roster.length>st.party.length?`<h3 class="label">控え</h3><div class="stack">${st.roster.filter(c=>!st.party.includes(c)).map(c=>`<div class="prow"><button class="btn grow" data-a="partyView" data-c="${c}" data-v=""><canvas class="member-art" data-char="${c}" data-full width="128" height="192" aria-hidden="true"></canvas><span>${esc(charName(st,c))}・${esc(JOBS[st.jobs[c]].name)}</span></button>${st.party.length<4?`<button class="btn" data-a="partyIn" data-v="${c}" ${partyLocked?"disabled":""}>出撃に加える</button>`:""}${st.party.map((target,i)=>`<button class="btn" data-a="partySwap" data-v="${c}" data-i="${i}" data-c="${target}" ${partyLocked?"disabled":""}>${i+1}番の${esc(charName(st,target))}と入替</button>`).join("")}</div>`).join("")}</div>`:""}
     <h3 class="label">地域支援</h3><p class="small">コア応援者がいる県の効果を1つ選べます（戦闘開始時に固定）。</p>
     <div class="stack"><button class="btn ${!st.support?"on":""}" data-a="setSupport" data-v="">${!st.support?"▶ ":""}なし</button>
     <button class="btn ${st.support==="PR01"?"on":""}" data-a="setSupport" data-v="PR01" ${supOk?"":"disabled"}>${st.support==="PR01"?"▶ ":""}福岡：戦闘開始時のエール＋10（灯里 親密度${bond("akari")}/3）</button>
@@ -1229,7 +1229,7 @@ function renderMoe(){
   const st=G.st; const r=MOE_RANKS[st.moeRank];
   const line = st.moeRank===0?"まずは福岡の声を整えよう。放送塔の丘の奥で、大きな重なりが起きてるみたい。":st.moeRank===1?"北九州の街外へ行こう。港に響く声の乱れを、一緒に鎮めたいな。":st.moeRank===2?"福岡、ありがとう。唐津でも、一人ずつの声に返事をしていきたい。":st.moeRank===3?"唐津の声を聞けたね。次は佐賀市で、街の声をつなごう。":st.moeRank===4?"佐賀市の声も届けられたね。次は佐世保市で港からの返事を聞こう。":"佐世保市の返事も届けられたね。次の旅に向けて準備しよう。";
   const read=Object.keys(SCENES).filter(k=>st.scenes[k]);
-  return `<div class="who"><canvas class="sprite-md" data-char="moe" width="64" height="96" aria-hidden="true"></canvas><div><b>${esc(charName(st,"moe"))}</b><br><span class="small">メインライバー・シナリオ到達ランク ${r}</span></div></div>
+  return `<div class="who"><canvas class="sprite-md" data-char="moe" width="192" height="288" aria-hidden="true"></canvas><div><b>${esc(charName(st,"moe"))}</b><br><span class="small">メインライバー・シナリオ到達ランク ${r}</span></div></div>
     <p class="dlg-text">「${esc(line)}」</p>
     <h3 class="label">物語を読み返す</h3><div class="stack">${read.length?read.map(k=>`<button class="btn" data-a="replay" data-v="${k}">${esc(SCENES[k].title)}</button>`).join(""):`<p class="small">まだありません。</p>`}</div>`;
 }
@@ -1393,7 +1393,7 @@ const ACT = {
 
 };
 function drawMiniSprites(){
-  document.querySelectorAll("canvas[data-char]").forEach(c=>{ const g=c.getContext("2d"); g.clearRect(0,0,c.width,c.height); const id=c.dataset.char; g.drawImage(charSprite(id,0,0),0,0,c.width,c.height); });
+  document.querySelectorAll("canvas[data-char]").forEach(c=>{ SEMIREAL_ART.portrait(c,c.dataset.char,undefined,c.hasAttribute("data-full")); });
   document.querySelectorAll("canvas[data-dex]").forEach(c=>{ const [a,i]=c.dataset.dex.split("|"); const e=enemyDef(a,+i); const g=c.getContext("2d"); g.imageSmoothingEnabled=false; g.drawImage(ART.enemy(e.profile,e.species,e.attr,a,0),0,0); });
 }
 function validateState(s){

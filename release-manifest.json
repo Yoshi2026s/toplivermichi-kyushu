@@ -1,28 +1,28 @@
 {
   "version": "5.34",
   "schemaVersion": 5,
-  "buildDate": "2026-10-30",
-  "sourceFileCount": 30,
+  "buildDate": "2026-10-31",
+  "sourceFileCount": 32,
   "files": {
     "index.html": {
-      "bytes": 2552647,
-      "sha256": "abe25d0e4c7b5d05b0e6e8df703a26074650c3ea7e206a68e2496d53ae79cbba"
+      "bytes": 3884498,
+      "sha256": "a82c8eaf3ca60d2ee398315186dc9e65d783d5982b43632512323c933c1bdb13"
     },
     "README.md": {
-      "bytes": 3202,
-      "sha256": "a08bb3eb08b79eafb65c19b9f770f168eda75b19c2a908002ce6ca6c42306cae"
+      "bytes": 3478,
+      "sha256": "f62c1ecd054c79660ff1a5754b83729d1ebcfe8c6cc87a6bed8fccb5d82b7d77"
     },
     "VERSION.txt": {
       "bytes": 187,
       "sha256": "da83d08bd96384763c8e6d731bec5e8385a299af75c8fe81a469b46fa76fd0ed"
     },
     "GAME_SPEC.md": {
-      "bytes": 3773,
-      "sha256": "3a389f3d47a241edee9dc0ca063dabea211664788e370c90a970a0214865d3a2"
+      "bytes": 4265,
+      "sha256": "0020d9b7b09cd10c8406362e72bd45069ec9825bff91779860a8ac205703cb54"
     },
     "GAME_SPEC.txt": {
-      "bytes": 3773,
-      "sha256": "3a389f3d47a241edee9dc0ca063dabea211664788e370c90a970a0214865d3a2"
+      "bytes": 4265,
+      "sha256": "0020d9b7b09cd10c8406362e72bd45069ec9825bff91779860a8ac205703cb54"
     }
   },
   "assets": {
@@ -30,13 +30,29 @@
       "bytes": 253608,
       "sha256": "1d75ebefb8548cd50aa86a506a3e879452b1d7cd48008f1981a02055b6b131cc"
     },
-    "assets/battle-coast.webp": {
-      "bytes": 218770,
-      "sha256": "01c39e15427d2c3ed804e2503c895e5510ac4610eb667c2286feeb4c330f2dac"
+    "assets/semireal/battle-coast.webp": {
+      "bytes": 141880,
+      "sha256": "3915831f0342c6b5b04742891189324e361b742edae57070efb84f74a3726af6"
     },
-    "assets/battle-forest.webp": {
-      "bytes": 184598,
-      "sha256": "5bdcf89b0bade6f7d43ea5367e6114e46c90c780f569dbe1d499c19b1300b9fd"
+    "assets/semireal/battle-forest.webp": {
+      "bytes": 140798,
+      "sha256": "1ea83608d99b3457645a7420f340aadcbb01f49080ebfc8ae1f5e9c50f6ad4de"
+    },
+    "assets/semireal/battle-mountain.webp": {
+      "bytes": 134078,
+      "sha256": "a1d17a4fb8ae7f9d233f156a6bf36ce623a522209c92986be1d9c82587467267"
+    },
+    "assets/semireal/battle-plain.webp": {
+      "bytes": 130762,
+      "sha256": "bad1af589b2fe622686f23efc050c72ad8b9527acbf37a2594702f5213923d88"
+    },
+    "assets/semireal/party-front.webp": {
+      "bytes": 426762,
+      "sha256": "766fef30b6dfababa57f737add578d3386dd0198bcbf29e4024c8d9eb7bd3a7c"
+    },
+    "assets/semireal/party-back.webp": {
+      "bytes": 423576,
+      "sha256": "22de3938abc7e227678cbe0f790606a3d361d2a183e836fee107ffa59beffe7c"
     },
     "assets/fonts/quest-mincho-800.woff2": {
       "bytes": 295932,

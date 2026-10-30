@@ -1,7 +1,7 @@
 /* Presentation only. Actual combat outcomes arrive as transient action receipts. */
 const BATTLE_FX=(()=>{
  const TAU=Math.PI*2,clamp=v=>Math.max(0,Math.min(1,v)),ease=v=>1-(1-clamp(v))**3;
- const palettes={fire:['#ffac66','#eb5d63','#ffe4aa'],water:['#89e7ec','#448bcf','#dcffff'],lightning:['#ffeb98','#8779ed','#fffbd5'],wind:['#b8f0b6','#57bba1','#e9ffe0'],earth:['#e5bd85','#a57859','#ffe5af'],sound:['#e6b5ef','#9984d7','#fff0fe'],light:['#fff0ac','#dca56c','#ffffff'],neutral:['#c6e2ed','#6e9fb8','#ffffff'],heal:['#adf1c4','#60b7a5','#f1ffe0'],ward:['#b7caff','#8b93d6','#e5edff'],mp:['#c6bbff','#8c81d7','#e7eaff']};
+ const palettes={fire:['#ffac66','#eb5d63','#ffe4aa'],water:['#89e7ec','#448bcf','#dcffff'],lightning:['#ffeb98','#8779ed','#fffbd5'],wind:['#b8f0b6','#57bba1','#e9ffe0'],earth:['#e5bd85','#a57859','#ffe5af'],sound:['#e6b5ef','#9984d7','#fff0fe'],light:['#fff0ac','#dca56c','#ffffff'],neutral:['#e9d6ac','#86adae','#fff8de'],heal:['#9edbd0','#609f9a','#fff0bf'],ward:['#b7caff','#8b93d6','#e5edff'],mp:['#c6bbff','#8c81d7','#e7eaff']};
  const attrTheme={熱:'fire',水:'water',電:'lightning',風:'wind',土:'earth',音:'sound',光:'light',無:'neutral'};
  const jobTheme={J01:'earth',J02:'lightning',J03:'heal',J04:'water',J05:'lightning',J06:'fire',J07:'wind',J08:'sound',J09:'earth',J10:'sound',J11:'water',J12:'wind',J13:'heal',J14:'sound',J15:'lightning',J16:'wind',J17:'light',J18:'heal',J19:'light',J20:'wind',J21:'light',J22:'sound'};
  let active=null;
@@ -33,6 +33,15 @@ const BATTLE_FX=(()=>{
   for(let i=0;i<count;i++){const a=i*2.39996+(i%3)*.2,dist=(10+(i*17%39))*p,xx=x+Math.cos(a)*dist,yy=y+Math.sin(a)*dist*(style==='rise'?.35:.7)-(style==='rise'?t*45:0)+t*t*14;
    if(style==='rise'){star(g,xx,yy,2+(i%3),c[i%3],t+i);}else{line(g,[[xx,yy],[xx-Math.cos(a)*(3+6*(1-t)),yy-Math.sin(a)*5]],c[i%3],i%3===0?2:1);}
   }g.restore();
+ }
+ function helix(g,x,y,p,c){
+  g.save();g.globalAlpha*=Math.sin(p*Math.PI)*.68;g.lineCap='round';
+  for(let strand=0;strand<2;strand++){
+   const pts=[];for(let j=0;j<=40;j++){const t=j/40,a=t*Math.PI*3+p*3+strand*Math.PI;pts.push([x+Math.sin(a)*(23-t*9),y+20-t*67]);}
+   g.shadowColor=c[0];g.shadowBlur=7;line(g,pts,c[0],2.4);g.shadowBlur=0;line(g,pts,c[2],.7);
+  }
+  for(let i=0;i<7;i++){const a=i*2.4+p*2,xx=x+Math.sin(a)*27,yy=y+12-((i*11+p*53)%67);glow(g,xx,yy,3,['#dfc38b','#c4a875','#fff2c6'],.7);}
+  g.restore();
  }
  function beam(g,from,to,p,c){
   const t=ease(p),x=from.x+(to.x-from.x)*t,y=from.y+(to.y-from.y)*t-Math.sin(t*Math.PI)*24;
@@ -69,7 +78,7 @@ const BATTLE_FX=(()=>{
     }else elemental(g,x,y,q,c,event.theme);
    }
   }else if(['heal','revive','mp','aura'].includes(event.kind)){
-   seal(g,x,y+12,18+ease(p)*20,p,c);glow(g,x,y,28,c,.22);particles(g,x,y,p,c,20,'rise');
+   seal(g,x,y+12,18+ease(p)*20,p,c);glow(g,x,y,28,c,.18);helix(g,x,y,p,c);particles(g,x,y,p,c,12,'rise');
    if(event.kind==='revive'){line(g,[[x,y+16],[x,y-44*p]],c[2],3*(1-p)+1);circle(g,x,y,8+ease(p)*25,c[0],2);}
   }else if(['guard','ward'].includes(event.kind)){
    const r=15+ease(p)*14;g.save();g.translate(x,y);g.fillStyle=c[1]+'40';g.strokeStyle=c[0];g.lineWidth=2;g.beginPath();g.moveTo(0,-r);g.lineTo(r,-r*.6);g.lineTo(r*.8,r*.35);g.quadraticCurveTo(r*.6,r*.8,0,r);g.quadraticCurveTo(-r*.6,r*.8,-r*.8,r*.35);g.lineTo(-r,-r*.6);g.closePath();g.fill();g.stroke();line(g,[[-r*.5,-2],[0,r*.35],[r*.55,-r*.4]],c[2],2);g.restore();particles(g,x,y,p,c,8);

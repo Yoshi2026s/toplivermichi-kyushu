@@ -111,11 +111,14 @@ const resumePosition=runInNewContext(`${core}\n${migrate}\n${actions}\nACT.conti
 });
 await resumePosition();
 if(!atAnchor(positionState,'KY05')||!positionMessage.includes('保存位置を現在の地形')) throw new Error('position recovery was not explained on resume');
+const seedGeneration=ui.match(/async function seedSaveGeneration\([^]*?\n\}/)?.[0];
+if(!seedGeneration)throw new Error('save replacement generation helper missing');
 const current=game.newGame('維持する記録','男性'),incoming=game.newGame('復元する記録','女性');
+current.saveGeneration=200;db.auto=makeRecord(current,300);db['auto-prev']=makeRecord(current,299);store.value=null;
 const uiState={st:current,screen:'explore',sheet:'settings',readOnly:false,saveStatus:'保存済み',hasSave:true,walk:{path:[]},dlg:null,cmd:{}};
 let saveSucceeds=false,rendered=0,message='';
-const restore=runInNewContext(`${core}\n${validate}\n${migrate}\n${actions}\nACT.restore`,{
-  G:uiState,$:()=>({value:JSON.stringify({app:'toplivermichi-kyushu',state:incoming})}),
+const restore=runInNewContext(`${core}\n${validate}\n${migrate}\n${seedGeneration}\n${actions}\nACT.restore`,{
+  G:uiState,loadSave:game.loadSave,$:()=>({value:JSON.stringify({app:'toplivermichi-kyushu',state:incoming})}),
   commit:async()=>{uiState.st.saveGeneration++;return saveSucceeds;},
   setSave:value=>{uiState.saveStatus=value;},toast:value=>{message=value;},render:()=>{rendered++;},
   soundPref:()=>true,clearTimeout:()=>{}
@@ -124,13 +127,27 @@ await restore();
 if(uiState.st!==current||uiState.screen!=='explore'||uiState.sheet!=='settings'||uiState.saveStatus!=='保存済み'||rendered||!message.includes('元の記録を維持')) throw new Error('failed backup restore replaced the current game');
 saveSucceeds=true; await restore();
 if(uiState.st.profile.name!=='復元する記録'||uiState.sheet!==null||uiState.screen!=='explore'||rendered!==1||!message.includes('読み込みました')) throw new Error('successful backup restore failed');
+if(uiState.st.saveGeneration!==301)throw new Error('restoring an older backup must exceed both in-memory and persisted generations');
+db['auto-prev']=db.auto;db.auto=makeRecord(uiState.st,uiState.st.saveGeneration);
+const restoredReload=await game.loadSave();
+if(restoredReload.state.profile.name!=='復元する記録'||restoredReload.fromPrev)throw new Error('reload selected the old adventure after restore');
+uiState.st=null;uiState.sheet='settings';await restore();
+if(uiState.st.saveGeneration!==302)throw new Error('restore from title must also exceed persisted generations');
+const newUi={st:null,screen:'new',newGame:{step:2,name:'新しい冒険',gender:'女性',composing:false}};
+const startNew=runInNewContext(`${core}\n${seedGeneration}\n${actions}\nACT.startGame`,{
+ G:newUi,loadSave:game.loadSave,soundIsOn:()=>false,padSide:()=> 'right',render:()=>{},playScene:()=>{},exploreBgm:()=>{},toast:()=>{},
+ commit:async()=>{newUi.st.saveGeneration++;db['auto-prev']=db.auto;db.auto=makeRecord(newUi.st,newUi.st.saveGeneration);return true;}
+});
+await startNew({disabled:false});
+const newReload=await game.loadSave();
+if(newUi.screen!=='explore'||newReload.state.profile.name!=='新しい冒険'||newReload.fromPrev)throw new Error('new game lost to an older high-generation save after reload');
 const incomingPosition=game.newGame('位置を直す記録','女性');incomingPosition.mapId='KY05';incomingPosition.pos={x:99,y:99};
 const positionUi={st:current,screen:'explore',sheet:'settings',readOnly:false,saveStatus:'保存済み',hasSave:true,walk:{path:[]},dlg:null,cmd:{}};
 let restoredPositionMessage='';
-const restorePosition=runInNewContext(`${core}\n${validate}\n${migrate}\n${actions}\nACT.restore`,{
-  G:positionUi,$:()=>({value:JSON.stringify({app:'toplivermichi-kyushu',state:incomingPosition})}),
+const restorePosition=runInNewContext(`${core}\n${validate}\n${migrate}\n${seedGeneration}\n${actions}\nACT.restore`,{
+  G:positionUi,loadSave:game.loadSave,$:()=>({value:JSON.stringify({app:'toplivermichi-kyushu',state:incomingPosition})}),
   commit:async()=>true,setSave:()=>{},toast:value=>{restoredPositionMessage=value;},render:()=>{},soundPref:()=>true,clearTimeout:()=>{}
 });
 await restorePosition();
 if(!atAnchor(positionUi.st,'KY05')||!restoredPositionMessage.includes('保存位置を現在の地形')) throw new Error('backup restore did not explain position recovery');
-console.log('Save recovery: generation choice, corrupt checksum, malformed JSON, invalid state, local fallback, visit migration, restore rollback OK');
+console.log('Save replacement stays newest across restore, title restore and reload. Save recovery: generation choice, corrupt checksum, malformed JSON, invalid state, local fallback, visit migration, restore rollback OK');

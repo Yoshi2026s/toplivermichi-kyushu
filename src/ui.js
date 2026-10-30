@@ -43,6 +43,12 @@ async function loadSave(){
   const best=candidates[0];
   return best?{state:best.state,time:best.record.time,storage:best.storage,fromPrev:best.fromPrev}:null;
 }
+// Replacing an adventure must remain newer than every surviving save candidate.
+async function seedSaveGeneration(st,previous=G.st){
+  const loaded=await loadSave();
+  const generations=[st,previous,loaded?.state].map(s=>s?.saveGeneration).filter(n=>Number.isSafeInteger(n)&&n>=0);
+  st.saveGeneration=Math.max(0,...generations);
+}
 function setSave(t){ G.saveStatus=t; const el=document.getElementById("saveStat"); if(el) el.textContent=t; }
 function acquireLock(){
   try{ if(navigator.locks){ navigator.locks.request("toplivermichi-kyushu-owner",{ifAvailable:true}, lock=>{ if(!lock){ G.readOnly=true; render(); return; } return new Promise(()=>{}); }); } }catch(e){}
@@ -1242,7 +1248,7 @@ const ACT = {
   async startGame(el){
     if(G.starting||G.screen!=="new"||G.newGame.step!==2||G.newGame.composing||!["男性","女性"].includes(G.newGame.gender)) return; G.starting=true; el.disabled=true;
     const v=validateName(G.newGame.name); if(!v.ok){ G.starting=false; return toast(v.errors[0]); }
-    const snd=soundIsOn(); G.st=newGame(v.value, G.newGame.gender); if(G.tmpSettings) Object.assign(G.st.settings,G.tmpSettings); G.st.settings.sound=snd; G.st.settings.soundV=2; G.st.settings.padSide=padSide(); G.soundWant=null;
+    const snd=soundIsOn(),previous=G.st; G.st=newGame(v.value, G.newGame.gender); await seedSaveGeneration(G.st,previous); if(G.tmpSettings) Object.assign(G.st.settings,G.tmpSettings); G.st.settings.sound=snd; G.st.settings.soundV=2; G.st.settings.padSide=padSide(); G.soundWant=null;
     await commit(); G.starting=false; G.hasSave=true;
     G.screen="explore"; exploreBgm(); render(); playScene("HS00");
   },
@@ -1353,7 +1359,7 @@ const ACT = {
   copyBackup(){ const t=$("#backupOut"); try{ navigator.clipboard.writeText(t.value).then(()=>toast("コピーしました。メモ帳などへ貼り付けて保管してください。"),()=>{t.select();toast("文字列を選択しました。コピーしてください。");}); }catch(e){ t.select(); toast("文字列を選択しました。コピーしてください。"); } },
   async restore(){ if(G.readOnly||G.sheet!=="settings") return toast("この画面では復元できません。"); const t=$("#restoreIn"); if(!t) return toast("復元欄がありません。"); const raw=(t.value||"").trim(); if(raw.length>5000000) return toast("大きすぎます（上限5,000,000バイト）。");
     try{ const o=JSON.parse(raw); if(o.app!=="toplivermichi-kyushu"||!o.state||o.state.schemaVersion!==SCHEMA_VERSION||!o.state.profile) throw 0; validateState(o.state);
-      const oldPos=o.state.pos&&{x:o.state.pos.x,y:o.state.pos.y},next=migrate(o.state),previous=G.st,previousStatus=G.saveStatus; G.st=next;
+      const oldPos=o.state.pos&&{x:o.state.pos.x,y:o.state.pos.y},next=migrate(o.state),previous=G.st,previousStatus=G.saveStatus; await seedSaveGeneration(next,previous); G.st=next;
       let saved=false; try{ saved=await commit(); }catch(e){}
       if(!saved){ G.st=previous; setSave(previousStatus); return toast("記録を保存できませんでした。元の記録を維持しています。バックアップの文字列を保管してください。"); }
       if(typeof applySoundSettings==="function")applySoundSettings(G.st.settings); G.auto=false; clearTimeout(G.autoT); G.walk={path:[],prog:0,pending:null};G.walkPlan=null;G.sheetHistory=[]; G.dlg=null; G.cmd={}; G.hasSave=true; G.sheet=null; G.screen=G.st.run?"battle":"explore"; render(); toast("記録を読み込みました。"+(!oldPos||oldPos.x!==next.pos.x||oldPos.y!==next.pos.y?" 保存位置を現在の地形に合わせて拠点の安全地帯へ戻しました。":"")); }

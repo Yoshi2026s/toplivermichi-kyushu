@@ -18,12 +18,20 @@ class FakeContext{
   advance(t){this.currentTime=t;for(const n of this.sources)if(n.end<=t&&n.onended){n.onended();n.onended=null;}}
 }
 const callbacks=new Set();
-const sound=runInNewContext(source+'\nSND',{window:{AudioContext:FakeContext},setInterval:f=>{callbacks.add(f);return f;},clearInterval:f=>callbacks.delete(f),setTimeout:()=>1,clearTimeout:()=>{},Float32Array,Math});
+const document={hidden:false};
+const sound=runInNewContext(source+'\nSND',{document,window:{AudioContext:FakeContext},setInterval:f=>{callbacks.add(f);return f;},clearInterval:f=>callbacks.delete(f),setTimeout:()=>1,clearTimeout:()=>{},Float32Array,Math});
 assert.equal(sound.songs.filter(n=>n.startsWith('sea_RG')).length,8);assert(sound.songs.includes('seaBattle'));
 assert(sound.setOn(true));sound.setVolumes(.25,.75);assert.equal(sound.volumes.music,.25);assert.equal(sound.volumes.effects,.75);assert.equal(context.gains[1].gain.value,.125);assert.equal(context.gains[2].gain.value,.5625);
 for(const name of sound.songs){sound.play(name);for(let i=0;i<12;i++){context.advance(context.currentTime+.1);for(const callback of [...callbacks])callback();assert(sound.sourceCount<=96);}}
 sound.play('seaBattle');for(let i=0;i<50;i++)sound.sfx(i%2?'critical':'seaWave');assert(sound.sourceCount<=96);sound.setOn(false);assert.equal(sound.sourceCount,0);assert.equal(callbacks.size,0);assert(context.sources.every(n=>n.disconnected||n.end<=context.currentTime));
 sound.setOn(true);sound.play('battle');sound.suspend();assert.equal(sound.sourceCount,0);assert.equal(callbacks.size,0);sound.resume();assert(callbacks.size===1);sound.resume();assert(callbacks.size===1);sound.setVolumes(0,1);assert.equal(context.gains[1].gain.value,0);sound.setOn(false);
+sound.setOn(true);sound.play('battle');sound.suspend();document.hidden=true;
+const created=context.sources.length;
+sound.sfx('damage');sound.jingle('fanfare','victory');sound.play('field');
+assert.equal(sound.sourceCount,0,'late callbacks in hidden pages cannot queue sounds');
+assert.equal(context.sources.length,created);assert.equal(callbacks.size,0);
+document.hidden=false;sound.resume();assert.equal(sound.current,'field');assert.equal(callbacks.size,1);assert(sound.sourceCount>0);
+sound.setOn(false);
 context.state='suspended';
 context.resume=()=>Promise.reject(new Error('audio resume blocked'));
 sound.setOn(true);

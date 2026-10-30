@@ -1,0 +1,11 @@
+{
+  "name": "pococha-quest",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node scripts/check-all.mjs"
+  },
+  "devDependencies": { "@napi-rs/canvas": "0.1.100" }
+}

@@ -177,6 +177,7 @@ const ART = (()=>{
         px(g,6,0,4,2,frame%2?PAL.coral:PAL.red); if(frame%2){ px(g,4,0,1,1,PAL.gold); px(g,11,1,1,1,PAL.gold); } break;
       case "boss": ol=false; for(let i=0;i<6;i++){ const a=(i/6)*Math.PI*2+frame*0.5; px(g,7+Math.round(Math.cos(a)*6),16+Math.round(Math.sin(a)*4),2,2,i%2?PAL.gold:PAL.coral); } px(g,7,15,2,2,PAL.cream); break;
       case "gate": px(g,2,7,2,16,PAL.red); px(g,12,7,2,16,PAL.red); px(g,0,5,16,2,PAL.ink); px(g,1,4,14,2,PAL.red); px(g,1,4,14,1,PAL.coral); px(g,4,9,8,4,PAL.cream); px(g,5,10,6,1,PAL.slate); px(g,5,12,4,1,PAL.slate); break;
+      case "station": px(g,1,3,14,3,PAL.navy); px(g,3,2,10,1,PAL.gold); px(g,2,7,12,13,PAL.cream); px(g,4,8,8,5,PAL.sea); px(g,7,8,2,5,PAL.navy); px(g,2,15,12,2,PAL.aqua); px(g,4,20,2,3,PAL.slate); px(g,10,20,2,3,PAL.slate); px(g,0,23,16,1,PAL.brown); break;
       case "rest": px(g,1,13,14,9,PAL.violet); px(g,1,13,14,1,light(PAL.violet,.3)); px(g,1,11,6,4,PAL.cream); px(g,8,16,7,1,dark(PAL.violet,.3)); px(g,1,21,14,1,dark(PAL.violet,.5)); break;
       case "shelf": px(g,1,3,14,19,PAL.brown); for(let y=8;y<22;y+=5) px(g,2,y,12,1,dark(PAL.brown,.5)); px(g,3,4,3,4,PAL.coral); px(g,8,5,2,3,PAL.gold); px(g,9,9,3,4,PAL.aqua); px(g,3,15,4,3,PAL.cream); px(g,10,15,2,3,PAL.violet); break;
       case "board": px(g,1,5,14,13,PAL.forest); px(g,1,5,14,1,PAL.brown); px(g,0,4,16,1,PAL.brown); px(g,3,7,4,4,PAL.cream); px(g,9,8,4,3,PAL.gold); px(g,4,13,7,1,PAL.cream); px(g,7,18,2,5,PAL.brown); break;

@@ -121,10 +121,7 @@ for(const [hub,hubData] of Object.entries(HUBS)){
   nationalMapRect(town,",",cx-6,cy-2,13,5);
   for(const front of houseFronts) nationalMapPath(town,[cx,cy],front,",",1,false);
   for(const o of objects) nationalMapPath(town,[cx,cy],[o.x,o.y],",",1,!!(seed%2));
-  for(let i=0;i<gates.length;i++){
-    const o={...gates[i],x:i%2?w-2:1,y:cy+(i>1?3:0)};
-    nationalMapRect(town,",",Math.max(1,o.x-1),o.y-1,3,3);objects.push(o);
-  }
+  objects.push({id:`${hub}_station`,x:1,y:cy,type:"station",label:"新幹線駅（訪問済みの街へ）"});
   const fw=40+(seed%5)*2,fh=30+(Math.floor(seed/11)%3)*2,fx=Math.floor(fw/2);
   const entrance=[fx,fh-4],back=[fx,fh-2];
   objects.push({id:`${hub}_field_exit`,x:cx,y:1,type:"door",walk:true,fieldExit:true,label:`街の出口 → ${fieldName}（戦闘エリア）`,to:fieldId,tx:entrance[0],ty:entrance[1]});
@@ -203,11 +200,23 @@ for(const [hub,hubData] of Object.entries(HUBS)){
     fieldObjects.push(o);
   }
   fieldObjects.push({id:`${hub}_town_exit`,x:back[0],y:back[1],type:"door",walk:true,fieldExit:true,label:`${hubData.name}へ戻る（安全な街）`,to:hub,tx:cx,ty:2});
+  for(let i=0;i<gates.length;i++){
+    const original=gates[i],x=i%2?fw-3:2,y=fh-6-Math.floor(i/2)*3;
+    nationalMapPath(field,entrance,[x,y],",",1,false);
+    field[y][x+(x<fw/2?1:-1)]=",";
+    fieldObjects.push({...original,x,y,walk:true,fieldRoute:true,toHub:original.to,label:`街外の道 → ${HUBS[original.to].name}方面`});
+  }
   MAPS[fieldId]={hub,name:`${hubData.name}・街外／${fieldName}`,kind:"field",layoutVersion:MAP_LAYOUT_VERSION,w:fw,h:fh,tiles:field,objects:fieldObjects,zones:{...old.zones},safeAnchor:entrance,townMap:hub,terrain};
   NATIONAL_MAP_PAIRS[hub]={town:hub,field:fieldId,prefId,terrain};
 }
 /* 旧街MAPの座標は使わず、移動先の中央広場へ着く。室内からは入った扉の前へ戻す。 */
+for(const r of NATIONAL_ROUTES){r.mode="walk";r.firstArrival=`${HUBS[r.from].name}の街外の道`;}
 for(const m of Object.values(MAPS)) for(const o of m.objects){
+  if(o.fieldRoute){
+    const target=MAPS[HUBS[o.toHub].fieldMap],back=target.objects.find(g=>g.fieldRoute&&g.toHub===m.hub);
+    if(!back)throw new Error(`街外の帰路がありません: ${m.hub} → ${o.toHub}`);
+    o.to=HUBS[o.toHub].fieldMap;o.tx=back.x+(back.x<target.w/2?1:-1);o.ty=back.y;
+  }
   if(o.type==="gate"&&MAPS[o.to]?.kind==="town") [o.tx,o.ty]=MAPS[o.to].safeAnchor;
   if(m.kind==="in"&&o.type==="door"&&MAPS[o.to]?.kind==="town"){
     const entrance=MAPS[o.to].objects.find(x=>x.type==="door"&&x.to===Object.keys(MAPS).find(id=>MAPS[id]===m));

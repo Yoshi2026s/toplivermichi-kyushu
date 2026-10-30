@@ -53,13 +53,13 @@ for(const route of routes.filter(r=>r.requiredQuest)){
   assert(can({quests:{}},route.to,route.from),`${route.id} must permit return travel`);
 }
 for(const r of routes){
-  const fm=maps[r.from],tm=maps[r.to];assert(fm&&tm,`${r.id} missing map`);
-  const forward=fm.objects.find(o=>o.id===r.firstGateId&&o.to===r.to);
+  const fm=maps[hubs[r.from].fieldMap],tm=maps[hubs[r.to].fieldMap];assert(fm&&tm,`${r.id} missing map`);
+  const forward=fm.objects.find(o=>o.id===r.firstGateId&&o.to===hubs[r.to].fieldMap);
   assert(forward,`${r.id} first gate missing`);
   const approach=[[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>walkable(fm,forward.x+dx,forward.y+dy)&&reachable(fm,fm.safeAnchor,[forward.x+dx,forward.y+dy]));
   assert(approach&&reachable(tm,[forward.tx,forward.ty],tm.safeAnchor),`${r.id} forward travel blocked`);
   if(r.from.startsWith('NW')||r.to.startsWith('NW')){
-    const back=tm.objects.find(o=>o.type==='gate'&&o.to===r.from);
+    const back=tm.objects.find(o=>o.fieldRoute&&o.toHub===r.from);
     assert(back&&[[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>walkable(tm,back.x+dx,back.y+dy)&&reachable(tm,tm.safeAnchor,[back.x+dx,back.y+dy])),`${r.id} return gate blocked`);
   }
 }

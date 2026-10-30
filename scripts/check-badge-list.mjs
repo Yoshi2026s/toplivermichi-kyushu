@@ -7,7 +7,7 @@ const files=['data_enemies.js','data_saga_enemies.js','data_items.js','data_nati
 const core=files.map(f=>readFileSync(resolve(root,'src',f),'utf8')).join('\n');
 const ui=readFileSync(resolve(root,'src','ui.js'),'utf8');
 const section=ui.slice(ui.indexOf('const PENDING_BADGES='),ui.indexOf('function renderRecord(){'));
-const extraOutside=readFileSync("src/ui_systems.js","utf8").match(/function extraBadgeOutside\(run,id\)\{[\s\S]*?\n\}/)[0];
+const extraOutside=readFileSync(resolve(root,'src/ui_systems.js'),'utf8').match(/function extraBadgeOutside\(run,id\)\{[\s\S]*?\n\}/)[0];
 const G={sheetData:{}};
 const catalog=runInNewContext(`${core}\n${section}\n${extraOutside}\n({PENDING_BADGES,BADGE_GROUPS,renderBadgeRecord,renderBattleChallenges,newGame,createFieldRun})`,{G,esc:s=>String(s)});
 const ids=Array.from({length:100},(_,i)=>`B${String(i+1).padStart(3,'0')}`);

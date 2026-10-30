@@ -1,13 +1,18 @@
 import {readdirSync,readFileSync,writeFileSync,mkdirSync} from 'node:fs';
 import {resolve} from 'node:path';
+import {tmpdir} from 'node:os';
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {Script} from 'node:vm';
 const root=resolve(import.meta.dirname,'..'),checks=[];
 for(const name of readdirSync(import.meta.dirname).filter(n=>/^check-.*\.mjs$/.test(n)&&n!=='check-all.mjs').sort()){
-  const start=Date.now(),r=spawnSync(process.execPath,[resolve(import.meta.dirname,name)],{cwd:root,encoding:'utf8',timeout:120000});
-  checks.push({name,passed:r.status===0,exitCode:r.status,durationMs:Date.now()-start,stdout:r.stdout.trim(),stderr:r.stderr.trim()});
-  console.log(`${r.status===0?'PASS':'FAIL'} ${name}`);if(r.status!==0)console.log((r.stderr||r.stdout).slice(-3500));
+  // Run outside the checkout so accidental cwd-relative reads fail in CI too.
+  const start=Date.now(),r=spawnSync(process.execPath,[resolve(import.meta.dirname,name)],{cwd:tmpdir(),encoding:'utf8',timeout:120000});
+  const stdout=(r.stdout||'').trim(),stderr=(r.stderr||'').trim();
+  const error=r.error?`${r.error.code||'ERROR'}: ${r.error.message}`:null;
+  const passed=r.status===0&&!error;
+  checks.push({name,passed,exitCode:r.status,signal:r.signal,error,durationMs:Date.now()-start,stdout,stderr});
+  console.log(`${passed?'PASS':'FAIL'} ${name}`);if(!passed)console.log([error,r.signal&&`signal: ${r.signal}`,stderr||stdout].filter(Boolean).join('\n').slice(-3500));
 }
 const html=readFileSync(resolve(root,'index.html'),'utf8');
 for(const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g))new Script(match[1]);

@@ -18,7 +18,7 @@ const reportPath=resolve(root,manifest.validation);mkdirSync(resolve(reportPath,
 if(!/^\d+\.\d+(?:\.\d+)?$/.test(manifest.version))throw Error('Invalid release version');
 const stage=mkdtempSync(resolve(root,'.task/release-v'+manifest.version+'-'));
 for(const name of ['src','scripts','assets','docs','.github'])cpSync(resolve(root,name),resolve(stage,name),{recursive:true});
-for(const name of [...Object.keys(manifest.files),'release-manifest.json','package.json','.gitattributes','.gitignore'])copyFileSync(resolve(root,name),resolve(stage,name));
+for(const name of [...Object.keys(manifest.files),'release-manifest.json','package.json','package-lock.json','.gitattributes','.gitignore'])copyFileSync(resolve(root,name),resolve(stage,name));
 const verify=spawnSync(process.execPath,['scripts/build.mjs','--check'],{cwd:stage,stdio:'inherit',timeout:30000});
 if(verify.status!==0)throw Error('Copied candidate failed verification');
 writeFileSync(resolve(root,'.task/release-candidate.json'),JSON.stringify({version:manifest.version,directory:stage,checks:report.checks.length,manifestSHA256:sha(readFileSync(resolve(stage,'release-manifest.json')))},null,2)+'\n');

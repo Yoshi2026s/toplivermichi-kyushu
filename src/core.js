@@ -379,7 +379,7 @@ function applyAction(run, idx, act){
     if(healed.some(h=>h.pos!==idx)) run.actionFlags.otherHeal=true;
     if(healed.some(h=>h.amt>=run.party[h.pos].maxHP-run.party[h.pos].hp)) run.actionFlags.fullHeal=true;
   }
-  const a = run.party[idx]; const log=[]; const nm=a.name;
+  const a = run.party[idx]; const log=[],visual=[]; const nm=a.name;
   const label = actLabel(run,a,act);
   log.push(`${nm}の${label}！`);
   a.c -= p.cost.c; run.A -= p.cost.a; if(p.cost.hp){ a.hp -= p.cost.hp; log.push(`${nm}は体力を${p.cost.hp}払った。`); }
@@ -392,11 +392,11 @@ function applyAction(run, idx, act){
     let damage=d.raw,critical=false;
     if(run.expanded&&!run.simulation&&!p.item){
       const miss=battleRandom(run)<(e.evasion??0.02);
-      if(miss){run.actionFlags.missed=true;log.push(`${e.display}は攻撃をかわした。`);continue;}
+      if(miss){visual.push({side:"enemy",slot:e.slot,kind:"miss"});run.actionFlags.missed=true;log.push(`${e.display}は攻撃をかわした。`);continue;}
       critical=battleRandom(run)<(a.criticalRate??0.04);
       if(critical){damage=Math.ceil((damage+(d.defApplied??(p.ignoreDef?0:e.def)))*1.5);run.actionFlags.critical=true;}
     }
-    const real = Math.min(damage, e.hp); e.hp -= real; log.push(`${critical?"会心の一撃！ ":""}${e.display}に${real}ダメージ。`);
+    const real = Math.min(damage, e.hp); e.hp -= real; visual.push({side:"enemy",slot:e.slot,kind:real>0?"hit":"guard",amount:real,critical}); log.push(`${critical?"会心の一撃！ ":""}${e.display}に${real}ダメージ。`);
     if(real>0&&(a.petAttackBonus||0)>0&&run.petHistory) run.petHistory.boostedHit=true;
     if(real>0){
       hitCount++;
@@ -424,10 +424,10 @@ function applyAction(run, idx, act){
   if(p.setBAfter){ run.B=p.setBAfter; }
   if(p.aGain>0){ const before=run.A; run.A=Math.min(100,run.A+p.aGain); if(run.A>before) log.push(`エール＋${run.A-before}（${run.A}）`); }
   if(p.setB!=null){ run.B=p.setB; }
-  for(const h of p.heal){ const t=run.party[h.pos]; if(h.revive){ t.hp=Math.min(h.amt,t.maxHP); t.acted=true; log.push(`${t.name}が復帰（体力${t.hp}）。`); } else if(h.amt>0){ t.hp+=h.amt; log.push(`${t.name}の体力＋${h.amt}`); } }
-  for(const g of p.cgain){ const t=run.party[g.pos]; if(g.amt>0){ t.c=Math.min(battleMPCap(t),t.c+g.amt); log.push(`${t.name}のMP＋${g.amt}`); } }
-  for(const w of p.ward){ const t=run.party[w.pos]; if(w.amt>0){ t.ward=Math.min(8,t.ward+w.amt); log.push(`${t.name}に防護${w.amt}`); } }
-  if(p.guard){ a.guard=true; log.push(`${nm}は身構えた。`); }
+  for(const h of p.heal){ const t=run.party[h.pos]; if(h.amt>0)visual.push({side:"party",slot:h.pos,kind:h.revive?"revive":"heal",amount:h.amt}); if(h.revive){ t.hp=Math.min(h.amt,t.maxHP); t.acted=true; log.push(`${t.name}が復帰（体力${t.hp}）。`); } else if(h.amt>0){ t.hp+=h.amt; log.push(`${t.name}の体力＋${h.amt}`); } }
+  for(const g of p.cgain){ const t=run.party[g.pos]; if(g.amt>0){ visual.push({side:"party",slot:g.pos,kind:"mp",amount:g.amt}); t.c=Math.min(battleMPCap(t),t.c+g.amt); log.push(`${t.name}のMP＋${g.amt}`); } }
+  for(const w of p.ward){ const t=run.party[w.pos]; if(w.amt>0){ visual.push({side:"party",slot:w.pos,kind:"ward"}); t.ward=Math.min(8,t.ward+w.amt); log.push(`${t.name}に防護${w.amt}`); } }
+  if(p.guard){ visual.push({side:"party",slot:idx,kind:"guard"}); a.guard=true; log.push(`${nm}は身構えた。`); }
   if(p.item){
     bagRemove(run.bag, p.item, 1);
     if(!Array.isArray(run.itemHistory)) run.itemHistory=[];
@@ -462,9 +462,9 @@ function applyAction(run, idx, act){
   if(p.valid || chainProg) a.valid++;
   // 勝敗
   if(run.enemies.every(e=>e.hp<=0)){ run.state="won"; log.push("ノイズ体をすべて鎮めた！"); }
-  else if(alive(run).every(m=>m.acted)){ log.push(...enemyPhase(run)); }
+  else if(alive(run).every(m=>m.acted)){ log.push(...enemyPhase(run,visual)); }
   run.log = [...(run.log||[]), ...log].slice(-80);
-  return {ok:true, log};
+  return {ok:true, log,visual};
 }
 function actLabel(run,a,act){
   if(act.type==="signature") return typeof SIGNATURES!=="undefined"?SIGNATURES[a.cid].name:"固有必殺技";
@@ -480,18 +480,18 @@ function actLabel(run,a,act){
   if(act.type==="skill") return JOBS[a.job].skill + (act.mode==="bold"?"（強気）":act.mode==="safe"?"（堅実）":act.mode==="c"?"（集中補給）":act.mode==="hp"?"（体力補給）":"") + (act.line?`（${LINE_NAMES[act.line]}）`:"");
   return "行動";
 }
-function enemyPhase(run){
+function enemyPhase(run,visual=[]){
   const log=[];
   for(const e of run.enemies.filter(x=>x.hp>0).sort((x,y)=>x.slot-y.slot)){
     if(e.petStunTurns>0){e.petStunTurns--;if(run.petHistory)run.petHistory.stopped=true;log.push(`${e.display}は足止めされて動けない。`);continue;}
     const act = enemyAction(run,e);
-    if(act.type==="c"){ log.push(`${e.display}は力をためている。`); continue; }
+    if(act.type==="c"){ visual.push({side:"enemy",slot:e.slot,kind:"charge",counter:true,attr:e.attr}); log.push(`${e.display}は力をためている。`); continue; }
     if(run.actionHistoryComplete===true && run.actionFlags) run.actionFlags.enemyAttacked=true;
     const targets = act.type==="a" ? alive(run) : [run.party[act.target]].filter(Boolean);
     for(const t of targets){
       let critical=false;
       if(run.expanded&&!run.simulation){
-        if(battleRandom(run)<(t.evasionRate??0.02)){run.actionFlags.evaded=true;log.push(`${t.name}は${e.display}の攻撃をかわした！`);continue;}
+        if(battleRandom(run)<(t.evasionRate??0.02)){visual.push({side:"party",slot:t.pos,kind:"miss",counter:true,source:e.slot,attr:e.attr});run.actionFlags.evaded=true;log.push(`${t.name}は${e.display}の攻撃をかわした！`);continue;}
         critical=battleRandom(run)<(e.criticalRate??0.03);
       }
       let inc=critical?Math.ceil(act.power*1.5):Math.max(0,act.power-run.V*(t.armorD+t.ward)-(run.expanded?Math.floor((t.defense||0)/6):0));
@@ -505,6 +505,7 @@ function enemyPhase(run){
         if(inc===0) flags.zeroHit=true;
         if(act.heavy && t.guard) flags.heavyGuardHit=true;
       }
+      visual.push({side:"party",slot:t.pos,kind:inc>0?"hit":"guard",amount:Math.min(inc,t.hp),critical,counter:true,source:e.slot,attr:e.attr});
       t.hp = Math.max(0, t.hp-inc);
       if(inc>0 && t.hp>0 && t.hp<=t.maxHP*0.3 && run.actionHistoryComplete===true && run.actionFlags) run.actionFlags.criticalSurvive=true;
       if(t.hp===0 && run.actionHistoryComplete===true && run.actionFlags) run.actionFlags.downSeen=true;

@@ -3,10 +3,12 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 
 const handlers={};
+let resumes=0,enables=0;
+const sound={on:true,resume(){resumes++;},setOn(){enables++;}};
 runInNewContext(readFileSync(new URL('../src/input.js',import.meta.url),'utf8'),{
   window:{addEventListener(){}},
   document:{addEventListener(type,fn){(handlers[type]??=[]).push(fn);},querySelector(){return null;}},
-  G:{screen:'explore',st:{},walk:{path:[]}},performance:{now:()=>0},boot(){}
+  G:{screen:'explore',st:{settings:{sound:false}},walk:{path:[]}},performance:{now:()=>0},boot(){},SND:sound
 });
 const keydown=handlers.keydown[0];
 function event(key,target,extra={}){
@@ -21,4 +23,6 @@ for(const modifier of ['ctrlKey','metaKey','altKey','isComposing']){
   const e=event('a',{tagName:'BODY'},{[modifier]:true});keydown(e);assert.equal(e.prevented,false,modifier);
 }
 const move=event('ArrowRight',{tagName:'BODY'});keydown(move);assert.equal(move.prevented,true);
+handlers.keydown.at(-1)();assert.equal(resumes,1,'a fresh gesture retries enabled audio');
+sound.on=false;handlers.keydown.at(-1)();assert.equal(enables,0,'a fresh gesture must respect saved mute');
 console.log('Native form editing, IME and modified shortcuts preserved; game movement remains active');

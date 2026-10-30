@@ -24,4 +24,9 @@ assert(sound.setOn(true));sound.setVolumes(.25,.75);assert.equal(sound.volumes.m
 for(const name of sound.songs){sound.play(name);for(let i=0;i<12;i++){context.advance(context.currentTime+.1);for(const callback of [...callbacks])callback();assert(sound.sourceCount<=96);}}
 sound.play('seaBattle');for(let i=0;i<50;i++)sound.sfx(i%2?'critical':'seaWave');assert(sound.sourceCount<=96);sound.setOn(false);assert.equal(sound.sourceCount,0);assert.equal(callbacks.size,0);assert(context.sources.every(n=>n.disconnected||n.end<=context.currentTime));
 sound.setOn(true);sound.play('battle');sound.suspend();assert.equal(sound.sourceCount,0);assert.equal(callbacks.size,0);sound.resume();assert(callbacks.size===1);sound.resume();assert(callbacks.size===1);sound.setVolumes(0,1);assert.equal(context.gains[1].gain.value,0);sound.setOn(false);
-console.log('Audio channels: 17 scene/sea tracks, alternating melody, independent saved volume levels, zero music with effects enabled, 96-source ceiling, mute/suspend cleanup and idempotent resume passed');
+context.state='suspended';
+context.resume=()=>Promise.reject(new Error('audio resume blocked'));
+sound.setOn(true);
+await new Promise(resolve=>setTimeout(resolve,0));
+sound.setOn(false);
+console.log('Audio channels: 17 scene/sea tracks, alternating melody, independent saved volume levels, zero music with effects enabled, 96-source ceiling, mute/suspend cleanup, idempotent resume and blocked-resume handling passed');

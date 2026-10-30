@@ -6025,7 +6025,7 @@ const PAD = (()=>{
   /* ---- カーソル（▶）の移動：今見えている一番手前の画面の中だけで動く ---- */
   function scope(){ const d=document.querySelector(".dlg-ov"); if(d) return d; const s=document.querySelector(".overlay"); if(s) return s; return document.getElementById("screen"); }
   function focusables(sc){
-    return [...sc.querySelectorAll("button,input,textarea,[data-a]")].filter(el=>{
+    return [...sc.querySelectorAll("button,input,textarea,select,a[href],[data-a]")].filter(el=>{
       if(el.disabled||el.getAttribute("aria-disabled")==="true") return false;
       if(el.closest("[hidden]")) return false; const r=el.getBoundingClientRect(); return r.width>0&&r.height>0;
     });
@@ -6103,6 +6103,15 @@ const PAD = (()=>{
   document.addEventListener("keydown",e=>{
     const t=e.target;
     if(e.isComposing||e.ctrlKey||e.metaKey||e.altKey) return;
+    if(e.key==="Tab"&&(G.sheet||G.dlg)){
+      const sc=scope(),list=sc?focusables(sc):[],active=document.activeElement;
+      const i=list.indexOf(active);
+      if(!list.length){ e.preventDefault(); return; }
+      if(i<0||(!e.shiftKey&&i===list.length-1)||(e.shiftKey&&i===0)){
+        e.preventDefault(); list[e.shiftKey?list.length-1:0].focus({preventScroll:true});
+      }
+      return;
+    }
     if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.tagName==="SELECT"||t.isContentEditable)) return;
     if(KEYS[e.key]!=null){ e.preventDefault(); if(!e.repeat) setDir(KEYS[e.key],"key"); return; }
     if(e.key==="Enter"||e.key===" "||e.key==="z"){ e.preventDefault(); if(!e.repeat) pressA(); }

@@ -5,12 +5,12 @@
   "sourceFileCount": 33,
   "files": {
     "index.html": {
-      "bytes": 4457039,
-      "sha256": "013a79171147a8d8a6a1756261268f63fd7bf81614947bd1f64f0ff3b71a170d"
+      "bytes": 5402106,
+      "sha256": "a7248d914b3ad7f4c19ab90a83e0a25997dfaf8b9308d664a598f6a0ca841069"
     },
     "README.md": {
-      "bytes": 4259,
-      "sha256": "11a206c3fd3cc622150c12de1e25ca449090bac53d8c79ea452486a7c3334cd2"
+      "bytes": 4472,
+      "sha256": "ddabaedb8955065a7a083e28db4ce6616ef5db87e84d4c7c4ec4c417c8bbca96"
     },
     "VERSION.txt": {
       "bytes": 187,
@@ -57,6 +57,14 @@
     "assets/semireal/party-side.webp": {
       "bytes": 425012,
       "sha256": "8f8d8a19347e6c2979b8f2424fe4962e6a7512200225296d95a9cbf230ac9808"
+    },
+    "assets/semireal/party-down.webp": {
+      "bytes": 361956,
+      "sha256": "13494c0cdafd3d43232f738a3b1a8b38fa3f6571b6a835dd8a84434f8e1df102"
+    },
+    "assets/semireal/npc-front.webp": {
+      "bytes": 344692,
+      "sha256": "4c61d1fe1074bc4b3e78460dcc65a4bbaf7bb6f062d2bd0ccc460156f2ef1eba"
     },
     "assets/fonts/quest-mincho-800.woff2": {
       "bytes": 295932,

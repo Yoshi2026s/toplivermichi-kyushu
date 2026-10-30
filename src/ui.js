@@ -510,12 +510,11 @@ function renderBattle(){
   return `<section class="battle">
     <div class="bhead"><span>ターン${run.turn}・${esc(DIFFICULTY[run.difficulty].name)}・${run.kind==="boss"?"地域ボス":esc(AREAS[run.areaId].name)}</span><span>コメント連携${run.B}・${chain}</span></div>
     <div class="gauge" aria-label="エール${run.A}"><span>エール</span><span class="bar ale"><i style="width:${run.A}%"></i></span><b>${run.A}</b></div>
-    ${run.support&&SUPPORTS[run.support]?`<p class="battle-support small">地域支援：${esc(SUPPORTS[run.support].name)}（${esc(SUPPORTS[run.support].text)}）</p>`:""}
     ${cueText(run)}
     <div class="enemies" data-terrain="${esc(MAPS[st.mapId]?.terrain||"plain")}"><canvas class="stagebg" width="160" height="64" aria-hidden="true"></canvas>${enemies}</div>
     <div class="party">${run.party.map((m,i)=>partyCard(m,i,run)).join("")}</div>
     ${renderCommand(run)}
-    <details class="battle-records" ${G.logExpanded?"open":""}><summary>戦闘記録・バッジ</summary><button class="btn" data-a="openSheet" data-k="battleChallenges">挑戦・戦闘バッジ</button>
+    <details class="battle-records" ${G.logExpanded?"open":""}><summary>戦闘記録・バッジ</summary>${run.support&&SUPPORTS[run.support]?`<p class="battle-support small">地域支援：${esc(SUPPORTS[run.support].name)}（${esc(SUPPORTS[run.support].text)}）</p>`:""}<button class="btn" data-a="openSheet" data-k="battleChallenges">挑戦・戦闘バッジ</button>
     <div class="srow"><button class="btn" data-a="battleLogExpand" aria-pressed="${!!G.logExpanded}">${G.logExpanded?"ログを縮小":"ログを拡大"}</button><button class="btn" data-a="openSheet" data-k="battleLog">履歴を見る</button></div>
     <div class="log ${G.logExpanded?"expanded":""}" role="log" aria-live="polite" aria-label="直近の戦闘ログ">${battleLines.slice(G.logExpanded?-8:-3).map((l,i,a)=>`<button class="log-entry" data-a="battleLogLine" data-v="${battleLines.length-a.length+i}">${esc(l)}</button>`).join("")}</div>
     </details>

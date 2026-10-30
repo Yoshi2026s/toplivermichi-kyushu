@@ -1,19 +1,27 @@
 /* Embedded painted party art. Presentation only: no saved identifiers change. */
 const SEMIREAL_ART=(()=>{
  const fallback=ART.person,cache=new Map(),images={};
- const sources={front:'__PARTY_FRONT_DATA_URI__',back:'__PARTY_BACK_DATA_URI__',side:'__PARTY_SIDE_DATA_URI__'};
+ const sources={front:'__PARTY_FRONT_DATA_URI__',back:'__PARTY_BACK_DATA_URI__',side:'__PARTY_SIDE_DATA_URI__',down:'__PARTY_DOWN_DATA_URI__',npc:'__NPC_FRONT_DATA_URI__'};
  const indices={naoki:4,kohei:5,mio:6,kayo:7,tsumugi:8,makoto:9,gaku:10};
  function index(id,opt={}){
   if(id==='hero'||id==='hero-preview')return opt.long?1:0;
   if(['moe','partner','partner-preview'].includes(id))return opt.long?2:3;
   return indices[id]??null;
  }
+ // MAP residents use the same painted proportions and foot anchor as the party.
+ function npcIndex(id){
+  const named={akari:0,ryosuke:1,chiyo:2,sota:3,shigeru:4,misuzu:5,innkeeper:10};
+  if(Object.prototype.hasOwnProperty.call(named,id))return named[id];
+  if(typeof NPCS!=='undefined'&&Object.prototype.hasOwnProperty.call(NPCS,id))return 6+(Number(String(id).match(/\d+/)?.[0]||0)%2);
+  return null;
+ }
  function ready(side){return !!images[side]?.complete&&images[side].naturalWidth>0;}
  function person(id,hair,coat,dir=0,frame=0,opt={}){
-  const i=index(id,opt),side=dir===1?'back':dir>1?'side':'front';
+  const partyIndex=index(id,opt),resident=partyIndex===null?npcIndex(id):null;
+  const i=partyIndex??resident,side=resident!==null?'npc':dir===1?'back':dir>1?'side':'down';
   if(i===null||!ready(side))return fallback(id,hair,coat,dir,frame,opt);
-  const walkFrame=frame>0?1+(Math.floor(frame)-1)%8:0;
-  const key=[i,dir,walkFrame].join('|');if(cache.has(key))return cache.get(key);
+  const walkFrame=resident===null&&frame>0?1+(Math.floor(frame)-1)%8:0;
+  const key=[side,i,dir,walkFrame].join('|');if(cache.has(key))return cache.get(key);
   const c=document.createElement('canvas');c.width=64;c.height=96;c.artScale=4;
   const g=c.getContext('2d'),[x,y,w,h]=SEMIREAL_FRAMES[side][i];
   g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
@@ -38,9 +46,9 @@ const SEMIREAL_ART=(()=>{
   const c=document.querySelector('#heroPrev');
   if(c&&G.screen==='new'&&G.newGame){const n=G.newGame,p=n.step===2,gender=p?n.heroine?.gender:n.gender;if(gender)portrait(c,p?'moe':'hero',gender,true);}
  }
- if(typeof Image!=='undefined')for(const side of ['front','back','side']){
+ if(typeof Image!=='undefined')for(const side of Object.keys(sources)){
   const img=new Image();images[side]=img;img.onload=refresh;img.src=sources[side];
  }
  ART.person=person;
- return {portrait,index,ready,stats:()=>({entries:cache.size})};
+ return {portrait,index,npcIndex,ready,stats:()=>({entries:cache.size})};
 })();

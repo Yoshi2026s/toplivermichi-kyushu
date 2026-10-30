@@ -2998,6 +2998,8 @@ function battleMPCap(actor){return Number.isFinite(actor?.maxMP)?actor.maxMP:10;
 /* ===== art: ドット素材をコードで生成（16色パレット基調・新規デザイン） ===== */
 const ART = (()=>{
   const cache = {};
+  // 地図は1枚が大きいため、直近2地域の4コマ分だけを保持する。
+  const mapCache = new Map(), MAP_CACHE_LIMIT = 8;
   function mk(w,h){ const c=document.createElement("canvas"); c.width=w; c.height=h; const g=c.getContext("2d"); g.imageSmoothingEnabled=false; return [c,g]; }
   const px=(g,x,y,w,h,col)=>{ g.fillStyle=col; g.fillRect(x,y,w,h); };
   function seeded(str){ let h=2166136261; for(const ch of String(str)){ h^=ch.charCodeAt(0); h=Math.imul(h,16777619); } return ()=>{ h^=h<<13; h^=h>>>17; h^=h<<5; return ((h>>>0)%10000)/10000; }; }
@@ -3096,11 +3098,14 @@ const ART = (()=>{
   }
   /* マップ全体を1枚へ事前描画（水と草の4コマ） */
   function mapLayer(mapId, frame){
-    const key=`m${mapId}${frame%4}`; if(cache[key]) return cache[key];
+    const key=`m${mapId}${frame%4}`;
+    if(mapCache.has(key)){ const layer=mapCache.get(key); mapCache.delete(key); mapCache.set(key,layer); return layer; }
     const m=MAPS[mapId]; const [c,g]=mk(m.w*16,m.h*16);
     const at=(x,y)=> (x<0||y<0||x>=m.w||y>=m.h) ? (m.kind==="in"?"#":"T") : m.tiles[y][x];
     for(let y=0;y<m.h;y++) for(let x=0;x<m.w;x++) drawTile(g,x*16,y*16,at(x,y),(dx,dy)=>at(x+dx,y+dy),frame%4,`${mapId}${x},${y}`);
-    cache[key]=c; return c;
+    mapCache.set(key,c);
+    if(mapCache.size>MAP_CACHE_LIMIT)mapCache.delete(mapCache.keys().next().value);
+    return c;
   }
   function tile(t, frame){ const key=`t${t}${frame}`; if(cache[key]) return cache[key]; const [c,g]=mk(16,16); drawTile(g,0,0,t,()=>t,frame,"x"+t); cache[key]=c; return c; }
 

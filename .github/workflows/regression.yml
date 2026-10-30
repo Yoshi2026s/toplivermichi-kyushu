@@ -15,5 +15,5 @@ jobs:
         with:
           node-version: '24'
       - run: npm install --ignore-scripts --no-audit --no-fund
-      - run: npm run build
+      - run: npm run build:check
       - run: npm test

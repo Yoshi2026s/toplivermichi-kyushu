@@ -57,7 +57,7 @@ Object.assign(ACT,{
 });
 
 const SYSTEM_HELP={
-  walk:{name:"街と街外・移動",text:"街と室内は安全です。「街外へ」で出口まで歩き、街外MAPの道から隣の街外へ進んで街に入ります。街間の直行は新幹線駅から訪問済みの街へ乗る場合だけです。地図は街の出口までの徒歩案内です。地面のタップ、スティック、キーボードで移動できます。道しるべは実際に歩いて向かい、遭遇で中断します。移動速度は設定で通常／高速を選べます。"},
+  walk:{name:"街と街外・移動",text:"街と室内は安全です。「街外へ」で出口まで歩き、街外MAPの道から隣の街外へ進んで街に入ります。街間の直行は新幹線駅から訪問済みの街へ乗る場合だけです。地図は街の出口までの徒歩案内です。地面のタップ、スティック、キーボードで移動できます。オート移動は実際に歩いて向かい、遭遇で中断します。移動速度は設定で通常／高速を選べます。"},
   quest:{name:"依頼と物語",text:"街で依頼を受け、街外の通常敵を必要数倒すと地域ボスへ挑めます。討伐で依頼が完了し次の地域への道が開きます。配信イベントはありません。完了した会話は記録から再読できます。"},
   battle:{name:"戦闘・対処・オート",text:"攻撃、職業技能、追加技能、応援、ガード、MP回復、道具、必殺技を使えます。全戦闘でオートを使用でき、中断すると手動に戻ります。通常の敵の次行動予告は表示しません。地域ボスのため中は説明された対処を異なる2人で行います。"},
   job:{name:"職業とハローワーク",text:"各街のハローワークで職業ごとの3段階イベントに参加します。完了した職業へ転職できます。熟練度と習得済みの技能は維持されます。新しい職業に合わない専用装備は外れます。街外の実技課題は10ターン以内の勝利を目指します。"},
@@ -79,7 +79,7 @@ renderSheet=function(){if(G.sheet==="help")return sheetWrap("解説",renderSyste
 const systemBaseSettings=renderSettings;
 renderSettings=function(){const s=G.st?.settings||G.tmpSettings||{};return systemBaseSettings()+`<h3 class="label">音量を個別に調整</h3>${[["musicVolume","BGM"],["effectVolume","効果音"]].map(([key,label])=>`<p>${label}：${Math.round((s[key]??1)*100)}％</p><div class="opts">${[0,.25,.5,.75,1].map(n=>`<button class="btn opt" data-a="soundVolume" data-k="${key}" data-v="${n}" aria-pressed="${(s[key]??1)===n}">${n*100}％</button>`).join("")}</div>`).join("")}<h3 class="label">移動と応援</h3><button class="btn" data-a="moveSpeed">移動速度：${s.moveSpeed==="fast"?"高速":"通常"}</button><button class="btn" data-a="listenerToggle">リスナーコメント：${s.listenerComments===false?"OFF":"ON"}</button>`;};
 const systemBaseRender=render;
-render=function(){systemBaseRender();const dock=$("#dock");if(dock&&!$("#systemHelp")){const b=document.createElement("button");b.id="systemHelp";b.className="btn dock-help";b.dataset.a="openHelp";b.textContent="解説";($(".dock-center")||dock).appendChild(b);}observeListenerScene();};
+render=function(){systemBaseRender();observeListenerScene();};
 const systemBaseCharSprite=charSprite;
 charSprite=function(cid,dir,frame){if(G.oceanDrawing)return systemBaseCharSprite(cid,dir,frame);if(cid==="moe"&&G.st?.heroine)return ART.person("partner",PAL.violet,PAL.cream,dir,frame,{long:G.st.heroine.gender!=="男性",ribbon:G.st.heroine.gender!=="男性"?PAL.coral:null});return systemBaseCharSprite(cid,dir,frame);};
 const systemBaseOpen=openSheet,systemBaseClose=closeSheet;
@@ -107,3 +107,9 @@ Object.assign(ACT,{
   walkCancel(el){if(G.screen!=="explore"||G.sheet!=="guide"||G.readOnly||!G.walkPlan||G.walkPlan.state!==G.st||String(G.walkPlan.version)!==el.dataset.v)return;G.walkPlan=null;G.walk={path:[],prog:0,pending:null};G.walkPlan=null;G.sheetHistory=[];render();}
 });
 document.addEventListener("visibilitychange",()=>{if(document.hidden)clearListenerComments();});
+
+// Leave the complete menu stack without replaying a previous sheet.
+ACT.returnToMap=function(){
+  if(systemOperationPending()||G.screen!=="explore"||!G.st||G.st.run||G.dlg||!G.sheet)return;
+  G.sheet=null;G.sheetData={};G.sheetHistory=[];G.cursorSig=null;render();
+};

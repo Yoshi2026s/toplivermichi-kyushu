@@ -5,7 +5,7 @@ import {createCanvas} from './canvas-runtime.mjs';
 const root=new URL('../',import.meta.url),read=name=>readFileSync(new URL(name,root),'utf8');
 const files=[...read('scripts/build.mjs').match(/const files = \[([^\]]+)\]/)[1].matchAll(/'([^']+)'/g)].map(m=>m[1]);
 const data=files.slice(0,files.indexOf('core.js')+1).map(n=>read('src/'+n)).join('\n');
-const {ART,MAPS}=runInNewContext(data+'\n'+read('src/art.js')+'\n({ART,MAPS})',{
+const {ART,MAPS}=runInNewContext(data+'\n'+read('src/art.js')+'\n'+read('src/art_detail.js')+'\n({ART,MAPS})',{
   document:{createElement:()=>createCanvas(1,1)}
 });
 const [a,b,c]=Object.keys(MAPS).sort((a,b)=>MAPS[a].w*MAPS[a].h-MAPS[b].w*MAPS[b].h);

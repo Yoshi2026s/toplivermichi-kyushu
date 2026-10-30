@@ -233,6 +233,7 @@ function renderExplore(){
     <div class="here">${ar?`<span class="tag danger">遭遇エリア</span> ${esc(ar.name)}（推奨レベル${ar.q}）`:`<span class="tag ${m.kind==="field"?"danger":"safe"}">${m.kind==="field"?"街外の道":"安全な街・室内"}</span> ${esc(m.name)}`}${near.length?`<span class="small">／近く：${near.map(o=>esc(o.label)).join("・")}</span>`:""}</div>
     ${partyStrip()}
     <nav class="menu-grid" aria-label="メニュー">
+      ${m.objects.some(o=>o.fieldExit&&!o.oceanRoute&&!o.oceanReturn)?`<button class="btn" data-a="guideTo" data-v="${m.objects.find(o=>o.fieldExit&&!o.oceanRoute&&!o.oceanReturn).id}">${m.kind==="town"?"街外へ":"街へ戻る"}</button>`:""}
       <button class="btn" data-a="openSheet" data-k="quests">依頼帳</button>
       <button class="btn" data-a="openSheet" data-k="guide">道しるべ</button>
       <button class="btn" data-a="openSheet" data-k="map">地図</button>
@@ -288,7 +289,7 @@ function drawMap(){
     else if(o.type==="inn"){ sprites.push({y:o.y-0.1,img:ART.object("inn",f),x:o.x}); img=ART.person("innkeeper",PAL.slate,PAL.navy,0,f2*2); }
     else if(o.type==="box") img=ART.object(st.boxes[o.box]?"boxOpen":"box",f);
     else if(o.type==="boss"){ if(st.bossDefeated[o.boss]) continue; img=ART.object("boss",f); }
-    else img=ART.object(o.fieldExit?"gate":o.type==="jobcenter"?"board":o.type,f);
+    else img=ART.object(o.fieldExit||o.fieldRoute?"gate":o.type==="jobcenter"?"board":o.type,f);
     sprites.push({y:o.y,x:o.x,img});
   }
   const moving=G.walk.path.length>0; const wf=moving?Math.floor(now/166)%4:0;
@@ -380,7 +381,12 @@ function interact(o){
     case "jobcenter": return openSheet("jobcenter");
     case "shop": return openSheet("shop",{shop:o.shop, npc:o.npc, tab:"buy"});
     case "door": return travelMap(o.to,o.tx,o.ty);
-    case "gate": return nationalRouteAvailable(st,curHub(),o.to)?openSheet("travel",{to:o.to,tx:o.tx,ty:o.ty,gateId:o.id}):say([["",nationalRouteUnlockReason(curHub(),o.to)]]);
+    case "gate": {
+      if(!o.fieldRoute||MAPS[st.mapId].kind!=="field"||!MAPS[st.mapId].objects.includes(o)||Math.max(Math.abs(o.x-st.pos.x),Math.abs(o.y-st.pos.y))>1)return;
+      if(!nationalRouteAvailable(st,curHub(),o.toHub))return say([["",nationalRouteUnlockReason(curHub(),o.toHub)]]);
+      return travelHub(o.toHub,o.tx,o.ty,o.to);
+    }
+    case "station": return openSheet("rail",{stationId:o.id});
     case "box": return openBox(o);
     case "sign": { const a=AREAS[o.area]; const b=Object.values(BOSSES).find(x=>x.areaId===o.area);
       return say([["案内板",`${a.name}（${o.area}）。強度q${a.q}・推奨レベル${a.q}。`+(b?`この奥に地域ボス「${b.name}」（推奨レベル${b.q}）。`:"")],["案内板",a.lore]]); }
@@ -443,9 +449,9 @@ function travelMap(to,tx,ty,save=true){
   const hub=MAPS[to].hub; if(!st.visitedHubs.includes(hub)) st.visitedHubs.push(hub);
   if(save) commit(); G.sheet=null; exploreBgm(); render();
 }
-function travelHub(to,tx,ty){
+function travelHub(to,tx,ty,mapId=to){
   const st=G.st; const first=!st.visitedHubs.includes(to);
-  travelMap(to,tx,ty,false);
+  travelMap(mapId,tx,ty,false);
   const j=JOIN_PLAN.find(x=>x.hub===to);
   const joined=j&&joinMember(st,j.cid);
   commit();
@@ -788,7 +794,8 @@ function renderSheet(){
     case "guide": { const m=MAPS[st.mapId]; return sheetWrap("道しるべ", `<p class="small">選ぶと、その場所まで実際に歩きます（途中の遭遇エリアでは抽選があります）。</p><div class="stack">${m.objects.filter(o=>o.type!=="tower").map(o=>{ const a=o.area?AREAS[o.area]:null; return `<button class="btn" data-a="guideTo" data-v="${o.id}">${esc(o.label)}${a?`（推奨レベル${a.q}）`:""}</button>`; }).join("")}</div>`); }
     case "quests": return sheetWrap("依頼帳", renderQuests());
     case "map": return sheetWrap("全国の旅の地図", renderWorld());
-    case "travel": return sheetWrap("移動", `<p>${esc(HUBS[d.to].name)}へ向かいますか？</p><div class="stack"><button class="btn primary" data-a="doTravel">向かう</button><button class="btn" data-a="closeSheet">やめる</button></div>`);
+    case "travel": return sheetWrap("街外の道", "<p>街間の徒歩移動は街外MAPの道を進みます。街の出口から出発してください。</p>");
+    case "rail": return sheetWrap("新幹線駅",renderRail());
     case "rest": return sheetWrap("休息", `${d.reason?`<p class="warn">${esc(d.reason)}</p>`:""}<p>日付を進めると翌日になります（費用なし）。体力とMPは回復しません。回復は宿屋で。今は${st.day}日目。</p><div class="stack"><button class="btn primary" data-a="doRest">日付を進める</button><button class="btn" data-a="closeSheet">やめる</button></div>`);
     case "party": return sheetWrap("編成", renderParty());
     case "status": return sheetWrap("パーティーのステータス", renderStatus());
@@ -866,7 +873,7 @@ function renderQuests(){
 }
 function renderWorld(){
   const st=G.st; const safe=isSafe();
-  let h=`<p class="small">拠点間の移動は安全地帯から出発できます。地図では現在地に隣接する拠点を表示します。</p><div class="stack">`;
+  let h=`<p class="small">街間は街外MAPの道を歩くか、街の新幹線駅から移動します。地図のボタンは街の出口までの道案内です。</p><div class="stack">`;
   const current=curHub();
   const adjacent=new Set([current]);
   for(const route of NATIONAL_ROUTES.filter(r=>r.status==="playable")){
@@ -883,7 +890,7 @@ function renderWorld(){
       return route?.firstArrival&&!(st.visitedHubs||[]).includes(step)?[`${HUBS[step].name}の初回到達：${route.firstArrival}から向かってください。`]:[];
     })||[];
     h+=`<div class="qcard"><div class="srow"><b>${id} ${esc(H.pref)}・${esc(H.name)}${H.home?"（故郷）":""}</b><span class="tag">${here?"現在地":visited?"訪問済み":"未訪問"}</span></div>
-      ${here?"":`<button class="btn" data-a="worldGo" data-v="${id}" ${travel.available?"":"disabled"}>向かう</button>${itinerary?.length>2?`<p class="small">経由：${itinerary.map(step=>esc(HUBS[step].name)).join(" → ")}${lockedLegs.length?"（未解放区間あり）":""}</p>${[...lockedLegs,...firstArrivalLegs].map(note=>`<p class="small">${esc(note)}</p>`).join("")}`:""}${travel.reason?`<p class="small">${esc(travel.reason)}</p>`:""}`}</div>`;
+      ${here?"":`<button class="btn" data-a="worldGo" data-v="${id}" ${travel.available?"":"disabled"}>街外への出口まで歩く</button>${itinerary?.length>2?`<p class="small">経由：${itinerary.map(step=>esc(HUBS[step].name)).join(" → ")}${lockedLegs.length?"（未解放区間あり）":""}</p>${[...lockedLegs,...firstArrivalLegs].map(note=>`<p class="small">${esc(note)}</p>`).join("")}`:""}${travel.reason?`<p class="small">${esc(travel.reason)}</p>`:""}`}</div>`;
   }
   const playablePrefs=NATIONAL_PREFECTURES.filter(p=>(NATIONAL_IMPLEMENTED_HUBS[p.id]||[]).some(id=>Object.hasOwn(HUBS,id)));
   const visitedPrefs=playablePrefs.filter(p=>(NATIONAL_IMPLEMENTED_HUBS[p.id]||[]).some(id=>(st.visitedHubs||[]).includes(id)));
@@ -898,7 +905,7 @@ function renderWorld(){
     }).join("")}</ul></details>`;
   }).join("");
   const routeDirectory=NATIONAL_ROUTES.filter(r=>r.status==="playable").map(r=>`<li>${esc(HUBS[r.from].name)} ↔ ${esc(HUBS[r.to].name)}：${nationalRouteAvailable(st,r.from,r.to)?"経路解放済み":esc(nationalRouteUnlockReason(r.from,r.to))}${!st.visitedHubs.includes(r.to)&&r.firstArrival?`（初回：${esc(r.firstArrival)}）`:""}</li>`).join("");
-  h+=`</div><details><summary>実装済みの経路（${NATIONAL_ROUTES.length}）</summary><ul class="list">${routeDirectory}</ul></details><p class="small">初回到達は街の門・交通路から向かいます。訪問後に地図から移動できます。</p>
+  h+=`</div><details><summary>実装済みの経路（${NATIONAL_ROUTES.length}）</summary><ul class="list">${routeDirectory}</ul></details><p class="small">初めての街へは街外MAPの道から向かいます。訪問済みの街への直行は新幹線駅を利用してください。</p>
     <h3 class="label">全国編の収録状況</h3><p class="small">${NATIONAL_REGIONS.length}地方・${NATIONAL_PREFECTURES.length}都道府県、全51拠点の固有物語と地域ボスを収録。各街の出口から街外へ進み、ボスを鎮めて次の地域へ。全51本の本編依頼で全国編エンディングに到達します。</p>
     <h3 class="label">全国の都道府県</h3><p class="small">拠点ありは${playablePrefs.length}/${NATIONAL_PREFECTURES.length}都道府県。訪問済みは${visitedPrefs.length}/${playablePrefs.length}県・${visitedHubCount}/${playableHubIds.length}拠点。${visitedPrefs.length===47?"全国踏破達成！":"全県を巡ると全国踏破です。"}</p>${regionDirectory}`;
   return h;
@@ -907,9 +914,17 @@ function worldTravelStatus(st,from,to,safe){
   const route=NATIONAL_ROUTES.find(r=>r.status==="playable"&&((r.from===from&&r.to===to)||(r.from===to&&r.to===from)));
   if(!route) return {available:false,reason:"現在地からの直通経路はありません。隣接する拠点を経由してください。"};
   if(!nationalRouteAvailable(st,from,to)) return {available:false,reason:nationalRouteUnlockReason(from,to)};
-  if(route.to===to&&route.firstArrival&&!(st.visitedHubs||[]).includes(to)) return {available:false,reason:`初回は${route.firstArrival}から向かってください。`};
-  if(!safe) return {available:false,reason:"安全地帯から出発できます。"};
-  return {available:true,reason:""};
+  if(!safe) return {available:false,reason:"街外の道を進んでください。"};
+  return {available:true,reason:"街の出口まで歩き、街外MAPの道から向かいます。"};
+}
+function railTravelStatus(st,from,to){
+  if(from===to||!Object.hasOwn(HUBS,to)||!(st.visitedHubs||[]).includes(to))return false;
+  const path=nationalItinerary(st,from,to);
+  return !!path&&path.slice(1).every((hub,i)=>nationalRouteAvailable(st,path[i],hub));
+}
+function renderRail(){
+  const st=G.st,from=curHub();
+  return '<p>訪問済みの街へ新幹線で移動します。初めての街へは街外の道を進んでください。</p><div class="stack">'+Object.entries(HUBS).filter(([id])=>railTravelStatus(st,from,id)).map(([id,h])=>`<button class="btn" data-a="railGo" data-v="${id}" ${G.readOnly?"disabled":""}>新幹線で${esc(h.name)}へ</button>`).join('')+'</div>'+(st.visitedHubs.length<2?'<p>まだ移動できる訪問先がありません。</p>':'');
 }
 function nationalRouteUnlockReason(from,to){
   const route=NATIONAL_ROUTES.find(r=>r.status==="playable"&&((r.from===from&&r.to===to)||(r.from===to&&r.to===from)));
@@ -1308,8 +1323,18 @@ const ACT = {
   stop(){ if(G.walk.path.length>1) G.walk.path=G.walk.path.slice(0,1); G.walk.pending=null; },
   interactId(el){ const o=MAPS[G.st.mapId].objects.find(x=>x.id===el.dataset.v); G.sheet=null; render(); interact(o); },
   guideTo(el){ const o=MAPS[G.st.mapId].objects.find(x=>x.id===el.dataset.v); G.sheet=null; render(); walkTo(o.x,o.y); },
-  doTravel(){ if(!canTravelFrom("travel")) return; const d=G.sheetData; const from=curHub(); if(!d||typeof d.to!=="string"||!Number.isInteger(d.tx)||!Number.isInteger(d.ty)||typeof d.gateId!=="string") return toast("移動先が変わりました。門を調べ直してください。"); const route=NATIONAL_ROUTES.find(r=>r.status==="playable"&&((r.from===from&&r.to===d.to)||(r.from===d.to&&r.to===from))); const first=!(G.st.visitedHubs||[]).includes(d.to); if(!HUBS[d.to]||from===d.to||!route||!nationalRouteAvailable(G.st,from,d.to)||first&&route.from===from&&route.firstGateId!==d.gateId||!nearbyObjects().some(o=>o.type==="gate"&&o.id===d.gateId&&o.to===d.to&&o.tx===d.tx&&o.ty===d.ty)) return toast("移動先が変わりました。門を調べ直してください。"); G.sheet=null; travelHub(d.to,d.tx,d.ty); },
-  worldGo(el){ if(!canTravelFrom("map")) return; const to=el.dataset.v; if(!Object.hasOwn(HUBS,to)||curHub()===to) return toast("行先を選び直してください。"); const status=worldTravelStatus(G.st,curHub(),to,true); if(!status.available) return toast(status.reason); const map=MAPS[to]; if(!map||!Array.isArray(map.safeAnchor)) return toast("この行先にはまだ移動できません。"); const s=map.safeAnchor; G.sheet=null; travelHub(to,s[0],s[1]); },
+  doTravel(){ return toast("街間は街外MAPの道を歩くか、新幹線駅から移動してください。"); },
+  worldGo(el){
+    if(!canTravelFrom("map")||MAPS[G.st.mapId].kind!=="town")return;
+    const status=worldTravelStatus(G.st,curHub(),el.dataset.v,true);if(!status.available)return toast(status.reason);
+    const exit=MAPS[G.st.mapId].objects.find(o=>o.fieldExit&&!o.oceanRoute);
+    if(!exit)return toast("街の出口が見つかりません。");
+    G.sheet=null;render();walkTo(exit.x,exit.y);
+  },
+  railGo(el){
+    if(!canTravelFrom("rail")||MAPS[G.st.mapId].kind!=="town"||!nearbyObjects().some(o=>o.type==="station"&&o.id===G.sheetData.stationId)||!railTravelStatus(G.st,curHub(),el.dataset.v))return;
+    const to=el.dataset.v,[x,y]=MAPS[to].safeAnchor;G.sheet=null;travelHub(to,x,y);
+  },
   doInn(el){ if(G.readOnly||G.screen!=="explore"||G.sheet!=="inn"||G.dlg||G.st.run||!isSafe()) return; const st=G.st; const total=(INN_PRICE[curHub()]||10)*st.roster.length; if(st.gold<total) return toast(`ゴールドが足りません（あと${total-st.gold}）。`); el.disabled=true; G.sheet=null; st.gold-=total; restoreAll(st); st.day++; commit(); render(); SND.sfx("heal"); say([["",`${total}ゴールドを払って泊まった。`],["",`${st.day}日目の朝。全員の体力とMPが全回復した！`]]); },
   doRest(){ if(G.readOnly||G.screen!=="explore"||G.sheet!=="rest"||G.dlg||G.st.run||!isSafe()) return; const st=G.st; G.sheet=null; st.day++; commit(); render(); toast(`${st.day}日目の朝になった。`); },
   acceptQuest(el){ if(!canManageQuests()) return; const st=G.st, id=el.dataset.v, q=QUESTS[id]; if(!q||st.quests[id]!=="available"||st.activeQuest||curHub()!==q.hub||!isSafe()) return toast("依頼の状態が変わりました。選び直してください。");

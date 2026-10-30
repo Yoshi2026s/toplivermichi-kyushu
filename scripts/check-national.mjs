@@ -20,10 +20,10 @@ assert(routes.length===50&&new Set(routes.map(r=>r.id)).size===50,'50 unique tra
 for(const route of routes){
  assert(route.status==='playable'&&hubs[route.from]&&hubs[route.to]&&route.from!==route.to,`${route.id}: invalid endpoints`);
  assert(typeof route.firstArrival==='string'&&route.firstArrival.length>0,`${route.id}: first-arrival guidance absent`);
- const gate=maps[route.from].objects.find(o=>o.id===route.firstGateId&&o.type==='gate'&&o.to===route.to);
- const back=maps[route.to].objects.find(o=>o.type==='gate'&&o.to===route.from);
+ const gate=maps[hubs[route.from].fieldMap].objects.find(o=>o.id===route.firstGateId&&o.fieldRoute&&o.toHub===route.to);
+ const back=maps[hubs[route.to].fieldMap].objects.find(o=>o.fieldRoute&&o.toHub===route.from);
  assert(gate&&back,`${route.id}: reciprocal gates absent`);
- assert([gate.tx,gate.ty].join(',')===maps[route.to].safeAnchor.join(',')&&[back.tx,back.ty].join(',')===maps[route.from].safeAnchor.join(','),`${route.id}: transport must arrive at town anchor`);
+ assert(gate.to===hubs[route.to].fieldMap&&back.to===hubs[route.from].fieldMap,`${route.id}: walking must arrive outdoors`);
 }
 const complete=game.newGame('旅人','女性');complete.fukuokaClear=true;for(const id of Object.keys(complete.quests))complete.quests[id]='complete';complete.visitedHubs=Object.keys(hubs);complete.slots=0;
 for(const [from,to,quest] of [['KY03','KY04','M03'],['KY04','KY05','M04'],['KY05','KY06','M05'],['KY06','KY07','M06'],['KY07','KY08','M07'],['KY08','NW44','M08']]){
@@ -37,7 +37,7 @@ for(const route of routes.filter(r=>r.requiredQuest)){
 }
 assert(!can(complete,'KY01','KY03')&&!status(complete,'KY01','KY03',true).available,'nonadjacent travel bypass');
 assert(status(complete,'KY03','KY04',true).available&&!status(complete,'KY03','KY04',false).available,'travel requires safe town, ignores obsolete slots');
-assert(!status({...complete,visitedHubs:['KY01']},'KY01','KY02',true).available,'map travel bypassed first-arrival gate');
+assert(status({...complete,visitedHubs:['KY01']},'KY01','KY02',true).available,'first-visit route must offer walking directions');
 const path=itinerary(complete,'KY01','NW01');assert(path?.length===51&&path[0]==='KY01'&&path.at(-1)==='NW01','national itinerary must connect all 51 hubs');
 for(let i=1;i<path.length;i++)assert(can(complete,path[i-1],path[i]),`itinerary locked at ${path[i]}`);
 const alternate=[{from:'A',to:'B',status:'playable',unlock:'always'},{from:'B',to:'C',status:'playable',unlock:'fukuokaClear'},{from:'A',to:'D',status:'playable',unlock:'always'},{from:'D',to:'E',status:'playable',unlock:'always'},{from:'E',to:'C',status:'playable',unlock:'always'}];
@@ -54,22 +54,6 @@ for(const join of joins){
 assert(state.slots===0,'transport must preserve legacy zero slot value');
 context.G.st={...complete,mapId:'KY01',visitedHubs:['KY01']};const world=game.renderWorld();
 assert(world.includes('拠点ありは47/47都道府県')&&world.includes('訪問済みは1/47県・1/51拠点'),'national directory counts do not reflect all implemented prefectures');
-assert((world.match(/<details>/g)||[]).length===9&&world.includes('初回：福岡市の東門'),'region/route directory missing');
+assert((world.match(/<details>/g)||[]).length===9&&world.includes('街外MAP'),'region/route directory missing');
 context.G.st=complete;complete.mapId='KY01';assert(game.renderWorld().includes('全国踏破達成'),'full national visit not recorded');
-const actionDef=ui.match(/const ACT = \{[\s\S]*?\n\};/)?.[0],canTravel=ui.match(/function canTravelFrom\(sheet\)\{[^\n]+\}/)?.[0];
-assert(actionDef&&canTravel,'guarded transport actions missing');
-const actionContext={G:null,curHub:()=>maps[actionContext.G.st.mapId].hub,isSafe:()=>maps[actionContext.G.st.mapId].kind!=='field',nearbyObjects:()=>[actionContext.gate],toast:()=>{},travelHub:(to,x,y)=>{actionContext.moves++;assert([x,y].join(',')===maps[to].safeAnchor.join(','),'travel action used obsolete arrival coordinates');}};
-const actions=runInNewContext(`${data}\n${fn('nationalRouteAvailable')}\n${fn('nationalRouteUnlockReason')}\n${fn('worldTravelStatus')}\n${canTravel}\n${actionDef}\nACT`,actionContext);
-for(const route of routes){
- const gate=maps[route.from].objects.find(o=>o.id===route.firstGateId);actionContext.gate=gate;actionContext.moves=0;
- actionContext.G={st:{...complete,mapId:route.from,visitedHubs:[route.from]},screen:'explore',sheet:'travel',sheetData:{to:route.to,tx:gate.tx,ty:gate.ty,gateId:gate.id},readOnly:false,dlg:null,walk:{path:[]}};
- const G=actionContext.G;G.sheetData.gateId='stale_gate';actions.doTravel();assert(actionContext.moves===0,`${route.id}: stale gate accepted`);
- G.sheetData.gateId=gate.id;G.sheetData.tx++;actions.doTravel();assert(actionContext.moves===0,`${route.id}: stale coordinates accepted`);
- G.sheetData.tx=gate.tx;G.st.mapId=hubs[route.from].fieldMap;actions.doTravel();assert(actionContext.moves===0,`${route.id}: field departure accepted`);
- G.st.mapId=route.from;G.readOnly=true;actions.doTravel();assert(actionContext.moves===0,`${route.id}: read-only tab moved`);
- G.readOnly=false;actions.doTravel();assert(actionContext.moves===1&&G.sheet===null,`${route.id}: valid physical gate rejected`);
- G.sheet='map';actions.worldGo({dataset:{v:route.to}});assert(actionContext.moves===1,`${route.id}: map bypassed first visit`);
- G.st.visitedHubs.push(route.to);actions.worldGo({dataset:{v:route.to}});assert(actionContext.moves===2&&G.sheet===null,`${route.id}: visited adjacent map travel rejected`);
-}
-console.log('National: 8 regions, 47 prefectures, 51 town/field hubs, 50 guarded routes, progression locks, safe travel, 7 atomic joins and directory OK');
-
+console.log('National registry, progression locks, itineraries, atomic joins and directory OK; travel actions covered by check-travel-modes.mjs');

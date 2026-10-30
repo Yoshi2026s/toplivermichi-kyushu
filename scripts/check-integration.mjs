@@ -95,7 +95,7 @@ if(!process.env.INTEGRATION_FAST)await test('all51 quests complete through callb
   const s=fresh('全国統合');setExplore(s);s.petState.owned.PT01.bond=100;s.petState.companions=['PT01'];let previous=null,battles=0;
   for(const qid of g.NATIONWIDE_QUEST_ORDER){
     const q=g.QUESTS[qid];
-    if(previous){const town=g.MAPS[s.mapId],gate=town.objects.find(o=>o.type==='gate'&&o.to===q.hub);assert(gate,previous+' gate to '+qid);s.pos={x:gate.x,y:gate.y};g.interact(gate);assert.equal(g.G.sheet,'travel');g.ACT.doTravel();closeDialogs();assert.equal(s.mapId,q.hub);}
+    if(previous){const field=g.MAPS[g.HUBS[g.MAPS[s.mapId].hub].fieldMap],gate=field.objects.find(o=>o.fieldRoute&&o.toHub===q.hub);assert(gate,previous+' outdoor path to '+qid);s.mapId=g.HUBS[field.hub].fieldMap;s.pos={x:gate.x,y:gate.y};g.interact(gate);closeDialogs();assert.equal(s.mapId,g.HUBS[q.hub].fieldMap);const back=g.MAPS[s.mapId].objects.find(o=>o.fieldExit);s.pos={x:back.x,y:back.y};g.interact(back);assert.equal(s.mapId,q.hub);}
     g.G.sheet='quests';g.G.sheetData={};g.ACT.acceptQuest(element('',qid));
     if(s.activeQuest!==qid){const e=element();e.dataset={v:qid};g.ACT.acceptQuest(e);}
     assert.equal(s.activeQuest,qid);closeDialogs();const exit=g.MAPS[q.hub].objects.find(o=>o.id===q.hub+'_field_exit');s.pos={x:exit.x,y:exit.y};g.interact(exit);assert.equal(s.mapId,g.HUBS[q.hub].fieldMap);

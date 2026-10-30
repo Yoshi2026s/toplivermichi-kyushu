@@ -122,12 +122,13 @@ for(let index=0;index<g.NATIONWIDE_QUEST_ORDER.length;index++){
   assert.equal(journey.mapId,q.hub,'return exit must reach the town');
   const nextId=g.NATIONWIDE_QUEST_ORDER[index+1];
   if(nextId){
-    const nextHub=g.QUESTS[nextId].hub,gate=town.objects.find(o=>o.type==='gate'&&o.to===nextHub);
+    const nextHub=g.QUESTS[nextId].hub,gate=field.objects.find(o=>o.fieldRoute&&o.toHub===nextHub);
     assert(gate,`${id}: next physical transport gate missing`);
     assert(g.nationalRouteAvailable(journey,q.hub,nextHub),`${id}: completion must open route`);
-    const adjacent=[[1,0],[-1,0],[0,1],[0,-1]].map(([x,y])=>[gate.x+x,gate.y+y]).find(p=>g.walkable(town,...p));
-    journey.pos={x:adjacent[0],y:adjacent[1]};g.G.sheet='travel';g.G.sheetData={to:gate.to,tx:gate.tx,ty:gate.ty,gateId:gate.id};
-    g.ACT.doTravel();closeDialogs();assert.equal(journey.mapId,nextHub);
+    const adjacent=[[1,0],[-1,0],[0,1],[0,-1]].map(([x,y])=>[gate.x+x,gate.y+y]).find(p=>g.walkable(field,...p));
+    journey.mapId=g.HUBS[q.hub].fieldMap;journey.pos={x:adjacent[0],y:adjacent[1]};g.G.sheet=null;
+    g.interact(gate);closeDialogs();assert.equal(journey.mapId,g.HUBS[nextHub].fieldMap);
+    const exit=g.MAPS[journey.mapId].objects.find(o=>o.fieldExit);journey.pos={x:exit.x,y:exit.y};g.interact(exit);assert.equal(journey.mapId,nextHub);
   }
 }
 assert(fieldVictories>=140);assert.equal(journey.nationalClear,true);

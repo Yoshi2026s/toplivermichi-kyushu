@@ -24,7 +24,8 @@ for(const [hub,pair] of Object.entries(pairs)){
  assert(town.objects.some(o=>o.type==='shop'),`${hub}: missing supply shop`);
  assert(town.objects.every(o=>!['boss','sign','tower'].includes(o.type)),`${hub}: combat landmark in town`);
  assert(Object.keys(town.zones).length===0&&town.tiles.every(row=>row.every(t=>!'123'.includes(t))),`${hub}: danger in town`);
- assert(field.objects.every(o=>!['inn','shop','rest','board','npc','gate'].includes(o.type)),`${hub}: town service in field`);
+ assert(town.objects.every(o=>o.type!=='gate')&&town.objects.some(o=>o.type==='station'),`${hub}: station required; direct city gates forbidden`);
+ assert(field.objects.every(o=>!['inn','shop','rest','board','npc','station'].includes(o.type)),`${hub}: town service in field`);
  for(const m of [town,field]){
   assert(walkable(m,...m.safeAnchor),`${m.name}: blocked anchor`);
   assert(new Set(m.objects.map(o=>`${o.x},${o.y}`)).size===m.objects.length,`${m.name}: overlapping objects`);

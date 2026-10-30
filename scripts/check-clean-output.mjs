@@ -17,6 +17,7 @@ try{
   }
   for(const [script,image] of [
     ['check-hd-art.mjs','hd-art-contact.png'],
+    ['check-character-art.mjs','character-quality.png'],
     ['check-battle-fx.mjs','battle-fx-contact.png'],
     ['check-ocean.mjs','ocean-forms.png'],
   ]){
@@ -30,7 +31,7 @@ try{
     assert.equal(result.status,0,`${script}: ${result.error||result.stderr||result.stdout}`);
     assert.deepEqual(readFileSync(join(output,image)).subarray(0,8),Buffer.from([137,80,78,71,13,10,26,10]));
   }
-  console.log('All three graphics checks create valid PNGs without .task, independently of test order and working directory');
+  console.log('All four graphics checks create valid PNGs without .task, independently of test order and working directory');
 }finally{
   rmSync(fixture,{recursive:true,force:true});
 }

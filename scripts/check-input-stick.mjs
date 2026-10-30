@@ -19,3 +19,12 @@ pointer('pointerdown');windowEvents.blur();pointer('pointerup');assert.equal(con
 buttonEvents.click({detail:0});assert.equal(confirmations,2,'assistive click still confirms');
 pointer('pointerdown');pointer('pointerdown',90,50,true,2);pointer('pointerup',90,50,true,2);pointer('pointerup');assert.equal(confirmations,3,'additional fingers cannot steal a central gesture');
 console.log('Joystick center confirms once; drag, ring, cancel, capture loss, blur and extra-pointer guards passed');
+
+// Off-center thumb placement stays neutral; short drags respond and diagonal jitter stays stable.
+pointer('pointerdown',58,54);assert.equal(base.dataset.dir,'');
+pointer('pointermove',66,54);assert.equal(base.dataset.dir,'右');
+pointer('pointermove',68,65);assert.equal(base.dataset.dir,'右','diagonal margin keeps the current direction');
+pointer('pointermove',63,74);assert.equal(base.dataset.dir,'下','deliberate turn changes direction');
+pointer('pointermove',58,54);assert.equal(base.dataset.dir,'','returning to the touch origin stops');
+pointer('pointerup',58,54);assert.equal(confirmations,3,'movement never confirms');
+console.log('Off-center origin, sensitive start, direction stability, deliberate turns and neutral return passed');

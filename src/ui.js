@@ -22,7 +22,7 @@ function commit(){
   setSave("保存中…");
   saveChain = saveChain.then(async()=>{
     try{ const prev=await DB.get("auto"); await DB.putPair(rec, prev&&prev.gen<rec.gen?prev:null); setSave("保存済み"); return true; }
-    catch(e){ try{ localStorage.setItem("tlr-kyushu-auto", JSON.stringify(rec)); setSave("保存済み（簡易保存）"); return true; }catch(e2){ setSave("未保存：この端末では保存できません。設定からバックアップを書き出してください。"); return false; } }
+    catch(e){ try{ localStorage.setItem("tlr-kyushu-auto", JSON.stringify(rec)); setSave("保存済み"); return true; }catch(e2){ setSave("未保存：この端末では保存できません。設定からバックアップを書き出してください。"); return false; } }
   });
   return saveChain;
 }
@@ -119,8 +119,7 @@ function statusBar(){
 function renderTitle(){
   return `<section class="title-screen">
     <div class="title-visual"><img id="titleArt" src="__TITLE_ART_DATA_URI__" width="960" height="640" alt="夕暮れの港町と星空を望む、ふたりの旅人" fetchpriority="high" decoding="async">
-    <div class="title-caption"><p class="title-kicker">ふたりの声が、旅になる。</p><h1 class="logo" aria-label="ポコチャクエスト 全国編"><span class="main" aria-hidden="true"><span>ポコチャ</span><span>クエスト</span></span><span class="sub">全国編</span></h1></div></div>
-    <p class="lead">元アイドルのもえをS6へ導く、昭和風ドットRPG。</p>
+    <div class="title-caption"><h1 class="logo" aria-label="ポコチャクエスト 全国編"><span class="main" aria-hidden="true"><span>ポコチャ</span><span>クエスト</span></span><span class="sub">全国編</span></h1></div></div>
     <div class="menu">
       <button class="btn primary" data-a="newGame">はじめから</button>
       <button class="btn" data-a="continue" ${G.hasSave?"":"disabled"}>つづきから${G.hasSave?"":"（記録なし）"}</button>
@@ -128,8 +127,6 @@ function renderTitle(){
       <button class="btn" data-a="openSheet" data-k="about">この作品について</button>
       <button class="btn" data-a="openSheet" data-k="share">友だちに教える（URLを共有）</button>
     </div>
-    <p class="note">配信文化を参考にした非公式の創作ゲームです。実在のサービス・アカウントとは連携しません。BGMと効果音は最初からONです（画面に触れると鳴り始めます。設定で消音にできます）。</p>
-    <p class="note">全47都道府県・51拠点に物語と地域ボスを収録。街は安全地帯です。街の出口から街外へ進むと、探索と戦闘が始まります。ボス討伐で依頼が完了し、次の地域へ進めます。</p>
   </section>`;
 }
 /* ---- 主人公設定（第06D・06E節） ---- */
@@ -139,7 +136,7 @@ function renderNew(){
     const v=validateName(n.name);
     return `<section class="win">
       <h2 class="label">確認</h2>
-      <canvas id="heroPrev" width="32" height="48" class="sprite-lg" aria-hidden="true"></canvas>
+      <canvas id="heroPrev" width="64" height="96" class="sprite-lg" aria-hidden="true"></canvas>
       <dl class="kv"><dt>名前</dt><dd>${esc(v.value)}（${v.count}文字）</dd><dt>性別</dt><dd>${esc(n.gender)}</dd>
       <dt>初期職業</dt><dd>アイドルオタク</dd><dt>背景</dt><dd>32歳・福岡県福岡市出身・職歴は社会福祉士</dd></dl>
       <p class="small">名前と性別はこの冒険で固定されます。性別による能力・成長・結末の差はありません。</p>
@@ -154,7 +151,7 @@ function renderNew(){
     <fieldset class="gender"><legend class="field-label">性別（ゲーム内の主人公設定）</legend>
       ${["男性","女性"].map(g=>`<button class="btn choice ${n.gender===g?"on":""}" data-a="pickGender" data-v="${g}" aria-pressed="${n.gender===g}">${n.gender===g?"▶ ":""}${g}</button>`).join("")}
     </fieldset>
-    <canvas id="heroPrev" width="32" height="48" class="sprite-lg" aria-hidden="true"></canvas>
+    <canvas id="heroPrev" width="64" height="96" class="sprite-lg" aria-hidden="true"></canvas>
     <div class="stack"><button class="btn primary" id="toConfirm" data-a="newNext">確認へ</button>
     <button class="btn" data-a="toTitle">タイトルへ戻る</button></div>
   </section>`;
@@ -191,7 +188,7 @@ function renderStatus(){
     const inParty=st.party.includes(cid);
     const eqName=id=>id?esc(EQUIP[id].name):"なし";
     return `<section class="scard ${v.hp<=0?"ko":""} ${isLow(v.hp,s.maxHP)?"low":""}">
-      <div class="who"><canvas class="sprite-md" data-char="${cid}" width="32" height="48" aria-hidden="true"></canvas>
+      <div class="who"><canvas class="sprite-md" data-char="${cid}" width="64" height="96" aria-hidden="true"></canvas>
         <div><b class="sname">${esc(cid==="moe"?charName(st,"moe"):cid==="hero"?st.profile.name:C.full)}</b><br><span class="small">${inParty?"戦闘メンバー":"控え"}${v.hp<=0?"・戦闘不能":isLow(v.hp,s.maxHP)?"・体力わずか":""}</span></div></div>
       <dl class="kv">
         <dt>レベル</dt><dd>${L}</dd>
@@ -834,7 +831,7 @@ function renderSettings(){
     <h3 class="label">ジョイコントローラーの配置</h3>
     <p class="small">操作：左の戻るボタン／右のスティック中央で決定</p>
     <p class="small">ジョイコントローラー：探索ではスティックで歩き、決定で近くを調べます。メニュー・戦闘・会話ではスティックでカーソル（▶）を動かし、決定で選び、戻るで閉じます。Bluetoothのゲームコントローラー（Joy-Conなど）にも対応しています。</p>
-    ${st?`<h3 class="label">保存</h3><p class="small">行動を確定するたびに、この端末のブラウザ内へ自動保存しています（直近2世代）。状態：${esc(G.saveStatus)}</p>
+    ${st?`<h3 class="label">保存</h3><p class="small">行動を確定するたびに、この端末のブラウザ内へ自動保存しています。状態：${esc(G.saveStatus)}</p>
     <p class="small">端末の変更やブラウザのデータ削除の前に、下の「バックアップを表示」で文字列をコピーし、メモ帳などへ保管してください。</p>
     <div class="stack"><button class="btn" data-a="showBackup">バックアップを表示</button></div>
     ${G.sheetData.backup?`<textarea id="backupOut" class="input mono" rows="5" readonly>${esc(G.sheetData.backup)}</textarea><button class="btn" data-a="copyBackup">コピーする</button>`:""}`:""}
@@ -895,7 +892,7 @@ function renderWorld(){
     }).join("")}</ul></details>`;
   }).join("");
   const routeDirectory=NATIONAL_ROUTES.filter(r=>r.status==="playable").map(r=>`<li>${esc(HUBS[r.from].name)} ↔ ${esc(HUBS[r.to].name)}：${nationalRouteAvailable(st,r.from,r.to)?"経路解放済み":esc(nationalRouteUnlockReason(r.from,r.to))}${!st.visitedHubs.includes(r.to)&&r.firstArrival?`（初回：${esc(r.firstArrival)}）`:""}</li>`).join("");
-  h+=`</div><details><summary>実装済みの経路（${NATIONAL_ROUTES.length}）</summary><ul class="list">${routeDirectory}</ul></details><p class="small">初めての街へは街外MAPの道から向かいます。訪問済みの街への直行は新幹線駅を利用してください。</p>
+  h+=`</div><details><summary>街をつなぐ道（${NATIONAL_ROUTES.length}）</summary><ul class="list">${routeDirectory}</ul></details><p class="small">初めての街へは街外MAPの道から向かいます。訪問済みの街への直行は新幹線駅を利用してください。</p>
     <h3 class="label">全国編の収録状況</h3><p class="small">${NATIONAL_REGIONS.length}地方・${NATIONAL_PREFECTURES.length}都道府県、全51拠点の固有物語と地域ボスを収録。各街の出口から街外へ進み、ボスを鎮めて次の地域へ。全51本の本編依頼で全国編エンディングに到達します。</p>
     <h3 class="label">全国の都道府県</h3><p class="small">拠点ありは${playablePrefs.length}/${NATIONAL_PREFECTURES.length}都道府県。訪問済みは${visitedPrefs.length}/${playablePrefs.length}県・${visitedHubCount}/${playableHubIds.length}拠点。${visitedPrefs.length===47?"全国踏破達成！":"全県を巡ると全国踏破です。"}</p>${regionDirectory}`;
   return h;
@@ -967,7 +964,7 @@ function renderParty(){
         <button class="btn" data-a="partyView" data-c="${cid}" data-v="">人物へ戻る</button>`;
     }
     const e=st.equip[cid]; const C=CHARS[cid];
-    return `<div class="who"><canvas class="sprite-md" data-char="${cid}" width="32" height="48" aria-hidden="true"></canvas><div><b>${esc(cid==="hero"?st.profile.name:C.full)}</b>　${[C.age?C.age+"歳":"",C.from?esc(C.from):""].filter(Boolean).join("・")}<br><span class="small">${cid==="moe"?"経歴":"職歴"}：${esc(C.career)}（ジョブとは別）</span></div></div>
+    return `<div class="who"><canvas class="sprite-md" data-char="${cid}" width="64" height="96" aria-hidden="true"></canvas><div><b>${esc(cid==="hero"?st.profile.name:C.full)}</b>　${[C.age?C.age+"歳":"",C.from?esc(C.from):""].filter(Boolean).join("・")}<br><span class="small">${cid==="moe"?"経歴":"職歴"}：${esc(C.career)}（ジョブとは別）</span></div></div>
       <dl class="kv"><dt>ジョブ</dt><dd>${esc(JOBS[cur.job].name)}　熟練度${cur.R}・技能強化${cur.S}</dd><dt>体力</dt><dd>${vitalOf(cid).hp}／${cur.maxHP}</dd><dt>MP</dt><dd>${vitalOf(cid).c}／${cur.startC}</dd>
       <dt>武器</dt><dd>${e.w?esc(EQUIP[e.w].name):"なし"}</dd><dt>防具</dt><dd>${e.a?esc(EQUIP[e.a].name):"なし"}</dd><dt>アクセサリー</dt><dd>${e.acc?esc(EQUIP[e.acc].name):"なし"}</dd></dl>
       <div class="stack"><button class="btn" data-a="partyView" data-c="${cid}" data-v="job">職業を変える</button>
@@ -1021,7 +1018,7 @@ function renderBattleChallenges(){
   if(run.petHistory){progress.B071=`（${Math.min(run.petHistory.actions||0,1)}/1）`;progress.B074=`（${Math.min(run.petHistory.species?.length||0,2)}/2）`;progress.B075=`（${Math.min(run.petHistory.actions||0,2)}/2）`;}
   const status=id=>{
     if(owned.has(id)) return "獲得済み";
-    if(Object.hasOwn(PENDING_BADGES,id)) return "制作中";
+    if(Object.hasOwn(PENDING_BADGES,id)) return "獲得不可";
     if(outside(id)) return "対象外";
     if(run.state==="lost") return "今回達成不可";
     if(speedImpossible[id]||itemImpossible[id]) return "今回達成不可";
@@ -1038,7 +1035,7 @@ function renderBattleChallenges(){
   const suggestion=recommendations.length?`<h3 class="label">今回のおすすめ</h3><ul class="list">${recommendations.map(id=>`<li>${id} ${esc(names[id])}：${hints[id]}</li>`).join("")}</ul>`:"<p class=\"small\">今おすすめできる未達成の条件はありません。</p>";
   const onlyActionable=!!G.sheetData.onlyActionable;
   const sections=BADGE_GROUPS.map((group,i)=>{const ids=Array.from({length:10},(_,n)=>`B${String(i*10+n+1).padStart(3,"0")}`);const applicable=ids.filter(id=>!Object.hasOwn(PENDING_BADGES,id)&&!outside(id));const shown=ids.filter(id=>!onlyActionable||status(id)==="未達成");return `<h3 class="label">${group}（今回の対象 ${applicable.length}件）</h3>${shown.length?`<ul class="list">${shown.map(id=>`<li>${status(id)}・${id} ${esc(names[id])}${progress[id]||""}</li>`).join("")}</ul>`:`<p class="small">表示する条件はありません。</p>`}`;}).join("");
-  return `<p class="small">獲得は勝利結果で確定します。達成済みの条件も戦闘を終えるまでは未保存です。制作中・対象外は今回の対象件数から除きます。</p><button class="btn" data-a="battleChallengeFilter" aria-pressed="${onlyActionable}">${onlyActionable?"すべて表示":"今回狙える条件のみ表示"}</button>${suggestion}${sections}`;
+  return `<p class="small">条件を満たして勝利すると獲得できます。</p><button class="btn" data-a="battleChallengeFilter" aria-pressed="${onlyActionable}">${onlyActionable?"すべて表示":"今回狙える条件のみ表示"}</button>${suggestion}${sections}`;
 }
 function renderBadgeRecord(st){
   const implemented={...ITEM_BADGES,...GROWTH_BADGES,...PARTY_BADGES,...ACTION_BADGES,...HEAL_BADGES,...MP_BADGES,...CHEER_BADGES,...SPEED_BADGES,...ATTACK_BADGES,...GUARD_BADGES,...DEFENSE_BADGES,...EXTRA_BADGES};
@@ -1048,9 +1045,9 @@ function renderBadgeRecord(st){
   const sections=BADGE_GROUPS.map((group,i)=>{
     const entries=Array.from({length:10},(_,n)=>`B${String(i*10+n+1).padStart(3,"0")}`).filter(id=>!onlyMissing||!owned.has(id));
     const count=Array.from({length:10},(_,n)=>`B${String(i*10+n+1).padStart(3,"0")}`).filter(id=>owned.has(id)).length;
-    return `<h4 class="label">${group} ${count}/10</h4>${entries.length?`<ul class="list">${entries.map(id=>`<li>${owned.has(id)?"● 獲得済み":Object.hasOwn(implemented,id)?"○ 未獲得":"― 制作中"} ${id} ${esc(names[id])}</li>`).join("")}</ul>`:`<p class="small">この分野はすべて獲得済みです。</p>`}`;
+    return `<h4 class="label">${group} ${count}/10</h4>${entries.length?`<ul class="list">${entries.map(id=>`<li>${owned.has(id)?"● 獲得済み":Object.hasOwn(implemented,id)?"○ 未獲得":"― 獲得不可"} ${id} ${esc(names[id])}</li>`).join("")}</ul>`:`<p class="small">この分野はすべて獲得済みです。</p>`}`;
   });
-  return `<h3 class="label">戦闘バッジ</h3><p class="small">獲得${acquired}/100種。実装済み${Object.keys(implemented).length}種、制作中${Object.keys(PENDING_BADGES).length}種。</p><button class="btn" data-a="badgeFilter" aria-pressed="${onlyMissing}">${onlyMissing?"すべて表示":"未獲得のみ表示"}</button>${sections.join("")}`;
+  return `<h3 class="label">戦闘バッジ</h3><p class="small">獲得${acquired}種。</p><button class="btn" data-a="badgeFilter" aria-pressed="${onlyMissing}">${onlyMissing?"すべて表示":"未獲得のみ表示"}</button>${sections.join("")}`;
 }
 function renderRecord(){
   const st=G.st; const L=levelOf(st.xp,st);
@@ -1226,7 +1223,7 @@ function renderMoe(){
   const st=G.st; const r=MOE_RANKS[st.moeRank];
   const line = st.moeRank===0?"まずは福岡の声を整えよう。放送塔の丘の奥で、大きな重なりが起きてるみたい。":st.moeRank===1?"北九州の街外へ行こう。港に響く声の乱れを、一緒に鎮めたいな。":st.moeRank===2?"福岡、ありがとう。唐津でも、一人ずつの声に返事をしていきたい。":st.moeRank===3?"唐津の声を聞けたね。次は佐賀市で、街の声をつなごう。":st.moeRank===4?"佐賀市の声も届けられたね。次は佐世保市で港からの返事を聞こう。":"佐世保市の返事も届けられたね。次の旅に向けて準備しよう。";
   const read=Object.keys(SCENES).filter(k=>st.scenes[k]);
-  return `<div class="who"><canvas class="sprite-md" data-char="moe" width="32" height="48" aria-hidden="true"></canvas><div><b>${esc(charName(st,"moe"))}</b><br><span class="small">メインライバー・シナリオ到達ランク ${r}</span></div></div>
+  return `<div class="who"><canvas class="sprite-md" data-char="moe" width="64" height="96" aria-hidden="true"></canvas><div><b>${esc(charName(st,"moe"))}</b><br><span class="small">メインライバー・シナリオ到達ランク ${r}</span></div></div>
     <p class="dlg-text">「${esc(line)}」</p>
     <h3 class="label">物語を読み返す</h3><div class="stack">${read.length?read.map(k=>`<button class="btn" data-a="replay" data-v="${k}">${esc(SCENES[k].title)}</button>`).join(""):`<p class="small">まだありません。</p>`}</div>`;
 }
@@ -1249,9 +1246,9 @@ const ACT = {
     await commit(); G.starting=false; G.hasSave=true;
     G.screen="explore"; exploreBgm(); render(); playScene("HS00");
   },
-  async continue(){ const s=await loadSave(); if(!s) return toast("記録が見つかりません。"); const hadStream=!!s.state.stream||Object.values(s.state.quests||{}).includes("combatDone"),oldPos=s.state.pos&&{x:s.state.pos.x,y:s.state.pos.y}; G.st=migrate(s.state); if(typeof applySoundSettings==="function")applySoundSettings(G.st.settings); G.walk={path:[],prog:0,pending:null};G.walkPlan=null;G.sheetHistory=[]; G.dlg=null; G.sheet=null; G.cmd={}; G.auto=false;clearTimeout(G.autoT); G.soundWant=null; setSave(s.fromPrev?"前の記録から復旧":s.storage==="local"?"保存済み（簡易保存）":"保存済み"); if(G.st.settings.sound===false&&SND.on) SND.setOn(false); else if(G.st.settings.sound!==false&&!SND.on) SND.setOn(true);
+  async continue(){ const s=await loadSave(); if(!s) return toast("記録が見つかりません。"); const hadStream=!!s.state.stream||Object.values(s.state.quests||{}).includes("combatDone"),oldPos=s.state.pos&&{x:s.state.pos.x,y:s.state.pos.y}; G.st=migrate(s.state); if(typeof applySoundSettings==="function")applySoundSettings(G.st.settings); G.walk={path:[],prog:0,pending:null};G.walkPlan=null;G.sheetHistory=[]; G.dlg=null; G.sheet=null; G.cmd={}; G.auto=false;clearTimeout(G.autoT); G.soundWant=null; setSave(s.fromPrev?"前の記録から復旧":s.storage==="local"?"保存済み":"保存済み"); if(G.st.settings.sound===false&&SND.on) SND.setOn(false); else if(G.st.settings.sound!==false&&!SND.on) SND.setOn(true);
     if(G.st.run){ G.screen="battle"; SND.play(G.st.run.kind==="boss"?"boss":"battle"); } else { G.screen="explore"; exploreBgm(); }
-    render(); const notices=[]; if(s.fromPrev) notices.push("前の世代の記録から再開しました。設定からバックアップを確認できます。"); if(hadStream&&!G.st.stream) notices.push("配信イベントの廃止に伴い、討伐済みの依頼を完了しました。報酬と進行は引き継いでいます。"); if(!oldPos||oldPos.x!==G.st.pos.x||oldPos.y!==G.st.pos.y) notices.push("保存位置を現在の地形に合わせて拠点の安全地帯へ戻しました。"); if(notices.length) toast(notices.join(" ")); },
+    render(); const notices=[]; if(s.fromPrev) notices.push("前の記録から再開しました。設定からバックアップを確認できます。"); if(hadStream&&!G.st.stream) notices.push("配信イベントの廃止に伴い、討伐済みの依頼を完了しました。報酬と進行は引き継いでいます。"); if(!oldPos||oldPos.x!==G.st.pos.x||oldPos.y!==G.st.pos.y) notices.push("保存位置を現在の地形に合わせて拠点の安全地帯へ戻しました。"); if(notices.length) toast(notices.join(" ")); },
   toTitle(){ G.sheet=null; G.screen="title"; G.dlg=null; SND.play("title"); render(); },
   openSheet(el){ openSheet(el.dataset.k); }, closeSheet(){ closeSheet(); },
   badgeFilter(){ if(G.sheet!=="record") return; G.sheetData.badgeOnlyUnowned=!G.sheetData.badgeOnlyUnowned; render(); },

@@ -2,11 +2,11 @@
   "version": "5.34",
   "schemaVersion": 5,
   "buildDate": "2026-10-30",
-  "sourceFileCount": 28,
+  "sourceFileCount": 29,
   "files": {
     "index.html": {
-      "bytes": 2529895,
-      "sha256": "699def7c5d94ce798ad7959c5bf24cc1a37c61d151dd4a335bee54df954eb8b3"
+      "bytes": 2542549,
+      "sha256": "7dfcd12cddc12b6ff82b2c1b83fd3482ad98c23cc879ac33c34c200e5ca28516"
     },
     "README.md": {
       "bytes": 3202,

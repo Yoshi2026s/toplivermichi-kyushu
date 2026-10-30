@@ -83,6 +83,7 @@ function objective(){
 function render(){
   const root=$("#screen"); if(!root) return;
   stopBattleTimer();
+  if(typeof BATTLE_FX!=="undefined")BATTLE_FX.cancel();
   const s=G.screen;
   let html="";
   if(s==="title") html=renderTitle();
@@ -638,28 +639,22 @@ function drawEnemies(){
 function dealtBy(before){ const run=G.st.run; return run && run.enemies.some(e=>e.hp<before.e[e.slot]); }
 function isLow(hp,max){ return hp>0 && hp<=max*0.3; }
 function battleFx(before){
-  const run=G.st.run; if(!run) return;
-  const hurt=run.party.some((m,i)=>m.hp<before.p[i]);
-  if(hurt){
+  const st=G.st,run=st?.run;if(!run)return;
+  if(run.party.some((m,i)=>m.hp<before.p[i])){
     const ko=run.party.some((m,i)=>m.hp<=0&&before.p[i]>0);
-    setTimeout(()=>SND.sfx(ko?"down":"damage"),dealtBy(before)?380:90);
-    if(!reducedMotion()){ const sc=document.querySelector(".battle"); if(sc){ sc.classList.remove("quake"); void sc.offsetWidth; sc.classList.add("quake"); setTimeout(()=>sc.classList.remove("quake"),420); }
-      const fl=document.createElement("div"); fl.className="hurtflash"; document.body.appendChild(fl); setTimeout(()=>fl.remove(),260); }
+    setTimeout(()=>{if(G.st===st&&st.run===run&&G.screen==="battle"&&!document.hidden)SND.sfx(ko?"down":"damage");},dealtBy(before)?320:90);
   }
-  if(reducedMotion()) return;
-  const slots=[];
-  run.enemies.forEach(e=>{ const d=before.e[e.slot]-e.hp; if(d>0){ slots.push(e.slot); pop($("#ec"+e.slot),`-${d}`,"dmg"); } });
-  run.party.forEach((m,i)=>{ const d=m.hp-before.p[i]; const el=document.querySelector(`.pcard[data-i="${i}"]`); if(d<0){ pop(el,`${d}`,"hurt"); el&&el.classList.add("shake"); } else if(d>0) pop(el,`+${d}`,"heal"); });
-  if(slots.length){ G.flash={slots, until:Date.now()+360}; let n=0; const t=setInterval(()=>{ drawEnemies(); if(++n>7) clearInterval(t); },60); }
+  if(typeof BATTLE_FX!=="undefined")BATTLE_FX.play(before,run);
 }
 function pop(el,text,cls){ if(!el) return; const s=document.createElement("span"); s.className="pop "+cls; s.textContent=text; el.appendChild(s); setTimeout(()=>s.remove(),900); }
 function startBattleTimer(){ stopBattleTimer(); if(!reducedMotion()) G.battleTimer=setInterval(drawEnemies,250); }
 function stopBattleTimer(){ if(G.battleTimer){ clearInterval(G.battleTimer); G.battleTimer=0; } }
 function confirmAct(forced){
   const st=G.st, run=st.run; const a=run.party[G.cmd.actor]; const act=forced||buildAct(a); if(!act) return;
-  const before={e:Object.fromEntries(run.enemies.map(e=>[e.slot,e.hp])), p:run.party.map(m=>m.hp)};
+  const before={e:Object.fromEntries(run.enemies.map(e=>[e.slot,e.hp])), p:run.party.map(m=>m.hp),fx:{actor:G.cmd.actor,action:{...act},job:a.job}};
   const r=applyAction(run,G.cmd.actor,act);
   if(!r.ok) return toast(r.reason);
+  before.fx.events=r.visual||[];
   // 攻撃した時の効果音（通常攻撃・技能・全体攻撃・メーター突破で鳴り分け）
   const dealt = run.enemies.some(e=>e.hp<before.e[e.slot]);
   const killed = run.enemies.some(e=>e.hp<=0&&before.e[e.slot]>0);

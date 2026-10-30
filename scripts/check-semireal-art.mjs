@@ -1,0 +1,40 @@
+import assert from 'node:assert/strict';
+import {readFileSync,mkdirSync,writeFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
+import {createRequire} from 'node:module';
+import {createCanvas} from './canvas-runtime.mjs';
+const require=createRequire(import.meta.url),{Image}=require(process.env.CANVAS_MODULE_PATH||'@napi-rs/canvas');
+const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
+const sources={__PARTY_FRONT_DATA_URI__:'front',__PARTY_BACK_DATA_URI__:'back'};
+let code=read('src/semireal_frames.js')+'\n'+read('src/semireal_art.js');
+for(const [token,name] of Object.entries(sources))code=code.replaceAll(token,'data:image/webp;base64,'+readFileSync(new URL('../assets/semireal/party-'+name+'.webp',import.meta.url)).toString('base64'));
+const pending=[];
+class AtlasImage extends Image{set src(v){pending.push(new Promise((resolve,reject)=>{this.onload=resolve;this.onerror=reject;super.src=v;}));}}
+let fallbackCalls=0;
+const api=runInNewContext(code+'\n({art:SEMIREAL_ART,frames:SEMIREAL_FRAMES,person:ART.person})',{
+ Image:AtlasImage,ART:{person:()=>{fallbackCalls++;return createCanvas(64,96);}},G:{st:{profile:{gender:'男性'},heroine:{gender:'女性'}}},
+ document:{createElement:()=>createCanvas(1,1),querySelector:()=>null},
+});
+assert.equal(api.person('hero','#000','#000',0,0,{}).width,64,'fallback available while decoding');
+await Promise.all(pending);assert(api.art.ready('front'));assert(api.art.ready('back'));
+assert.equal(api.art.index('hero',{long:true}),1);assert.equal(api.art.index('moe',{long:false}),3);assert.equal(api.art.index('unknown'),null);
+const ids=['hero','hero','moe','moe','naoki','kohei','mio','kayo','tsumugi','makoto','gaku'];
+const sheet=createCanvas(1100,580),g=sheet.getContext('2d');g.fillStyle='#243f42';g.fillRect(0,0,1100,580);
+const digests=new Set();
+for(const [i,id]of ids.entries()){
+ const opt={long:i===1||i===2};
+ for(let d=0;d<4;d++)for(let f=0;f<4;f++){
+  const c=api.person(id,'#000','#000',d,f,opt);assert.equal(c.width,64);assert.equal(c.height,96);
+  const pixels=c.getContext('2d').getImageData(0,0,64,96).data;
+  assert(pixels.some((v,j)=>j%4===3&&v>128),'every direction/frame contains opaque artwork');
+  if(f===0)g.drawImage(c,i*100+18,d*100,64,96);
+ }
+ const c=createCanvas(96,160);api.art.portrait(c,id,i===1||i===2?'女性':'男性');
+ const bytes=c.toBuffer('image/png');digests.add(bytes.toString('base64'));g.drawImage(c,i*100,410);
+}
+assert.equal(digests.size,11,'all identities and both gender variants have distinct portraits');
+const calls=fallbackCalls;api.person('village-npc','#000','#000');assert.equal(fallbackCalls,calls+1,'NPC rendering remains available');
+assert(api.art.stats().entries<=192);
+const manifest=JSON.parse(read('release-manifest.json'));assert.equal(Object.keys(manifest.assets).filter(p=>p.startsWith('assets/semireal/')).length,6);
+mkdirSync(new URL('../.task/',import.meta.url),{recursive:true});writeFileSync(new URL('../.task/semireal-contact.png',import.meta.url),sheet.toBuffer('image/png'));
+console.log('11 party/gender identities, front/back/left/right, all movement phases, full alpha decoding, distinct high-resolution portraits, NPC fallback, cache bound and embedded assets pass');

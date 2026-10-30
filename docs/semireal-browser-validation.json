@@ -1,0 +1,76 @@
+{
+  "kind": "Desktop Chrome mobile emulation; isolated new storage context",
+  "results": [
+    {
+      "label": "female hero setup",
+      "viewport": 393,
+      "width": 393,
+      "empty": 0
+    },
+    {
+      "label": "male partner setup",
+      "viewport": 393,
+      "width": 393,
+      "empty": 0
+    },
+    {
+      "label": "initial map",
+      "viewport": 393,
+      "width": 393,
+      "empty": 0
+    },
+    {
+      "label": "party menu touch",
+      "viewport": 393,
+      "width": 393,
+      "empty": 0
+    },
+    {
+      "label": "all nine roster 393",
+      "viewport": 393,
+      "width": 393,
+      "empty": 0
+    },
+    {
+      "label": "all nine roster 240",
+      "viewport": 240,
+      "width": 240,
+      "empty": 0
+    },
+    {
+      "label": "mature character details",
+      "viewport": 393,
+      "width": 393,
+      "empty": 0
+    },
+    {
+      "label": "four party battle 393x851",
+      "viewport": 393,
+      "width": 393,
+      "empty": 0
+    },
+    {
+      "label": "four party battle 360x640",
+      "viewport": 360,
+      "width": 360,
+      "empty": 0
+    },
+    {
+      "label": "four party battle 240x640",
+      "viewport": 240,
+      "width": 240,
+      "empty": 0
+    },
+    {
+      "label": "four party battle 851x393",
+      "viewport": 851,
+      "width": 851,
+      "empty": 0
+    },
+    {
+      "label": "save/reload: name, both genders, gold preserved; no JS errors",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

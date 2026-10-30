@@ -73,6 +73,7 @@ const OCEAN_ART_CACHE={enemies:new Map(),backgrounds:new Map(),maps:new Map(),sh
 function oceanCached(cache,key,limit,make){if(cache.has(key)){const value=cache.get(key);cache.delete(key);cache.set(key,value);return value;}const value=make();cache.set(key,value);while(cache.size>limit)cache.delete(cache.keys().next().value);return value;}
 function oceanCanvas(w,h){const c=document.createElement("canvas");c.width=w;c.height=h;return [c,c.getContext("2d")];}
 function oceanEnemySprite(region,family,frame=0,size=32){
+ if(typeof POLY_ART!=="undefined")return POLY_ART.creature("ocean/"+region+"/"+family,["fish","turtle","bird","otter","dragon"][family%5],OCEAN_THEMES[region].color,size,frame,false,1,region);
  region=((region%8)+8)%8;family=((family%5)+5)%5;frame=((frame%2)+2)%2;size=[32,64,128].includes(size)?size:32;
  return oceanCached(OCEAN_ART_CACHE.enemies,region+'/'+family+'/'+frame+'/'+size,96,()=>{
   const[c,g]=oceanCanvas(size,size),t=OCEAN_THEMES[region];g.scale(size/64,size/64);g.translate(0,frame*.8);

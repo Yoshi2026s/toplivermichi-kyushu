@@ -2,34 +2,30 @@
   "version": "5.34",
   "schemaVersion": 5,
   "buildDate": "2026-10-31",
-  "sourceFileCount": 33,
+  "sourceFileCount": 30,
   "files": {
     "index.html": {
-      "bytes": 5402106,
-      "sha256": "a7248d914b3ad7f4c19ab90a83e0a25997dfaf8b9308d664a598f6a0ca841069"
+      "bytes": 2424516,
+      "sha256": "4fa573d0e8a8be7f6e76b7f25b0a543dc4245b4e2e2ce1a990c2915e1c67b53d"
     },
     "README.md": {
-      "bytes": 4472,
-      "sha256": "ddabaedb8955065a7a083e28db4ce6616ef5db87e84d4c7c4ec4c417c8bbca96"
+      "bytes": 4482,
+      "sha256": "d42a11ca92fea029f7da84afa866d03c9ff8dea14d35611e749dabc142c6a8b5"
     },
     "VERSION.txt": {
-      "bytes": 187,
-      "sha256": "da83d08bd96384763c8e6d731bec5e8385a299af75c8fe81a469b46fa76fd0ed"
+      "bytes": 156,
+      "sha256": "4bc1061edf51ac10ad713f2821a194ff940adda9b29493df28c69f92fa49556e"
     },
     "GAME_SPEC.md": {
-      "bytes": 4479,
-      "sha256": "90895fb17b77168bc18edba5420ed4bc560e5f05cc31ff7c359b033cdc4cbe73"
+      "bytes": 5394,
+      "sha256": "697807269a4a438d023dd532a03a93d7380fed243a52f73bfc0bd3bb40e5351e"
     },
     "GAME_SPEC.txt": {
-      "bytes": 4479,
-      "sha256": "90895fb17b77168bc18edba5420ed4bc560e5f05cc31ff7c359b033cdc4cbe73"
+      "bytes": 5394,
+      "sha256": "697807269a4a438d023dd532a03a93d7380fed243a52f73bfc0bd3bb40e5351e"
     }
   },
   "assets": {
-    "assets/title-journey.webp": {
-      "bytes": 253608,
-      "sha256": "1d75ebefb8548cd50aa86a506a3e879452b1d7cd48008f1981a02055b6b131cc"
-    },
     "assets/semireal/battle-coast.webp": {
       "bytes": 141880,
       "sha256": "3915831f0342c6b5b04742891189324e361b742edae57070efb84f74a3726af6"
@@ -45,26 +41,6 @@
     "assets/semireal/battle-plain.webp": {
       "bytes": 130762,
       "sha256": "bad1af589b2fe622686f23efc050c72ad8b9527acbf37a2594702f5213923d88"
-    },
-    "assets/semireal/party-front.webp": {
-      "bytes": 426762,
-      "sha256": "766fef30b6dfababa57f737add578d3386dd0198bcbf29e4024c8d9eb7bd3a7c"
-    },
-    "assets/semireal/party-back.webp": {
-      "bytes": 423576,
-      "sha256": "22de3938abc7e227678cbe0f790606a3d361d2a183e836fee107ffa59beffe7c"
-    },
-    "assets/semireal/party-side.webp": {
-      "bytes": 425012,
-      "sha256": "8f8d8a19347e6c2979b8f2424fe4962e6a7512200225296d95a9cbf230ac9808"
-    },
-    "assets/semireal/party-down.webp": {
-      "bytes": 361956,
-      "sha256": "13494c0cdafd3d43232f738a3b1a8b38fa3f6571b6a835dd8a84434f8e1df102"
-    },
-    "assets/semireal/npc-front.webp": {
-      "bytes": 344692,
-      "sha256": "4c61d1fe1074bc4b3e78460dcc65a4bbaf7bb6f062d2bd0ccc460156f2ef1eba"
     },
     "assets/fonts/quest-mincho-800.woff2": {
       "bytes": 295932,

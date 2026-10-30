@@ -32,6 +32,9 @@ assert.equal(sound.sourceCount,0,'late callbacks in hidden pages cannot queue so
 assert.equal(context.sources.length,created);assert.equal(callbacks.size,0);
 document.hidden=false;sound.resume();assert.equal(sound.current,'field');assert.equal(callbacks.size,1);assert(sound.sourceCount>0);
 sound.setOn(false);
+sound.setOn(true);sound.play('field');
+for(const delay of [.2,.35,1.8]){context.advance(context.currentTime+delay);const before=context.sources.length;for(const callback of [...callbacks])callback();assert(context.sources.slice(before).every(n=>n.started>=context.currentTime),'late scheduler must never burst old notes');assert(sound.sourceCount<=96);}
+assert(sound.metrics.lookahead>=.35);assert(sound.metrics.recoveries>0&&sound.metrics.skippedSteps>0,'long stalls resynchronize the music timeline');sound.setOn(false);
 context.state='suspended';
 context.resume=()=>Promise.reject(new Error('audio resume blocked'));
 sound.setOn(true);

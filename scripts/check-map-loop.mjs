@@ -15,3 +15,5 @@ assert.equal(frames.size,1,'arrival that mounts a new map must not create two an
 const oldFrame=frames.values().next().value;loop();const before=draws;oldFrame(32);
 assert.equal(frames.size,1,'obsolete callback cannot schedule another frame');assert.equal(draws,before);
 console.log('Map transitions keep one animation loop and ignore obsolete callbacks');
+
+G.walk.path=[];G.sheet='menu';loop();const paused=draws;const pausedFrame=frames.values().next().value;frames.clear();pausedFrame(160);assert.equal(draws,paused,'menu pauses background canvas rendering');G.sheet=null;const resumedFrame=frames.values().next().value;frames.clear();resumedFrame(176);assert(draws>paused,'closing the menu resumes drawing');

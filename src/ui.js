@@ -102,6 +102,7 @@ function render(){
   document.body.classList.toggle("in-battle", s==="battle"); document.body.classList.toggle("in-explore", s==="explore");
   if(s==="battle"){ drawEnemies(); startBattleTimer(); }
   if(s==="new") mountNew();
+  if(s==="title")POLY_ART.title($("#titleArt"));
   drawMiniSprites();
   const dockOff = s==="new" || (G.st? G.st.settings.dock===false : (G.tmpSettings&&G.tmpSettings.dock===false));
   document.body.classList.toggle("no-dock", !!dockOff);
@@ -124,7 +125,7 @@ function statusBar(){
 /* ---- タイトル ---- */
 function renderTitle(){
   return `<section class="title-screen">
-    <div class="title-visual"><img id="titleArt" src="__TITLE_ART_DATA_URI__" width="960" height="640" alt="夕暮れの港町と星空を望む、ふたりの旅人" fetchpriority="high" decoding="async">
+    <div class="title-visual"><canvas id="titleArt" width="960" height="640" role="img" aria-label="星空の港町と2頭身の旅人たち"></canvas>
     <div class="title-caption"><h1 class="logo" aria-label="ポコチャクエスト 全国編"><span class="main" aria-hidden="true"><span>ポコチャ</span><span>クエスト</span></span><span class="sub">全国編</span></h1></div></div>
     <div class="menu">
       <button class="btn primary" data-a="newGame">はじめから</button>
@@ -186,31 +187,30 @@ function partyStrip(){
 }
 function renderStatus(){
   const st=G.st; const L=levelOf(st.xp,st);
-  const head=`<dl class="kv"><dt>共通レベル</dt><dd>${L}／上限${levelLimit(st)}</dd><dt>経験値</dt><dd>${st.xp.toLocaleString()}${L<levelLimit(st)?`（次のレベルまで ${Math.max(0,xpFor(L+1)-st.xp).toLocaleString()}）`:"（現在の上限）"}</dd>
-    <dt>所持ゴールド</dt><dd>${st.gold.toLocaleString()}</dd><dt>ヒロインの到達ランク</dt><dd>${MOE_RANKS[st.moeRank]}</dd></dl>
-    <p class="small">本編を進めるとレベル上限が解放されます。レベルは共通、職業の熟練度は仲間ごとに成長します。</p><p class="small">体力とMPは戦闘後も持ち越します。宿屋に泊まると全員が全回復します。</p>`;
+  const head=`<dl class="kv"><dt>共通レベル</dt><dd>${L}／上限${levelLimit(st)}</dd><dt>経験値</dt><dd>${st.xp.toLocaleString()}${L<levelLimit(st)?`<span class="stat-sub">次のレベルまで ${Math.max(0,xpFor(L+1)-st.xp).toLocaleString()}</span>`:"（現在の上限）"}</dd>
+    <dt>所持ゴールド</dt><dd>${st.gold.toLocaleString()}</dd><dt>シナリオランク</dt><dd>${MOE_RANKS[st.moeRank]}</dd></dl>
+`;
   const cards=st.roster.map(cid=>{
     const s=charStats(st,cid,L), v=vitalOf(cid), e=st.equip[cid], jp=jpOf(st,cid,s.job), C=CHARS[cid];
     const inParty=st.party.includes(cid);
     const eqName=id=>id?esc(EQUIP[id].name):"なし";
-    return `<section class="scard ${v.hp<=0?"ko":""} ${isLow(v.hp,s.maxHP)?"low":""}">
+    return `<section class="scard status-member ${v.hp<=0?"ko":""} ${isLow(v.hp,s.maxHP)?"low":""}">
       <div class="who"><canvas class="sprite-md" data-char="${cid}" width="192" height="288" aria-hidden="true"></canvas>
-        <div><b class="sname">${esc(cid==="moe"?charName(st,"moe"):cid==="hero"?st.profile.name:C.full)}</b><br><span class="small">${inParty?"戦闘メンバー":"控え"}${v.hp<=0?"・戦闘不能":isLow(v.hp,s.maxHP)?"・体力わずか":""}</span></div></div>
-      <dl class="kv">
+        <div><b class="sname">${esc(cid==="moe"?charName(st,"moe"):cid==="hero"?st.profile.name:C.full)}</b><br><span class="small">${inParty?"戦闘メンバー":"控え"}・Lv${L} ${esc(JOBS[s.job].name)}${v.hp<=0?"・戦闘不能":isLow(v.hp,s.maxHP)?"・体力わずか":""}</span></div></div>
+      <div class="status-vitals"><div><span>体力（HP）</span><b>${v.hp} / ${s.maxHP}</b><span class="bar"><i style="width:${Math.round(100*v.hp/s.maxHP)}%"></i></span></div><div><span>MP</span><b>${v.c} / ${s.startC}</b><span class="bar cp"><i style="width:${Math.round(100*v.c/s.startC)}%"></i></span></div></div>
+      <details class="status-details"><summary>能力・装備の詳細</summary><dl class="kv">
         <dt>レベル</dt><dd>${L}</dd>
         <dt>職業</dt><dd>${esc(JOBS[s.job].name)}</dd>
         <dt>職業熟練度</dt><dd>${s.R}${s.R<jobLimit(st,cid,s.job)?`（次まで ${Math.max(0,jpFor(s.R+1)-jp)}）`:"（現在の上限）"}</dd>
-        <dt>体力（HP）</dt><dd><span class="bar wide"><i style="width:${Math.round(100*v.hp/s.maxHP)}%"></i></span>${v.hp}／最大${s.maxHP}</dd>
-        <dt>MP</dt><dd>${v.c}／最大${s.startC}</dd>
         <dt>攻撃力</dt><dd>${attackPower(s,L)}</dd>
         <dt>防御力</dt><dd>${defensePower(s,L)}</dd>
         <dt>技能</dt><dd>${esc(JOBS[s.job].skill)}（MP${JOBS[s.job].cost}・技能強化${s.S}）</dd>
         <dt>武器</dt><dd>${eqName(e.w)}</dd><dt>防具</dt><dd>${eqName(e.a)}</dd><dt>アクセサリー</dt><dd>${eqName(e.acc)}</dd>
-      </dl></section>`; }).join("");
-  return head+`<div class="stack">${cards}</div><p class="small">攻撃力＝通常攻撃で与える基本ダメージ（敵の防御力を引く前）。防御力＝敵の攻撃1回ごとに減らせるダメージ。</p>`;
+      </dl></details></section>`; }).join("");
+  return head+`<div class="stack">${cards}</div><p class="small">体力・MPは戦闘後も持ち越します。宿屋で全回復できます。</p>`;
 }
 function heroSprite(dir,frame,gender){ const f=(gender||G.st.profile.gender)==="女性"; return ART.person("hero",f?PAL.brown:PAL.ink,PAL.red,dir,frame,{long:f}); }
-function charSprite(cid,dir,frame){ if(cid==="hero") return heroSprite(dir,frame); if(cid==="moe") return ART.person("moe",PAL.violet,PAL.cream,dir,frame,{long:true,ribbon:PAL.coral}); const c=CHARS[cid]; return ART.person(cid,c.hair,c.coat,dir,frame,{long:["mio","kayo","tsumugi"].includes(cid)}); }
+function charSprite(cid,dir,frame){ if(cid==="hero") return heroSprite(dir,frame); if(cid==="moe"){ const female=G.st?.heroine?.gender!=="男性";return ART.person("moe",female?PAL.violet:PAL.ink,PAL.cream,dir,frame,{long:female,ribbon:female?PAL.coral:null}); } const c=CHARS[cid]; return ART.person(cid,c.hair,c.coat,dir,frame,{long:["mio","kayo","tsumugi"].includes(cid)}); }
 
 /* ---- 探索 ---- */
 function renderCurrentLocation(){
@@ -260,12 +260,12 @@ function camera(){
   let cx=p.x+8-G.vw*8, cy=p.y+12-G.vh*8;
   cx=Math.max(0,Math.min(m.w*16-G.vw*16,cx)); cy=Math.max(0,Math.min(m.h*16-G.vh*16,cy));
   if(m.w*16<G.vw*16) cx=(m.w*16-G.vw*16)/2; if(m.h*16<G.vh*16) cy=(m.h*16-G.vh*16)/2;
-  return {x:Math.round(cx),y:Math.round(cy)};
+  return {x:cx,y:cy};
 }
 function playerPixel(){
   const st=G.st, w=G.walk; let x=st.pos.x*16, y=st.pos.y*16;
   if(w.path.length){ const n=w.path[0]; x+= (n.x-st.pos.x)*16*w.prog; y+=(n.y-st.pos.y)*16*w.prog; }
-  return {x:Math.round(x), y:Math.round(y)};
+  return {x:x, y:y};
 }
 function drawMap(){
   const cv=G.cv; if(!cv||!cv.isConnected) return; const g=cv.getContext("2d"); g.imageSmoothingEnabled=true; g.imageSmoothingQuality="high";
@@ -273,7 +273,7 @@ function drawMap(){
   const still=reducedMotion(); const f=still?0:Math.floor(now/320)%4, f2=still?0:Math.floor(now/600)%2;
   const ratio=G.mapRenderScale||1,vw=G.vw*16,vh=G.vh*16;g.setTransform(ratio,0,0,ratio,0,0);
   g.fillStyle=PAL.ink; g.fillRect(0,0,vw,vh);
-  const layer=ART.mapLayer(st.mapId,f);
+  const layer=ART.mapLayer(st.mapId,0);
   const sx=Math.max(0,cam.x), sy=Math.max(0,cam.y), w=Math.min(vw,layer.width/(layer.artScale||1)-sx), h=Math.min(vh,layer.height/(layer.artScale||1)-sy);
   const lr=layer.artScale||1;g.drawImage(layer,sx*lr,sy*lr,w*lr,h*lr,sx-cam.x,sy-cam.y,w,h);
   const sprites=[];
@@ -289,7 +289,7 @@ function drawMap(){
   }
   const moving=G.walk.path.length>0;
   const walking=moving&&!G.dlg&&!G.sheet&&!G.lock&&!document.hidden;
-  const wf=WALK_ART.phase(G.walkDistance||0,walking,still);
+  const wf=POLY_ART.phase(G.walkDistance||0,walking,still);
   const pp=playerPixel();
   // 2人目の追従表示（表示のみ。判定は先頭だけ）
   const fol=G.fol; const lead=st.party[0], second=st.party[1];
@@ -298,7 +298,7 @@ function drawMap(){
     if(moving){ tx=st.pos.x; ty=st.pos.y; fx+=(tx-fol.x)*16*G.walk.prog; fy+=(ty-fol.y)*16*G.walk.prog; }
     const dx=(moving?tx:st.pos.x)-fol.x, dy=(moving?ty:st.pos.y)-fol.y; const fd = dy>0?0:dy<0?1:dx<0?2:dx>0?3:st.dir;
     const fw=wf&&(tx!==fol.x||ty!==fol.y)?1+(wf-1+4)%8:0;
-    sprites.push({y:fy/16, px:{x:Math.round(fx),y:Math.round(fy)}, img:charSprite(second,fd,fw)});
+    sprites.push({y:fy/16, px:{x:fx,y:fy}, img:charSprite(second,fd,fw)});
   }
   sprites.push({y:pp.y/16+0.01, px:pp, img:charSprite(lead,st.dir,wf)});
   sprites.sort((a,b)=>a.y-b.y);
@@ -306,23 +306,26 @@ function drawMap(){
   if(moving){ const d=G.walk.path[G.walk.path.length-1]; const bl=Math.floor(now/250)%2; g.strokeStyle=bl?PAL.cream:PAL.gold; g.strokeRect(d.x*16-cam.x+3.5,d.y*16-cam.y+3.5,9,9); }
 }
 function startLoop(){
-  cancelAnimationFrame(G.raf); G.lastTs=0;
+  cancelAnimationFrame(G.raf); G.lastTs=0; G.mapDrawKey="";
   const token=G.mapLoopToken=(G.mapLoopToken||0)+1;
   const STEP=G.st?.settings?.moveSpeed==="fast"?110:160;
   const loop=ts=>{
     if(G.mapLoopToken!==token)return;
     if(G.screen!=="explore"||document.hidden){ G.raf=0; return; }
-    const dt = G.lastTs? Math.min(100, ts-G.lastTs) : 16; G.lastTs=ts; G.frame++;
+    const dt = G.lastTs? Math.min(250, ts-G.lastTs) : 16; G.lastTs=ts; G.frame++;
     const w=G.walk;
     if(w.path.length && !G.dlg && !G.sheet && !G.lock){
       const n=w.path[0]; const dx=n.x-G.st.pos.x, dy=n.y-G.st.pos.y; G.st.dir = dy>0?0:dy<0?1:dx<0?2:3;
       const advance=Math.min(1-w.prog,dt/STEP);
       G.walkDistance=((G.walkDistance||0)+advance*16)%32000;
-      w.prog+=dt/STEP;
+      w.prog+=advance;
       if(w.prog>=1){ w.prog=0; w.path.shift(); G.fol={...G.st.pos}; G.st.pos={x:n.x,y:n.y}; arrive(); }
     }
     if(G.mapLoopToken!==token)return;
-    drawMap();
+    if(!G.sheet&&!G.dlg&&!G.lock){
+      const drawKey=[G.st.mapId,G.st.pos.x,G.st.pos.y,G.st.dir,w.prog,w.path.length,G.fol?.x,G.fol?.y,Math.floor(ts/320)].join('|');
+      if(drawKey!==G.mapDrawKey){drawMap();G.mapDrawKey=drawKey;}
+    }
     G.raf=requestAnimationFrame(loop);
   };
   G.raf=requestAnimationFrame(loop);
@@ -360,7 +363,7 @@ function arrive(){
       G.walk.path=[]; G.walk.pending=null;
       startBattle(createFieldRun(st,zone,rolls)); return;
     }
-    commit();
+    if(G.walk.path.length)commit();
   }
   else keepFlush();
   const o=objAt(m,st.pos.x,st.pos.y);
@@ -750,7 +753,7 @@ function renderResult(){
     ${r.quest?`<div class="rquest done">依頼「${r.quest} ${esc(QUESTS[r.quest].name)}」完了！</div>`:r.kills&&r.killQuest?`<div class="rquest"><span>依頼 ${r.killQuest} 討伐</span><span class="bar"><i style="width:${pct(r.killNow,r.killNeed)}%"></i></span><b>${r.killNow}/${r.killNeed}</b></div>`:""}
     ${items.length||gifts.length?`<div class="rbox"><h3 class="label">手に入れたもの</h3><ul class="rlist">${[...items,...gifts].join("")}</ul></div>`:""}
     ${renderUsedItemHistory(r,usedItems)}
-    ${(r.newBadges||[]).length?`<div class="rbox"><h3 class="label">新しい戦闘バッジ</h3><ul class="rlist">${r.newBadges.map(id=>`<li>${id} ${esc(ITEM_BADGES[id]||GROWTH_BADGES[id]||PARTY_BADGES[id]||ACTION_BADGES[id]||HEAL_BADGES[id]||MP_BADGES[id]||CHEER_BADGES[id]||SPEED_BADGES[id]||ATTACK_BADGES[id]||GUARD_BADGES[id]||DEFENSE_BADGES[id]||EXTRA_BADGES[id]||id)}</li>`).join("")}</ul></div>`:""}
+    ${(r.newBadges||[]).length?`<details class="rbox result-badges"><summary>新しい戦闘バッジ（${r.newBadges.length}件）</summary><ul class="rlist">${r.newBadges.map(id=>`<li>${id} ${esc(ITEM_BADGES[id]||GROWTH_BADGES[id]||PARTY_BADGES[id]||ACTION_BADGES[id]||HEAL_BADGES[id]||MP_BADGES[id]||CHEER_BADGES[id]||SPEED_BADGES[id]||ATTACK_BADGES[id]||GUARD_BADGES[id]||DEFENSE_BADGES[id]||EXTRA_BADGES[id]||id)}</li>`).join("")}</ul></details>`:""}
     <button class="btn" data-a="openSheet" data-k="record">戦闘バッジ一覧を見る</button>
     ${r.notes.filter(n=>!/効果量が上昇/.test(n)).map(n=>`<p class="good rnote">${esc(n)}</p>`).join("")}
     <h3 class="label">仲間</h3><div class="rmems">${mem}</div>
@@ -1398,7 +1401,7 @@ const ACT = {
 
 };
 function drawMiniSprites(){
-  document.querySelectorAll("canvas[data-char]").forEach(c=>{ SEMIREAL_ART.portrait(c,c.dataset.char,undefined,c.hasAttribute("data-full")); });
+  document.querySelectorAll("canvas[data-char]").forEach(c=>{ POLY_ART.portrait(c,c.dataset.char,undefined,c.hasAttribute("data-full")); });
   document.querySelectorAll("canvas[data-dex]").forEach(c=>{ const [a,i]=c.dataset.dex.split("|"); const e=enemyDef(a,+i); const g=c.getContext("2d"); g.imageSmoothingEnabled=false; g.drawImage(ART.enemy(e.profile,e.species,e.attr,a,0),0,0); });
 }
 function validateState(s){

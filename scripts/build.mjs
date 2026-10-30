@@ -14,9 +14,9 @@ async function emitArtifact(name,content){
   }else await writeFile(resolve(root,name),bytes);
 }
 const assetFiles={};
-const files = ['data_enemies.js', 'data_saga_enemies.js', 'data_items.js', 'data_national.js', 'data.js', 'data_nationwide.js', 'data_nationwide_story.js', 'data_maps.js', 'data_character.js', 'data_pets.js', 'data_ocean.js', 'data_extras.js', 'core.js', 'art.js', 'art_detail.js', 'character_art.js', 'semireal_frames.js', 'walk_animation.js', 'semireal_art.js', 'battle_fx.js', 'audio.js', 'share.js', 'pets.js', 'ocean.js', 'listeners.js', 'ui.js', 'ui_character.js', 'ui_pets.js', 'ui_ocean.js', 'ui_systems.js', 'ui_management.js', 'ui_guards.js', 'input.js'];
+const files = ['data_enemies.js', 'data_saga_enemies.js', 'data_items.js', 'data_national.js', 'data.js', 'data_nationwide.js', 'data_nationwide_story.js', 'data_maps.js', 'data_character.js', 'data_pets.js', 'data_ocean.js', 'data_extras.js', 'core.js', 'art.js', 'art_detail.js', 'polygon_art.js', 'battle_fx.js', 'audio.js', 'share.js', 'pets.js', 'ocean.js', 'listeners.js', 'ui.js', 'ui_character.js', 'ui_pets.js', 'ui_ocean.js', 'ui_systems.js', 'ui_management.js', 'ui_guards.js', 'input.js'];
 const embeddedArt = {};
-for (const [token,name] of [['__TITLE_ART_DATA_URI__','title-journey'],['__COAST_ART_DATA_URI__','semireal/battle-coast'],['__FOREST_ART_DATA_URI__','semireal/battle-forest'],['__MOUNTAIN_ART_DATA_URI__','semireal/battle-mountain'],['__PLAIN_ART_DATA_URI__','semireal/battle-plain'],['__PARTY_FRONT_DATA_URI__','semireal/party-front'],['__PARTY_BACK_DATA_URI__','semireal/party-back'],['__PARTY_SIDE_DATA_URI__','semireal/party-side'],['__PARTY_DOWN_DATA_URI__','semireal/party-down'],['__NPC_FRONT_DATA_URI__','semireal/npc-front']]) {
+for (const [token,name] of [['__COAST_ART_DATA_URI__','semireal/battle-coast'],['__FOREST_ART_DATA_URI__','semireal/battle-forest'],['__MOUNTAIN_ART_DATA_URI__','semireal/battle-mountain'],['__PLAIN_ART_DATA_URI__','semireal/battle-plain']]) {
   const path='assets/'+name+'.webp',bytes=await readFile(resolve(root,path));
   assetFiles[path]={bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};
   embeddedArt[token]='data:image/webp;base64,'+bytes.toString('base64');

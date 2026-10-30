@@ -135,9 +135,12 @@ const SND = (()=>{
   function kick(t,out){ voice(165,t,0.13,"sine",1.0,{slide:42,a:0.002,d:0.05,sus:0.6,r:0.12,cutoff:900,out}); noise(t,0.012,0.35,2500,{out}); }
   function snare(t,out){ noise(t,0.16,0.5,1900,{type:"bandpass",q:0.6,rev:0.28,out}); voice(195,t,0.06,"triangle",0.35,{slide:140,a:0.001,d:0.03,sus:0.4,r:0.06,cutoff:1500,out}); }
   function hat(t,k,out){ noise(t,0.035,0.16,7800,{pan:k%2?0.3:-0.3,out}); }
+  const timing={recoveries:0,skippedSteps:0,lookahead:.40};
   function schedule(){
     const S=song, sd=60/S.bpm/2;
-    while(nextT < ac.currentTime+0.12){
+    const now=ac.currentTime;
+    if(nextT<now+.012){const missed=Math.ceil((now+.02-nextT)/sd);step+=missed;nextT+=missed*sd;timing.recoveries++;timing.skippedSteps+=missed;}
+    while(nextT < now+timing.lookahead){
       const i=step%S.steps, bar=Math.floor(i/8), k=i%8, ch=S.bars[bar];
       for(const e of (Math.floor(step/S.steps)%2?S.alt:S.lead)) if(e.step===i) voice(hz(e.n),nextT,sd*e.len*0.92,"p25",S.st.leadVol,{vib:true,detune:6,cutoff:3000,fenv:1800,q:1.2,rev:0.24,dly:0.2,a:0.008,d:0.1,sus:0.72,r:0.1});
       const root=ch.root, bt=S.bass[k];
@@ -231,5 +234,5 @@ const SND = (()=>{
   }
   function suspend(){ if(jingleT){ clearTimeout(jingleT); jingleT=null; } stopBgm(); stopSources(); if(ac&&ac.state==="running") ac.suspend().catch(()=>{}); }
   function resume(){ if(!on||!ac) return; if(ac.state==="suspended") ac.resume().catch(()=>{}); if(timer||jingleT) return; const c=cur; cur=null; if(c) play(c); }
-  return { play, jingle, sfx, setOn, setVolumes, suspend, resume, get songs(){return Object.keys(SONGS);},get sourceCount(){return activeSources.size;},get volumes(){return {music:musicVolume,effects:effectVolume};}, get on(){return on;}, get current(){return cur;} };
+  return { play, jingle, sfx, setOn, setVolumes, suspend, resume, get songs(){return Object.keys(SONGS);},get metrics(){return {...timing};},get sourceCount(){return activeSources.size;},get volumes(){return {music:musicVolume,effects:effectVolume};}, get on(){return on;}, get current(){return cur;} };
 })();

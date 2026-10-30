@@ -2,12 +2,13 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 import {createCanvas} from './canvas-runtime.mjs';
+import {illustratedContext} from './illustrated-runtime.mjs';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
-const gait=runInNewContext(read('src/polygon_art.js')+'\nPOLY_ART',{ART:{},CHARS:{hero:{},moe:{}},document:{createElement:()=>createCanvas(1,1)}});
+const {SOFT_ART:gait}=await illustratedContext(read('src/soft_art.js')+'\n({SOFT_ART})',{ART:{},CHARS:{hero:{},moe:{}}});
 for(let i=0;i<8;i++)assert.equal(gait.phase(i*4,true),i+1);
 assert.equal(gait.phase(32,true),1);assert.equal(gait.phase(14,false),0);assert.equal(gait.phase(14,true,true),0);
 assert.equal(gait.pose(0).stride,0);assert(gait.pose(3).stride>0&&gait.pose(7).stride<0,'opposite phases counter-swing arms and legs');assert(gait.pose(1).lift>0&&gait.pose(5).lift<0,'alternate the lifted foot');
-for(let dir=0;dir<4;dir++){const frames=new Set();for(let frame=0;frame<=8;frame++){const c=gait.person('hero','#243044','#b84b4b',dir,frame);assert.equal(c.artScale,4);frames.add(c.toBuffer('image/png').toString('base64'));}assert.equal(frames.size,9,'all polygon walking phases distinct in direction '+dir);}
+for(let dir=0;dir<4;dir++){const frames=new Set();for(let frame=0;frame<=8;frame++){const c=gait.person('hero','#243044','#b84b4b',dir,frame);assert.equal(c.artScale,4);frames.add(c.toBuffer('image/png').toString('base64'));}assert.equal(frames.size,9,'all illustrated walking phases distinct in direction '+dir);}
 // Drive the real update loop: animation distance must follow actual movement and freeze with overlays.
 const ui=read('src/ui.js'),loopCode=ui.slice(ui.indexOf('function startLoop(){'),ui.indexOf('function bfs('));
 for(const speed of ['normal','fast']){
@@ -22,8 +23,8 @@ const drawCode=ui.slice(ui.indexOf('function drawMap(){'),ui.indexOf('function s
 for(const state of ['walking','idle','reduced','menu','initial-follower']){
  const calls=[],g={setTransform(){},fillRect(){},drawImage(){},beginPath(){},ellipse(){},fill(){},strokeRect(){}};
  const stopped=state==='idle',G={cv:{isConnected:true,getContext:()=>g},st:{mapId:'test',pos:{x:state==='initial-follower'?0:1,y:0},party:['hero','moe'],dir:3},fol:{x:0,y:0},vw:2,vh:2,walkDistance:4,walk:{path:stopped?[]:[{x:2,y:0}],prog:.5},sheet:state==='menu'?'menu':null};
- runInNewContext(drawCode+'\ndrawMap();',{G,document:{hidden:false},performance:{now:()=>100},MAPS:{test:{objects:[]}},PAL:{ink:'#000'},ART:{mapLayer:()=>({width:32,height:32})},camera:()=>({x:0,y:0}),playerPixel:()=>({x:16,y:0}),POLY_ART:gait,reducedMotion:()=>state==='reduced',charSprite:(id,dir,frame)=>{calls.push({id,frame});return {};}});
+ runInNewContext(drawCode+'\ndrawMap();',{G,document:{hidden:false},performance:{now:()=>100},MAPS:{test:{objects:[]}},PAL:{ink:'#000'},ART:{mapLayer:()=>({width:32,height:32})},camera:()=>({x:0,y:0}),playerPixel:()=>({x:16,y:0}),SOFT_ART:gait,reducedMotion:()=>state==='reduced',charSprite:(id,dir,frame)=>{calls.push({id,frame});return {};}});
  assert.equal(calls.find(c=>c.id==='hero').frame,['walking','initial-follower'].includes(state)?2:0,state+' leader');
  assert.equal(calls.find(c=>c.id==='moe').frame,state==='walking'?6:0,state+' follower');
 }
-console.log('Polygon joint poses, eight phases, four directions, movement-distance sync, follower, pause and map-loop checks passed');
+console.log('Illustrated cached walking poses, eight phases, four directions, movement-distance sync, follower, pause and map-loop checks passed');

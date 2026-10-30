@@ -17,7 +17,7 @@ try{
   }
   for(const [script,image] of [
     ['check-hd-art.mjs','hd-art-contact.png'],
-    ['check-character-art.mjs','polygon-creatures.png'],
+    ['check-character-art.mjs','illustrated-creatures.png'],
     ['check-battle-fx.mjs','battle-fx-contact.png'],
     ['check-ocean.mjs','ocean-forms.png'],
   ]){

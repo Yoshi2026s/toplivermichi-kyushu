@@ -102,7 +102,7 @@ function render(){
   document.body.classList.toggle("in-battle", s==="battle"); document.body.classList.toggle("in-explore", s==="explore");
   if(s==="battle"){ drawEnemies(); startBattleTimer(); }
   if(s==="new") mountNew();
-  if(s==="title")POLY_ART.title($("#titleArt"));
+  if(s==="title")SOFT_ART.title($("#titleArt"));
   drawMiniSprites();
   const dockOff = s==="new" || (G.st? G.st.settings.dock===false : (G.tmpSettings&&G.tmpSettings.dock===false));
   document.body.classList.toggle("no-dock", !!dockOff);
@@ -289,7 +289,7 @@ function drawMap(){
   }
   const moving=G.walk.path.length>0;
   const walking=moving&&!G.dlg&&!G.sheet&&!G.lock&&!document.hidden;
-  const wf=POLY_ART.phase(G.walkDistance||0,walking,still);
+  const wf=SOFT_ART.phase(G.walkDistance||0,walking,still);
   const pp=playerPixel();
   // 2人目の追従表示（表示のみ。判定は先頭だけ）
   const fol=G.fol; const lead=st.party[0], second=st.party[1];
@@ -1401,7 +1401,7 @@ const ACT = {
 
 };
 function drawMiniSprites(){
-  document.querySelectorAll("canvas[data-char]").forEach(c=>{ POLY_ART.portrait(c,c.dataset.char,undefined,c.hasAttribute("data-full")); });
+  document.querySelectorAll("canvas[data-char]").forEach(c=>{ SOFT_ART.portrait(c,c.dataset.char,undefined,c.hasAttribute("data-full")); });
   document.querySelectorAll("canvas[data-dex]").forEach(c=>{ const [a,i]=c.dataset.dex.split("|"); const e=enemyDef(a,+i); const g=c.getContext("2d"); g.imageSmoothingEnabled=false; g.drawImage(ART.enemy(e.profile,e.species,e.attr,a,0),0,0); });
 }
 function validateState(s){
@@ -1501,6 +1501,7 @@ document.addEventListener("visibilitychange",()=>{ if(document.hidden){ G.walk.p
 window.addEventListener("resize",()=>{ if(G.screen==="explore"){ G.walk.path=[]; clearTimeout(G.rsz); G.rsz=setTimeout(()=>{ if(G.screen==="explore") mountCanvas(); },120); } });
 
 async function boot(){
+  await SOFT_ART.loaded;
   acquireLock(); PAD.mount(); SND.play("title");
   try{ const s=await loadSave(); G.hasSave=!!s; }catch(e){}
   const hot=window.claude&&window.claude.hot;

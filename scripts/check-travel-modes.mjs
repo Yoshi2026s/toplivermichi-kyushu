@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
+import {illustratedContext} from './illustrated-runtime.mjs';
 const root=new URL('../',import.meta.url),read=n=>readFileSync(new URL(n,root),'utf8');
 const files=[...read('scripts/build.mjs').match(/const files = \[([^\]]+)\]/)[1].matchAll(/'([^']+)'/g)].map(m=>m[1]).filter(n=>n!=='input.js');
 const noop=()=>{};
-const g=runInNewContext(files.map(n=>read('src/'+n)).join('\n')+`
+const g=await illustratedContext(files.map(n=>read('src/'+n)).join('\n')+`
 render=()=>{};refreshHere=()=>{};commit=()=>Promise.resolve(true);say=()=>{G.dlg=null;};randInt=()=>1;
 ({G,ACT,MAPS,HUBS,NATIONAL_ROUTES,newGame,walkTo,arrive,interact,railTravelStatus,nationalRouteAvailable,migrate})`,{
   document:{hidden:false,addEventListener:noop,querySelector:()=>null,getElementById:()=>null},

@@ -56,7 +56,7 @@ const PAD = (()=>{
   /* ---- カーソル（▶）の移動：今見えている一番手前の画面の中だけで動く ---- */
   function scope(){ const d=document.querySelector(".dlg-ov"); if(d) return d; const s=document.querySelector(".overlay"); if(s) return s; return document.getElementById("screen"); }
   function focusables(sc){
-    return [...sc.querySelectorAll("button,input,textarea,select,a[href],[data-a]")].filter(el=>{
+    return [...sc.querySelectorAll("button,input,textarea,select,summary,a[href],[data-a]")].filter(el=>{
       if(el.disabled||el.getAttribute("aria-disabled")==="true") return false;
       if(el.closest("[hidden]")) return false; const r=el.getBoundingClientRect(); return r.width>0&&r.height>0;
     });
@@ -143,7 +143,7 @@ const PAD = (()=>{
       }
       return;
     }
-    if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.tagName==="SELECT"||t.isContentEditable)) return;
+    if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.tagName==="SELECT"||t.tagName==="SUMMARY"||t.isContentEditable)) return;
     if(KEYS[e.key]!=null){ e.preventDefault(); if(!e.repeat) setDir(KEYS[e.key],"key"); return; }
     if(e.key==="Enter"||e.key===" "||e.key==="z"){ e.preventDefault(); if(!e.repeat) pressA(); }
     if(e.key==="Escape"||e.key==="x"||e.key==="Backspace"){ e.preventDefault(); if(!e.repeat) pressB(); }

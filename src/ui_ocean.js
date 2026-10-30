@@ -55,7 +55,7 @@ function oceanOverview(){
     <h3 class="label">8地方の新航路</h3><div class="stack">${Object.values(OCEAN_ROUTES).map(v=>{
       const unlocked=oceanRouteAvailable(st,v.id),atPort=st.mapId===v.hub;
       return `<div class="qcard"><b>${esc(v.name)}</b><p class="small">${esc(HUBS[v.hub].name)}の港／${unlocked?"解放済み":`「${esc(QUESTS[v.quest].name)}」完了で解放`}。港1・指定海面27区画。</p><button class="btn" data-a="oceanDepart" data-route="${v.id}" ${unlocked&&atPort&&!G.readOnly?"":"disabled"}>港まで歩いて出発</button>${atPort?"":`<p class="small">${esc(HUBS[v.hub].name)}の街から出発します。</p>`}</div>`;
-    }).join("")}</div><p class="small">現在の航路：${atSea?esc(OCEAN_ROUTES[localMap.oceanRoute].name):"陸上"}。戻ると道しるべへ戻ります。</p>`;
+    }).join("")}</div><p class="small">現在の航路：${atSea?esc(OCEAN_ROUTES[localMap.oceanRoute].name):"陸上"}。戻るとオート移動へ戻ります。</p>`;
 }
 function oceanDexHtml(){
   const st=G.st,id=oceanDefaultArea(),a=OCEAN_AREAS[id],page=Math.max(0,Math.min(4,Number(G.sheetData.page)||0)),seen=Object.keys(st.seen||{}).filter(k=>k.startsWith("OCN-")).length;
@@ -87,7 +87,7 @@ if(typeof ART!=="undefined")installOceanArt();
 function oceanUiCanAct(){return !!G.st&&!G.readOnly&&G.screen==="explore"&&G.sheet==="ocean"&&!G.st.run&&!G.dlg&&!G.lock&&!G.walk.path.length&&!G.oceanSaving&&!document.hidden;}
 Object.assign(ACT,{
   oceanOpen(){if(G.screen!=="explore"||G.dlg||G.st?.run)return;openSheet("ocean",{returnTo:"guide"});},
-  oceanBack(){if(G.oceanSaving)return;if(G.sheet==="oceanDex")return openSheet("ocean",{area:oceanDefaultArea(),returnTo:"guide"});if(G.sheet==="ocean")return openSheet("guide");},
+  oceanBack(){if(G.oceanSaving)return;if(G.sheetHistory?.length)return closeSheet();if(G.sheet==="oceanDex")return openSheet("ocean",{area:oceanDefaultArea(),returnTo:"guide"});if(G.sheet==="ocean")return openSheet("guide");},
   oceanArea(el){if(G.sheet!=="ocean"||G.oceanSaving||!Object.hasOwn(OCEAN_AREAS,el.dataset.area))return;G.sheetData={area:el.dataset.area,returnTo:"guide"};render();},
   oceanDexOpen(el){if(!["ocean","dex"].includes(G.sheet)||!Object.hasOwn(OCEAN_AREAS,el.dataset.area))return;openSheet("oceanDex",{area:el.dataset.area,page:0});},
   oceanDexPage(el){if(!["oceanDex","dex"].includes(G.sheet))return;const p=Number(el.dataset.page);if(!Number.isInteger(p)||p<0||p>4)return;G.sheetData.page=p;render();},

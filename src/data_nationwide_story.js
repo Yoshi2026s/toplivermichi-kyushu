@@ -53,7 +53,7 @@ const NATIONWIDE_STORY_TEXT = {
     "鳥の裏に、自分の言葉で願いを書く場所ができた。鏡花は出来栄えで並べず、届いた順に鳥を浮かべた。湖には不揃いな翼が映った。",
     "名無しの鏡蛇カガミヅチ","guard",["湖鏡の岸辺","紙鳥の葦道","名を返す入り江"]],
   31:["砂の道に置く風しるべ","風砂","砂道の案内人",
-    "砂丘に付けた道しるべが、風のたびに一つの足跡へ集まってしまう。風砂は歩く速さの違う旅人たちを、それぞれの道で迎えたい。",
+    "砂丘に付けたオート移動が、風のたびに一つの足跡へ集まってしまう。風砂は歩く速さの違う旅人たちを、それぞれの道で迎えたい。",
     "風紋と草地を調べ、足跡を飲み込む砂の獅子から風しるべを守る。",
     "風砂は背の高さも音も違う風しるべを並べた。旅人は見やすい印を自分で選ぶ。砂丘には、一つに重ならない道が増えていった。",
     "足跡喰らいサジシ","damage",["風紋の砂道","砂草の回廊","風しるべの丘"]],
@@ -264,7 +264,7 @@ for(let index=0;index<NATIONWIDE_ORDER.length;index++){
   BOSSES[bossId]={name:bossName,q,areaId:`${hub}-A3`,cue,hub,cycle:nationwideBossCycle(q,index),
     lore:premise,counter:{guard:"ため中に2人がガードする。",comment:"ため中に2人が応援コメントを送る。",damage:"ため中に2人が攻撃する。"}[cue]};
   NPCS[npcId]={name:npc,hub,rep:true,questId,sprite:[[PAL.brown,PAL.violet,PAL.mist,PAL.ink][index%4],[PAL.aqua,PAL.coral,PAL.gold,PAL.leaf][index%4]],
-    first:p=>[[npc,`${p}さん、私は${role}の${npc}。${HUBS[hub].name}へようこそ。`],[npc,premise],["もえ","大切にしているものを、まず聞かせてもらおう。"],[npc,`${approach} 依頼帳の${questId}で、力を貸してほしい。`]],
+    first:p=>[[npc,`${p}さん、私は${role}の${npc}。${HUBS[hub].name}へようこそ。`],[npc,premise],["もえ","大切にしているものを、まず聞かせてもらおう。"],[npc,`${approach} やる事の${questId}で、力を貸してほしい。`]],
     normal:p=>[[npc,premise],[npc,`${approach} 街は安全だよ。宿で支度をして、出口から街外へ向かって。`]],
     after:p=>[[npc,resolution],["もえ",`${p}、ここで聞いた返事も忘れずにいこう。`]]};
   SCENES[introScene]={title:`${pref.name}　${title}`,lines:p=>[

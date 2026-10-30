@@ -40,10 +40,20 @@ await test('custom partner name fully replaces fixed biography and profile names
   s.scenes.HS00=true;g.G.sheet='moe';g.ACT.replay({dataset:{v:'HS00'}});const text=(g.G.dlg?.lines||[]).map(line=>line.join(' ')).join('\n');assert(text.includes('相棒ひかり'),'introductory dialogue actually opened with the selected name');assert(!text.includes('雪餅羽')&&!text.includes('のわん')&&!text.includes('おやすみセカイ'),'custom introduction must not splice a name into fixed personal biography');closeDialogs();
 });
 await test('new menus remain reachable through all render wrappers',()=>{
-  const s=fresh();setExplore(s);assert(g.renderExplore().includes('data-k="pets"'));
+  const s=fresh();setExplore(s);const explore=g.renderExplore();assert(explore.includes('data-k="menu"'));assert(explore.includes('data-k="quests">やる事'));assert(explore.includes('data-k="guide">オート移動'));for(const key of ['pets','map','items','status','party','record','voyage','dex','settings'])assert(!explore.includes('data-k="'+key+'"'),key+' is inside the menu');g.G.sheet='menu';assert(g.renderSheet().includes('data-k="pets"'));
   for(const key of ['pets','ocean','jobcenter','training','help','settings','party','record','dex']){g.G.sheet=key;g.G.sheetData={};const html=g.renderSheet();assert(html&&html.includes('role="dialog"'),key+' renders');}
   g.G.sheet='guide';g.G.sheetData={};const guide=g.renderSheet();assert(guide.includes('航海・海上イベント'));assert(guide.includes('ハローワーク'));
   for(const [id,h]of Object.entries(g.HUBS))assert(g.MAPS[id].objects.some(o=>o.type==='jobcenter'),id+' job center exists');
+});
+await test('menu back stack and direct MAP return respect readonly, saving and battles',()=>{
+  const state=fresh();setExplore(state);g.openSheet('menu');
+  for(const key of ['map','items','status','party','record','pets','voyage','dex','settings','help','share'])assert(g.renderSheet().includes('data-k="'+key+'"'),key+' is reachable');
+  assert(g.renderSheet().includes('data-a="returnToMap"'));
+  g.openSheet('items');g.openSheet('status');assert.equal(g.G.sheetHistory.length,2);g.closeSheet();assert.equal(g.G.sheet,'items');
+  g.G.readOnly=true;const saved=JSON.stringify(state);g.ACT.returnToMap();assert.equal(g.G.sheet,null);assert.equal(g.G.sheetHistory.length,0);assert.equal(JSON.stringify(state),saved);g.closeSheet();assert.equal(g.G.sheet,null,'old history cannot reopen a menu');
+  g.G.readOnly=false;g.openSheet('menu');g.openSheet('voyage');assert.equal(g.G.sheet,'ocean');g.ACT.oceanBack();assert.equal(g.G.sheet,'menu','voyage returns to its actual parent menu');g.G.vaultSaving=true;g.ACT.returnToMap();assert.equal(g.G.sheet,'menu','saving blocks navigation');g.G.vaultSaving=false;
+  g.G.screen='battle';g.ACT.returnToMap();assert.equal(g.G.sheet,'menu','MAP return cannot leave a battle');assert(!g.renderSheet().includes('data-a="returnToMap"'));
+  setExplore(state);
 });
 await test('all47 regional support unlocks and readonly mutation guard',()=>{
   assert.equal(Object.keys(g.SUPPORTS).length,47);const s=fresh();setExplore(s);g.G.sheet='party';

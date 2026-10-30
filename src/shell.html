@@ -198,12 +198,6 @@ body{padding-bottom:calc(var(--dockH) + 12px)}
 .stick[data-dir]:not([data-dir=""])::after{content:attr(data-dir);position:absolute;right:-6px;top:-6px;font-family:var(--f-dot);font-size:12px;background:var(--gold);color:var(--ink);padding:0 4px}
 .dock-center{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
 .dock .hint{min-width:0;font-size:12px;color:var(--mist);text-align:center;line-height:1.3}
-.abtns{display:flex;align-items:center;gap:10px;flex:none}
-.pbtn{font:inherit;width:58px;height:58px;border-radius:50%;border:3px solid var(--cream);color:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;cursor:pointer;box-shadow:0 3px 0 var(--ink);touch-action:manipulation}
-.pbtn b{font-family:var(--f-dot);font-size:20px}.pbtn small{font-size:12px;margin-top:2px}
-.pbtn.a{background:var(--red);width:66px;height:66px}
-.pbtn.b{background:var(--slate);margin-top:18px}
-.pbtn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
 .kfocus{outline:3px solid var(--gold)!important;outline-offset:2px;position:relative}
 .btn.kfocus::before,.chip.kfocus::before{content:"▶";position:absolute;left:-2px;top:50%;transform:translate(-100%,-50%);color:var(--gold);font-size:12px}
 .overlay{padding-bottom:calc(12px + var(--dockH) + env(safe-area-inset-bottom,0px))!important}
@@ -211,7 +205,6 @@ body{padding-bottom:calc(var(--dockH) + 12px)}
 @media (max-height:700px){
   :root{--dockH:76px}
   .stick{width:68px;height:68px}.stick .knob{width:32px;height:32px;margin:-16px 0 0 -16px}.stick .ring{inset:7px}
-  .pbtn{width:46px;height:46px}.pbtn.a{width:54px;height:54px}.pbtn.b{margin-top:10px}.pbtn b{font-size:17px}.pbtn small{font-size:12px}
   .battle .log:not(.expanded){min-height:0}.battle .log:not(.expanded) .log-entry:not(:last-child){display:none}
   .cmd .cmdgrid .btn{min-height:36px}.chip{min-height:34px}.pcard{min-height:40px}.confirmrow .btn{min-height:44px}
   .battle{gap:4px}
@@ -219,10 +212,7 @@ body{padding-bottom:calc(var(--dockH) + 12px)}
   .chip{min-height:32px}.chips{gap:3px}
 }
 
-/* ===== 操作の配置：既定はスティック右・A/B左 ===== */
-body:not(.stick-left) .dock{flex-direction:row-reverse}
-body:not(.stick-left) .abtns{flex-direction:row-reverse}
-body:not(.stick-left) .stick[data-dir]:not([data-dir=""])::after{right:auto;left:-6px}
+/* ===== 操作の配置：スティック右・戻る左 ===== */
 .padside .btn{font-size:15px;text-align:center}
 /* ===== 戦闘結果 ===== */
 .result{display:flex;flex-direction:column;gap:10px;padding-bottom:8px}
@@ -312,11 +302,108 @@ select.input{font-size:16px;max-width:100%}.pet-party{width:100%;box-sizing:bord
 @media(max-width:300px){.menu-grid{grid-template-columns:repeat(4,1fr)}.listener-comments{width:125px;max-height:150px}.pstrip{font-size:12px}.party{gap:4px}.pcard{min-width:0}.pstat{white-space:normal;overflow:visible;overflow-wrap:anywhere}.cmdgrid{gap:3px}}
 body.reduce-motion .listener-comment{animation:none}
 @media(prefers-reduced-motion:reduce){.listener-comment{animation:none}}
+
+/* Illustrated midnight atlas: shared material, light and frame treatment. */
+:root{--mist:#a2b4bf;--gold:#e5c17b;--cream:#f5eedc;--navy:#1c3047}
+html{min-height:100%;background:#09121f}
+body{background:radial-gradient(ellipse at 15% 0%,#284a5a70,transparent 55%),radial-gradient(ellipse at 95% 45%,#49395845,transparent 55%),linear-gradient(155deg,#101e30,#09121e 80%);background-attachment:fixed}
+.win,.status,.xhead,.qcard,.jcard{background:linear-gradient(135deg,#253e55f5,#142439fa);border-color:#b69c6b;border-radius:10px;box-shadow:inset 0 1px 0 #fff2,0 5px 18px #0003}
+.win{border:1px solid #b69c6b;padding:14px}
+.label,.place,.speaker{color:#f0cc87;text-shadow:0 1px 6px #daa95125}
+.btn{background:linear-gradient(180deg,#2b4359,#172b40);border:1px solid #708390;border-radius:7px;box-shadow:inset 0 1px 0 #ffffff16,0 2px 3px #0003;transition:background .15s,border-color .15s,box-shadow .15s}
+.btn:hover{background:linear-gradient(180deg,#38566b,#20394f);border-color:#e5c17b}
+.btn:active{box-shadow:inset 0 2px 6px #0007}
+.btn.primary{background:linear-gradient(180deg,#ae605b,#793a46);border:1px solid #edb990;box-shadow:inset 0 1px 0 #ffd9b54a,0 3px 12px #0004}
+.btn.on,.pcard.on,.jcard.on{background:linear-gradient(135deg,#494332,#29323b);border-color:#e5c17b}
+.logo .main{text-shadow:0 2px 0 #855453,0 5px 16px #0008;color:#fff1d0}
+.logo .sub{color:#e5c17b}.title-screen{padding-top:8px}
+#titleArt{box-sizing:border-box;border:1px solid #cfb17b;border-radius:12px;box-shadow:0 12px 36px #0006,inset 0 0 0 1px #fff2}
+.mapwrap{position:relative;border:1px solid #cfb17b;border-radius:10px;background:#0a1720;box-shadow:inset 0 0 16px #0007,0 4px 15px #0004}
+.mapwrap::after{content:'';position:absolute;inset:4px;pointer-events:none;border-radius:5px;box-shadow:inset 0 0 18px #06132148}
+.input{border-radius:6px;border:1px solid #788b99;background:#0e1d2d;box-shadow:inset 0 2px 5px #0004}
+.tag{border-radius:4px;background:#0b1b2a88}.tag.safe{background:#183e3e88}.tag.danger{background:#562d3388}
+.enemies{border:1px solid #8d846b;border-radius:10px;box-shadow:inset 0 0 18px #0005;background:#172b40}
+.ecard{position:relative;z-index:1}.ename,.estat,.tele{text-shadow:0 1px 3px #000,1px 0 3px #000,-1px 0 3px #000}
+.esprite{filter:drop-shadow(0 5px 2px #08101b88)}
+.pcard{border-radius:7px;background:linear-gradient(145deg,#1f354a,#101f30);box-shadow:inset 0 1px 0 #ffffff12}
+.bar{border:1px solid #647786;border-radius:4px;background:#091724;box-shadow:inset 0 1px 3px #0007}
+.bar i{background:linear-gradient(180deg,#a5dfc2,#509a92);box-shadow:inset 0 1px 0 #fff4}
+.bar.enemy i{background:linear-gradient(180deg,#f0ae90,#c26868)}.bar.ale i,.bar.xp i{background:linear-gradient(180deg,#f5dda0,#b98d40)}
+.bar.jp i{background:linear-gradient(180deg,#b7a1d5,#786096)}.bar.cp i{background:linear-gradient(180deg,#98c9df,#4d8491)}
+.sheet-head{background:#1c3047}.overlay{background:#060f1cbb;backdrop-filter:blur(4px)}
+.toast{background:linear-gradient(135deg,#30465a,#172637);border:1px solid #e5c17b;border-radius:8px;box-shadow:0 8px 24px #0007}
+.dock{background:linear-gradient(180deg,#1d3042f5,#0c1928fc);border-top:1px solid #a58e68;box-shadow:0 -4px 22px #0005}
+.stick .ring{box-shadow:inset 0 3px 12px #0008,0 1px 0 #fff2}
+.sprite-lg,.sprite-md{border-radius:8px;background:radial-gradient(ellipse at 50% 35%,#4d7466,#1b3740);border-color:#8d9e8a}
+@media(prefers-reduced-motion:reduce){.btn{transition:none}}
+body.reduce-motion .btn{transition:none}
+
+/* Key art and readable illustrated battle stages. Artwork is embedded at build time. */
+.title-visual{position:relative;isolation:isolate;overflow:hidden;border:1px solid #b99b68;border-radius:14px;box-shadow:0 16px 40px #0007}
+#titleArt{display:block;width:100%;height:auto;aspect-ratio:3/2;max-width:none;border:0;border-radius:0;box-shadow:none;image-rendering:auto}
+.title-visual::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,#071325d9,transparent 48%,#08172b18);pointer-events:none;z-index:1}
+.title-caption{position:absolute;top:16px;left:18px;right:12px;z-index:2}
+.title-kicker{font-size:12px;letter-spacing:.2em;color:#ffe7b4;margin-bottom:8px;text-shadow:0 2px 6px #000}
+.title-caption .main{font-size:clamp(22px,7vw,36px);letter-spacing:.03em;text-shadow:0 2px 2px #080f1c,0 0 18px #000b}
+.title-caption .sub{font-size:16px;letter-spacing:.42em;margin-top:5px;text-shadow:0 2px 6px #000}
+.enemies{background:linear-gradient(180deg,#0c1b2a10,#09172470),url('__FOREST_ART_DATA_URI__') center 58%/cover;min-height:190px;padding:12px 5px 5px}
+.enemies[data-terrain="coast"],.enemies[data-terrain="lake"],.enemies[data-terrain="river"]{background-image:linear-gradient(180deg,#0c1b2a10,#09172470),url('__COAST_ART_DATA_URI__')}
+.enemies .stagebg{opacity:.13;mix-blend-mode:soft-light;pointer-events:none}
+.ecard .ename{font-weight:700;font-size:13px;background:#0a182bba;border-radius:4px;padding:2px 3px;line-height:1.4}
+.ecard .estat,.ecard .tele{font-size:12px;background:#0a182ba8;padding:1px 2px;border-radius:3px}
+.ecard .esprite{filter:drop-shadow(0 6px 3px #06101ecc) drop-shadow(0 0 1px #f6deb16b)}
+.pstrip,.bhead{border-radius:7px;background:linear-gradient(120deg,#263d51,#122438);border-color:#8d846c}
+.listener-comment{border-radius:7px;background:linear-gradient(120deg,#132c37ee,#0c1d2aee);box-shadow:0 4px 14px #0004}
+.menu-grid .btn{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;line-height:1.15}
+.menu-grid .btn::before{content:'';display:block;flex:none;width:15px;height:15px;background:#d4bd8c;mask:var(--menu-icon) center/contain no-repeat}
+@media(max-height:700px){.enemies{min-height:150px;padding-top:6px}}
+@media(max-width:300px){.title-caption{top:10px;left:10px}.title-kicker{font-size:12px;letter-spacing:.04em}.title-caption .main{font-size:21px}.title-caption .sub{font-size:13px}}
+.menu-grid .btn[data-k="map"]{--menu-icon:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%205l6-2%206%202%206-2v16l-6%202-6-2-6%202zm6-2v16m6-14v16%22%2F%3E%3C%2Fsvg%3E")}
+.menu-grid .btn[data-k="quests"]{--menu-icon:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%204h10v3H7zm-2%202H3v15h18V6h-2M7%2011h10M7%2015h10%22%2F%3E%3C%2Fsvg%3E")}
+.menu-grid .btn[data-k="guide"]{--menu-icon:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%203l8%208-8%2010-8-10zm0%204v8m-3-4h6%22%2F%3E%3C%2Fsvg%3E")}
+.menu-grid .btn[data-k="items"]{--menu-icon:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M6%207h12l3%2014H3zm3%200V4h6v3M8%2012h8%22%2F%3E%3C%2Fsvg%3E")}
+.menu-grid .btn[data-k="status"]{--menu-icon:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%2020V10h4v10m2%200V4h4v16m2%200V7h4v13%22%2F%3E%3C%2Fsvg%3E")}
+.menu-grid .btn[data-k="party"]{--menu-icon:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8%204a3%203%200%201%200%200%206%203%203%200%200%200%200-6m8%201a3%203%200%201%200%200%206%203%203%200%200%200%200-6M2%2021v-5a6%206%200%200%201%2012%200v5m1-8a5%205%200%200%201%207%204v4%22%2F%3E%3C%2Fsvg%3E")}
+.menu-grid .btn[data-k="record"]{--menu-icon:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M5%203h14v18H5zm3%204h8m-8%204h8m-8%204h5%22%2F%3E%3C%2Fsvg%3E")}
+.menu-grid .btn[data-k="pets"]{--menu-icon:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9%2011c-4%204-5%209%200%209%202-1%204-1%206%200%205%200%204-5%200-9zm-5-5v3m5-6v3m6-3v3m5%200v3%22%2F%3E%3C%2Fsvg%3E")}
+.menu-grid .btn[data-k="voyage"]{--menu-icon:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%2015l8%206%208-6-8-4zm8-12v8M6%205h12M3%2021l3-1%203%201%203-1%203%201%203-1%203%201%22%2F%3E%3C%2Fsvg%3E")}
+.menu-grid .btn[data-k="dex"]{--menu-icon:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%206C8%203%205%203%202%204v16c4-1%207-1%2010%201%203-2%206-2%2010-1V4c-4-1-7-1-10%202zm0%200v15%22%2F%3E%3C%2Fsvg%3E")}
+.menu-grid .btn[data-k="settings"]{--menu-icon:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9%203h6l1%204%204%201v7l-4%201-1%205H9l-1-5-4-1V8l4-1zm3%206a3%203%200%201%200%200%206%203%203%200%200%200%200-6%22%2F%3E%3C%2Fsvg%3E")}
+.menu-grid .btn:not([data-k])::before{background:#9ccab9;clip-path:polygon(5% 45%,60% 45%,60% 15%,100% 50%,60% 85%,60% 55%,5% 55%)}
+
+/* Keep commands reachable when illustrated stages or long logs need extra height. */
+.battle{height:auto;min-height:calc(100dvh - var(--dockH) - 24px);overflow:visible}
+.battle .win.cmd{flex:none;overflow:visible}
+.battle .chips{overflow:visible}
+.enemies .ecard{background:transparent;border-color:transparent}
+@media(max-height:800px){.enemies{min-height:140px;padding-top:6px}.ecard .esprite{width:72px;height:72px}.ecard.isboss .esprite{width:96px;height:96px}}
+
+/* MAP-first navigation and a single confirm control inside the joystick. */
+.explore-actions{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.explore-actions .btn{font-size:clamp(12px,3.8vw,16px);letter-spacing:0}
+.explore-actions .btn::before{display:none}
+.main-menu{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.main-menu .btn{font-size:14px;min-height:64px;white-space:normal;letter-spacing:0}
+.main-menu .btn::before{width:20px;height:20px}
+.main-menu .btn[data-k="help"]::before,.main-menu .btn[data-k="share"]::before{display:none}
+.map-exit{position:absolute;top:8px;right:8px;z-index:2;min-height:40px;padding:6px 12px;font-size:14px;background:#162b3aeb;border-color:var(--gold);box-shadow:0 3px 12px #0006}
+.xhead .here{white-space:normal;font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+.xhead .here .small{font-size:12px}.xhead .srow{flex-wrap:nowrap}.xhead .place{min-width:0;overflow-wrap:anywhere}.xhead .srow>span:last-child{flex:none}
+.pstrip{box-sizing:border-box;cursor:default}
+.sheet-head{flex-wrap:wrap}.sheet-head h2{flex:1;min-width:80px;overflow-wrap:anywhere}
+.sheet-actions{display:flex;flex-wrap:wrap;gap:6px;flex:none}.sheet-actions .btn{font-size:14px;min-height:44px;padding:6px 9px}
+.dock{flex-direction:row!important}.dock-back{flex:none;min-width:72px;text-align:center;min-height:48px}
+.stick .knob{display:flex;align-items:center;justify-content:center}
+.stick-confirm{pointer-events:auto;border:0;padding:0;width:100%;height:100%;border-radius:50%;font:inherit;font-size:12px;line-height:1;color:var(--cream);background:transparent;touch-action:none;cursor:pointer}
+.stick-confirm:focus-visible{outline:3px solid var(--gold);outline-offset:4px}
+@media(max-width:300px){.main-menu{grid-template-columns:repeat(2,minmax(0,1fr))}.sheet-actions{width:100%;justify-content:flex-end}.dock-back{min-width:64px}.map-exit{top:6px;right:6px;padding:4px 8px;font-size:12px}.dock{gap:6px}}
+
+.pmini .small{white-space:normal;overflow-wrap:anywhere;line-height:1.35}
+body.in-explore .listener-comments{top:auto;bottom:calc(var(--dockH) + 156px + env(safe-area-inset-bottom,0px))}
 </style>
 <main id="screen" aria-live="off"></main>
 <div id="dock" class="dock" aria-label="ジョイコントローラー">
-  <div class="stick" role="application" aria-label="スティック。押したまま動かすと移動・カーソル移動"><div class="ring"></div><div class="knob"></div></div>
-  <div class="dock-center"><div class="hint">スティック：移動／決定：調べる</div></div>
-  <div class="abtns"><button class="pbtn b" data-pad="b" aria-label="戻る"><b>B</b><small>戻る</small></button><button class="pbtn a" data-pad="a" aria-label="決定"><b>A</b><small>決定</small></button></div>
+  <button class="btn dock-back" data-pad="back" aria-label="戻る">戻る</button>
+  <div class="dock-center"><div class="hint">スティックで移動・中央で決定</div></div>
+  <div class="stick" role="application" aria-label="スティック。ドラッグで移動・カーソル移動、中央で決定"><div class="ring"></div><div class="knob"><button class="stick-confirm" aria-label="決定">決定</button></div></div>
 </div>
-

@@ -5,24 +5,38 @@
   "sourceFileCount": 27,
   "files": {
     "index.html": {
-      "bytes": 640815,
-      "sha256": "8307b8928052fd217c7bc8427d0d5e8b2ec90ba0558511a48cf1eec8700b068c"
+      "bytes": 1532350,
+      "sha256": "69a570753fd77a3a65b7dc78e2ad27d824812ab01958364cd966960ca59da4d3"
     },
     "README.md": {
-      "bytes": 3040,
-      "sha256": "395162a902bb96459a7833975cbe93aae4dbbd915d3135857c958244ab7c72de"
+      "bytes": 3147,
+      "sha256": "65385085e0f32632efdf5a4fc92ce4cd2631c76acbdf9095e3d9092d9f4be783"
     },
     "VERSION.txt": {
-      "bytes": 161,
-      "sha256": "e4b0f9b2a7f3d78ca52e68542e3d04c55da334a77b1d369947297cfc895ee8f0"
+      "bytes": 152,
+      "sha256": "b0f5df1606042182f651803b202325a59138f1df5d38e510971bb12a6d019332"
     },
     "GAME_SPEC.md": {
-      "bytes": 2621,
-      "sha256": "09c9275bf817c7947d6119108160d6d14d091d6dbaa845d22dae46e86467ee3d"
+      "bytes": 3457,
+      "sha256": "86fb07bc690b41874e614eb110af42dbeebe2433c5f38a8283189357307c8e64"
     },
     "GAME_SPEC.txt": {
-      "bytes": 2621,
-      "sha256": "09c9275bf817c7947d6119108160d6d14d091d6dbaa845d22dae46e86467ee3d"
+      "bytes": 3457,
+      "sha256": "86fb07bc690b41874e614eb110af42dbeebe2433c5f38a8283189357307c8e64"
+    }
+  },
+  "assets": {
+    "assets/title-journey.webp": {
+      "bytes": 253608,
+      "sha256": "1d75ebefb8548cd50aa86a506a3e879452b1d7cd48008f1981a02055b6b131cc"
+    },
+    "assets/battle-coast.webp": {
+      "bytes": 218770,
+      "sha256": "01c39e15427d2c3ed804e2503c895e5510ac4610eb667c2286feeb4c330f2dac"
+    },
+    "assets/battle-forest.webp": {
+      "bytes": 184598,
+      "sha256": "5bdcf89b0bade6f7d43ea5367e6114e46c90c780f569dbe1d499c19b1300b9fd"
     }
   },
   "validation": "docs/validation-5.34.json"

@@ -4,25 +4,28 @@ const PAD = (()=>{
   const VEC=[[0,1],[0,-1],[-1,0],[1,0]];
   const isMoveMode=()=> G.screen==="explore" && !G.sheet && !G.dlg && G.st && !G.readOnly;
 
+  let cancelStick=()=>{};
   /* ---- 画面上のスティック ---- */
   function mount(){
     const dock=document.getElementById("dock"); if(!dock || dock.dataset.ready) return; dock.dataset.ready="1";
     const base=dock.querySelector(".stick"), knob=dock.querySelector(".knob");
-    let pid=null;
+    let pid=null,centerTap=false;
     const upd=e=>{
       const r=base.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2, R=r.width*0.34;
       let dx=e.clientX-cx, dy=e.clientY-cy; const d=Math.hypot(dx,dy);
       if(d>R){ dx=dx/d*R; dy=dy/d*R; }
       knob.style.transform=`translate(${dx}px,${dy}px)`;
       const mag=Math.hypot(dx,dy)/R;
+      if(mag>=0.35)centerTap=false;
       setDir(mag<0.35?null: Math.abs(dx)>Math.abs(dy)? (dx<0?2:3) : (dy<0?1:0), "stick");
     };
-    base.addEventListener("pointerdown",e=>{ pid=e.pointerId; base.setPointerCapture(pid); base.classList.add("on"); SND.sfx("step"); upd(e); e.preventDefault(); });
+    base.addEventListener("pointerdown",e=>{ if(pid!==null)return; pid=e.pointerId; centerTap=!!e.target.closest(".stick-confirm"); base.setPointerCapture(pid); base.classList.add("on"); SND.sfx("step"); upd(e); e.preventDefault(); });
     base.addEventListener("pointermove",e=>{ if(e.pointerId===pid) upd(e); });
-    const end=e=>{ if(e.pointerId!==pid) return; pid=null; base.classList.remove("on"); knob.style.transform=""; setDir(null,"stick"); };
+    const end=e=>{ if(e.pointerId!==pid) return; const confirm=e.type==="pointerup"&&centerTap; pid=null; centerTap=false; base.classList.remove("on"); knob.style.transform=""; setDir(null,"stick"); if(confirm)pressA(); };
+    cancelStick=()=>{pid=null;centerTap=false;};
     base.addEventListener("pointerup",end); base.addEventListener("pointercancel",end); base.addEventListener("lostpointercapture",end);
-    dock.querySelector("[data-pad=a]").addEventListener("click",()=>pressA());
-    dock.querySelector("[data-pad=b]").addEventListener("click",()=>pressB());
+    dock.querySelector(".stick-confirm").addEventListener("click",e=>{if(e.detail===0)pressA();});
+    dock.querySelector("[data-pad=back]").addEventListener("click",()=>pressB());
     requestAnimationFrame(tick);
   }
   const sources={};
@@ -102,7 +105,7 @@ const PAD = (()=>{
   }
   function pressB(){
     if(G.dlg){ ACT.dlgSkip(); return; }
-    if(G.sheet){ const back=document.querySelector(".overlay [data-a=closeSheet]"); if(back) back.click(); return; }
+    if(G.sheet){ const back=document.querySelector(".overlay [data-a=closeSheet]")||document.querySelector(".overlay .sheet-head [data-a=oceanBack]"); if(back) back.click(); return; }
     if(G.screen==="battle"&&G.auto){ ACT.autoOff(); return; }
     if(G.screen==="battle"&&G.st&&G.st.run&&G.st.run.state==="input"){ G.cmd={actor:G.cmd.actor}; G.cursorSig=null; render(); SND.sfx("cancel"); return; }
     if(isMoveMode()){ G.walk.path=G.walk.path.slice(0,1); G.walk.pending=null; return; }
@@ -124,7 +127,7 @@ const PAD = (()=>{
     const now={a:b(aIdx), b:b(bIdx), start:b(9)};
     if(now.a&&!prevBtn.a) pressA();
     if(now.b&&!prevBtn.b) pressB();
-    if(now.start&&!prevBtn.start&&isMoveMode()) openSheet("status");
+    if(now.start&&!prevBtn.start&&isMoveMode()) openSheet("menu");
     prevBtn=now;
   }
   window.addEventListener("gamepadconnected",e=>toast(`コントローラーを接続しました（${(e.gamepad.id||"").slice(0,24)}）`));
@@ -151,6 +154,7 @@ const PAD = (()=>{
   document.addEventListener("keyup",e=>{ if(KEYS[e.key]!=null && sources.key===KEYS[e.key]) setDir(null,"key"); });
   // 別タブや別アプリへ移った間に取り逃したキー解放を残さない。
   function releaseInput(){
+    if(typeof cancelStick==="function")cancelStick();
     for(const src of ["key","gamepad","stick"]) sources[src]=null;
     setDir(null,"key"); prevBtn={};
     if(G.walk){ G.walk.path=[]; G.walk.prog=0; G.walk.pending=null; }

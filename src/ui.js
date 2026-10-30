@@ -95,13 +95,12 @@ function render(){
   document.body.classList.toggle("in-battle", s==="battle"); document.body.classList.toggle("in-explore", s==="explore");
   if(s==="battle"){ drawEnemies(); startBattleTimer(); }
   if(s==="new") mountNew();
-  if(s==="title") drawTitleArt();
   drawMiniSprites();
   const dockOff = s==="new" || (G.st? G.st.settings.dock===false : (G.tmpSettings&&G.tmpSettings.dock===false));
   document.body.classList.toggle("no-dock", !!dockOff);
-  document.body.classList.toggle("stick-left", padSide()==="left");
+  document.body.classList.remove("stick-left");
   document.body.classList.toggle("reduce-motion", reducedMotion());
-  const dh=document.querySelector("#dock .hint"); if(dh) dh.textContent = (s==="explore"&&!G.sheet&&!G.dlg)?"スティック：移動／決定：調べる":"スティック：カーソル／決定・戻る";
+  const dh=document.querySelector("#dock .hint"); if(dh) dh.textContent = (s==="explore"&&!G.sheet&&!G.dlg)?"スティックで移動・中央で決定":"スティックで選択・中央で決定";
   if(G.dlg){ const b=$("#dlgNext"); if(b) b.focus({preventScroll:true}); }
   PAD.restore();
 }
@@ -118,8 +117,8 @@ function statusBar(){
 /* ---- タイトル ---- */
 function renderTitle(){
   return `<section class="title-screen">
-    <canvas id="titleArt" width="160" height="64" aria-hidden="true"></canvas>
-    <h1 class="logo"><span class="main">ポコチャクエスト</span><span class="sub">全国編</span></h1>
+    <div class="title-visual"><img id="titleArt" src="__TITLE_ART_DATA_URI__" width="960" height="640" alt="夕暮れの港町と星空を望む、ふたりの旅人" fetchpriority="high" decoding="async">
+    <div class="title-caption"><p class="title-kicker">ふたりの声が、旅になる。</p><h1 class="logo"><span class="main">ポコチャクエスト</span><span class="sub">全国編</span></h1></div></div>
     <p class="lead">元アイドルのもえをS6へ導く、昭和風ドットRPG。</p>
     <div class="menu">
       <button class="btn primary" data-a="newGame">はじめから</button>
@@ -132,14 +131,6 @@ function renderTitle(){
     <p class="note">全47都道府県・51拠点に物語と地域ボスを収録。街は安全地帯です。街の出口から街外へ進むと、探索と戦闘が始まります。ボス討伐で依頼が完了し、次の地域へ進めます。</p>
   </section>`;
 }
-function drawTitleArt(){
-  const c=$("#titleArt"); if(!c) return; const g=c.getContext("2d"); g.imageSmoothingEnabled=false;
-  g.drawImage(ART.stage("KY02-A3",1),0,0);
-  g.drawImage(ART.person("hero",PAL.ink,PAL.red,0,0,{}),58,34);
-  g.drawImage(ART.person("moe",PAL.violet,PAL.cream,0,0,{long:true,ribbon:PAL.coral}),80,34);
-  g.drawImage(ART.object("tower",1),134,6);
-}
-
 /* ---- 主人公設定（第06D・06E節） ---- */
 function renderNew(){
   const n=G.newGame;
@@ -186,8 +177,8 @@ function attackPower(s,L){ return 10+2*L+Vof(L)*(s.wAtk+s.accAtk); }
 function defensePower(s,L){ return Vof(L)*s.armorD; }
 function partyStrip(){
   const st=G.st;
-  return `<button class="pstrip" data-a="openSheet" data-k="status" aria-label="パーティーのステータスを開く"><span class="pstop"><span>レベル${levelOf(st.xp,st)}・${st.gold.toLocaleString()}ゴールド・${esc(charName(st,"moe"))} ${MOE_RANKS[st.moeRank]}</span><span class="pmore">ステータス ▶</span></span>${st.party.map(cid=>{ const L=levelOf(st.xp,st), s=charStats(st,cid,L), v=vitalOf(cid);
-    return `<span class="pmini ${v.hp<=0?"ko":""} ${isLow(v.hp,s.maxHP)?"low":""}"><span class="pmline"><b>${esc(charName(st,cid))}</b><span class="small">体力${v.hp}/${s.maxHP} MP${v.c}${v.hp<=0?"・戦闘不能":isLow(v.hp,s.maxHP)?"・体力わずか":""}</span></span><span class="bar"><i style="width:${Math.round(100*v.hp/s.maxHP)}%"></i></span></span>`; }).join("")}</button>`;
+  return `<div class="pstrip" aria-label="パーティーの状態"><span class="pstop"><span>レベル${levelOf(st.xp,st)}・${st.gold.toLocaleString()}ゴールド・${esc(charName(st,"moe"))} ${MOE_RANKS[st.moeRank]}</span></span>${st.party.map(cid=>{ const L=levelOf(st.xp,st), s=charStats(st,cid,L), v=vitalOf(cid);
+    return `<span class="pmini ${v.hp<=0?"ko":""} ${isLow(v.hp,s.maxHP)?"low":""}"><span class="pmline"><b>${esc(charName(st,cid))}</b><span class="small">体力${v.hp}/${s.maxHP} MP${v.c}${v.hp<=0?"・戦闘不能":isLow(v.hp,s.maxHP)?"・体力わずか":""}</span></span><span class="bar"><i style="width:${Math.round(100*v.hp/s.maxHP)}%"></i></span></span>`; }).join("")}</div>`;
 }
 function renderStatus(){
   const st=G.st; const L=levelOf(st.xp,st);
@@ -218,33 +209,32 @@ function heroSprite(dir,frame,gender){ const f=(gender||G.st.profile.gender)==="
 function charSprite(cid,dir,frame){ if(cid==="hero") return heroSprite(dir,frame); if(cid==="moe") return ART.person("moe",PAL.violet,PAL.cream,dir,frame,{long:true,ribbon:PAL.coral}); const c=CHARS[cid]; return ART.person(cid,c.hair,c.coat,dir,frame,{long:["mio","kayo","tsumugi"].includes(cid)}); }
 
 /* ---- 探索 ---- */
+function renderCurrentLocation(){
+  const st=G.st,m=MAPS[st.mapId],zone=zoneAt(m,st.pos.x,st.pos.y),ar=zone?AREAS[zone]:null,near=nearbyObjects();
+  return `<div class="here">${ar?`<span class="tag danger">遭遇エリア</span> ${esc(ar.name)}（推奨レベル${ar.q}）`:`<span class="tag ${m.kind==="field"?"danger":"safe"}">${m.kind==="field"?"街外の道":"安全な街・室内"}</span>`}${near.length?`<span class="small">／近く：${near.map(o=>esc(o.label)).join("・")}</span>`:""}</div>`;
+}
+function renderMainMenu(){
+  return `<nav class="menu-grid main-menu" aria-label="冒険メニュー">
+    ${[["map","地図"],["items","道具"],["status","ステータス"],["party","編成"],["record","記録"],["pets","ペット"],["voyage","航海"],["dex","図鑑"],["settings","設定"],["help","解説"],["share","友だちに教える"]].map(([k,label])=>`<button class="btn" data-a="openSheet" data-k="${k}">${label}</button>`).join("")}
+  </nav>`;
+}
 function renderExplore(){
-  const st=G.st; const m=MAPS[st.mapId];
-  const near=nearbyObjects();
-  const zone=zoneAt(m,st.pos.x,st.pos.y);
-  const ar=zone?AREAS[zone]:null;
+  const st=G.st,m=MAPS[st.mapId],exit=m.objects.find(o=>o.fieldExit&&!o.oceanRoute&&!o.oceanReturn);
   return `<section class="explore">
     <header class="xhead">
       <div class="srow"><span class="place">${esc(m.name)}</span><span>${st.day}日目</span></div>
+      ${renderCurrentLocation()}
       <div class="goal">${esc(objective())}</div>
       <div class="xsave small" aria-live="polite">保存：<span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（閲覧のみ）":""}</div>
     </header>
-    <div class="mapwrap"><canvas id="map" aria-label="${esc(m.name)}の地図。地面をタップすると移動します。"></canvas></div>
-    <div class="here">${ar?`<span class="tag danger">遭遇エリア</span> ${esc(ar.name)}（推奨レベル${ar.q}）`:`<span class="tag ${m.kind==="field"?"danger":"safe"}">${m.kind==="field"?"街外の道":"安全な街・室内"}</span> ${esc(m.name)}`}${near.length?`<span class="small">／近く：${near.map(o=>esc(o.label)).join("・")}</span>`:""}</div>
+    <div class="mapwrap"><canvas id="map" aria-label="${esc(m.name)}の地図。地面をタップすると移動します。"></canvas>
+      ${exit?`<button class="btn map-exit" data-a="guideTo" data-v="${exit.id}">${m.kind==="town"?"街外へ":"街へ戻る"}</button>`:""}
+    </div>
     ${partyStrip()}
-    <nav class="menu-grid" aria-label="メニュー">
-      ${m.objects.some(o=>o.fieldExit&&!o.oceanRoute&&!o.oceanReturn)?`<button class="btn" data-a="guideTo" data-v="${m.objects.find(o=>o.fieldExit&&!o.oceanRoute&&!o.oceanReturn).id}">${m.kind==="town"?"街外へ":"街へ戻る"}</button>`:""}
-      <button class="btn" data-a="openSheet" data-k="quests">依頼帳</button>
-      <button class="btn" data-a="openSheet" data-k="guide">道しるべ</button>
-      <button class="btn" data-a="openSheet" data-k="map">地図</button>
-      <button class="btn" data-a="openSheet" data-k="items">道具</button>
-      <button class="btn" data-a="openSheet" data-k="status" aria-label="ステータス"><span class="lw">ステータス</span><span class="sw">状態</span></button>
-      <button class="btn" data-a="openSheet" data-k="party">編成</button>
-      <button class="btn" data-a="openSheet" data-k="record">記録</button>
-      <button class="btn" data-a="openSheet" data-k="pets">ペット</button>
-      <button class="btn" data-a="openSheet" data-k="voyage">航海</button>
-      <button class="btn" data-a="openSheet" data-k="dex">図鑑</button>
-      <button class="btn" data-a="openSheet" data-k="settings">設定</button>
+    <nav class="menu-grid explore-actions" aria-label="MAP操作">
+      <button class="btn" data-a="openSheet" data-k="quests">やる事</button>
+      <button class="btn" data-a="openSheet" data-k="guide">オート移動</button>
+      <button class="btn primary" data-a="openSheet" data-k="menu">メニュー</button>
     </nav>
   </section>`;
 }
@@ -304,13 +294,15 @@ function drawMap(){
   }
   sprites.push({y:pp.y/16+0.01, px:pp, img:charSprite(lead,st.dir,wf)});
   sprites.sort((a,b)=>a.y-b.y);
-  for(const s of sprites){ const x=s.px?s.px.x:s.x*16, y=s.px?s.px.y:s.y*16; g.drawImage(s.img,x-cam.x,y-8-cam.y); }
+  for(const s of sprites){ const x=s.px?s.px.x:s.x*16, y=s.px?s.px.y:s.y*16; g.fillStyle='rgba(6,17,28,.27)'; g.beginPath(); g.ellipse(x+8-cam.x,y+13-cam.y,6,2,0,0,Math.PI*2); g.fill(); g.drawImage(s.img,x-cam.x,y-8-cam.y); }
   if(moving){ const d=G.walk.path[G.walk.path.length-1]; const bl=Math.floor(now/250)%2; g.strokeStyle=bl?PAL.cream:PAL.gold; g.strokeRect(d.x*16-cam.x+3.5,d.y*16-cam.y+3.5,9,9); }
 }
 function startLoop(){
   cancelAnimationFrame(G.raf); G.lastTs=0;
+  const token=G.mapLoopToken=(G.mapLoopToken||0)+1;
   const STEP=G.st?.settings?.moveSpeed==="fast"?110:160;
   const loop=ts=>{
+    if(G.mapLoopToken!==token)return;
     if(G.screen!=="explore"||document.hidden){ G.raf=0; return; }
     const dt = G.lastTs? Math.min(100, ts-G.lastTs) : 16; G.lastTs=ts; G.frame++;
     const w=G.walk;
@@ -319,6 +311,7 @@ function startLoop(){
       w.prog+=dt/STEP;
       if(w.prog>=1){ w.prog=0; w.path.shift(); G.fol={...G.st.pos}; G.st.pos={x:n.x,y:n.y}; arrive(); }
     }
+    if(G.mapLoopToken!==token)return;
     drawMap();
     G.raf=requestAnimationFrame(loop);
   };
@@ -369,7 +362,7 @@ function arrive(){
   else if(!zone) refreshHere();
 }
 function exploreBgm(){ const st=G.st; if(!st) return SND.play("title"); const m=MAPS[st.mapId]; SND.play(m.kind==="field"?"field":"fukuoka"); }
-function refreshHere(){ if(G.screen==="explore" && !G.sheet){ const el=$(".here"); if(el){ const tmp=document.createElement("div"); tmp.innerHTML=renderExplore(); const n=tmp.querySelector(".here"); el.innerHTML=n.innerHTML; } const g=$(".goal"); if(g) g.textContent=objective(); } }
+function refreshHere(){ if(G.screen==="explore" && !G.sheet){ const el=$(".here"); if(el){ const tmp=document.createElement("div"); tmp.innerHTML=renderCurrentLocation(); const n=tmp.querySelector(".here"); el.innerHTML=n.innerHTML; } const g=$(".goal"); if(g) g.textContent=objective(); } }
 
 /* ---- 調べる・会話 ---- */
 function interact(o){
@@ -408,7 +401,7 @@ function talkNpc(id){
     if(n.rep) lines.push(["",`${n.name}と話した。応援者帳に記録された（親密度1）。`]); }
   else if(n.after && ((id==="akari"&&st.quests.S01==="complete")||(id==="sota"&&st.quests.S02==="complete"))) lines=n.after(p);
   else lines=n.normal(p);
-  if(n.questId){ const q=QUESTS[n.questId]; lines=st.quests[n.questId]==="complete"?[[n.name,NATIONWIDE_STORIES[q.hub].resolution]]:[...lines,["",`依頼帳「${q.name}」で街外の調査を受けられます。`]]; }
+  if(n.questId){ const q=QUESTS[n.questId]; lines=st.quests[n.questId]==="complete"?[[n.name,NATIONWIDE_STORIES[q.hub].resolution]]:[...lines,["",`やる事「${q.name}」で街外の調査を受けられます。`]]; }
   commit(); say(lines);
 }
 function openBox(o){
@@ -497,7 +490,7 @@ function renderBattle(){
   const enemies=run.enemies.map(e=>{
     const pct=Math.round(100*e.hp/e.maxHP);
     return `<div class="ecard ${e.hp<=0?"down":""} ${e.boss?"isboss":""}" id="ec${e.slot}">
-      <canvas data-enemy="${e.slot}" width="${e.boss?64:32}" height="${e.boss?64:32}" class="esprite ${e.boss?"boss":""}" aria-hidden="true"></canvas>
+      <canvas data-enemy="${e.slot}" width="${e.boss?128:64}" height="${e.boss?128:64}" class="esprite ${e.boss?"boss":""}" aria-hidden="true"></canvas>
       <div class="einfo"><div class="ename">${esc(e.display)}${e.rarity>1?` <span class="rar">${"★".repeat(e.rarity)}${["","通常","やや珍しい","希少","極希少","幻影"][e.rarity]}</span>`:""}</div>
       <span class="bar enemy"><i style="width:${pct}%"></i></span>
       <div class="estat">体力 ${e.hp}/${e.maxHP}・防御力${e.def}</div>
@@ -509,7 +502,7 @@ function renderBattle(){
     <div class="gauge" aria-label="エール${run.A}"><span>エール</span><span class="bar ale"><i style="width:${run.A}%"></i></span><b>${run.A}</b></div>
     ${run.support&&SUPPORTS[run.support]?`<p class="battle-support small">地域支援：${esc(SUPPORTS[run.support].name)}（${esc(SUPPORTS[run.support].text)}）</p>`:""}
     ${cueText(run)}
-    <div class="enemies"><canvas class="stagebg" width="160" height="64" aria-hidden="true"></canvas>${enemies}</div>
+    <div class="enemies" data-terrain="${esc(MAPS[st.mapId]?.terrain||"plain")}"><canvas class="stagebg" width="160" height="64" aria-hidden="true"></canvas>${enemies}</div>
     <div class="party">${run.party.map((m,i)=>partyCard(m,i,run)).join("")}</div>
     ${renderCommand(run)}
     <button class="btn" data-a="openSheet" data-k="battleChallenges">挑戦・戦闘バッジ</button>
@@ -636,7 +629,7 @@ function drawEnemies(){
   document.querySelectorAll("canvas[data-enemy]").forEach(c=>{
     const e=run.enemies.find(x=>x.slot===+c.dataset.enemy); const g=c.getContext("2d"); g.imageSmoothingEnabled=false; g.clearRect(0,0,c.width,c.height);
     if(!e||e.hp<=0) return;
-    let img = e.boss? ART.enemy(e.id,"",null,run.areaId,f,64,true) : ART.enemy(e.profile,e.species,e.attr,run.areaId,f);
+    let img = e.boss? ART.enemy(e.id,"",null,run.areaId,f,128,true) : ART.enemy(e.profile,e.species,e.attr,run.areaId,f,64);
     if(G.flash && G.flash.until>now && G.flash.slots.includes(e.slot) && Math.floor(now/60)%2===0) img=ART.flashOf(img);
     g.drawImage(img,0,0);
   });
@@ -783,16 +776,17 @@ function resultDone(){
 /* ---- シート（メニュー） ---- */
 function openSheet(k,data={}){ if(G.vaultSaving||G.shopSaving||G.petSaving||G.characterSaving||G.featureSaving) return; G.sheet=k; G.sheetData=data; G.walk.path=[]; render(); const el=$(".sheet"); if(el) el.scrollTop=0; }
 function closeSheet(){ if(G.vaultSaving||G.shopSaving||G.petSaving||G.characterSaving||G.featureSaving) return; G.sheet=null; render(); }
-function sheetWrap(title, body){ return `<div class="overlay" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="win sheet"><div class="sheet-head"><h2 class="label">${esc(title)}</h2><button class="btn" data-a="closeSheet" ${G.vaultSaving||G.shopSaving?"disabled":""}>戻る</button></div>${body}</div></div>`; }
+function sheetWrap(title, body){ return `<div class="overlay" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="win sheet"><div class="sheet-head"><h2 class="label">${esc(title)}</h2><div class="sheet-actions"><button class="btn" data-a="closeSheet" ${G.vaultSaving||G.shopSaving?"disabled":""}>戻る</button>${G.screen==="explore"&&G.st&&!G.st.run?`<button class="btn" data-a="returnToMap">MAPへ戻る</button>`:""}</div></div>${body}</div></div>`; }
 function renderSheet(){
   const k=G.sheet; if(!k) return ""; const st=G.st; const d=G.sheetData;
   switch(k){
+    case "menu": return sheetWrap("メニュー",renderMainMenu());
     case "about": return sheetWrap("この作品について",`<p>「ポコチャクエスト」は、配信文化を参考にした非公式の創作RPGです。人物・台詞・敵・数値・画像・音はゲーム用の創作で、実在のサービスの配信・課金・アカウント・ランキングとは連携しません。</p><p>アイドルグループを離れたヒロインが、旅を通じてS6を目指す背景は物語の設定です。作中のランクは物語上の到達記録で、実際のランク歴ではありません。</p><p>敵の名前は、配信・応援の言葉とRPGの語感を組み合わせた本作の創作名です。</p><p class="small">gameVersion ${GAME_VERSION}／schemaVersion ${SCHEMA_VERSION}</p>`);
     case "share": return sheetWrap("友だちに教える", renderShare());
     case "settings": return sheetWrap("設定と保存", renderSettings());
-    case "nearby": { const near=nearbyObjects(); return sheetWrap("近くを調べる", near.length? `<div class="stack">${near.map(o=>`<button class="btn" data-a="interactId" data-v="${o.id}">${esc(o.label)}</button>`).join("")}</div>` : `<p>近くに調べられるものはありません。道しるべから目的地を選べます。</p>`); }
-    case "guide": { const m=MAPS[st.mapId]; return sheetWrap("道しるべ", `<p class="small">選ぶと、その場所まで実際に歩きます（途中の遭遇エリアでは抽選があります）。</p><div class="stack">${m.objects.filter(o=>o.type!=="tower").map(o=>{ const a=o.area?AREAS[o.area]:null; return `<button class="btn" data-a="guideTo" data-v="${o.id}">${esc(o.label)}${a?`（推奨レベル${a.q}）`:""}</button>`; }).join("")}</div>`); }
-    case "quests": return sheetWrap("依頼帳", renderQuests());
+    case "nearby": { const near=nearbyObjects(); return sheetWrap("近くを調べる", near.length? `<div class="stack">${near.map(o=>`<button class="btn" data-a="interactId" data-v="${o.id}">${esc(o.label)}</button>`).join("")}</div>` : `<p>近くに調べられるものはありません。オート移動から目的地を選べます。</p>`); }
+    case "guide": { const m=MAPS[st.mapId]; return sheetWrap("オート移動", `<p class="small">選ぶと、その場所まで実際に歩きます（途中の遭遇エリアでは抽選があります）。</p><div class="stack">${m.objects.filter(o=>o.type!=="tower").map(o=>{ const a=o.area?AREAS[o.area]:null; return `<button class="btn" data-a="guideTo" data-v="${o.id}">${esc(o.label)}${a?`（推奨レベル${a.q}）`:""}</button>`; }).join("")}</div>`); }
+    case "quests": return sheetWrap("やる事", renderQuests());
     case "map": return sheetWrap("全国の旅の地図", renderWorld());
     case "travel": return sheetWrap("街外の道", "<p>街間の徒歩移動は街外MAPの道を進みます。街の出口から出発してください。</p>");
     case "rail": return sheetWrap("新幹線駅",renderRail());
@@ -842,7 +836,7 @@ function renderSettings(){
     <button class="btn ${s.reduceMotion?"on":""}" data-a="setOpt" data-k="reduceMotion" data-v="${!s.reduceMotion}">${s.reduceMotion?"▶ 演出を減らす：ON":"演出を減らす：OFF"}</button>
     <button class="btn ${s.dock!==false?"on":""}" data-a="setOpt" data-k="dock" data-v="${s.dock===false}">${s.dock!==false?"▶ ジョイコントローラーを表示：ON":"ジョイコントローラーを表示：OFF（タップ操作のみ）"}</button></div>
     <h3 class="label">ジョイコントローラーの配置</h3>
-    <div class="row3 padside">${[["right","スティック右・A/B左（標準）"],["left","スティック左・A/B右"]].map(([k,n])=>`<button class="btn ${padSide()===k?"on":""}" data-a="setPad" data-v="${k}" aria-pressed="${padSide()===k}">${padSide()===k?"▶ ":""}${n}</button>`).join("")}</div>
+    <p class="small">操作：左の戻るボタン／右のスティック中央で決定</p>
     <p class="small">ジョイコントローラー：探索ではスティックで歩き、決定で近くを調べます。メニュー・戦闘・会話ではスティックでカーソル（▶）を動かし、決定で選び、戻るで閉じます。Bluetoothのゲームコントローラー（Joy-Conなど）にも対応しています。</p>
     ${st?`<h3 class="label">保存</h3><p class="small">行動を確定するたびに、この端末のブラウザ内へ自動保存しています（直近2世代）。状態：${esc(G.saveStatus)}</p>
     <p class="small">端末の変更やブラウザのデータ削除の前に、下の「バックアップを表示」で文字列をコピーし、メモ帳などへ保管してください。</p>
@@ -1359,8 +1353,6 @@ const ACT = {
   doRetreat(){ const st=G.st; const run=st.run; storeVitals(st,run); if(run.bag) st.bag=clone(run.bag); st.run=null; st.mapId=run.returnPos.map; st.pos={x:run.returnPos.x,y:run.returnPos.y}; G.sheet=null; commit(); G.screen="explore"; exploreBgm(); render(); toast("撤退した。"); },
   pauseBattle(){ commit(); openSheet("pause"); },
   setOpt(el){ if(G.sheet!=="settings"||G.dlg||G.st?.run||G.walk.path.length)return;const k=el.dataset.k;let v=el.dataset.v;if(!["difficulty","reduceMotion","follow","dock"].includes(k))return;if(k==="difficulty"){if(!Object.hasOwn(DIFFICULTY,v))return;}else{if(!["true","false"].includes(v))return;v=v==="true";}const s=G.st?G.st.settings:(G.tmpSettings=G.tmpSettings||{difficulty:"std",sound:soundPref(),reduceMotion:false});s[k]=v;if(G.st)commit();render(); },
-  setPad(el){ const v=el.dataset.v==="left"?"left":"right"; if(G.st){ G.st.settings.padSide=v; commit(); } else { G.tmpSettings=G.tmpSettings||{difficulty:"std",sound:soundPref(),reduceMotion:false}; G.tmpSettings.padSide=v; }
-    try{ localStorage.setItem("tlr-kyushu-pad",v); }catch(e){} render(); toast(v==="right"?"スティックを右、A・Bボタンを左にしました。":"スティックを左、A・Bボタンを右にしました。"); },
   toggleSound(){ const want=!soundIsOn(); const on=SND.setOn(want); G.soundWant=want; try{ localStorage.setItem("tlr-kyushu-sound", want?"1":"0"); }catch(e){}
     if(G.st){ G.st.settings.sound=want; commit(); } if(G.tmpSettings) G.tmpSettings.sound=want;
     if(want&&!on) toast("この端末では音を出せませんでした。消音で続けます。"); render(); },
@@ -1414,7 +1406,7 @@ function validateState(s){
   if(s.pendingGifts!==undefined&&(!Array.isArray(s.pendingGifts)||s.pendingGifts.some(id=>!EQUIP[id])||new Set(s.pendingGifts).size!==s.pendingGifts.length)) throw new Error("bad pending gifts");
   for(const c of s.party) if(!JOBS[s.jobs[c]]) throw new Error("bad job");
 }
-function padSide(){ const s=G.st?G.st.settings:G.tmpSettings; if(s&&(s.padSide==="left"||s.padSide==="right")) return s.padSide; try{ const v=localStorage.getItem("tlr-kyushu-pad"); if(v==="left"||v==="right") return v; }catch(e){} return "right"; }
+function padSide(){ return "right"; }
 function soundIsOn(){ if(G.soundWant!=null) return G.soundWant; if(G.st&&G.st.settings) return G.st.settings.sound!==false; return soundPref(); }
 function soundPref(){ try{ return localStorage.getItem("tlr-kyushu-sound")!=="0"; }catch(e){ return true; } }
 function supportAvailable(st,id){

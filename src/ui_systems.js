@@ -52,7 +52,7 @@ Object.assign(ACT,{
   async startGame(el){
     const n=G.newGame;if(G.screen!=="new"||n.step!==3||n.composing||G.starting)return;const error=validateSetup(n);if(error)return toast(error);
     G.starting=true;el.disabled=true;const previous=G.st,previousStatus=G.saveStatus;
-    try{G.st=newGame(validateName(n.name).value,n.gender,{careerId:n.careerId,heroine:{name:validateName(n.heroine.name).value,gender:n.heroine.gender}});Object.assign(G.st.settings,G.tmpSettings||{});G.st.settings.sound=soundIsOn();G.st.settings.padSide=padSide();G.st.settings.listenerComments=true;applySoundSettings(G.st.settings);const saved=await commit();if(saved===false){G.st=previous;setSave(previousStatus);toast("保存できませんでした。前の冒険を保持しています。");return;}G.hasSave=true;G.screen="explore";G.sheet=null;G.dlg=null;G.walk={path:[],prog:0,pending:null};G.walkPlan=null;G.sheetHistory=[];exploreBgm();render();playScene("HS00");}catch(e){G.st=previous;toast("開始できませんでした。設定を確認してください。");}finally{G.starting=false;}
+    try{G.st=newGame(validateName(n.name).value,n.gender,{careerId:n.careerId,heroine:{name:validateName(n.heroine.name).value,gender:n.heroine.gender}});await seedSaveGeneration(G.st,previous);Object.assign(G.st.settings,G.tmpSettings||{});G.st.settings.sound=soundIsOn();G.st.settings.padSide=padSide();G.st.settings.listenerComments=true;applySoundSettings(G.st.settings);const saved=await commit();if(saved===false){G.st=previous;setSave(previousStatus);toast("保存できませんでした。前の冒険を保持しています。");return;}G.hasSave=true;G.screen="explore";G.sheet=null;G.dlg=null;G.walk={path:[],prog:0,pending:null};G.walkPlan=null;G.sheetHistory=[];exploreBgm();render();playScene("HS00");}catch(e){G.st=previous;toast("開始できませんでした。設定を確認してください。");}finally{G.starting=false;}
   }
 });
 

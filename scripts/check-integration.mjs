@@ -38,7 +38,7 @@ await test('three-stage setup, IME, same names, drafts and atomic save rollback'
   elements.delete('#nameInput');g.ACT.newBack();assert.equal(g.G.newGame.step,2);assert.equal(g.G.newGame.heroine.name,'相棒さん');
   elements.set('#nameInput',element('nameInput','相棒さん'));g.ACT.newNext();elements.delete('#nameInput');assert.equal(g.G.newGame.step,3);
   g.setCommit(()=>Promise.resolve(false));await g.ACT.startGame(element());assert.equal(g.G.st,prior);assert.equal(prior.gold,321);assert.equal(g.G.screen,'new');assert.equal(g.G.starting,false);
-  let resolveSave;g.setCommit(()=>new Promise(r=>resolveSave=r));const start=g.ACT.startGame(element());const created=g.G.st;assert(g.G.starting);await g.ACT.startGame(element());assert.equal(g.G.st,created,'double start refused');resolveSave(true);await start;assert.equal(g.G.screen,'explore');assert.equal(g.G.st.profile.careerId,'CR02');assert.equal(g.charName(g.G.st,'moe'),'相棒さん');closeDialogs();
+  let resolveSave,savingStarted;const reachedSave=new Promise(r=>savingStarted=r);g.setCommit(()=>{savingStarted();return new Promise(r=>resolveSave=r);});const start=g.ACT.startGame(element());const created=g.G.st;assert(g.G.starting);await g.ACT.startGame(element());assert.equal(g.G.st,created,'double start refused');await reachedSave;resolveSave(true);await start;assert.equal(g.G.screen,'explore');assert.equal(g.G.st.profile.careerId,'CR02');assert.equal(g.charName(g.G.st,'moe'),'相棒さん');closeDialogs();
   const stable=g.G.st;await g.ACT.startGame(element());assert.equal(g.G.st,stable,'stale start refused');g.setCommit(()=>Promise.resolve(true));
 });
 await test('custom partner name fully replaces fixed biography and profile names',()=>{

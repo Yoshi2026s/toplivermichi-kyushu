@@ -38,6 +38,9 @@ jobs:
         with:
           name: mobile-emulation
           path: |
+            .task/battle-initial-*.png
+            .task/battle-boss-*.png
+            .task/battle-viewport-layout.json
             .task/battle-readability-*.png
             .task/result-readability-*.png
             .task/mobile/reports/latest.json

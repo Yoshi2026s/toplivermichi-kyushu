@@ -16,7 +16,8 @@ assert(gait.pose(40,91,0,1)[1]<gait.pose(24,91,0,1)[1],'one foot is lifted');
 assert(gait.pose(24,91,0,5)[1]<gait.pose(40,91,0,5)[1],'the next half-cycle lifts the other foot');
 assert(gait.pose(16,48,2,3)[0]>16&&gait.pose(48,48,2,3)[0]<48,'arms counter-swing');
 let code=read('src/character_art.js')+'\n'+read('src/semireal_frames.js')+'\n'+walkSource+'\n'+read('src/semireal_art.js');
-for(const side of ['front','back','side'])code=code.replaceAll('__PARTY_'+side.toUpperCase()+'_DATA_URI__','data:image/webp;base64,'+readFileSync(new URL('../assets/semireal/party-'+side+'.webp',import.meta.url)).toString('base64'));
+for(const side of ['front','back','side','down'])code=code.replaceAll('__PARTY_'+side.toUpperCase()+'_DATA_URI__','data:image/webp;base64,'+readFileSync(new URL('../assets/semireal/party-'+side+'.webp',import.meta.url)).toString('base64'));
+code=code.replaceAll('__NPC_FRONT_DATA_URI__','data:image/webp;base64,'+readFileSync(new URL('../assets/semireal/npc-front.webp',import.meta.url)).toString('base64'));
 const pending=[];class AtlasImage extends Image{set src(value){pending.push(new Promise((resolve,reject)=>{this.onload=resolve;this.onerror=reject;super.src=value;}));}}
 const api=runInNewContext(code+'\n({ART,SEMIREAL_ART})',{Image:AtlasImage,document:{createElement:()=>createCanvas(1,1),querySelector:()=>null},ART:{person:()=>createCanvas(64,96)}});
 await Promise.all(pending);

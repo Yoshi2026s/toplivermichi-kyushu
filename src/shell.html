@@ -486,25 +486,32 @@ h1,h2,h3{line-height:1.45}b,strong{font-weight:750}
 .mapwrap{background:#29423c;box-shadow:inset 0 0 28px #0c233c55}
 @media(max-height:700px){.pcard{min-height:60px;padding-left:46px}.party-portrait{width:40px;height:54px}}
 @media(max-width:300px){.pcard{padding-left:34px;min-height:64px}.party-portrait{width:29px;height:48px}.pcard .pstat{font-size:12px}}
-/* Readable battle layout: content flows above the controller, with no clipped actions. */
-.battle{height:auto;min-height:calc(100dvh - var(--dockH) - 24px);overflow:visible;gap:8px;line-height:1.45}
-.battle>*{flex-shrink:0}.battle .win.cmd{flex:none;overflow:visible;padding:9px;gap:8px}
-.battle .cmdgrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
-.battle .cmdgrid .btn,.battle .chip{min-height:48px;line-height:1.3}
-.battle .confirmrow{grid-template-columns:1fr 1fr;gap:6px}
-.battle .confirmrow .preview{grid-column:1/-1;font-size:13px;line-height:1.5}
-.battle .confirmrow .btn{width:100%;min-width:0}
-.battle .enemies{min-height:140px}.battle .ecard{background:#0b1b2870}
-.battle .ename,.battle .estat{background:#091724df;padding:3px 5px;text-shadow:none;border-radius:4px}
-.battle .ename{font-size:14px}.battle .rar{font-size:12px}.battle .bar{height:9px}
-.battle .pcard{min-height:92px;padding:7px 6px 7px 48px;gap:5px}
-.battle .party-portrait{width:40px;height:62px;opacity:.85}
-.battle .pline{display:block}.battle .pline b{display:block;white-space:normal;overflow-wrap:anywhere;font-size:13px;line-height:1.35}
-.battle .pjob{display:none}.battle .pbadges{min-height:16px;gap:3px}.battle .pst{font-size:12px;line-height:1.4;border-radius:3px}
-.battle .pstat{white-space:normal;overflow:visible;font-size:12px;line-height:1.4}
-.battle .pcard.done{opacity:.85}.battle .pcard.low{background:#40252b;border-color:#eb9195}
-.battle .autopanel p{margin:0}.battle .autolast{font-size:14px;overflow-wrap:anywhere}
-.battle .log{min-height:64px;line-height:1.5}.battle .log-entry{min-height:32px;padding:4px}
+/* Compact battle: health and primary actions share the first portrait viewport. */
+body.in-battle:not(.no-dock){--dockH:64px}
+body.in-battle .dock{height:var(--dockH)}body.in-battle .stick{width:60px;height:60px}body.in-battle .stick .knob{width:54px;height:54px;margin:-27px 0 0 -27px}body.in-battle .stick .ring{inset:4px}
+body.in-battle .dock-back{min-height:48px;padding:4px 12px}
+.battle{height:auto;min-height:calc(100dvh - var(--dockH) - 18px);overflow:visible;gap:5px;font-size:13px;line-height:1.3}
+.battle>*{flex-shrink:0}.battle .bhead{font-size:12px;line-height:1.3;gap:2px;padding:3px 5px}.battle .gauge{font-size:12px;gap:5px}.battle .bar.ale{height:8px}
+.battle .cue,.battle .cue.on{font-size:12px;line-height:1.3;padding:3px 5px}
+.battle .enemies{min-height:88px;padding:4px;gap:5px;grid-template-columns:repeat(auto-fit,minmax(0,1fr))}
+.battle .ecard,.battle .ecard.isboss{display:grid;grid-template-columns:44px minmax(0,1fr);gap:4px;padding:4px;border:0;border-radius:5px;background:#091724c9;align-content:center;align-items:center;text-shadow:none}
+.battle .ecard .esprite,.battle .ecard.isboss .esprite{grid-row:1;grid-column:1;width:44px;height:54px;align-self:center;object-fit:contain}
+.battle .ecard .einfo{display:flex;flex-direction:column;gap:3px;min-width:0;grid-row:1;grid-column:2}
+.battle .ename{font-size:13px;line-height:1.25;text-align:left;overflow-wrap:anywhere}.battle .rar{font-size:12px}.battle .estat{font-size:12px;line-height:1.3;overflow-wrap:anywhere}.battle .ecard .bar{height:7px}
+.battle .party{gap:5px}.battle .pcard{min-height:64px;padding:4px 4px 4px 33px;gap:2px;border-width:1px}
+.battle .party-portrait{width:27px;height:43px;left:3px;bottom:4px;opacity:.9}
+.battle .pline{display:block}.battle .pline b{display:block;white-space:normal;overflow-wrap:anywhere;font-size:13px;line-height:1.25}.battle .pjob{display:none}
+.battle .pbadges{min-height:0;gap:2px;line-height:1.2}.battle .pbadges:empty{display:none}.battle .pst{font-size:12px;line-height:1.2;border:0;padding:0 2px;color:#ffe0a5}
+.battle .pstat{white-space:normal;overflow:visible;font-size:12px;line-height:1.3}.battle .pcard .bar{height:6px}.battle .pcard.done{opacity:.85}.battle .pcard.low{background:#40252b;border-color:#eb9195}
+.battle .win.cmd{flex:none;overflow:visible;padding:5px;gap:4px;border-width:1px}
+.battle .cmdgrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+.battle .cmdgrid .btn,.battle .chip{min-height:48px;line-height:1.2;font-size:13px;padding:3px 4px}
+.battle .chips{gap:4px}.battle .chiplabel{font-size:12px}.battle .confirmrow{grid-template-columns:1fr 1fr;gap:4px;margin-top:0}
+.battle .confirmrow .preview{grid-column:1/-1;font-size:12px;line-height:1.3}.battle .preview .pv,.battle .preview .warn{font-size:12px}
+.battle .confirmrow .btn{width:100%;min-width:0;min-height:48px;font-size:14px;padding:4px}
+.battle .autopanel p{margin:0;font-size:13px;line-height:1.35}.battle .autopanel .autotitle{font-size:16px}.battle .autolast{overflow-wrap:anywhere}
+.battle .log{min-height:48px;line-height:1.4}.battle .log-entry{min-height:32px;padding:4px}
+@media(max-width:330px){.battle .cmdgrid{grid-template-columns:repeat(3,minmax(0,1fr))}.battle .pcard{padding-left:4px}.battle .party-portrait{display:none}.battle .ecard,.battle .ecard.isboss{grid-template-columns:28px minmax(0,1fr)}.battle .ecard .esprite,.battle .ecard.isboss .esprite{width:28px}}
 /* A single quiet comment in normal flow never covers an enemy, reward or command. */
 body .listener-comments,body.in-explore .listener-comments{position:static;width:auto;max-height:none;margin:0;overflow:visible;pointer-events:none;gap:0;order:20}
 body .listener-comment{box-shadow:none;border:0;border-left:2px solid #71968e;background:#152935;padding:5px 8px;font-size:12px;line-height:1.5;border-radius:3px;animation:none}

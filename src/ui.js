@@ -182,7 +182,7 @@ function renderStatus(){
   const st=G.st; const L=levelOf(st.xp,st);
   const head=`<dl class="kv"><dt>共通レベル</dt><dd>${L}／上限${levelLimit(st)}</dd><dt>経験値</dt><dd>${st.xp.toLocaleString()}${L<levelLimit(st)?`（次のレベルまで ${Math.max(0,xpFor(L+1)-st.xp).toLocaleString()}）`:"（現在の上限）"}</dd>
     <dt>所持ゴールド</dt><dd>${st.gold.toLocaleString()}</dd><dt>ヒロインの到達ランク</dt><dd>${MOE_RANKS[st.moeRank]}</dd></dl>
-    <p class="small">本編進行の上限は${chapterCap(st)}。全国への訪問だけでは解放されません。以前の到達済みレベル・熟練度と記録は維持します。総合レベルは共通、熟練度は戦闘参加者別です。</p><p class="small">体力とMPは戦闘後も持ち越します。宿屋に泊まると全員が全回復します。</p>`;
+    <p class="small">本編を進めるとレベル上限が解放されます。レベルは共通、職業の熟練度は仲間ごとに成長します。</p><p class="small">体力とMPは戦闘後も持ち越します。宿屋に泊まると全員が全回復します。</p>`;
   const cards=st.roster.map(cid=>{
     const s=charStats(st,cid,L), v=vitalOf(cid), e=st.equip[cid], jp=jpOf(st,cid,s.job), C=CHARS[cid];
     const inParty=st.party.includes(cid);
@@ -1248,7 +1248,7 @@ const ACT = {
   },
   async continue(){ const s=await loadSave(); if(!s) return toast("記録が見つかりません。"); const hadStream=!!s.state.stream||Object.values(s.state.quests||{}).includes("combatDone"),oldPos=s.state.pos&&{x:s.state.pos.x,y:s.state.pos.y}; G.st=migrate(s.state); if(typeof applySoundSettings==="function")applySoundSettings(G.st.settings); G.walk={path:[],prog:0,pending:null};G.walkPlan=null;G.sheetHistory=[]; G.dlg=null; G.sheet=null; G.cmd={}; G.auto=false;clearTimeout(G.autoT); G.soundWant=null; setSave(s.fromPrev?"前の記録から復旧":s.storage==="local"?"保存済み":"保存済み"); if(G.st.settings.sound===false&&SND.on) SND.setOn(false); else if(G.st.settings.sound!==false&&!SND.on) SND.setOn(true);
     if(G.st.run){ G.screen="battle"; SND.play(G.st.run.kind==="boss"?"boss":"battle"); } else { G.screen="explore"; exploreBgm(); }
-    render(); const notices=[]; if(s.fromPrev) notices.push("前の記録から再開しました。設定からバックアップを確認できます。"); if(hadStream&&!G.st.stream) notices.push("配信イベントの廃止に伴い、討伐済みの依頼を完了しました。報酬と進行は引き継いでいます。"); if(!oldPos||oldPos.x!==G.st.pos.x||oldPos.y!==G.st.pos.y) notices.push("保存位置を現在の地形に合わせて拠点の安全地帯へ戻しました。"); if(notices.length) toast(notices.join(" ")); },
+    render(); const notices=[]; if(s.fromPrev) notices.push("前の記録から再開しました。設定からバックアップを確認できます。"); if(hadStream&&!G.st.stream) notices.push("討伐済みの依頼を完了しました。報酬を受け取っています。"); if(!oldPos||oldPos.x!==G.st.pos.x||oldPos.y!==G.st.pos.y) notices.push("保存位置を現在の地形に合わせて拠点の安全地帯へ戻しました。"); if(notices.length) toast(notices.join(" ")); },
   toTitle(){ G.sheet=null; G.screen="title"; G.dlg=null; SND.play("title"); render(); },
   openSheet(el){ openSheet(el.dataset.k); }, closeSheet(){ closeSheet(); },
   badgeFilter(){ if(G.sheet!=="record") return; G.sheetData.badgeOnlyUnowned=!G.sheetData.badgeOnlyUnowned; render(); },

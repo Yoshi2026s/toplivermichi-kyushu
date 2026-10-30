@@ -1500,7 +1500,7 @@ async function boot(){
   if(hot&&hot.snapshot) hot.snapshot(()=>({st:G.st, screen:G.screen}));
   const data = hot&&hot.data;
   if(data&&data.st){ G.st=migrate(data.st); G.screen=["new","stream"].includes(data.screen)?"explore":data.screen; G.hasSave=true; }
-  render(); if(G.screen==="title") drawTitleArt();
+  render();
 }
 
 

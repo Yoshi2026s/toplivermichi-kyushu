@@ -20,3 +20,22 @@ assert.equal(g.createListenerBatch(st,'__proto__').length,0);assert.equal(g.crea
 assert.equal(Object.keys(g.SUPPORTS).length,47);assert.equal(Object.keys(g.SUPPORT_REQUIREMENTS).length,47);assert.equal(g.SUPPORTS.PR06.kiraBonus,5);
 for(const [hub,H]of Object.entries(g.HUBS)){assert(g.MAPS[hub].objects.some(o=>o.type==='jobcenter'));assert(!g.MAPS[hub].objects.some(o=>o.type==='boss'));}
 console.log('Listeners: 352 contextual texts, 512+77 names, 1–5 timed bubbles, 650–1000ms spacing, 5sec lifetime, 12text/24name deduplication, independent save histories; 47 regional supports and 51 jobcenters passed');
+
+const events={},timers=new Map();let box=null,now=0,seq=0;
+const document={hidden:false,addEventListener(name,fn){events[name]=fn;},
+  getElementById(){return box;},createElement(){return {setAttribute(){},innerHTML:'',remove(){box=null;}};},
+  body:{appendChild(node){box=node;}}};
+const G={st:g.newGame('再表示検査','女性'),screen:'explore',sheet:null,dlg:null,readOnly:false};
+G.st.settings.listenerComments=true;
+const display=runInNewContext(files.map(read).join('\n')+'\n({observeListenerScene})',{
+  G,document,performance:{now:()=>now},esc:s=>String(s),
+  setTimeout(fn){timers.set(++seq,fn);return seq;},clearTimeout:id=>timers.delete(id)
+});
+display.observeListenerScene();assert(box?.innerHTML);assert(timers.size>0);
+document.hidden=true;events.visibilitychange?.();
+assert.equal(box,null,'hiding the tab removes displayed comments');assert.equal(timers.size,0);
+now=20000;document.hidden=false;events.visibilitychange?.();
+assert(box?.innerHTML,'returning to the tab refreshes comments');assert(timers.size>0);
+G.st.settings.listenerComments=false;document.hidden=true;events.visibilitychange?.();
+document.hidden=false;events.visibilitychange?.();assert.equal(box,null);assert.equal(timers.size,0);
+console.log('Listener visibility cleanup, fresh return and saved-off preference passed');

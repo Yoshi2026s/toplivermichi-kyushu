@@ -3907,6 +3907,9 @@ function observeListenerScene(){
   LISTENER_RUNTIME.last={seq:run?.seq,turn:run?.turn,hp,enemyHP,critical:!!run?.actionFlags?.critical,evaded:!!run?.actionFlags?.evaded,critCount:run?.actionFlags?.critCount||0,evadeCount:run?.actionFlags?.evadeCount||0};
   updateListenerDisplay();
 }
+if(typeof document!=="undefined")document.addEventListener?.("visibilitychange",()=>{
+  if(document.hidden)clearListenerComments();else observeListenerScene();
+});
 
 /* ===== platform: 保存（IndexedDB＋世代）と排他 ===== */
 const DB = (()=>{

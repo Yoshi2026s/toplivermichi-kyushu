@@ -131,7 +131,9 @@ const PAD = (()=>{
   /* ---- キーボード（パソコンでの確認用） ---- */
   const KEYS={ArrowDown:0,ArrowUp:1,ArrowLeft:2,ArrowRight:3,s:0,w:1,a:2,d:3};
   document.addEventListener("keydown",e=>{
-    const t=e.target; if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA")) return;
+    const t=e.target;
+    if(e.isComposing||e.ctrlKey||e.metaKey||e.altKey) return;
+    if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.tagName==="SELECT"||t.isContentEditable)) return;
     if(KEYS[e.key]!=null){ e.preventDefault(); if(!e.repeat) setDir(KEYS[e.key],"key"); return; }
     if(e.key==="Enter"||e.key===" "||e.key==="z"){ e.preventDefault(); if(!e.repeat) pressA(); }
     if(e.key==="Escape"||e.key==="x"||e.key==="Backspace"){ e.preventDefault(); if(!e.repeat) pressB(); }

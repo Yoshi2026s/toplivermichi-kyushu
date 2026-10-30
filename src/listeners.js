@@ -30,9 +30,9 @@ function updateListenerDisplay(){
   if(LISTENER_RUNTIME.timer)clearTimeout(LISTENER_RUNTIME.timer);
   LISTENER_RUNTIME.timer=null;
   if(!G.st||G.sheet||G.dlg||document.hidden||!G.st.settings.listenerComments||!["battle","result","explore"].includes(G.screen))return;
-  const now=performance.now(),visible=visibleListenerComments(LISTENER_RUNTIME.batch,now);
+  const now=performance.now(),visible=visibleListenerComments(LISTENER_RUNTIME.batch,now).slice(-1);
   let box=document.getElementById("listenerComments");
-  if(!box){box=document.createElement("aside");box.id="listenerComments";box.className="listener-comments";box.setAttribute("aria-live","polite");box.setAttribute("aria-label","リスナーの応援");document.body.appendChild(box);}
+  if(!box){box=document.createElement("aside");box.id="listenerComments";box.className="listener-comments";box.setAttribute("aria-live","polite");box.setAttribute("aria-label","リスナーの応援");(document.querySelector?.(".battle,.result,.explore")||document.body).appendChild(box);}
   box.innerHTML=visible.map(c=>`<div class="listener-comment"><span>${esc(c.name)}</span><p>${esc(c.text)}</p></div>`).join("");
   const next=LISTENER_RUNTIME.batch.flatMap(c=>[c.start,c.end]).filter(t=>t>now).sort((a,b)=>a-b)[0];
   if(next!==undefined)LISTENER_RUNTIME.timer=setTimeout(updateListenerDisplay,Math.max(20,next-now+5));

@@ -25,7 +25,7 @@ renderCommand=function(run){
   html=html.replace(`MP${JOBS[actor.job].cost}・`,`MP${Math.max(0,JOBS[actor.job].cost-(actor.trait?.mpDiscount||0))}・`);
   if(actor.trait?.meterDiscount)html=html.replace("エール80・",`エール${80-actor.trait.meterDiscount}・`);
   const ready=availableBattleSkills(run,actor).length;
-  return html+`<button class="btn wide" data-a="expandedSkillsOpen" ${ready&&!G.readOnly?"":"disabled"}>追加技・継承技・固有必殺技（${ready}件）</button><p class="small">会心・回避の結果は確定時に抽選します。技の再使用待ちは技一覧で確認できます。</p>`;
+  return html+(ready?`<button class="btn wide" data-a="expandedSkillsOpen" ${G.readOnly?"disabled":""}>追加技・継承技・固有必殺技（${ready}件）</button>`:"");
 };
 function characterCanUseFacility(){return !!G.st&&!G.readOnly&&G.screen==="explore"&&!G.dlg&&!G.st.run&&!G.walk.path.length&&isSafe()&&nearbyObjects().some(o=>o.type==="jobcenter");}
 function characterCanManage(){return characterCanUseFacility()&&["jobcenter","jobCenter"].includes(G.sheet)&&!G.characterSaving;}

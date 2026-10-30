@@ -482,7 +482,7 @@ function partyCard(m,i,run){
   const ko=m.hp<=0;
   const badges=[ko?"戦闘不能":isLow(m.hp,m.maxHP)?"体力わずか":"",m.acted?"行動済":"", m.ward?`防護${m.ward}`:"", m.guard?"ガード中":""].filter(Boolean);
   return `<button class="pcard ${sel?"on":""} ${ko?"ko":""} ${isLow(m.hp,m.maxHP)?"low":""} ${m.acted?"done":""}" data-a="pickActor" data-i="${i}" ${ko||m.acted||run.state!=="input"?"aria-disabled=\"true\"":""}>
-    <canvas class="party-portrait" data-char="${m.cid}" width="128" height="160" aria-hidden="true"></canvas><span class="pline"><b>${sel?"▶":""}${esc(m.name)}</b><span class="pjob">${esc(JOBS[m.job].name)} 熟練度${m.R}</span>${badges.map(t=>`<span class="pst">${t}</span>`).join("")}</span>
+    <canvas class="party-portrait" data-char="${m.cid}" width="128" height="160" aria-hidden="true"></canvas><span class="pline"><b>${sel?"▶":""}${esc(m.name)}</b><span class="pjob">${esc(JOBS[m.job].name)} 熟練度${m.R}</span></span><span class="pbadges">${badges.map(t=>`<span class="pst">${t}</span>`).join("")}</span>
     <span class="bar"><i style="width:${pct}%"></i></span>
     <span class="pstat">体力<b>${m.hp}</b>/${m.maxHP} MP<b>${m.c}</b></span>
   </button>`;
@@ -515,9 +515,10 @@ function renderBattle(){
     <div class="enemies" data-terrain="${esc(MAPS[st.mapId]?.terrain||"plain")}"><canvas class="stagebg" width="160" height="64" aria-hidden="true"></canvas>${enemies}</div>
     <div class="party">${run.party.map((m,i)=>partyCard(m,i,run)).join("")}</div>
     ${renderCommand(run)}
-    <button class="btn" data-a="openSheet" data-k="battleChallenges">挑戦・戦闘バッジ</button>
+    <details class="battle-records" ${G.logExpanded?"open":""}><summary>戦闘記録・バッジ</summary><button class="btn" data-a="openSheet" data-k="battleChallenges">挑戦・戦闘バッジ</button>
     <div class="srow"><button class="btn" data-a="battleLogExpand" aria-pressed="${!!G.logExpanded}">${G.logExpanded?"ログを縮小":"ログを拡大"}</button><button class="btn" data-a="openSheet" data-k="battleLog">履歴を見る</button></div>
     <div class="log ${G.logExpanded?"expanded":""}" role="log" aria-live="polite" aria-label="直近の戦闘ログ">${battleLines.slice(G.logExpanded?-8:-3).map((l,i,a)=>`<button class="log-entry" data-a="battleLogLine" data-v="${battleLines.length-a.length+i}">${esc(l)}</button>`).join("")}</div>
+    </details>
   </section>`;
 }
 function renderBattleLog(){
@@ -536,7 +537,7 @@ function renderCommand(run){
     const al2=run.party.filter(m=>m.hp>0&&!m.acted);
     return `<div class="win cmd autopanel" aria-live="polite">
       <p class="autotitle">オート戦闘中</p>
-      <p class="small">AIが状況を見て、敵の予告・体力・MP・エールから一番よい行動を選んでいます。</p>
+      <p class="small">敵の予告と残り体力・MPに合わせて行動します。</p>
       <p class="autolast">${G.autoLast?esc(G.autoLast):"考え中…"}</p>
       <p class="small">このターンの未行動：${al2.map(m=>esc(m.name)).join("・")||"なし"}</p>
       <div class="confirmrow"><span></span><button class="btn primary stopauto" data-a="autoOff">中断</button></div></div>`;

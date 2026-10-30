@@ -486,6 +486,33 @@ h1,h2,h3{line-height:1.45}b,strong{font-weight:750}
 .mapwrap{background:#29423c;box-shadow:inset 0 0 28px #0c233c55}
 @media(max-height:700px){.pcard{min-height:60px;padding-left:46px}.party-portrait{width:40px;height:54px}}
 @media(max-width:300px){.pcard{padding-left:34px;min-height:64px}.party-portrait{width:29px;height:48px}.pcard .pstat{font-size:12px}}
+/* Readable battle layout: content flows above the controller, with no clipped actions. */
+.battle{height:auto;min-height:calc(100dvh - var(--dockH) - 24px);overflow:visible;gap:8px;line-height:1.45}
+.battle>*{flex-shrink:0}.battle .win.cmd{flex:none;overflow:visible;padding:9px;gap:8px}
+.battle .cmdgrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+.battle .cmdgrid .btn,.battle .chip{min-height:48px;line-height:1.3}
+.battle .confirmrow{grid-template-columns:1fr 1fr;gap:6px}
+.battle .confirmrow .preview{grid-column:1/-1;font-size:13px;line-height:1.5}
+.battle .confirmrow .btn{width:100%;min-width:0}
+.battle .enemies{min-height:140px}.battle .ecard{background:#0b1b2870}
+.battle .ename,.battle .estat{background:#091724df;padding:3px 5px;text-shadow:none;border-radius:4px}
+.battle .ename{font-size:14px}.battle .rar{font-size:12px}.battle .bar{height:9px}
+.battle .pcard{min-height:92px;padding:7px 6px 7px 48px;gap:5px}
+.battle .party-portrait{width:40px;height:62px;opacity:.85}
+.battle .pline{display:block}.battle .pline b{display:block;white-space:normal;overflow-wrap:anywhere;font-size:13px;line-height:1.35}
+.battle .pjob{display:none}.battle .pbadges{min-height:16px;gap:3px}.battle .pst{font-size:12px;line-height:1.4;border-radius:3px}
+.battle .pstat{white-space:normal;overflow:visible;font-size:12px;line-height:1.4}
+.battle .pcard.done{opacity:.85}.battle .pcard.low{background:#40252b;border-color:#eb9195}
+.battle .autopanel p{margin:0}.battle .autolast{font-size:14px;overflow-wrap:anywhere}
+.battle .log{min-height:64px;line-height:1.5}.battle .log-entry{min-height:32px;padding:4px}
+/* A single quiet comment in normal flow never covers an enemy, reward or command. */
+body .listener-comments,body.in-explore .listener-comments{position:static;width:auto;max-height:none;margin:0;overflow:visible;pointer-events:none;gap:0;order:20}
+body .listener-comment{box-shadow:none;border:0;border-left:2px solid #71968e;background:#152935;padding:5px 8px;font-size:12px;line-height:1.5;border-radius:3px;animation:none}
+body .listener-comment>span{font-size:12px;color:#b6c6bd}body .listener-comment p{margin:1px 0 0}
+.explore .listener-comments{display:none}
+.map-exit{min-height:48px}.result{padding-bottom:16px}
+@media(max-width:350px){.battle .cmdgrid{grid-template-columns:repeat(3,minmax(0,1fr))}.battle .pcard{padding-left:6px}.battle .party-portrait{display:none}}
+.battle-records{border:1px solid #536776;border-radius:7px;padding:0 8px}.battle-records summary{min-height:48px;display:list-item;align-content:center;cursor:pointer;font-size:14px;color:#d5dfdf}.battle-records[open]>*:not(summary){margin-bottom:8px}.battle-records>.btn{width:100%}
 </style>
 <main id="screen" aria-live="off"></main>
 <div id="dock" class="dock" aria-label="ジョイコントローラー">

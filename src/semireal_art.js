@@ -1,7 +1,7 @@
 /* Embedded painted party art. Presentation only: no saved identifiers change. */
 const SEMIREAL_ART=(()=>{
  const fallback=ART.person,cache=new Map(),images={};
- const sources={front:'__PARTY_FRONT_DATA_URI__',back:'__PARTY_BACK_DATA_URI__'};
+ const sources={front:'__PARTY_FRONT_DATA_URI__',back:'__PARTY_BACK_DATA_URI__',side:'__PARTY_SIDE_DATA_URI__'};
  const indices={naoki:4,kohei:5,mio:6,kayo:7,tsumugi:8,makoto:9,gaku:10};
  function index(id,opt={}){
   if(id==='hero'||id==='hero-preview')return opt.long?1:0;
@@ -10,7 +10,7 @@ const SEMIREAL_ART=(()=>{
  }
  function ready(side){return !!images[side]?.complete&&images[side].naturalWidth>0;}
  function person(id,hair,coat,dir=0,frame=0,opt={}){
-  const i=index(id,opt),side=dir===1?'back':'front';
+  const i=index(id,opt),side=dir===1?'back':dir>1?'side':'front';
   if(i===null||!ready(side))return fallback(id,hair,coat,dir,frame,opt);
   const walkFrame=frame>0?1+(Math.floor(frame)-1)%8:0;
   const key=[i,dir,walkFrame].join('|');if(cache.has(key))return cache.get(key);
@@ -19,7 +19,7 @@ const SEMIREAL_ART=(()=>{
   g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
   if(dir===3&&!walkFrame){g.translate(64,0);g.scale(-1,1);}
   // Preserve natural proportions and the original foot anchor / collision grid.
-  const dh=88,dw=w/h*dh*(dir>1?.88:1);
+  const dh=88,dw=w/h*dh;
   g.drawImage(images[side],x,y,w,h,(64-dw)/2,93-dh,dw,dh);
   const result=WALK_ART.render(c,dir,walkFrame);
   cache.set(key,result);if(cache.size>192)cache.delete(cache.keys().next().value);return result;
@@ -38,7 +38,7 @@ const SEMIREAL_ART=(()=>{
   const c=document.querySelector('#heroPrev');
   if(c&&G.screen==='new'&&G.newGame){const n=G.newGame,p=n.step===2,gender=p?n.heroine?.gender:n.gender;if(gender)portrait(c,p?'moe':'hero',gender,true);}
  }
- if(typeof Image!=='undefined')for(const side of ['front','back']){
+ if(typeof Image!=='undefined')for(const side of ['front','back','side']){
   const img=new Image();images[side]=img;img.onload=refresh;img.src=sources[side];
  }
  ART.person=person;

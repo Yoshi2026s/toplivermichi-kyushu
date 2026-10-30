@@ -13,9 +13,9 @@ renderSheet=function(){
 const characterBaseRenderStatus=renderStatus;
 renderStatus=function(){
   const st=G.st,L=levelOf(st.xp,st);
-  return characterBaseRenderStatus()+`<h3 class="label">5つの能力と現在の職業特性</h3><div class="stack">${st.roster.map(cid=>{
+  return characterBaseRenderStatus()+`<details class="status-details"><summary>5つの能力と職業特性</summary><div class="stack">${st.roster.map(cid=>{
     const s=charStats(st,cid,L);return `<section class="qcard"><b>${esc(charName(st,cid))}</b><dl class="kv">${Object.entries(ABILITY_NAMES).map(([id,name])=>`<dt>${name}</dt><dd>${s[id]||0}</dd>`).join("")}<dt>攻撃力</dt><dd>${s.attackPower||0}</dd><dt>防御力</dt><dd>${s.defensePower||0}</dd><dt>会心率</dt><dd>${Math.round((s.criticalRate||0)*1000)/10}%</dd><dt>回避率</dt><dd>${Math.round((s.evasionRate||0)*1000)/10}%</dd></dl><p class="small">${esc(JOB_TRAITS[s.job].name)}：${esc(JOB_TRAITS[s.job].text)}</p><button class="btn" data-a="characterSkills" data-c="${cid}">習得技と条件</button></section>`;
-  }).join("")}</div>`;
+  }).join("")}</div></details>`;
 };
 const characterBaseRenderCommand=renderCommand;
 renderCommand=function(run){

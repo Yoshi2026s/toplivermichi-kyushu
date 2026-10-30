@@ -10,7 +10,7 @@ for(const match of readFileSync(resolve(root,'README.md'),'utf8').matchAll(/\[[^
  const target=match[1];if(!/^(?:https?:|#)/.test(target))assert(existsSync(resolve(root,target.split('#')[0])),'README link is missing: '+target);
 }
 const manifest=JSON.parse(readFileSync(resolve(root,'release-manifest.json'),'utf8'));
-assert.equal(Object.keys(manifest.assets).filter(n=>n.endsWith('.webp')).length,10,'title, four terrain backgrounds, four party atlases and the NPC atlas are tracked');
+assert.equal(Object.keys(manifest.assets).filter(n=>n.endsWith('.webp')).length,4,'four terrain backgrounds; title and polygon characters use geometry');
 assert.equal(Object.keys(manifest.assets).filter(n=>n.endsWith('.woff2')).length,2,'both Japanese fonts are tracked');
 for(const name of Object.keys(manifest.assets)){
  const bytes=readFileSync(resolve(root,name));if(name.endsWith('.webp')){assert.equal(bytes.subarray(0,4).toString(),'RIFF');assert.equal(bytes.subarray(8,12).toString(),'WEBP');}else assert.equal(bytes.subarray(0,4).toString(),'wOF2');

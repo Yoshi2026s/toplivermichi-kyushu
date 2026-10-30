@@ -1,12 +1,12 @@
 {
   "version": "5.34",
-  "generatedAtUTC": "2026-10-30T09:52:19.761Z",
+  "generatedAtUTC": "2026-10-30T10:05:50.601Z",
   "checks": [
     {
       "name": "check-art-cache.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 738,
+      "durationMs": 611,
       "stdout": "Map cache retains recent frames, evicts old layers and regenerates identical pixels",
       "stderr": ""
     },
@@ -14,7 +14,7 @@
       "name": "check-audio-channels.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 218,
+      "durationMs": 172,
       "stdout": "Audio channels: 17 scene/sea tracks, alternating melody, independent saved volume levels, zero music with effects enabled, 96-source ceiling, mute/suspend cleanup, idempotent resume and blocked-resume handling passed",
       "stderr": ""
     },
@@ -22,7 +22,7 @@
       "name": "check-audio-duck.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 151,
+      "durationMs": 108,
       "stdout": "Audio: short duck, overlapping effects, stop reset, mute/unmute gain OK\nAudio: repeated settings and jingle cancellation OK\nAudio: visibility resume is idempotent OK",
       "stderr": ""
     },
@@ -30,7 +30,7 @@
       "name": "check-auto-items.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 161,
+      "durationMs": 138,
       "stdout": "Auto items: thresholds, purchasable recovery and immutable search OK",
       "stderr": ""
     },
@@ -38,7 +38,7 @@
       "name": "check-badge-list.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 177,
+      "durationMs": 181,
       "stdout": "Badge catalog: 100 IDs, 10 groups, live progress, recommendations and filter OK",
       "stderr": ""
     },
@@ -46,7 +46,7 @@
       "name": "check-battle-audio-race.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 113,
+      "durationMs": 101,
       "stdout": "Delayed battle jingles respect active screen, battle identity and save identity",
       "stderr": ""
     },
@@ -54,7 +54,7 @@
       "name": "check-battle-log.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 100,
+      "durationMs": 105,
       "stdout": "Battle log: 80-entry retention, newest/oldest pages, empty state OK",
       "stderr": ""
     },
@@ -62,7 +62,7 @@
       "name": "check-expanded-battle.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 690,
+      "durationMs": 548,
       "stdout": "Expanded battle: 5 abilities, 22 traits, 33 careers/66 equipment, 66 additional skills/22 inherited skills/9 signatures; crit/evasion RNG isolation, cooldowns, 66 job decisions, physical-field practice, reward and save guards passed\nComplete release UI: physical jobcenter, 66 decision flow, save rollback, read-only and facility guards, job change and battle skill entry passed",
       "stderr": ""
     },
@@ -70,7 +70,7 @@
       "name": "check-input-background.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 129,
+      "durationMs": 91,
       "stdout": "Gamepad ignores hidden/unfocused pages and retains focused edge-triggered input",
       "stderr": ""
     },
@@ -78,7 +78,7 @@
       "name": "check-input-editing.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 113,
+      "durationMs": 93,
       "stdout": "Native form editing, IME and modified shortcuts preserved; game movement remains active",
       "stderr": ""
     },
@@ -86,7 +86,7 @@
       "name": "check-input-modal.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 99,
+      "durationMs": 95,
       "stdout": "Modal Tab boundaries wrap, native form traversal remains available and page Tab is unchanged",
       "stderr": ""
     },
@@ -94,7 +94,7 @@
       "name": "check-input-release.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 93,
+      "durationMs": 90,
       "stdout": "Focus loss clears held input, queued movement and stick visuals",
       "stderr": ""
     },
@@ -102,7 +102,7 @@
       "name": "check-input-stick.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 110,
+      "durationMs": 94,
       "stdout": "Joystick center confirms once; drag, ring, cancel, capture loss, blur and extra-pointer guards passed",
       "stderr": ""
     },
@@ -110,15 +110,15 @@
       "name": "check-integration.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 1344,
-      "stdout": "PASS all build modules load together\nPASS three-stage setup, IME, same names, drafts and atomic save rollback\nPASS custom partner name fully replaces fixed biography and profile names\nPASS new menus remain reachable through all render wrappers\nPASS menu back stack and direct MAP return respect readonly, saving and battles\nPASS all47 regional support unlocks and readonly mutation guard\nPASS all100 badge names and expanded/pet/challenge eligibility connect to main list\nPASS legacy5.33 inventories, quest progress, sea positions and saved battle migrate once\nPASS character save locks prevent cross-module callbacks and rollback races\nPASS readonly pet details and vault navigation do not mutate saved state\nPASS story replay rejects prototype IDs, unread scenes and stale readonly callbacks\nPASS autowalk tokens survive cancellation without reuse and save switches clear old plans\nPASS all51 quests complete through callbacks with new character and pet systems enabled\nIntegration: 13 combined build/module/UI/save/lock/campaign checks passed",
+      "durationMs": 1123,
+      "stdout": "PASS title boot completes with an image title, with or without a saved game\nPASS all build modules load together\nPASS three-stage setup, IME, same names, drafts and atomic save rollback\nPASS custom partner name fully replaces fixed biography and profile names\nPASS new menus remain reachable through all render wrappers\nPASS menu back stack and direct MAP return respect readonly, saving and battles\nPASS all47 regional support unlocks and readonly mutation guard\nPASS all100 badge names and expanded/pet/challenge eligibility connect to main list\nPASS legacy5.33 inventories, quest progress, sea positions and saved battle migrate once\nPASS character save locks prevent cross-module callbacks and rollback races\nPASS readonly pet details and vault navigation do not mutate saved state\nPASS story replay rejects prototype IDs, unread scenes and stale readonly callbacks\nPASS autowalk tokens survive cancellation without reuse and save switches clear old plans\nPASS all51 quests complete through callbacks with new character and pet systems enabled\nIntegration: 14 combined build/module/UI/save/lock/campaign checks passed",
       "stderr": ""
     },
     {
       "name": "check-listeners.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 731,
+      "durationMs": 709,
       "stdout": "Listeners: 352 contextual texts, 512+77 names, 1–5 timed bubbles, 650–1000ms spacing, 5sec lifetime, 12text/24name deduplication, independent save histories; 47 regional supports and 51 jobcenters passed\nListener visibility cleanup, fresh return and saved-off preference passed",
       "stderr": ""
     },
@@ -126,7 +126,7 @@
       "name": "check-management.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 415,
+      "durationMs": 450,
       "stdout": "Management: six-item searchable shops, readonly views, quantity units, explicit equipment transfer/preview, six protected ticket gear, keeper conversations, atomic nearby inn/rest and save rollback passed",
       "stderr": ""
     },
@@ -134,7 +134,7 @@
       "name": "check-map-loop.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 99,
+      "durationMs": 718,
       "stdout": "Map transitions keep one animation loop and ignore obsolete callbacks",
       "stderr": ""
     },
@@ -142,7 +142,7 @@
       "name": "check-merged-instructions.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 112,
+      "durationMs": 242,
       "stdout": "Merged instructions: URL sharing, fallback/cancel/read-only, reduced motion, 12px minimum passed\nLow HP: 30% boundary, healthy and KO labels passed",
       "stderr": ""
     },
@@ -150,7 +150,7 @@
       "name": "check-national-story.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 501,
+      "durationMs": 653,
       "stdout": "National story: 51 main quests, 43 local stories/bosses, 6 boss patterns, 146 outdoor encounter victories; complete UI progression, old-save migration, rewards, ending/replay and chapter caps passed",
       "stderr": ""
     },
@@ -158,7 +158,7 @@
       "name": "check-national.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 250,
+      "durationMs": 333,
       "stdout": "National registry, progression locks, itineraries, atomic joins and directory OK; travel actions covered by check-travel-modes.mjs",
       "stderr": ""
     },
@@ -166,7 +166,7 @@
       "name": "check-nationwide.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 457,
+      "durationMs": 370,
       "stdout": "Nationwide: 47 prefectures, 51 town/field pairs, 43 unique stories/bosses, 50 connected routes, 129 new outdoor areas and regional locks OK",
       "stderr": ""
     },
@@ -174,7 +174,7 @@
       "name": "check-ocean.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 1055,
+      "durationMs": 1073,
       "stdout": "Ocean: 65 areas, 3,250 distinct enemy records, 8 connected routes (224 cells/216 sea), safe ports, 40 rendered forms, capped caches, isolated kills, transactional once-only events and save/read-only/stale guards passed",
       "stderr": ""
     },
@@ -182,7 +182,7 @@
       "name": "check-pets.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 372,
+      "durationMs": 360,
       "stdout": "Pets: 22 species, 88 learned skills, 264 supplies, 10 stages, care/daily/capacity, travel, two battle companions, once-per-turn/resume, UI guards passed",
       "stderr": ""
     },
@@ -190,7 +190,7 @@
       "name": "check-release.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 2083,
+      "durationMs": 1971,
       "stdout": "Release checks reject stale HTML, modified/missing art and stale manifests; all embedded WebP assets and README links are present",
       "stderr": ""
     },
@@ -198,7 +198,7 @@
       "name": "check-saga.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 248,
+      "durationMs": 250,
       "stdout": "Kyushu M01–M08: save compatibility, battles, direct boss completion, ranks, rewards and stale-result guards OK",
       "stderr": ""
     },
@@ -206,7 +206,7 @@
       "name": "check-save.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 797,
+      "durationMs": 803,
       "stdout": "Save recovery: generation choice, corrupt checksum, malformed JSON, invalid state, local fallback, visit migration, restore rollback OK",
       "stderr": ""
     },
@@ -214,7 +214,7 @@
       "name": "check-selected-fixes.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 439,
+      "durationMs": 416,
       "stdout": "Selected changes: chapter gating, over-cap legacy saves, 300 gear kinds, 8-copy cap, boss settlement, waiting JP, names and MP labels OK",
       "stderr": ""
     },
@@ -222,7 +222,7 @@
       "name": "check-shop.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 114,
+      "durationMs": 115,
       "stdout": "Shop offer bounds and stale token OK",
       "stderr": ""
     },
@@ -230,7 +230,7 @@
       "name": "check-split-maps.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 375,
+      "durationMs": 336,
       "stdout": "Split maps: 51 distinct safe towns, 51 distinct outdoor maps, every zone/object/exit reachable",
       "stderr": ""
     },
@@ -238,7 +238,7 @@
       "name": "check-stream-actions.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 250,
+      "durationMs": 219,
       "stdout": "Removed stream feature: no live actions/screens, pending saves complete once, orphaned saves preserve earned progress OK",
       "stderr": ""
     },
@@ -246,7 +246,7 @@
       "name": "check-target.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 106,
+      "durationMs": 100,
       "stdout": "Target weighting and KO exclusion OK",
       "stderr": ""
     },
@@ -254,7 +254,7 @@
       "name": "check-travel-modes.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 586,
+      "durationMs": 514,
       "stdout": "Travel: all51 physical town exits, all50 outdoor routes both ways, progression locks, station-only visited trains, stale/readonly guards and legacy position recovery passed",
       "stderr": ""
     },
@@ -262,7 +262,7 @@
       "name": "check-vault.mjs",
       "passed": true,
       "exitCode": 0,
-      "durationMs": 1574,
+      "durationMs": 1502,
       "stdout": "Gold and item vault: transfer, overflow, capacity and legacy save OK",
       "stderr": ""
     }
@@ -292,7 +292,7 @@
     "README.md": "e99c872ac7c01053b95118add58c55301b95d00c3083fdfa76166a22864d61a1",
     "share.js": "24f93403ce5da25aade5d44a56374d74301cd489368757c7a4321c1af14745c5",
     "shell.html": "2ffc82e1e73a68097fda3d9228ca61d40c3af8463601af29de39a287431e4fd0",
-    "ui.js": "060f3e186799214fa5ea2628c16c298ebd46f4bacdc71913cc2d01899e5ab0f7",
+    "ui.js": "bb015a74e41bc05d9e4e893407fd1aada6559e183969387297f1d96484d36b96",
     "ui_character.js": "d272299061dfac4a74d910ddbb5a8a94fcfbd649a5cd611340ed74f814e003a2",
     "ui_guards.js": "f723429c3f738bf1e20a0cf6b37953b0943da6e0b982465553b200cb882dad95",
     "ui_management.js": "9707937e9bc5d4e60edc93e517a84175ead5f20d3738d21d27294f934a3f9c60",
@@ -306,11 +306,11 @@
     "assets/battle-forest.webp": "5bdcf89b0bade6f7d43ea5367e6114e46c90c780f569dbe1d499c19b1300b9fd"
   },
   "artifactSHA256": {
-    "index.html": "69a570753fd77a3a65b7dc78e2ad27d824812ab01958364cd966960ca59da4d3",
+    "index.html": "74032039f25d52cdea8f22536817d82cc8a948963a011742b6ec6ebb446b2c00",
     "README.md": "65385085e0f32632efdf5a4fc92ce4cd2631c76acbdf9095e3d9092d9f4be783",
     "VERSION.txt": "b0f5df1606042182f651803b202325a59138f1df5d38e510971bb12a6d019332",
     "GAME_SPEC.md": "86fb07bc690b41874e614eb110af42dbeebe2433c5f38a8283189357307c8e64",
     "GAME_SPEC.txt": "86fb07bc690b41874e614eb110af42dbeebe2433c5f38a8283189357307c8e64",
-    "release-manifest.json": "001cff4bf5de5dddf2ef485d2460d94197ace15c79a88e4f15bb5110d845f282"
+    "release-manifest.json": "5c9344a3d4523844be3b0fc2a53e39ce1857fe325e6ac3abd82cf6b9dda93fb3"
   }
 }

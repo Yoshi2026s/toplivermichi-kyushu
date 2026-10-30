@@ -669,8 +669,8 @@ function confirmAct(forced){
   if(r.log.some(l=>l.startsWith("パチパチ"))) SND.sfx("clap");
   if(r.log.some(l=>l.startsWith("キラコメ"))) SND.sfx("kira");
   G.cmd={};
-  if(run.state==="won") setTimeout(()=>SND.jingle("fanfare","victory"),250);
-  if(run.state==="lost") setTimeout(()=>SND.jingle("lose",null),450);
+  if(run.state==="won") setTimeout(()=>{if(G.st===st&&st.run===run&&G.screen==="battle"&&run.state==="won")SND.jingle("fanfare","victory");},250);
+  if(run.state==="lost") setTimeout(()=>{if(G.st===st&&st.run===run&&G.screen==="battle"&&run.state==="lost")SND.jingle("lose",null);},450);
   commit(); render(); battleFx(before);
 }
 /* ---- 戦闘オート（中断ボタンまで、戦闘終了まで自動で続く） ---- */

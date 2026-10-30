@@ -39,7 +39,7 @@ renderNew=function(){
 };
 mountNew=function(){
   const n=G.newGame,inp=$("#nameInput"),canvas=$("#heroPrev"),gender=n.step===2?n.heroine.gender:n.gender;
-  if(canvas&&gender)POLY_ART.portrait(canvas,n.step===2?"moe":"hero",gender,true);
+  if(canvas&&gender)SOFT_ART.portrait(canvas,n.step===2?"moe":"hero",gender,true);
   if(!inp)return;
   const update=()=>{captureSetup();const v=validateName(inp.value),help=$("#nameHelp");help.textContent=n.composing?"変換中":`${v.count}／${NAME_MAX}文字${!v.ok&&inp.value?"・"+v.errors[0]:""}`;const b=$("#toConfirm");if(b)b.disabled=!!n.composing||!v.ok||!gender;};
   inp.addEventListener("compositionstart",()=>{n.composing=true;update();});inp.addEventListener("compositionend",()=>{n.composing=false;update();});inp.addEventListener("input",e=>{if(!e.isComposing){n.composing=false;update();}});$("#careerSelect")?.addEventListener("change",captureSetup);update();

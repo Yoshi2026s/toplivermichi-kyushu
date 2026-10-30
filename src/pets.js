@@ -165,7 +165,7 @@ function petBadgeApplicable(run,id){
   if(id==="B079")return has("attack");if(id==="B080")return has("slow");return false;
 }
 function petSpriteSvg(id,stage=1){
- if(typeof POLY_ART!=="undefined")return POLY_ART.petSvg(id,stage);
+ if(typeof SOFT_ART!=="undefined")return SOFT_ART.petSvg(id,stage);
  const s=PET_SPECIES[id]||PET_SPECIES.PT01,g=Math.max(1,Math.min(10,stage)),k=s.shape,c=s.color;
  const bird=['bird','owl','penguin'].includes(k),water=['seal','otter'].includes(k),long=['rabbit','alpaca','deer'].includes(k);
  const fur=k==='hedgehog'?'<path d="M20 66 10 47 21 47 15 30 28 34 29 19 42 29 49 15 59 29 73 22 75 40 87 39 80 65Z" fill="#78604e"/>':k==='sheep'?Array.from({length:10},(_,i)=>{const a=i*Math.PI/5;return '<circle cx="'+(48+Math.cos(a)*24)+'" cy="'+(53+Math.sin(a)*20)+'" r="12" fill="'+c+'"/>';}).join(''):'';

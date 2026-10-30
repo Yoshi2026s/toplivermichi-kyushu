@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {runInNewContext} from 'node:vm';
+import {illustratedContext} from './illustrated-runtime.mjs';
 const root=resolve(import.meta.dirname,'..');
 const files=['data_enemies.js','data_saga_enemies.js','data_items.js','data_national.js','data.js','data_nationwide.js','data_nationwide_story.js','data_maps.js','data_character.js','core.js'];
 const source=files.map(name=>readFileSync(resolve(root,'src',name),'utf8')).join('\n');
@@ -82,7 +83,7 @@ const build=readFileSync(resolve(root,'scripts/build.mjs'),'utf8');
 const releaseFiles=[...build.match(/const files = \[([^\]]+)\]/)[1].matchAll(/'([^']+)'/g)].map(m=>m[1]).filter(name=>name!=='input.js');
 const release=releaseFiles.map(name=>readFileSync(resolve(root,'src',name),'utf8')).join('\n');
 const noop=()=>{};
-const ui=runInNewContext(`${release}\nrender=()=>{};commit=()=>Promise.resolve(true);\n({G,ACT,newGame,ensureVitals,createFieldRun,jobEventToken,JOB_EVENTS,MAPS,characterCanUseFacility,characterJobToken,renderStatus,renderExpandedSkillSheet,renderJobcenter,setSaveResult:success=>{commit=()=>Promise.resolve(success);}})`,{
+const ui=await illustratedContext(`${release}\nrender=()=>{};commit=()=>Promise.resolve(true);\n({G,ACT,newGame,ensureVitals,createFieldRun,jobEventToken,JOB_EVENTS,MAPS,characterCanUseFacility,characterJobToken,renderStatus,renderExpandedSkillSheet,renderJobcenter,setSaveResult:success=>{commit=()=>Promise.resolve(success);}})`,{
  document:{addEventListener:noop,querySelector:()=>null,getElementById:()=>null,hidden:false},
  window:{addEventListener:noop,matchMedia:()=>({matches:true}),TLR_PUBLIC:true},navigator:{},localStorage:{getItem:()=>null,setItem:noop},
  setTimeout:()=>0,clearTimeout:noop,setInterval:()=>0,clearInterval:noop,performance:{now:()=>0},console

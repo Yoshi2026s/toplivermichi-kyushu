@@ -5,27 +5,51 @@
   "sourceFileCount": 30,
   "files": {
     "index.html": {
-      "bytes": 2424516,
-      "sha256": "4fa573d0e8a8be7f6e76b7f25b0a543dc4245b4e2e2ce1a990c2915e1c67b53d"
+      "bytes": 4346666,
+      "sha256": "4a688dbfee8d868197cf17f2cc37a41480622838c3850b00ab0ba04836e605e0"
     },
     "README.md": {
-      "bytes": 4482,
-      "sha256": "d42a11ca92fea029f7da84afa866d03c9ff8dea14d35611e749dabc142c6a8b5"
+      "bytes": 4614,
+      "sha256": "ade5007e46885c5461fcdba4260c71818c58046940f5108555cbfb342cc40448"
     },
     "VERSION.txt": {
       "bytes": 156,
       "sha256": "4bc1061edf51ac10ad713f2821a194ff940adda9b29493df28c69f92fa49556e"
     },
     "GAME_SPEC.md": {
-      "bytes": 5394,
-      "sha256": "697807269a4a438d023dd532a03a93d7380fed243a52f73bfc0bd3bb40e5351e"
+      "bytes": 5908,
+      "sha256": "2d4696c777f5c9ba5844b20d7b1ba4b908ed8399a81bf830cb01795b1725c907"
     },
     "GAME_SPEC.txt": {
-      "bytes": 5394,
-      "sha256": "697807269a4a438d023dd532a03a93d7380fed243a52f73bfc0bd3bb40e5351e"
+      "bytes": 5908,
+      "sha256": "2d4696c777f5c9ba5844b20d7b1ba4b908ed8399a81bf830cb01795b1725c907"
     }
   },
   "assets": {
+    "assets/illustrated/party-front.webp": {
+      "bytes": 247688,
+      "sha256": "aa1466a0d96bf39d35a67c99ac29b08d3c5630a450211efb2b968bcfe4531630"
+    },
+    "assets/illustrated/party-back.webp": {
+      "bytes": 243834,
+      "sha256": "a2914fdece74aba742154d07ea3f45096e545cad641085c41b4438dd6e31e6ef"
+    },
+    "assets/illustrated/party-side.webp": {
+      "bytes": 225432,
+      "sha256": "cd8541bb59fcd61b8204410303da92b021dc11135d7bb8c3e995f5156bf7a4e9"
+    },
+    "assets/illustrated/npc-front.webp": {
+      "bytes": 238228,
+      "sha256": "283108fe7123d61f7495b186895d3e0ef64df4e3b6402fd66d64d2c3a0d85b14"
+    },
+    "assets/illustrated/pets.webp": {
+      "bytes": 319022,
+      "sha256": "0728b5075d9b480659ed33faf59fa86a54a0eea2835280d55f5708ac139e0701"
+    },
+    "assets/illustrated/enemies.webp": {
+      "bytes": 169072,
+      "sha256": "c420a2f0761850f3fa32df686a17e2627886b1995db78ddcceac71f12eb314eb"
+    },
     "assets/semireal/battle-coast.webp": {
       "bytes": 141880,
       "sha256": "3915831f0342c6b5b04742891189324e361b742edae57070efb84f74a3726af6"

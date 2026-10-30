@@ -39,6 +39,7 @@ const PAD = (()=>{
   /* 毎フレーム：移動の継続、カーソルの連続移動、ゲームパッドの読み取り */
   let prevBtn={};
   function tick(now){
+    if(document.hidden||!document.hasFocus()){ requestAnimationFrame(tick); return; }
     pollGamepad();
     if(dir!=null){
       if(isMoveMode()){

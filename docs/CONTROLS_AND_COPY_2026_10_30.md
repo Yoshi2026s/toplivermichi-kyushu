@@ -8,4 +8,4 @@
 
 生成物: `node scripts/build.mjs`。
 検証: `CANVAS_MODULE_PATH` に同梱の `@napi-rs/canvas` を指定して `node scripts/check-all.mjs` を実行。
-公開サイトへのデプロイはこの変更では実施していません。
+GitHub Pagesへ公開し、公開ブラウザーで移動・停止・中央決定・新規開始・保存再開を確認。

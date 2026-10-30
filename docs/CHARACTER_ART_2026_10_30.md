@@ -10,4 +10,4 @@
 
 検証画像: `.task/character-quality.png`
 検証: `scripts/check-character-art.mjs`（NPC56種×四方向、全ペット×3成長段階、海洋敵40パレット）。描画・回帰チェックと生成HTMLの一致を確認。
-公開デプロイと実機での画面確認は未実施。
+GitHub Pagesへ公開し、公開ブラウザーで人物・ペット・敵の表示を確認。スマートフォン実機は未検証。

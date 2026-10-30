@@ -37,7 +37,7 @@ async function characterMutate(fn){
 }
 function renderJobcenter(){
   const st=G.st,d=G.sheetData,can=characterCanUseFacility(),view=d.view||"events";
-  const nav=`<p>職業体験を3段階クリアすると、その職業へ転職できます。料金・レベル条件はありません。現在の職業と育成記録は維持されます。</p>${can?"":'<p class="warn">転職と職業体験は、街のハローワークのそばで行います。</p>'}<div class="row3"><button class="btn ${view==="events"?"on":""}" data-a="jobcenterView" data-v="events">職業イベント</button><button class="btn ${view==="change"?"on":""}" data-a="jobcenterView" data-v="change">転職する</button></div>`;
+  const nav=`<p>職業体験を3段階クリアすると、その職業へ転職できます。料金・レベル条件はありません。</p>${can?"":'<p class="warn">転職と職業体験は、街のハローワークのそばで行います。</p>'}<div class="row3"><button class="btn ${view==="events"?"on":""}" data-a="jobcenterView" data-v="events">職業イベント</button><button class="btn ${view==="change"?"on":""}" data-a="jobcenterView" data-v="change">転職する</button></div>`;
   if(view==="events"&&st.jobEvent){
     const e=st.jobEvent,event=JOB_EVENTS[e.job],q=event.stages[e.stage],token=jobEventToken(st);
     return nav+`<h3 class="label">${esc(event.name)} ${e.stage+1}/3</h3><p>${esc(q.question)}</p>${e.wrong!=null?`<p class="warn">${esc(q.advice)}</p>`:""}<div class="stack">${q.options.map((label,i)=>`<button class="btn" data-a="jobEventAnswer" data-v="${i}" data-token="${esc(token)}" ${can?"":"disabled"}>${esc(label)}</button>`).join("")}</div><button class="btn" data-a="jobEventCancel" data-token="${esc(token)}" ${can?"":"disabled"}>この体験を中断して選び直す</button><p class="small">途中経過は保存され、どの街のハローワークでも続けられます。</p>`;

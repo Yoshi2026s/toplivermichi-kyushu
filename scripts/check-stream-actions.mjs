@@ -13,7 +13,7 @@ assert(!Object.keys(act).some(key=>/^stream/.test(key)),'removed stream actions 
 for(const name of ['renderStream','renderStreamSetup','streamPending','streamFinish','savedStreamUsable'])assert(!new RegExp(`function ${name}\\(`).test(ui),`removed ${name} remains in UI`);
 for(const name of ['newStream','streamPlay','streamGrade'])assert(!new RegExp(`function ${name}\\(`).test(core),`removed ${name} remains in core`);
 assert(!ui.includes('data-k="streamSetup"')&&!ui.includes('data-a="streamStart"'),'stream entry point remains');
-assert(ui.includes('配信イベントの廃止に伴い'),'legacy migration notice missing');
+assert(ui.includes('討伐済みの依頼を完了しました'),'legacy migration notice missing');
 
 const data=['data_enemies.js','data_saga_enemies.js','data_items.js','data_national.js','data.js','data_nationwide.js','data_nationwide_story.js','data_maps.js'].map(read).join('\n');
 const extract=name=>ui.match(new RegExp(`function ${name}\\([^]*?\\n\\}`))?.[0];

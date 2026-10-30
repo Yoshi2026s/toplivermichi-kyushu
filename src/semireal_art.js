@@ -12,15 +12,17 @@ const SEMIREAL_ART=(()=>{
  function person(id,hair,coat,dir=0,frame=0,opt={}){
   const i=index(id,opt),side=dir===1?'back':'front';
   if(i===null||!ready(side))return fallback(id,hair,coat,dir,frame,opt);
-  const key=[i,dir,frame%4].join('|');if(cache.has(key))return cache.get(key);
+  const walkFrame=frame>0?1+(Math.floor(frame)-1)%8:0;
+  const key=[i,dir,walkFrame].join('|');if(cache.has(key))return cache.get(key);
   const c=document.createElement('canvas');c.width=64;c.height=96;c.artScale=4;
-  const g=c.getContext('2d'),[x,y,w,h]=SEMIREAL_FRAMES[side][i],bob=frame%2?1.4:0;
+  const g=c.getContext('2d'),[x,y,w,h]=SEMIREAL_FRAMES[side][i];
   g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
-  if(dir===3){g.translate(64,0);g.scale(-1,1);}
+  if(dir===3&&!walkFrame){g.translate(64,0);g.scale(-1,1);}
   // Preserve natural proportions and the original foot anchor / collision grid.
-  const dh=88-bob,dw=w/h*dh*(dir>1?.88:1);
-  g.drawImage(images[side],x,y,w,h,(64-dw)/2,93-dh-bob,dw,dh);
-  cache.set(key,c);if(cache.size>192)cache.delete(cache.keys().next().value);return c;
+  const dh=88,dw=w/h*dh*(dir>1?.88:1);
+  g.drawImage(images[side],x,y,w,h,(64-dw)/2,93-dh,dw,dh);
+  const result=WALK_ART.render(c,dir,walkFrame);
+  cache.set(key,result);if(cache.size>192)cache.delete(cache.keys().next().value);return result;
  }
  function portrait(canvas,cid,gender,full=false){
   if(!canvas)return;const female=gender?gender==='女性':cid==='hero'?G.st?.profile.gender==='女性':cid==='moe'?G.st?.heroine?.gender!=='男性':false;

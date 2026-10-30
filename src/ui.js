@@ -279,7 +279,7 @@ function drawMap(){
   const sprites=[];
   for(const o of m.objects){
     let img;
-    if(o.type==="npc"){ const n=NPCS[o.npc]; img = o.npc==="moe"? charSprite("moe",0,f2*2) : ART.person(o.npc,n.sprite[1],n.sprite[0],0,f2*2,{long:["akari","chiyo","misuzu"].includes(o.npc)}); }
+    if(o.type==="npc"){ const n=NPCS[o.npc]; img = o.npc==="moe"? charSprite("moe",0,0) : ART.person(o.npc,n.sprite[1],n.sprite[0],0,f2*2,{long:["akari","chiyo","misuzu"].includes(o.npc)}); }
     else if(o.type==="shop"){ const n=NPCS[o.npc]; sprites.push({y:o.y-0.1,img:ART.object("shop",0),x:o.x}); img=ART.person(o.npc,n.sprite[1],n.sprite[0],0,f2*2); }
     else if(o.type==="inn"){ sprites.push({y:o.y-0.1,img:ART.object("inn",f),x:o.x}); img=ART.person("innkeeper",PAL.slate,PAL.navy,0,f2*2); }
     else if(o.type==="box") img=ART.object(st.boxes[o.box]?"boxOpen":"box",f);
@@ -287,7 +287,9 @@ function drawMap(){
     else img=ART.object(o.fieldExit||o.fieldRoute?"gate":o.type==="jobcenter"?"board":o.type,f);
     sprites.push({y:o.y,x:o.x,img});
   }
-  const moving=G.walk.path.length>0; const wf=moving?Math.floor(now/166)%4:0;
+  const moving=G.walk.path.length>0;
+  const walking=moving&&!G.dlg&&!G.sheet&&!G.lock&&!document.hidden;
+  const wf=WALK_ART.phase(G.walkDistance||0,walking,still);
   const pp=playerPixel();
   // 2人目の追従表示（表示のみ。判定は先頭だけ）
   const fol=G.fol; const lead=st.party[0], second=st.party[1];
@@ -295,7 +297,8 @@ function drawMap(){
     let fx=fol.x*16, fy=fol.y*16; let tx=fol.x, ty=fol.y;
     if(moving){ tx=st.pos.x; ty=st.pos.y; fx+=(tx-fol.x)*16*G.walk.prog; fy+=(ty-fol.y)*16*G.walk.prog; }
     const dx=(moving?tx:st.pos.x)-fol.x, dy=(moving?ty:st.pos.y)-fol.y; const fd = dy>0?0:dy<0?1:dx<0?2:dx>0?3:st.dir;
-    sprites.push({y:fy/16, px:{x:Math.round(fx),y:Math.round(fy)}, img:charSprite(second,fd,moving?(wf+2)%4:0)});
+    const fw=wf&&(tx!==fol.x||ty!==fol.y)?1+(wf-1+4)%8:0;
+    sprites.push({y:fy/16, px:{x:Math.round(fx),y:Math.round(fy)}, img:charSprite(second,fd,fw)});
   }
   sprites.push({y:pp.y/16+0.01, px:pp, img:charSprite(lead,st.dir,wf)});
   sprites.sort((a,b)=>a.y-b.y);
@@ -313,6 +316,8 @@ function startLoop(){
     const w=G.walk;
     if(w.path.length && !G.dlg && !G.sheet && !G.lock){
       const n=w.path[0]; const dx=n.x-G.st.pos.x, dy=n.y-G.st.pos.y; G.st.dir = dy>0?0:dy<0?1:dx<0?2:3;
+      const advance=Math.min(1-w.prog,dt/STEP);
+      G.walkDistance=((G.walkDistance||0)+advance*16)%32000;
       w.prog+=dt/STEP;
       if(w.prog>=1){ w.prog=0; w.path.shift(); G.fol={...G.st.pos}; G.st.pos={x:n.x,y:n.y}; arrive(); }
     }

@@ -6,7 +6,7 @@ import {createCanvas} from './canvas-runtime.mjs';
 const require=createRequire(import.meta.url),{Image}=require(process.env.CANVAS_MODULE_PATH||'@napi-rs/canvas');
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const sources={__PARTY_FRONT_DATA_URI__:'front',__PARTY_BACK_DATA_URI__:'back'};
-let code=read('src/semireal_frames.js')+'\n'+read('src/semireal_art.js');
+let code=read('src/semireal_frames.js')+'\n'+read('src/walk_animation.js')+'\n'+read('src/semireal_art.js');
 for(const [token,name] of Object.entries(sources))code=code.replaceAll(token,'data:image/webp;base64,'+readFileSync(new URL('../assets/semireal/party-'+name+'.webp',import.meta.url)).toString('base64'));
 const pending=[];
 class AtlasImage extends Image{set src(v){pending.push(new Promise((resolve,reject)=>{this.onload=resolve;this.onerror=reject;super.src=v;}));}}
@@ -23,7 +23,7 @@ const sheet=createCanvas(1100,580),g=sheet.getContext('2d');g.fillStyle='#243f42
 const digests=new Set();
 for(const [i,id]of ids.entries()){
  const opt={long:i===1||i===2};
- for(let d=0;d<4;d++)for(let f=0;f<4;f++){
+ for(let d=0;d<4;d++)for(let f=0;f<=8;f++){
   const c=api.person(id,'#000','#000',d,f,opt);assert.equal(c.width,64);assert.equal(c.height,96);
   const pixels=c.getContext('2d').getImageData(0,0,64,96).data;
   assert(pixels.some((v,j)=>j%4===3&&v>128),'every direction/frame contains opaque artwork');

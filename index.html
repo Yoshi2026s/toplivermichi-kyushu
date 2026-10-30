@@ -4036,6 +4036,52 @@ const CHARACTER_ART=(()=>{
 /* Alpha-trimmed bounds in the 4 by 3 character atlases. */
 const SEMIREAL_FRAMES={"front":[[115,6,169,356],[457,14,173,348],[817,10,174,352],[1150,5,184,357],[117,362,172,361],[457,362,169,361],[817,362,170,362],[1155,362,176,362],[128,727,174,352],[460,727,187,355],[810,726,180,355],[1162,724,157,355]],"back":[[113,2,190,360],[456,10,186,352],[813,8,187,354],[1145,3,203,359],[125,362,177,361],[461,362,173,361],[821,362,175,362],[1158,362,178,362],[117,725,187,358],[454,726,188,355],[807,724,183,357],[1153,724,189,354]]};
 
+/* Small 2D mesh for the painted cutouts. Positions/collision/save data stay unchanged. */
+const WALK_ART=(()=>{
+ const TAU=Math.PI*2,clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+ function phase(distance,moving,still=false){return !moving||still?0:1+Math.floor(((Math.max(0,distance)||0)%32)/4);}
+ function pose(x,y,dir,frame){
+  if(!frame)return [x,y];
+  const angle=(frame-1)*TAU/8,beat=Math.sin(angle),bob=(1-Math.cos(angle*2))*.8;
+  const side=dir>1,leg=clamp((y-55)/37),arm=clamp((y-25)/12)*clamp((65-y)/14);
+  const half=Math.tanh((x-32)/3),outside=clamp((Math.abs(x-32)-8)/8);
+  // Opposite feet advance and lift, knees flex; the pelvis and torso stay connected.
+  const stride=beat*half,flex=Math.sin(leg*Math.PI),lift=Math.max(0,Math.cos(angle)*half);
+  const dx=side?stride*leg*7:stride*leg*1.8+half*flex*Math.abs(beat)*1.1;
+  const dy=-lift*leg*5.5+(side?0:stride*leg*1.8)-flex*Math.abs(beat)*1.4;
+  const sway=beat*.8*clamp((78-y)/45),swing=-beat*half*outside*arm*(side?4.2:2.6);
+  return [x+dx+sway+swing-(side?1.2:0),y+dy-bob*clamp((94-y)/24)+beat*half*outside*arm*.9];
+ }
+ function triangle(g,img,src,dst){
+  const [[x0,y0],[x1,y1],[x2,y2]]=src,[[u0,v0],[u1,v1],[u2,v2]]=dst;
+  const den=(x1-x0)*(y2-y0)-(x2-x0)*(y1-y0);
+  const a=((u1-u0)*(y2-y0)-(u2-u0)*(y1-y0))/den;
+  const c=((u2-u0)*(x1-x0)-(u1-u0)*(x2-x0))/den;
+  const b=((v1-v0)*(y2-y0)-(v2-v0)*(y1-y0))/den;
+  const d=((v2-v0)*(x1-x0)-(v1-v0)*(x2-x0))/den;
+  g.save();g.beginPath();
+  // Slightly overlap triangle clips to avoid transparent seams at subpixel edges.
+  const cx=(u0+u1+u2)/3,cy=(v0+v1+v2)/3;
+  dst.forEach(([u,v],i)=>{const k=1.008;const xx=cx+(u-cx)*k,yy=cy+(v-cy)*k;if(i)g.lineTo(xx,yy);else g.moveTo(xx,yy);});
+  g.closePath();g.clip();g.transform(a,b,c,d,u0-a*x0-c*y0,v0-b*x0-d*y0);g.drawImage(img,0,0);g.restore();
+ }
+ function render(img,dir,frame){
+  if(!frame)return img;
+  const c=document.createElement('canvas');c.width=64;c.height=96;c.artScale=4;
+  const g=c.getContext('2d');g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
+  if(dir===3){g.translate(64,0);g.scale(-1,1);}
+  const xs=[0,16,24,32,40,48,64],ys=[0,16,25,36,46,55,65,75,84,96];
+  for(let yi=0;yi<ys.length-1;yi++)for(let xi=0;xi<xs.length-1;xi++){
+   const p=[[xs[xi],ys[yi]],[xs[xi+1],ys[yi]],[xs[xi+1],ys[yi+1]],[xs[xi],ys[yi+1]]];
+   const q=p.map(([x,y])=>pose(x,y,dir,frame));
+   triangle(g,img,[p[0],p[1],p[2]],[q[0],q[1],q[2]]);
+   triangle(g,img,[p[0],p[2],p[3]],[q[0],q[2],q[3]]);
+  }
+  return c;
+ }
+ return {phase,pose,render};
+})();
+
 /* Embedded painted party art. Presentation only: no saved identifiers change. */
 const SEMIREAL_ART=(()=>{
  const fallback=ART.person,cache=new Map(),images={};
@@ -4050,15 +4096,17 @@ const SEMIREAL_ART=(()=>{
  function person(id,hair,coat,dir=0,frame=0,opt={}){
   const i=index(id,opt),side=dir===1?'back':'front';
   if(i===null||!ready(side))return fallback(id,hair,coat,dir,frame,opt);
-  const key=[i,dir,frame%4].join('|');if(cache.has(key))return cache.get(key);
+  const walkFrame=frame>0?1+(Math.floor(frame)-1)%8:0;
+  const key=[i,dir,walkFrame].join('|');if(cache.has(key))return cache.get(key);
   const c=document.createElement('canvas');c.width=64;c.height=96;c.artScale=4;
-  const g=c.getContext('2d'),[x,y,w,h]=SEMIREAL_FRAMES[side][i],bob=frame%2?1.4:0;
+  const g=c.getContext('2d'),[x,y,w,h]=SEMIREAL_FRAMES[side][i];
   g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
-  if(dir===3){g.translate(64,0);g.scale(-1,1);}
+  if(dir===3&&!walkFrame){g.translate(64,0);g.scale(-1,1);}
   // Preserve natural proportions and the original foot anchor / collision grid.
-  const dh=88-bob,dw=w/h*dh*(dir>1?.88:1);
-  g.drawImage(images[side],x,y,w,h,(64-dw)/2,93-dh-bob,dw,dh);
-  cache.set(key,c);if(cache.size>192)cache.delete(cache.keys().next().value);return c;
+  const dh=88,dw=w/h*dh*(dir>1?.88:1);
+  g.drawImage(images[side],x,y,w,h,(64-dw)/2,93-dh,dw,dh);
+  const result=WALK_ART.render(c,dir,walkFrame);
+  cache.set(key,result);if(cache.size>192)cache.delete(cache.keys().next().value);return result;
  }
  function portrait(canvas,cid,gender,full=false){
   if(!canvas)return;const female=gender?gender==='女性':cid==='hero'?G.st?.profile.gender==='女性':cid==='moe'?G.st?.heroine?.gender!=='男性':false;
@@ -5117,7 +5165,7 @@ function drawMap(){
   const sprites=[];
   for(const o of m.objects){
     let img;
-    if(o.type==="npc"){ const n=NPCS[o.npc]; img = o.npc==="moe"? charSprite("moe",0,f2*2) : ART.person(o.npc,n.sprite[1],n.sprite[0],0,f2*2,{long:["akari","chiyo","misuzu"].includes(o.npc)}); }
+    if(o.type==="npc"){ const n=NPCS[o.npc]; img = o.npc==="moe"? charSprite("moe",0,0) : ART.person(o.npc,n.sprite[1],n.sprite[0],0,f2*2,{long:["akari","chiyo","misuzu"].includes(o.npc)}); }
     else if(o.type==="shop"){ const n=NPCS[o.npc]; sprites.push({y:o.y-0.1,img:ART.object("shop",0),x:o.x}); img=ART.person(o.npc,n.sprite[1],n.sprite[0],0,f2*2); }
     else if(o.type==="inn"){ sprites.push({y:o.y-0.1,img:ART.object("inn",f),x:o.x}); img=ART.person("innkeeper",PAL.slate,PAL.navy,0,f2*2); }
     else if(o.type==="box") img=ART.object(st.boxes[o.box]?"boxOpen":"box",f);
@@ -5125,7 +5173,9 @@ function drawMap(){
     else img=ART.object(o.fieldExit||o.fieldRoute?"gate":o.type==="jobcenter"?"board":o.type,f);
     sprites.push({y:o.y,x:o.x,img});
   }
-  const moving=G.walk.path.length>0; const wf=moving?Math.floor(now/166)%4:0;
+  const moving=G.walk.path.length>0;
+  const walking=moving&&!G.dlg&&!G.sheet&&!G.lock&&!document.hidden;
+  const wf=WALK_ART.phase(G.walkDistance||0,walking,still);
   const pp=playerPixel();
   // 2人目の追従表示（表示のみ。判定は先頭だけ）
   const fol=G.fol; const lead=st.party[0], second=st.party[1];
@@ -5133,7 +5183,8 @@ function drawMap(){
     let fx=fol.x*16, fy=fol.y*16; let tx=fol.x, ty=fol.y;
     if(moving){ tx=st.pos.x; ty=st.pos.y; fx+=(tx-fol.x)*16*G.walk.prog; fy+=(ty-fol.y)*16*G.walk.prog; }
     const dx=(moving?tx:st.pos.x)-fol.x, dy=(moving?ty:st.pos.y)-fol.y; const fd = dy>0?0:dy<0?1:dx<0?2:dx>0?3:st.dir;
-    sprites.push({y:fy/16, px:{x:Math.round(fx),y:Math.round(fy)}, img:charSprite(second,fd,moving?(wf+2)%4:0)});
+    const fw=wf&&(tx!==fol.x||ty!==fol.y)?1+(wf-1+4)%8:0;
+    sprites.push({y:fy/16, px:{x:Math.round(fx),y:Math.round(fy)}, img:charSprite(second,fd,fw)});
   }
   sprites.push({y:pp.y/16+0.01, px:pp, img:charSprite(lead,st.dir,wf)});
   sprites.sort((a,b)=>a.y-b.y);
@@ -5151,6 +5202,8 @@ function startLoop(){
     const w=G.walk;
     if(w.path.length && !G.dlg && !G.sheet && !G.lock){
       const n=w.path[0]; const dx=n.x-G.st.pos.x, dy=n.y-G.st.pos.y; G.st.dir = dy>0?0:dy<0?1:dx<0?2:3;
+      const advance=Math.min(1-w.prog,dt/STEP);
+      G.walkDistance=((G.walkDistance||0)+advance*16)%32000;
       w.prog+=dt/STEP;
       if(w.prog>=1){ w.prog=0; w.path.shift(); G.fol={...G.st.pos}; G.st.pos={x:n.x,y:n.y}; arrive(); }
     }

@@ -65,12 +65,12 @@ const SYSTEM_HELP={
   skills:{name:"追加技能と必殺技",text:"レベルと職業熟練度を満たすと追加技能を習得します。継承枠へ装備すると他の職業でも使えます。再使用までの残りターンと消費MPを確認してください。人物固有の必殺技は必要なエールを蓄えて使います。"},
   pets:{name:"ペットのお世話と成長",text:"22種類のペットが10段階に成長し、段階1・3・5・8で4つの技を習得します。最大2匹が戦闘で毎ターン最初に行動します。ごはん・遊ぶ・お手入れ・休憩・練習・なでるは別々の日次記録です。なつき度20・50・80のお祝いは空きがある時に受け取れます。"},
   petTravel:{name:"おさんぽと旅のお手伝い",text:"ひだまりの庭・にぎやかな広場・小川のほとりから行き先を選びます。全ペットで1日1回。用品の保管先と実際の増加量を確認して出発します。旅のお手伝いはバランス・HP・MP重視から選び、生存者だけを回復します。翌日になると日次回数が戻ります。"},
-  sea:{name:"航海と海洋図鑑",text:"8地方の安全な港から指定された航路へ出航します。海上E・海辺Sだけで敵に遭遇します。65海域ごとに魚・クラゲ・カニ・ウミガメ・海竜の5系統10段階があり、計3250項目を図鑑で確認できます。未指定の海面は航行できません。"},
-  seaEvents:{name:"救助・調査・漂着宝箱",text:"各海域で漂流者救助80ゴールド、海洋敵3体討伐後の調査報告60チケット、救助後の漂着宝箱120ゴールドを各1回受け取れます。保存に失敗した場合は報酬と受取状態を元に戻して再試行できます。"},
+  sea:{name:"航海と海洋図鑑",text:"8地方の安全な港から指定された航路へ出航します。海上や海辺では敵に遭遇します。65海域ごとに魚・クラゲ・カニ・ウミガメ・海竜の5系統10段階があり、計3250項目を図鑑で確認できます。未指定の海面は航行できません。"},
+  seaEvents:{name:"救助・調査・漂着宝箱",text:"各海域で漂流者救助80ゴールド、海洋敵3体討伐後の調査報告60チケット、救助後の漂着宝箱120ゴールドを各1回受け取れます。"},
   badges:{name:"戦闘バッジ100種",text:"速さ・攻撃・作戦・防御・回復・MP・応援・ペット・道具・成長の10分野です。有効な行動と実際の回復やダメージを記録し、勝利時に保存します。対象外・今回達成不可・勝利で確定・獲得済みを区別します。敗北や撤退では取得しません。"},
   items:{name:"持ち物と金庫",text:"道具は300種類、イベント品400種類、各99個。未装備品は300種類、同じ装備は装備中と金庫を合わせ8個まで。共通アイテム金庫は全カテゴリ合計999個です。ペット用品も分類して出し入れできます。購入前に数量・合計・残金・受取先を確認します。"},
-  save:{name:"保存とバックアップ",text:"端末内に自動保存し直近2世代を保持します。設定でバックアップ文字列を控え、端末変更前に保管してください。別タブで操作中の閲覧専用タブでは記録を変えません。復元時は歩行・オート・会話を解除し、途中の戦闘を維持します。"},
-  sound:{name:"音・演出・コメント",text:"BGMと効果音の音量を個別に保存できます。消音や非表示では予約音を停止します。演出軽減とOSの設定を尊重します。リスナーの応援は状況に応じて1～5件、0.65～1秒ずつずらして約5秒表示し、設定で消せます。"}
+  save:{name:"保存とバックアップ",text:"冒険の進行は自動保存されます。設定でバックアップ文字列を控え、端末変更前に保管してください。"},
+  sound:{name:"音・演出・コメント",text:"BGMと効果音の音量を個別に保存できます。応援コメントは設定で表示を切り替えられます。"}
 };
 const helpNormalize=s=>String(s||"").normalize("NFKC").toLocaleLowerCase().trim();
 function renderSystemHelp(){const d=G.sheetData,category=Object.hasOwn(SYSTEM_HELP,d.category)?d.category:"all",words=helpNormalize(d.query).split(/\s+/).filter(Boolean),entries=Object.entries(SYSTEM_HELP).filter(([id,h])=>(category==="all"||category===id)&&words.every(w=>helpNormalize(h.name+" "+h.text).includes(w))),pages=Math.max(1,Math.ceil(entries.length/4)),page=Math.max(0,Math.min(pages-1,Number.isInteger(d.page)?d.page:0));return `<label for="helpSearch" class="field-label">解説を検索</label><input id="helpSearch" class="input" value="${esc(d.query||"")}"><button class="btn" data-a="helpSearch">検索する</button><div class="opts">${[["all","すべて"],...Object.entries(SYSTEM_HELP).map(([id,h])=>[id,h.name])].map(([id,name])=>`<button class="btn opt" data-a="helpFilter" data-v="${id}" aria-pressed="${category===id}">${esc(name)}</button>`).join("")}</div>${entries.length?entries.slice(page*4,page*4+4).map(([,h])=>`<section class="qcard"><h3 class="label">${h.name}</h3><p>${h.text}</p></section>`).join(""):'<p>見つかりません。検索語を短くするか「すべて」を選んでください。</p>'}<div class="row3"><button class="btn" data-a="helpPage" data-v="${page-1}" ${page===0?"disabled":""}>前へ</button><span>${page+1}／${pages}</span><button class="btn" data-a="helpPage" data-v="${page+1}" ${page+1>=pages?"disabled":""}>次へ</button></div>`;}

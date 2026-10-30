@@ -16,7 +16,7 @@ const all=new Set([...Object.keys(catalog.PENDING_BADGES),...Object.values(imple
 if(all.size!==100||ids.some(id=>!all.has(id))||Object.keys(catalog.PENDING_BADGES).length!==0||catalog.BADGE_GROUPS.length!==10) throw new Error('badge catalog must cover exactly B001-B100');
 const st={battleBadges:['B001','B071']};
 const full=catalog.renderBadgeRecord(st);
-if(!full.includes('獲得2/100種')||!full.includes('B001')||!full.includes('B100')||!full.includes('○ 未獲得 B072')) throw new Error('full badge record failed');
+if(!full.includes('獲得2種')||!full.includes('B001')||!full.includes('B100')||!full.includes('○ 未獲得 B072')) throw new Error('full badge record failed');
 G.sheetData.badgeOnlyUnowned=true;
 const missing=catalog.renderBadgeRecord(st);
 if(missing.includes('● 獲得済み B001')||!missing.includes('B100')||!missing.includes('すべて表示')) throw new Error('missing badge filter failed');

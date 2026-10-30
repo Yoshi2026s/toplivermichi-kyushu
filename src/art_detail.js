@@ -179,8 +179,17 @@ const ART_HD=(()=>{
  }}
  function enemy(profile,species,attr,area,frame,size=32,boss=false){
   const key=JSON.stringify([profile,species,attr,area,frame%2,size,boss]);return cached(enemies,key,160,()=>{
-   const[c,g]=mk(size,size),r=rng(profile+area),kind=Math.floor(r()*4),colors=boss?Object.values(attrs)[Math.floor(r()*8)]:(attrs[attr]||attrs['無']),[base,accent]=colors;
+   const[c,g]=mk(size,size),r=rng(profile+area),kind=Math.floor(r()*4),colors=boss?Object.values(attrs)[Math.floor(r()*8)]:(attrs[attr]||attrs['無']),[rawBase,accent]=colors;
+   const base=mix(rawBase,accent,.04+r()*.17);
    const shape=boss?['lantern','cloud','crystal','gear'][kind]:(shapes[species]||'drop'),S=size,bob=frame%2*.018;
+   // Limbs and fins extend each creature beyond its material core.
+   g.save();g.scale(S/64,S/64);
+   if(['cloud','drop','spark','crystal'].includes(shape)){
+    for(const side of [-1,1]){const x=32+side*17;poly(g,[[x,35],[x+side*10,41+frame%2],[x+side*5,46],[x-side*2,41]],dark(base,.12));ellipse(g,x+side*7,43+frame%2,3,2,light(base,.15));}
+   }
+   if(['ring','gear','coil'].includes(shape)){for(const side of [-1,1]){P(g,30+side*14,47,4,8,dark(base,.25));ellipse(g,32+side*14,55,5,2,accent);}}
+   if(boss){g.strokeStyle=accent;g.lineWidth=.65;g.globalAlpha=.4;g.beginPath();g.ellipse(32,32,29,28,0,0,Math.PI*2);g.stroke();g.globalAlpha=1;}
+   g.restore();
    const mask=(x,y)=>inside(shape,(x+.5)/S*2-1,(y+.5)/S*2-1-bob);
    // Pixel-built rim, volumetric shading, reflected light and distinct material seams.
    for(let y=0;y<S;y++)for(let x=0;x<S;x++){
@@ -194,10 +203,19 @@ const ART_HD=(()=>{
     if(shape==='crystal'){col=mix(col,accent,(u<v?.05:.25));if(Math.abs(u-.5)<.025||Math.abs(v-u-.1)<.02)col=light(accent,.15);}
     if(['gear','panel','box'].includes(shape)&&yy%8===0)col=dark(base,.3);
     if(['sheet','glyph'].includes(shape)&&(yy%7===3&&xx%9<6))col=mix(col,accent,.5);
+    if(['panel','box','gear','jar'].includes(shape)&&Math.abs(u-.28)<.012&&v>.2&&v<.7)col=light(accent,.25);
+    if(shape==='cloud'&&Math.sin(u*28+v*15)> .82)col=mix(col,accent,.12);
+    if(shape==='spark'&&Math.sin(u*19-v*21)> .94)col=light(accent,.35);
     if(shape==='drop'&&Math.abs(v-.67-Math.sin(u*7)*.025)<.013)col=light(accent,.2);
     P(g,x,y,1,1,col);
    }
    const q=S/64;g.save();g.scale(q,q);
+   // Engraved seams, inset gemstones and a soft reflected rim.
+   if(['crystal','panel','box','jar','gear','lantern'].includes(shape)){
+    for(const side of [-1,1]){poly(g,[[32+side*12,23],[32+side*15,27],[32+side*12,31],[32+side*9,27]],dark(base,.5));poly(g,[[32+side*12,24],[32+side*14,27],[32+side*12,29],[32+side*10,27]],accent);}
+   }
+   if(['drop','cloud','spark'].includes(shape)){ellipse(g,24,21,4,2,'#fff2d34d');ellipse(g,21,25,1.3,1.8,'#fff9e77a');}
+
    if(['box','panel'].includes(shape)){for(const x of [17,42]){P(g,x,50,5,7,dark(base,.35));P(g,x-2,56,9,2,accent);}P(g,31,6,2,8,'#9eaea7');ellipse(g,32,6,3,3,accent);for(const x of [15,46])for(const y of [17,45]){ellipse(g,x,y,1.4,1.4,light(accent));}}
    if(['cloud','drop','spark'].includes(shape)){for(let i=0;i<4;i++){const x=8+r()*48,y=6+r()*43;if(Math.abs(x-32)>16){ellipse(g,x,y,1+r()*2,1+r()*2,light(base,.45));}}}
    if(shape==='lantern'){P(g,23,11,18,3,dark(base,.4));P(g,24,49,16,3,dark(base,.4));P(g,31,52,2,6,accent);for(const x of [26,31,36])P(g,x,57,1,4,light(accent,.2));}

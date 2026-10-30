@@ -73,21 +73,23 @@ const OCEAN_ART_CACHE={enemies:new Map(),backgrounds:new Map(),maps:new Map(),sh
 function oceanCached(cache,key,limit,make){if(cache.has(key)){const value=cache.get(key);cache.delete(key);cache.set(key,value);return value;}const value=make();cache.set(key,value);while(cache.size>limit)cache.delete(cache.keys().next().value);return value;}
 function oceanCanvas(w,h){const c=document.createElement("canvas");c.width=w;c.height=h;return [c,c.getContext("2d")];}
 function oceanEnemySprite(region,family,frame=0,size=32){
-  region=((region%8)+8)%8;family=((family%5)+5)%5;frame=((frame%2)+2)%2;size=[32,64,128].includes(size)?size:32;
-  return oceanCached(OCEAN_ART_CACHE.enemies,`${region}/${family}/${frame}/${size}`,96,()=>{
-    const [c,g]=oceanCanvas(size,size),s=size/32,t=OCEAN_THEMES[region],b=frame;
-    const p=(x,y,w,h,color)=>{g.fillStyle=color;g.fillRect(Math.round(x*s),Math.round((y+b)*s),Math.max(1,Math.round(w*s)),Math.max(1,Math.round(h*s)));};
-    if(family===0){p(7,10,16,12,t.color);p(4,13,5,6,t.accent);p(22,8,3,3,t.accent);p(24,6,4,6,t.color);p(24,20,4,5,t.color);p(22,18,4,4,t.accent);}
-    if(family===1){p(8,7,16,13,t.color);p(11,4,10,4,t.accent);p(5,11,22,7,t.color);for(let i=0;i<5;i++)p(7+i*4,19,2,7+(i%2?b:2),i%2?t.accent:t.color);p(8,17,16,2,t.accent);}
-    if(family===2){p(8,12,16,12,t.color);p(11,9,10,4,t.accent);for(let i=0;i<3;i++){p(3,15+i*4,6,2,t.accent);p(23,15+i*4,6,2,t.accent);}p(3,8,4,7,t.color);p(25,8,4,7,t.color);p(1,6,4,3,t.accent);p(27,6,4,3,t.accent);}
-    if(family===3){p(7,8,18,17,t.color);p(10,6,12,3,t.accent);p(12,10,8,12,t.accent);p(3,13,5,5,t.color);p(25,14,5,5,t.color);p(8,24,5,4,t.color);p(22,23,5,4,t.color);p(4,7,6,6,t.accent);}
-    if(family===4){p(11,7,11,13,t.color);p(16,2,12,9,t.color);p(21,0,3,4,t.accent);p(26,6,4,3,t.accent);p(8,18,13,5,t.color);p(3,22,13,5,t.color);p(1,26,6,3,t.accent);p(9,7,4,10,t.accent);p(14,12,4,4,t.accent);}
-    const ex=family===3?5:family===4?23:11,ey=family===3?9:family===4?5:13;p(ex,ey,3,3,"#F4ECD8");p(ex,ey+1,1,2,"#101820");if(family!==0&&family!==3&&family!==4){p(19,ey,3,3,"#F4ECD8");p(21,ey+1,1,2,"#101820");}
-    for(let k=0;k<region+1;k++)p(10+(k%4)*3,17+Math.floor(k/4)*3,1,1,t.accent);
-    const image=g.getImageData(0,0,size,size);for(let y=0;y<size;y++)for(let x=0;x<size;x++){const i=(y*size+x)*4;if(!image.data[i+3])continue;const shade=1.2-.45*y/size-.12*x/size;for(let k=0;k<3;k++)image.data[i+k]=Math.min(255,image.data[i+k]*shade);if(image.data[i+3]&&x>0&&!image.data[i-1])for(let k=0;k<3;k++)image.data[i+k]*=.65;}g.putImageData(image,0,0);
-    g.strokeStyle=t.accent;g.lineWidth=Math.max(1,size/64);if(family===3){for(let i=0;i<3;i++){g.beginPath();g.ellipse(size*.5,size*.51,(.12+i*.07)*size,.23*size,0,0,Math.PI*2);g.stroke();}}else{g.globalAlpha=.45;for(let k=0;k<6;k++){g.beginPath();g.ellipse((.33+k%3*.14)*size,(.36+Math.floor(k/3)*.15)*size,size*.025,size*.015,0,0,Math.PI*2);g.stroke();}g.globalAlpha=1;}
-    return c;
-  });
+ region=((region%8)+8)%8;family=((family%5)+5)%5;frame=((frame%2)+2)%2;size=[32,64,128].includes(size)?size:32;
+ return oceanCached(OCEAN_ART_CACHE.enemies,region+'/'+family+'/'+frame+'/'+size,96,()=>{
+  const[c,g]=oceanCanvas(size,size),t=OCEAN_THEMES[region];g.scale(size/64,size/64);g.translate(0,frame*.8);
+  const gradient=g.createLinearGradient(12,8,52,57);gradient.addColorStop(0,t.accent);gradient.addColorStop(.4,t.color);gradient.addColorStop(1,'#203747');
+  const e=(x,y,rx,ry,color=gradient)=>{g.beginPath();g.ellipse(x,y,rx,ry,0,0,Math.PI*2);g.fillStyle=color;g.fill();g.strokeStyle='#253c4b';g.lineWidth=.7;g.stroke();};
+  const line=(points,color=t.accent,w=1)=>{g.beginPath();points.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.strokeStyle=color;g.lineWidth=w;g.lineCap='round';g.stroke();};
+  const fin=(points,color=gradient)=>{g.beginPath();points.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();g.fillStyle=color;g.fill();g.strokeStyle='#253c4b';g.lineWidth=.8;g.stroke();};
+  if(family===0){fin([[43,30],[59,17],[57,33],[60,46],[43,39]]);fin([[22,25],[31,12],[40,25]]);e(29,33,22,15);fin([[25,39],[37,46],[31,32]],t.accent);for(let i=0;i<5;i++)line([[25+i*4,24],[22+i*4,30],[25+i*4,36]],'#ffffff35',.6);line([[18,31],[16,36],[19,39]],t.accent);}
+  if(family===1){for(let i=0;i<7;i++){g.beginPath();g.moveTo(15+i*5,33);g.bezierCurveTo(5+i*6,43,23+i*3+frame*3,49,13+i*6,59-i%3*3);g.strokeStyle=i%2?t.accent:t.color;g.lineWidth=2.4-i%2*.7;g.stroke();}g.beginPath();g.moveTo(9,34);g.bezierCurveTo(7,2,56,2,55,34);g.quadraticCurveTo(48,41,40,35);g.quadraticCurveTo(32,42,25,35);g.quadraticCurveTo(17,41,9,34);g.fillStyle=gradient;g.fill();g.strokeStyle=t.accent;g.lineWidth=1;g.stroke();e(26,20,6,9,'#f7efcd45');}
+  if(family===2){for(let i=0;i<3;i++){line([[20,35+i*4],[9-i*2,32+i*7],[4,38+i*6]],t.accent,2);line([[44,35+i*4],[55+i*2,32+i*7],[60,38+i*6]],t.color,2);}e(32,37,20,14);for(const x of [12,51]){line([[x+3,31],[x,23]],t.color,4);e(x,18,7,9);line([[x,10],[x+2,19]],'#213a48',1.4);}e(32,31,13,5,t.accent);line([[24,28],[23,22]],t.accent,2);line([[40,28],[41,22]],t.accent,2);}
+  if(family===3){for(const [x,y,rx,ry]of [[13,26,10,5],[51,28,10,5],[18,49,8,5],[47,50,8,5]])e(x,y,rx,ry);e(33,34,20,23);e(33,33,16,19,t.color);fin([[32,18],[43,25],[43,39],[32,47],[22,39],[22,25]],t.accent);for(const y of [27,38])line([[18,y],[23,y+1],[32,y+3],[43,y+1],[49,y]],'#203d4666');e(10,17,9,7);}
+  if(family===4){g.beginPath();g.moveTo(12,54);g.bezierCurveTo(54,60,45,28,32,28);g.bezierCurveTo(18,30,20,51,41,44);g.strokeStyle='#233b4c';g.lineWidth=12;g.stroke();g.strokeStyle=gradient;g.lineWidth=9;g.stroke();for(let i=0;i<6;i++)fin([[29+i*2,44-i*3],[18+i*3,42-i*3],[26+i*3,38-i*3]],t.accent);e(39,17,14,9);fin([[36,11],[37,2],[42,10]],t.accent);fin([[47,14],[59,17],[55,23],[42,24]],t.color);line([[44,23],[52,29],[59,27]],t.accent,1);}
+  const ex=family===3?9:family===4?43:family===0?16:25,ey=family===3?16:family===4?16:family===0?30:family===2?24:27;
+  for(const x of family===0||family===3||family===4?[ex]:[ex,ex+14]){e(x,ey,3,3.5,'#fff2d5');e(x-.2,ey+.4,1.4,2,'#243447');e(x-.7,ey-.8,.7,.7,'#ffffff');}
+  for(let i=0;i<region+2;i++)e(25+i%4*4,37+Math.floor(i/4)*4,.75,.6,t.accent);
+  return c;
+ });
 }
 function oceanBattleStage(areaId,frame=0){const a=OCEAN_AREAS[areaId];return oceanCached(OCEAN_ART_CACHE.backgrounds,`${a.region}/${frame%4}`,24,()=>{
   const [c,g]=oceanCanvas(160,64),t=OCEAN_THEMES[a.region];g.fillStyle="#23364D";g.fillRect(0,0,160,22);g.fillStyle=t.color;g.fillRect(0,22,160,42);g.fillStyle="#101820";

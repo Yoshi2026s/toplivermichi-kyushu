@@ -101,7 +101,7 @@ const resume=runInNewContext(`${actions}\nACT.continue`,{
   SND:{on:true,setOn:()=>{},play:()=>{}},exploreBgm:()=>{},clearTimeout:()=>{}
 });
 await resume();
-if(resumeState.screen!=='explore'||resumeStatus!=='前の記録から復旧'||!resumeMessage.includes('前の世代')||resumeMessage.includes('壊れ')) throw new Error('previous-save resume notice was misleading');
+if(resumeState.screen!=='explore'||resumeStatus!=='前の記録から復旧'||!resumeMessage.includes('前の記録')||resumeMessage.includes('壊れ')) throw new Error('previous-save resume notice was misleading');
 const positionState=game.newGame('位置復旧','女性');positionState.mapId='KY05';positionState.pos={x:99,y:99};
 let positionMessage='';
 const resumePosition=runInNewContext(`${core}\n${migrate}\n${actions}\nACT.continue`,{

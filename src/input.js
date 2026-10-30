@@ -9,20 +9,28 @@ const PAD = (()=>{
   function mount(){
     const dock=document.getElementById("dock"); if(!dock || dock.dataset.ready) return; dock.dataset.ready="1";
     const base=dock.querySelector(".stick"), knob=dock.querySelector(".knob");
-    let pid=null,centerTap=false;
+    let pid=null,centerTap=false,origin=null,stickDir=null;
     const upd=e=>{
       const r=base.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2, R=r.width*0.34;
-      let dx=e.clientX-cx, dy=e.clientY-cy; const d=Math.hypot(dx,dy);
+      let dx=e.clientX-origin.x, dy=e.clientY-origin.y; const d=Math.hypot(dx,dy);
       if(d>R){ dx=dx/d*R; dy=dy/d*R; }
       knob.style.transform=`translate(${dx}px,${dy}px)`;
       const mag=Math.hypot(dx,dy)/R;
-      if(mag>=0.35)centerTap=false;
-      setDir(mag<0.35?null: Math.abs(dx)>Math.abs(dy)? (dx<0?2:3) : (dy<0?1:0), "stick");
+      if(d>=6)centerTap=false;
+      // Small start zone, smaller release zone, and an angular margin prevent thumb jitter.
+      const dead=stickDir==null?0.18:0.10;
+      let next=mag<dead?null:Math.abs(dx)>Math.abs(dy)?(dx<0?2:3):(dy<0?1:0);
+      if(next!=null&&stickDir!=null&&next!==stickDir){
+        const along=stickDir===2?-dx:stickDir===3?dx:stickDir===1?-dy:dy;
+        const across=stickDir<2?Math.abs(dx):Math.abs(dy);
+        if(along>0&&across<along*1.30)next=stickDir;
+      }
+      stickDir=next; setDir(next, "stick");
     };
-    base.addEventListener("pointerdown",e=>{ if(pid!==null)return; pid=e.pointerId; centerTap=!!e.target.closest(".stick-confirm"); base.setPointerCapture(pid); base.classList.add("on"); SND.sfx("step"); upd(e); e.preventDefault(); });
+    base.addEventListener("pointerdown",e=>{ if(pid!==null)return; if(e.button!=null&&e.button!==0)return; pid=e.pointerId; const r=base.getBoundingClientRect(); const central=!!e.target.closest(".stick-confirm"); origin=central?{x:e.clientX,y:e.clientY}:{x:r.left+r.width/2,y:r.top+r.height/2}; stickDir=null; centerTap=!!e.target.closest(".stick-confirm"); base.setPointerCapture(pid); base.classList.add("on"); SND.sfx("step"); upd(e); e.preventDefault(); });
     base.addEventListener("pointermove",e=>{ if(e.pointerId===pid) upd(e); });
-    const end=e=>{ if(e.pointerId!==pid) return; const confirm=e.type==="pointerup"&&centerTap; pid=null; centerTap=false; base.classList.remove("on"); knob.style.transform=""; setDir(null,"stick"); if(confirm)pressA(); };
-    cancelStick=()=>{pid=null;centerTap=false;};
+    const end=e=>{ if(e.pointerId!==pid) return; const confirm=e.type==="pointerup"&&centerTap; pid=null; centerTap=false; origin=null; stickDir=null; base.classList.remove("on"); knob.style.transform=""; setDir(null,"stick"); if(confirm)pressA(); };
+    cancelStick=()=>{pid=null;centerTap=false;origin=null;stickDir=null;};
     base.addEventListener("pointerup",end); base.addEventListener("pointercancel",end); base.addEventListener("lostpointercapture",end);
     dock.querySelector(".stick-confirm").addEventListener("click",e=>{if(e.detail===0)pressA();});
     dock.querySelector("[data-pad=back]").addEventListener("click",()=>pressB());
@@ -35,7 +43,7 @@ const PAD = (()=>{
     if(nd===dir) return;
     dir=nd; updateArrow();
     if(dir==null){ if(isMoveMode() && G.walk.path.length>1) G.walk.path=G.walk.path.slice(0,1); return; }
-    if(!isMoveMode()){ moveCursor(dir); repeatT=performance.now()+380; }
+    if(!isMoveMode()){ moveCursor(dir); repeatT=performance.now()+300; }
   }
   function updateArrow(){ const a=document.querySelector("#dock .stick"); if(a) a.dataset.dir = dir==null?"":["下","上","左","右"][dir]; }
 
@@ -51,7 +59,7 @@ const PAD = (()=>{
           if(walkable(m,nx,ny)){ G.walk.path=[{x:nx,y:ny}]; G.walk.prog=0; G.walk.pending=null; }
           else if(now-lastMove>400){ lastMove=now; const o=objAt(m,nx,ny); if(o){ refreshHere(); } }
         }
-      } else if(now>repeatT){ moveCursor(dir); repeatT=now+170; }
+      } else if(now>repeatT){ moveCursor(dir); repeatT=now+125; }
     }
     requestAnimationFrame(tick);
   }

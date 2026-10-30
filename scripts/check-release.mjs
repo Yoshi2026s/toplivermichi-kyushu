@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
-import {readFileSync,mkdirSync,cpSync,copyFileSync,appendFileSync,unlinkSync,existsSync} from 'node:fs';
+import {readFileSync,mkdirSync,mkdtempSync,rmSync,cpSync,copyFileSync,appendFileSync,unlinkSync,existsSync} from 'node:fs';
 import {resolve} from 'node:path';
+import {tmpdir} from 'node:os';
 import {spawnSync} from 'node:child_process';
-const root=resolve(import.meta.dirname,'..'),fixture=resolve(root,'.task/release-integrity-fixture');
+const root=resolve(import.meta.dirname,'..');
 const run=(cwd,...args)=>spawnSync(process.execPath,['scripts/build.mjs',...args],{cwd,encoding:'utf8',timeout:30000});
 const clean=run(root,'--check');assert.equal(clean.status,0,clean.stderr||clean.stdout);
 for(const match of readFileSync(resolve(root,'README.md'),'utf8').matchAll(/\[[^\]]+\]\(([^)]+)\)/g)){
@@ -24,6 +25,8 @@ for(const font of fonts){
 }
 assert(!readFileSync(resolve(root,'src/shell.html'),'utf8').includes('fonts.googleapis.com'),'game typography must not depend on an external font service');
 // Run real build checks in an isolated copy; never alter the working game.
+const fixture=mkdtempSync(resolve(tmpdir(),'pococha-release-integrity-'));
+try{
 mkdirSync(resolve(fixture,'scripts'),{recursive:true});
 for(const name of ['src','assets'])cpSync(resolve(root,name),resolve(fixture,name),{recursive:true});
 copyFileSync(resolve(root,'scripts/build.mjs'),resolve(fixture,'scripts/build.mjs'));
@@ -37,4 +40,7 @@ failed=run(fixture,'--check');assert.notEqual(failed.status,0,'changed art must 
 unlinkSync(resolve(fixture,art));failed=run(fixture,'--check');assert.notEqual(failed.status,0,'missing art must block rebuilding');
 copyFileSync(resolve(root,art),resolve(fixture,art));
 appendFileSync(resolve(fixture,'release-manifest.json'),' ');failed=run(fixture,'--check');assert.notEqual(failed.status,0);assert.match(failed.stderr,/release-manifest.json is missing or stale/);
+}finally{
+ rmSync(fixture,{recursive:true,force:true});
+}
 console.log('Release checks reject stale HTML, modified/missing art and stale manifests; all embedded graphics/fonts and README links are present');

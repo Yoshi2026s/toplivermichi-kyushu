@@ -1,0 +1,46 @@
+{
+  "kind": "Desktop Chrome touch / mobile viewport emulation",
+  "results": [
+    {
+      "check": "real directional input: eight phases during movement and stable stop",
+      "passed": true
+    },
+    {
+      "check": "menu does not produce foot-stepping or movement",
+      "passed": true
+    },
+    {
+      "check": "normal movement and clean key release",
+      "passed": true
+    },
+    {
+      "check": "fast movement and clean key release",
+      "passed": true
+    },
+    {
+      "check": "OS reduced motion keeps all feet poses stationary",
+      "passed": true
+    },
+    {
+      "check": "MAP layout 393x851",
+      "passed": true
+    },
+    {
+      "check": "MAP layout 360x640",
+      "passed": true
+    },
+    {
+      "check": "MAP layout 240x640",
+      "passed": true
+    },
+    {
+      "check": "MAP layout 851x393",
+      "passed": true
+    },
+    {
+      "check": "position, name and gold survive reload",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

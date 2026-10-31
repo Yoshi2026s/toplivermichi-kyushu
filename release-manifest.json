@@ -5,8 +5,8 @@
   "sourceFileCount": 32,
   "files": {
     "index.html": {
-      "bytes": 10086119,
-      "sha256": "781f0afaf8193cca1e19efbf029200a3a9843db8ffd0b4d112edde1024a9e14c"
+      "bytes": 8027018,
+      "sha256": "388872b396a761fa780af1781ec71e93398e401c88626282b6af2d69445cf9c0"
     },
     "README.md": {
       "bytes": 5226,
@@ -83,8 +83,8 @@
       "sha256": "5c21bcbfc88a04203864145e13de1925af02ddcb72647a0a77e6a42d31b47d37"
     },
     "assets/audio/orchestra-bank.json": {
-      "bytes": 3112601,
-      "sha256": "da66abe07f1f25a63a0144c0785966c7c7b242b240a5a306d1d7cd52f04c1337"
+      "bytes": 1050491,
+      "sha256": "3ee8d6fa4be91cebe4654cbef1051b1fb3a4aa5b94adecf4b7a306ad92c9c437"
     }
   },
   "validation": "docs/validation-5.34.json"

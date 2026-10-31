@@ -125,7 +125,7 @@ const SND = (()=>{
   const sampleBanks=new Map();let sampleTurns=0,sampleNotes=0,droppedSampleNotes=0;
   function initSamples(){
     if(typeof ORCHESTRA_BANK==='undefined'||typeof atob!=='function')return;
-    for(const sample of ORCHESTRA_BANK.samples){const bytes=atob(sample.pcm),buffer=ac.createBuffer(1,bytes.length/2,sample.rate),data=buffer.getChannelData(0);for(let i=0;i<data.length;i++){const n=bytes.charCodeAt(i*2)|(bytes.charCodeAt(i*2+1)<<8);data[i]=(n>32767?n-65536:n)/32768;}const group=sampleBanks.get(sample.instrument)||[];group.push({...sample,pcm:undefined,buffer});sampleBanks.set(sample.instrument,group);}
+    for(const sample of ORCHESTRA_BANK.samples){const decoded=ORCHESTRA_CODEC.decode(sample),buffer=ac.createBuffer(1,decoded.length,sample.rate);buffer.getChannelData(0).set(decoded);const group=sampleBanks.get(sample.instrument)||[];group.push({...sample,pcm:undefined,ima:undefined,mulaw:undefined,buffer});sampleBanks.set(sample.instrument,group);}
   }
   function sampleVoice(f,t,dur,instrument,vol,opt={}){
     const group=sampleBanks.get(instrument);if(!group)return false;

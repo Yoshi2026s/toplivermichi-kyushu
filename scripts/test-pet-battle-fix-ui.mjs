@@ -19,6 +19,11 @@ try{for(const device of ['standard','small','landscape','short']){
  await page.locator('body').click({position:{x:2,y:2}});await page.keyboard.down(key);try{await page.waitForFunction(p=>G.st.pos.x!==p.x||G.st.pos.y!==p.y,before,{timeout:5000});}finally{await page.keyboard.up(key);}
  await page.waitForFunction(()=>!G.walk.path.length);assert.equal(await page.evaluate(()=>{const a=[];petMapFollowers(G.st,playerPixel(),2,a);return a.length;}),2);
  }
+ if(device==='landscape'){
+ await page.evaluate(()=>{for(const p of Object.values(petData(G.st).owned))p.name='ながいなまえのペットさん';render();});
+ assert(await page.evaluate(()=>{const panel=document.querySelector('.pstrip'),dock=document.querySelector('#dock'),r=panel.getBoundingClientRect();return r.bottom<=dock.getBoundingClientRect().top+1&&r.height>48;}),'party panel stays above controls');
+ assert(await page.evaluate(()=>{const panel=document.querySelector('.pstrip');panel.scrollTop=panel.scrollHeight;return panel.scrollTop>0&&document.querySelector('.pet-party').getBoundingClientRect().bottom<=panel.getBoundingClientRect().bottom+1;}),'all companion details remain reachable by scrolling');
+ }
  assert.equal(await page.locator('.pet-party').count(),1);await page.screenshot({path:resolve(out,device+'-map.png')});
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
  await page.evaluate(async()=>{await commit();await saveChain;});await page.reload({waitUntil:'domcontentloaded'});await page.locator('[data-a="continue"]').tap();await page.waitForFunction(()=>G.screen==='explore');

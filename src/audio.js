@@ -9,8 +9,9 @@ const SND = (()=>{
 
   /* 曲データ：lead は8分音符ごと（- は伸ばす、. は休符）。chords は1小節ごと */
   const SONGS = {
-    title:{ bpm:88, style:"soft", chords:"C G Am Em F C Dm G",
-      lead:"E5 - G5 - C6 - B5 A5 | G5 - - - D5 - G5 - | A5 - C6 - E6 - D6 C6 | B5 - - - G5 - - - | A5 - F5 - C6 - A5 - | G5 - E5 - C5 - E5 G5 | F5 - A5 - D6 - C6 A5 | B5 - - - - - . ." },
+    title:{bpm:104,style:"overture",chords:"D A G A7 D Bm Em A7 G Em A D Em Bm G A7 Bm G A D Em Em A A7 D G A D G D Em A7",
+      lead:"D5 - A4 D5 F#5 - A5 - | G5 - F#5 E5 D5 - A4 - | B4 - D5 G5 A5 B5 - A5 | C#6 - A5 - E5 - - - | F#5 - A5 - D6 - C#6 B5 | A5 - F#5 E5 D5 - F#5 - | G5 A5 B5 - A5 G5 E5 - | F#5 - E5 - C#5 - A4 - | B4 - D5 - F#5 - A5 - | G5 - E5 - B4 - - - | A4 - C#5 E5 A5 - G5 - | F#5 - D5 - A4 - - - | G4 - B4 D5 G5 - F#5 E5 | F#5 - A5 - D6 - C#6 - | B5 - A5 G5 F#5 - E5 - | C#5 - E5 A5 C#6 - - - | B4 F#5 B5 - A5 F#5 D5 - | G5 - B5 - D6 - C#6 B5 | A5 - E5 A5 C#6 - B5 A5 | F#5 - D5 F#5 A5 - - - | E5 G5 B5 - A5 G5 F#5 E5 | G5 B5 E6 - D6 B5 A5 - | C#6 - B5 A5 G5 - E5 - | A5 - C#6 - E6 - - - | D6 - A5 D6 F#6 - E6 D6 | B5 - G5 B5 D6 - C#6 B5 | A5 - C#6 E6 D6 C#6 B5 A5 | F#5 - A5 D6 A5 - - - | B5 A5 G5 - D6 - B5 - | A5 F#5 D5 - F#5 - A5 - | G5 - B5 D6 E6 - C#6 - | D6 - - - A5 - C#6 -",
+      leadAlt:"D6 - A5 D6 F#6 - E6 D6 | B5 - G5 B5 D6 - C#6 B5 | A5 - C#6 E6 D6 C#6 B5 A5 | F#5 - A5 D6 A5 - - - | B5 A5 G5 - D6 - B5 - | A5 F#5 D5 - F#5 - A5 - | G5 - B5 D6 E6 - C#6 - | D6 - - - A5 - C#6 - | B4 - D5 - F#5 - A5 - | G5 - E5 - B4 - - - | A4 - C#5 E5 A5 - G5 - | F#5 - D5 - A4 - - - | G4 - B4 D5 G5 - F#5 E5 | F#5 - A5 - D6 - C#6 - | B5 - A5 G5 F#5 - E5 - | C#5 - E5 A5 C#6 - - - | B4 F#5 B5 - A5 F#5 D5 - | G5 - B5 - D6 - C#6 B5 | A5 - E5 A5 C#6 - B5 A5 | F#5 - D5 F#5 A5 - - - | E5 G5 B5 - A5 G5 F#5 E5 | G5 B5 E6 - D6 B5 A5 - | C#6 - B5 A5 G5 - E5 - | A5 - C#6 - E6 - - - | D6 - A5 D6 F#6 - E6 D6 | B5 - G5 B5 D6 - C#6 B5 | A5 - C#6 E6 D6 C#6 B5 A5 | F#5 - A5 D6 A5 - - - | B5 A5 G5 - D6 - B5 - | A5 F#5 D5 - F#5 - A5 - | G5 - B5 D6 E6 - C#6 - | D6 - - - A5 - C#6 -"},
     fukuoka:{ bpm:120, style:"town", chords:"F C Dm Bb F C Bb C",
       lead:"C5 F5 A5 - G5 F5 E5 F5 | G5 - E5 - C5 - . . | D5 F5 A5 - C6 - A5 G5 | F5 - D5 - Bb4 - . . | C5 F5 A5 - C6 A5 Bb5 C6 | D6 - C6 - G5 - E5 - | F5 G5 A5 - Bb5 A5 G5 F5 | E5 - G5 - C6 - . ." },
     field:{ bpm:132, style:"march", chords:"Dm C Bb A Dm C Bb A7",
@@ -42,6 +43,7 @@ const SND = (()=>{
   // Eight original scene melodies plus nine sea melodies; all loops alternate an arranged response.
   for(const song of Object.values(SONGS)) if(!song.leadAlt) song.leadAlt=song.lead.split('|').reverse().join('|');
   const STYLE = {
+    overture:{bass:"r . 5 . r8 . 5 .",arp:"0 1 2 1 0 2 1 2",hat:"",kick:"",snare:". . x . . . x .",leadVol:.3,arpVol:.09,bassVol:.5},
     soft:  {bass:"r . . . 5 . . .", arp:"0 1 2 1 0 1 2 1", hat:"", kick:"", snare:"", leadVol:.32, arpVol:.08, bassVol:.5},
     town:  {bass:"r . 5 . r8 . 5 .", arp:"0 1 2 1 0 1 2 1", hat:"x . x . x . x .", kick:"x . . . . . . .", snare:". . . . x . . .", leadVol:.3, arpVol:.09, bassVol:.55},
     march: {bass:"r . r 5 r . r 5", arp:"0 2 1 2 0 2 1 2", hat:"x x x x x x x x", kick:"x . . . x . . .", snare:". . x . . . x .", leadVol:.3, arpVol:.08, bassVol:.55},
@@ -143,12 +145,14 @@ const SND = (()=>{
     if(nextT<now+.012){const missed=Math.ceil((now+.02-nextT)/sd);step+=missed;nextT+=missed*sd;timing.recoveries++;timing.skippedSteps+=missed;}
     while(nextT < now+timing.lookahead){
       const i=step%S.steps, bar=Math.floor(i/8), k=i%8, ch=S.bars[bar];
-      const dramatic=['battle','boss'].includes(S.style),gentle=S.style==='soft',response=Math.floor(step/S.steps)%2;
-      const swell=.82+.18*Math.sin(Math.PI*(bar%8)/7),root=ch.root;
+      const overture=S.style==='overture',section=Math.floor(bar/8),dramatic=['battle','boss'].includes(S.style)||(overture&&section>=2),gentle=S.style==='soft'||(overture&&section===1),response=Math.floor(step/S.steps)%2;
+      const swell=(overture?[.80,.68,.88,1.12][section]:1)*(.82+.18*Math.sin(Math.PI*(bar%8)/7)),root=ch.root;
       for(const e of (response?S.alt:S.lead))if(e.step===i){
         voice(hz(e.n),nextT,sd*e.len*.94,gentle||response?'flute':'horn',.22*swell,{detune:gentle?0:3,cutoff:gentle?3800:2400,a:.035,d:.12,sus:.78,r:.19,rev:.36,pan:-.12});
         if(dramatic)voice(hz(e.n-12),nextT,sd*e.len*.86,'strings',.10,{cutoff:3100,a:.025,d:.09,sus:.7,r:.15,rev:.24,pan:.3});
       }
+      if(overture&&k===0&&!gentle)voice(hz(60+root),nextT,sd*3.5,'horn',.075*swell,{a:.07,d:.15,sus:.7,r:.22,cutoff:2400,rev:.4,pan:.35});
+      if(overture&&bar%8===7&&k>=6)voice(hz(36+root),nextT,sd*.6,'sine',.20+(k-6)*.04,{a:.003,d:.09,sus:.1,r:.15,cutoff:700,rev:.3});
       // Sustained string voicing with a separate horn response and low bowed foundation.
       if(k===0||k===4){for(let j=0;j<3;j++)voice(hz(48+root+ch.q[j]),nextT,sd*3.75,'strings',.065*swell,{detune:3,cutoff:2300,a:.13,d:.15,sus:.72,r:.25,pan:[-.65,.15,.65][j],rev:.38});}
       const bt=S.bass[k];if(bt&&bt!=='.'){const base=36+root+(root>7?-12:0),n=bt==='r'?base:bt==='r8'?base+12:base+7;voice(hz(n),nextT,sd*.88,'strings',.19,{cutoff:1000,a:.025,d:.08,sus:.75,r:.1});}

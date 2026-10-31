@@ -5,12 +5,12 @@
   "sourceFileCount": 30,
   "files": {
     "index.html": {
-      "bytes": 4348185,
-      "sha256": "67a9c66cdb72b49641dd1b23c69ff37a264fa1e04a66414eaa0974543b75393b"
+      "bytes": 4831760,
+      "sha256": "fc700467b15cc3dce0ab21009ec81dd70609150f345a24850bbdd4aa48388183"
     },
     "README.md": {
-      "bytes": 4614,
-      "sha256": "ade5007e46885c5461fcdba4260c71818c58046940f5108555cbfb342cc40448"
+      "bytes": 4799,
+      "sha256": "c50a5d531ca88b5afdd43c0a24f648c9f7c397b383af2186881d2c14f5673a95"
     },
     "VERSION.txt": {
       "bytes": 156,
@@ -26,6 +26,10 @@
     }
   },
   "assets": {
+    "assets/illustrated/title-dawn.webp": {
+      "bytes": 359264,
+      "sha256": "00fb9bc3ad30b9ca3f07949bb54f9988eca744afd0d020fef9f813c4b425e02c"
+    },
     "assets/illustrated/party-front.webp": {
       "bytes": 247688,
       "sha256": "aa1466a0d96bf39d35a67c99ac29b08d3c5630a450211efb2b968bcfe4531630"

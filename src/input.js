@@ -4,7 +4,7 @@ const PAD = (()=>{
   const VEC=[[0,1],[0,-1],[-1,0],[1,0]];
   const isMoveMode=()=> G.screen==="explore" && !G.sheet && !G.dlg && G.st && !G.readOnly;
 
-  let cancelStick=()=>{};
+  let cancelStick=()=>{},cancelBack=()=>{};
   /* ---- 画面上のスティック ---- */
   function mount(){
     const dock=document.getElementById("dock"); if(!dock || dock.dataset.ready) return; dock.dataset.ready="1";
@@ -16,7 +16,8 @@ const PAD = (()=>{
       if(d>R){ dx=dx/d*R; dy=dy/d*R; }
       knob.style.transform=`translate(${dx}px,${dy}px)`;
       const mag=Math.hypot(dx,dy)/R;
-      if(d>=6)centerTap=false;
+      if(centerTap&&d<12){stickDir=null;setDir(null,"stick");return;}
+      if(d>=12)centerTap=false;
       // Small start zone, smaller release zone, and an angular margin prevent thumb jitter.
       const dead=stickDir==null?0.18:0.10;
       let next=mag<dead?null:Math.abs(dx)>Math.abs(dy)?(dx<0?2:3):(dy<0?1:0);
@@ -27,13 +28,20 @@ const PAD = (()=>{
       }
       stickDir=next; setDir(next, "stick");
     };
-    base.addEventListener("pointerdown",e=>{ if(pid!==null)return; if(e.button!=null&&e.button!==0)return; pid=e.pointerId;pressEpoch=G.controlEpoch; const r=base.getBoundingClientRect(); const central=!!e.target.closest(".stick-confirm"); origin=central?{x:e.clientX,y:e.clientY}:{x:r.left+r.width/2,y:r.top+r.height/2}; stickDir=null; centerTap=!!e.target.closest(".stick-confirm"); base.setPointerCapture(pid); base.classList.add("on"); SND.sfx("step"); upd(e); e.preventDefault(); });
+    base.addEventListener("pointerdown",e=>{ if(pid!==null)return; if(e.button!=null&&e.button!==0)return;if(dock.querySelector(".stick-confirm").disabled)return;cancelBack(); pid=e.pointerId;pressEpoch=G.controlEpoch; const r=base.getBoundingClientRect(); const central=!!e.target.closest(".stick-confirm"); origin=central?{x:e.clientX,y:e.clientY}:{x:r.left+r.width/2,y:r.top+r.height/2}; stickDir=null; centerTap=!!e.target.closest(".stick-confirm"); base.setPointerCapture(pid); base.classList.add("on"); SND.sfx("step"); upd(e); e.preventDefault(); });
     base.addEventListener("pointermove",e=>{ if(e.pointerId===pid) upd(e); });
     const end=e=>{ if(e.pointerId!==pid) return; const confirm=e.type==="pointerup"&&centerTap&&pressEpoch===G.controlEpoch; pid=null; centerTap=false; origin=null; stickDir=null; base.classList.remove("on"); knob.style.transform=""; setDir(null,"stick"); if(confirm)pressA(); };
     cancelStick=()=>{pid=null;centerTap=false;origin=null;stickDir=null;};
     base.addEventListener("pointerup",end); base.addEventListener("pointercancel",end); base.addEventListener("lostpointercapture",end);
     dock.querySelector(".stick-confirm").addEventListener("click",e=>{if(e.detail===0)pressA();});
-    dock.querySelector("[data-pad=back]").addEventListener("click",()=>pressB());
+
+    const back=dock.querySelector('[data-pad=back]');let backPid=null,backOrigin=null,backEpoch=null;
+    cancelBack=()=>{backPid=null;backOrigin=null;back.classList?.remove('pressed');};
+    back.addEventListener('pointerdown',e=>{if(back.disabled||backPid!==null||e.button!=null&&e.button!==0)return;cancelStick();setDir(null,'stick');knob.style.transform='';base.classList.remove('on');backPid=e.pointerId;backOrigin={x:e.clientX,y:e.clientY};backEpoch=G.controlEpoch;back.setPointerCapture?.(backPid);back.classList?.add('pressed');e.preventDefault();});
+    back.addEventListener('pointermove',e=>{if(e.pointerId===backPid&&Math.hypot(e.clientX-backOrigin.x,e.clientY-backOrigin.y)>20)cancelBack();});
+    back.addEventListener('pointerup',e=>{if(e.pointerId!==backPid)return;const valid=!back.disabled&&backEpoch===G.controlEpoch;cancelBack();if(valid)pressB();});
+    for(const name of ['pointercancel','lostpointercapture'])back.addEventListener(name,cancelBack);
+    back.addEventListener('click',e=>{if(e.detail===0&&!back.disabled)pressB();});
     requestAnimationFrame(tick);
   }
   const sources={};
@@ -124,6 +132,7 @@ const PAD = (()=>{
   }
   function pressB(){
     if(G.dlg){if(G.dlg.i>0)ACT.dlgBack();else if(!G.dlg.after&&!G.dlg.sceneId)ACT.dlgSkip();else SND.sfx('cancel');return;}
+    if(G.sheet==='petCare'&&G.sheetData?.details&&typeof petCurrentId==='function'&&typeof ACT.petDetails==='function'){ACT.petDetails({dataset:{v:petCurrentId()}});return;}
     if(G.sheet==='battleSkills'&&G.sheetData?.skill&&typeof ACT.expandedSkillBack==='function'){ACT.expandedSkillBack();if(!G.sheetData?.skill)return;}
     if(G.sheet){const back=document.querySelector('.overlay [data-a=closeSheet]')||document.querySelector('.overlay .sheet-head [data-a=oceanBack]');if(back)back.click();return;}
     if(G.screen==='result'){ACT.resultDone();return;}
@@ -186,7 +195,7 @@ const PAD = (()=>{
   document.addEventListener("keyup",e=>{ if(KEYS[e.key]!=null && sources.key===KEYS[e.key]) setDir(null,"key"); });
   // 別タブや別アプリへ移った間に取り逃したキー解放を残さない。
   function releaseInput(){
-    if(typeof cancelStick==="function")cancelStick();
+    if(typeof cancelStick==="function")cancelStick();if(typeof cancelBack==="function")cancelBack();
     for(const src of ["key","gamepad","stick"]) sources[src]=null;
     setDir(null,"key"); prevBtn={};gamepadRearm=true;
     if(G.walkPlan)G.walkPlan.paused=true;

@@ -6,8 +6,8 @@ const start=source.indexOf('function startLoop(){'),end=source.indexOf('function
 assert(start>=0&&end>start);
 const frames=new Map();let sequence=0,draws=0,loop;
 const G={raf:0,st:{settings:{},pos:{x:0,y:0}},screen:'explore',walk:{path:[{x:1,y:0}],prog:.99},frame:0};
-loop=runInNewContext(source.slice(start,end)+'\nstartLoop',{
-  G,document:{hidden:false},drawMap(){draws++;},arrive(){loop();},
+loop=runInNewContext(source.match(/function reducedMotion\(\)\{[\s\S]*?\n\}/)[0]+'\n'+source.slice(start,end)+'\nstartLoop',{
+  G,window:{matchMedia:()=>({matches:false})},document:{hidden:false},drawMap(){draws++;},arrive(){loop();},
   requestAnimationFrame(fn){frames.set(++sequence,fn);return sequence;},cancelAnimationFrame:id=>frames.delete(id)
 });
 loop();const [firstId,firstFrame]=frames.entries().next().value;frames.delete(firstId);firstFrame(16);

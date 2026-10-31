@@ -41,14 +41,14 @@ function bossReward(bossId){
 const Vof = L => 1+Math.floor((L-1)/20);
 const Kof = R => R>=10?3:R>=6?2:R>=3?1:0;
 const clone = o => JSON.parse(JSON.stringify(o));
-const charName = (st,cid) => cid==="hero" ? st.profile.name : cid==="moe" ? (st.heroine?.name||CHARS.moe.name) : CHARS[cid].name;
+const charName = (st,cid) => halfWidthName(cid==="hero" ? st.profile.name : cid==="moe" ? (st.heroine?.name||CHARS.moe.name) : CHARS[cid].name);
 
 /* ---- 新規開始（第06D・16節） ---- */
 function newGame(name, gender, options={}){
   const st = {
     schemaVersion:SCHEMA_VERSION, gameVersion:GAME_VERSION, saveGeneration:0,
     mapLayoutVersion:typeof MAP_LAYOUT_VERSION==="undefined"?0:MAP_LAYOUT_VERSION,
-    profile:{name, gender}, day:1, growthVersion:1, legacyGrowth:{level:1,jobs:{}}, mapId:"KY01", pos:{x:MAPS.KY01.safeAnchor[0],y:MAPS.KY01.safeAnchor[1]}, dir:0,
+    profile:{name:normalizeName(name), gender}, day:1, growthVersion:1, legacyGrowth:{level:1,jobs:{}}, mapId:"KY01", pos:{x:MAPS.KY01.safeAnchor[0],y:MAPS.KY01.safeAnchor[1]}, dir:0,
     visitedMaps:["KY01"], visitedHubs:["KY01"], xp:0,
     roster:["hero","moe"], party:["hero","moe"], vitals:null,
     jobs:{}, jp:{}, equip:{}, owned:{CW01:8, CA01:8}, pendingGifts:[], favorite:{},
@@ -669,9 +669,10 @@ function equipmentChangeFits(st,cid,slot,id){ return equipmentSetFits(st,cid,{..
 const NAME_MAX = 12;
 const HW_KANA = "｡｢｣､･ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ";
 const FW_KANA = "。「」、・ヲァィゥェォャュョッーアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワン";
+function halfWidthName(raw){return String(raw??"" ).replace(/[Ａ-Ｚａ-ｚ０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0));}
 function normalizeName(raw){
   let s = raw.replace(/^[ 　]+|[ 　]+$/g,"");
-  s = s.replace(/[A-Za-z0-9]/g, ch=>String.fromCharCode(ch.charCodeAt(0)+0xFEE0));
+  s = halfWidthName(s);
   let out="";
   for(let i=0;i<s.length;i++){
     const ch=s[i], k=HW_KANA.indexOf(ch);
@@ -695,12 +696,12 @@ function nameCharOk(g){
   if(c>=0x3041&&c<=0x3096) return true;
   if(c>=0x30A1&&c<=0x30FA) return true;
   if("々〆〇ーゝゞヽヾ".includes(g)) return true;
-  if((c>=0xFF21&&c<=0xFF3A)||(c>=0xFF41&&c<=0xFF5A)||(c>=0xFF10&&c<=0xFF19)) return true;
+  if((c>=65&&c<=90)||(c>=97&&c<=122)||(c>=48&&c<=57)) return true;
   try{ return /^\p{Script=Han}$/u.test(g); }catch(e){ return (c>=0x4E00&&c<=0x9FFF)||(c>=0x3400&&c<=0x4DBF)||(c>=0x20000&&c<=0x2FFFF)||(c>=0xF900&&c<=0xFAFF); }
 }
 function validateName(raw){
   const s=normalizeName(raw); const gs=graphemes(s); const errors=[];
-  gs.forEach((g,i)=>{ if(!nameCharOk(g)) errors.push(`${i+1}文字目「${/\s/.test(g)?"空白":g}」は使えません（使える文字：ひらがな・カタカナ・漢字・全角英数字）。`); });
+  gs.forEach((g,i)=>{ if(!nameCharOk(g)) errors.push(`${i+1}文字目「${/\s/.test(g)?"空白":g}」は使えません（使える文字：ひらがな・カタカナ・漢字・半角英数字）。`); });
   if(gs.length===0) errors.push("名前を入力してください。");
   if(gs.length>NAME_MAX) errors.push(`${gs.length}文字です。${NAME_MAX}文字以内に直してください。`);
   return { value:s, count:gs.length, errors, ok:errors.length===0 };

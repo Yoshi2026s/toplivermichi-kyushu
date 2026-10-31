@@ -5,7 +5,7 @@ import vm from 'node:vm';
 const root=resolve(import.meta.dirname,'..'),read=f=>readFileSync(resolve(root,'src',f),'utf8');
 const data=['data_enemies.js','data_saga_enemies.js','data_items.js','data_national.js','data.js','data_nationwide.js','data_nationwide_story.js','data_maps.js','data_character.js','data_pets.js'].filter(f=>existsSync(resolve(root,'src',f))).map(read).join('\n');
 const ctx={console,setTimeout:()=>0,clearTimeout:()=>{},setInterval:()=>0,clearInterval:()=>{},performance:{now:()=>0},document:{hidden:false,addEventListener:()=>{},querySelector:()=>null,getElementById:()=>null},window:{addEventListener:()=>{},matchMedia:()=>({matches:true})},navigator:{},localStorage:{getItem:()=>null}};
-const code=data+'\n'+read('core.js')+'\n'+read('pets.js')+'\n'+read('ui.js')+'\n'+read('ui_pets.js')+`\nrender=()=>{};commit=()=>Promise.resolve(true);SND={sfx:()=>{}};({PET_SPECIES,PET_SKILLS,PET_SUPPLIES,PET_GROWTH_THRESHOLDS,PET_BADGES,newGame,migratePets,petData,petStage,petOwned,adoptPet,petAdoptPreview,petCarePreview,carePet,petReceivePreview,petCelebrationPreview,claimPetCelebration,petWalkPreview,walkPet,petTravelPreview,petTravelHelp,preparePetRun,petTurnStart,petBattleBadges,petSpriteSvg,createFieldRun,ensureVitals,restoreAll,bagCount,bagAdd,itemVaultAdd,PET_CARE_TYPES,G,ACT,renderPetList,renderPetCare,renderPetWalk,renderPetTravel,renderPetShop,renderPetAdopt,petUiToken,petUiMutation})`;
+const code=data+'\n'+read('core.js')+'\n'+read('pets.js')+'\n'+read('ui.js')+'\n'+read('ui_pets.js')+`\nrender=()=>{};commit=()=>Promise.resolve(true);SND={sfx:()=>{}};({PET_SPECIES,PET_SKILLS,PET_SUPPLIES,PET_GROWTH_THRESHOLDS,PET_BADGES,newGame,migratePets,petData,petStage,petOwned,adoptPet,petAdoptPreview,petCarePreview,carePet,petReceivePreview,petCelebrationPreview,claimPetCelebration,petWalkPreview,walkPet,petTravelPreview,petTravelHelp,preparePetRun,petTurnStart,petBattleBadges,petSpriteSvg,createFieldRun,ensureVitals,restoreAll,bagCount,bagAdd,itemVaultAdd,PET_CARE_TYPES,G,ACT,renderPetList,renderPetCare,renderPetWalk,renderPetTravel,renderPetShop,renderPetAdopt,petUiToken,petUiMutation,MAPS})`;
 ctx.SND={sfx:()=>{},play:()=>{}};
 vm.createContext(ctx);
 const g=vm.runInContext(code,ctx),make=()=>{const st=g.newGame('ペット検査','女性');g.ensureVitals(st);return st;};
@@ -71,7 +71,7 @@ two.petHistory.stopped=true;two.petHistory.boostedHit=true;two.petHistory.target
 // UI: every page renders, read-only/stale/hidden actions cannot charge; failed save rolls back.
 g.G.st=st;g.G.screen='explore';g.G.sheet='petCare';g.G.sheetData={pet:'PT01'};g.G.walk={path:[]};g.G.dlg=null;g.G.readOnly=false;
 for(const f of ['renderPetList','renderPetCare','renderPetWalk','renderPetTravel','renderPetShop','renderPetAdopt'])assert(g[f]().length>20,`${f} empty`);
-st.gold=100;g.G.sheet='petShop';const el={dataset:{v:'PT01-feed-1',token:g.petUiToken(st)},disabled:false},original=JSON.stringify(st);
+st.gold=100;g.G.sheet='petShop';const shop=g.MAPS[st.mapId].objects.find(o=>o.type==='petshop');st.pos={x:shop.x,y:shop.y+1};const el={dataset:{v:'PT01-feed-1',token:g.petUiToken(st)},disabled:false},original=JSON.stringify(st);
 g.G.readOnly=true;g.ACT.petBuy(el);assert.equal(JSON.stringify(st),original);g.G.readOnly=false;
 el.dataset.token='stale';g.ACT.petBuy(el);assert.equal(JSON.stringify(st),original);
 ctx.document.hidden=true;el.dataset.token=g.petUiToken(st);g.ACT.petBuy(el);assert.equal(JSON.stringify(st),original);ctx.document.hidden=false;

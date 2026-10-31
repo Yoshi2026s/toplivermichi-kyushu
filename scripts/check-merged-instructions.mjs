@@ -48,10 +48,12 @@ assert(shell.includes('body.reduce-motion .flash')&&shell.includes('.flash,.hurt
 console.log('Merged instructions: URL sharing, fallback/cancel/read-only, reduced motion, 12px minimum passed');
 
 const card=ui.match(/function partyCard\(m,i,run\)\{[\s\S]*?\n\}/)[0];
-const renderCard=runInNewContext(`${card}\npartyCard`,{G:{cmd:{actor:0}},isLow:(h,m)=>h>0&&h<=m*.3,esc:String,JOBS:{J01:{name:'職業'}}});
+const renderCard=runInNewContext(`${readFileSync(new URL('../src/core.js',import.meta.url),'utf8').match(/function battleMPCap\(actor\)\{[^\n]+/)[0]}\n${card}\npartyCard`,{G:{cmd:{actor:0}},isLow:(h,m)=>h>0&&h<=m*.3,esc:String,JOBS:{J01:{name:'職業'}}});
 const member={name:'仲間',hp:30,maxHP:100,c:4,job:'J01',R:1};
 assert(renderCard(member,0,{state:'input'}).includes('体力わずか'));
 assert(!renderCard({...member,hp:31},0,{state:'input'}).includes('体力わずか'));
 assert(renderCard({...member,hp:0},0,{state:'input'}).includes('戦闘不能'));
 assert(!renderCard({...member,hp:0},0,{state:'input'}).includes('体力わずか'));
 console.log('Low HP: 30% boundary, healthy and KO labels passed');
+
+assert(renderCard({...member,maxMP:8},0,{state:"input"}).includes("MP<b>4</b>/8"));assert(renderCard(member,0,{state:"input"}).includes("MP<b>4</b>/10"));

@@ -25,7 +25,7 @@ function migratePets(st){
   for(const [id,p] of Object.entries(ps.owned)){
     if(!petSpecies(id)||!p||typeof p!=="object")continue;
     const divisor=PET_RARITY_RULES[PET_SPECIES[id].rarity].growth;p.growthRemainder=Number.isSafeInteger(p.growthRemainder)&&p.growthRemainder>=0&&p.growthRemainder<divisor?p.growthRemainder:0;
-    p.id=id;p.name=typeof p.name==="string"&&p.name.trim()?Array.from(p.name.trim()).slice(0,12).join(""):PET_SPECIES[id].name;
+    p.id=id;p.name=typeof p.name==="string"&&p.name.trim()?Array.from(halfWidthName(p.name.trim())).slice(0,12).join(""):PET_SPECIES[id].name;
     for(const k of ["bond","fullness","mood","clean"])p[k]=petBound(p[k]??(k==="bond"?0:50));
     if(!["heal","support"].includes(p.policy))p.policy="heal";
     if(!PET_SPECIES[id].skills.includes(p.preferredSkill))p.preferredSkill=null;

@@ -11,8 +11,11 @@ pad.pressB();assert.equal(G.cmd.type,'item');assert.equal(G.cmd.item,'I01');asse
 pad.pressB();assert.equal(G.cmd.type,'item');assert.equal(G.cmd.item,undefined);
 pad.pressB();assert.equal(G.cmd.type,undefined);pad.pressB();assert.equal(paused,1);
 G.cmd={actor:0,type:'attack',target:0};pad.pressA();assert.equal(confirmed,1,'selected valid action confirms directly');
+G.st.run.enemies=[{hp:10}];for(const type of ['attack','guard']){G.cmd={actor:0,type,target:0};pad.pressB();assert.equal(G.cmd.type,undefined,'automatic single-enemy target cannot trap Back: '+type);}G.st.run.enemies=[{hp:10},{hp:10}];G.cmd={actor:0,type:'attack',target:1};pad.pressB();assert.equal(G.cmd.type,'attack');assert.equal(G.cmd.target,undefined,'multiple enemies still have a target-selection layer');
 G.dlg={i:1,after:()=>{},lines:[['','one'],['','two']]};pad.pressB();assert.equal(G.dlg.i,0);pad.pressB();assert(G.dlg);assert.equal(skipped,0,'back at story start does not skip');
 G.dlg={i:0,sceneId:'HS00',lines:[['','story']]};pad.pressB();assert.equal(skipped,0,'story without callback is not skipped');
 G.dlg={i:0,lines:[['','normal']]};pad.pressB();assert.equal(skipped,1);
 G.walkPlan={paused:false};G.walk={path:[{x:1,y:0}],prog:.4,pending:{}};pad.release();assert(G.walkPlan.paused);assert.equal(G.walk.path.length,0);assert.equal(G.walk.pending,null);
+G.dlg=null;G.screen='battle';G.cmd={actor:0};let focusedClicks=0,staleClicks=0;
+const focusable=click=>({disabled:false,getAttribute:()=>null,closest:()=>null,getBoundingClientRect:()=>({width:80,height:48}),click});const stale=focusable(()=>staleClicks++),focused=focusable(()=>focusedClicks++);screen.querySelector=()=>stale;screen.querySelectorAll=()=>[stale,focused];document.activeElement=focused;pad.pressA();assert.equal(focusedClicks,1,'native focus wins over old joystick highlight');assert.equal(staleClicks,0);
 console.log('Control actions: back unwinds target/item/action, idle opens pause, ready action confirms, dialogue goes back, held movement releases');

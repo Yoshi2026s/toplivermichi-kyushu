@@ -1,0 +1,26 @@
+import assert from 'node:assert/strict';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {root,chromium,browserOptions,mobileOptions,serveGame} from './mobile-runtime.mjs';
+const app=process.env.GAME_TEST_URL?{url:process.env.GAME_TEST_URL,close:async()=>{}}:await serveGame(),out=resolve(root,'.task/followup-ui');await mkdir(out,{recursive:true});
+const browser=await chromium.launch(browserOptions()),report=[];
+try{for(const device of process.env.UI_DEVICE?[process.env.UI_DEVICE]:['standard','small','landscape','short']){
+ const context=await browser.newContext(mobileOptions(device)),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ try{
+  await page.goto(app.url,{waitUntil:'domcontentloaded',timeout:120000});await page.locator('[data-a="newGame"]').waitFor();
+  await page.evaluate(()=>{SND.setOn(false);G.st=newGame('追加改善検査','男性');ensureVitals(G.st);G.st.settings.sound=false;G.st.settings.reduceMotion=true;G.st.settings.listenerComments=false;G.screen='explore';G.sheet='guide';G.dlg=null;randInt=n=>n-1;render();});
+  const layout=await page.evaluate(()=>({search:document.querySelector('#navSearchInput').getBoundingClientRect().bottom,header:document.querySelector('.sheet-head').getBoundingClientRect().height,dock:document.querySelector('.dock').getBoundingClientRect().top,scroll:document.documentElement.scrollWidth,width:innerWidth}));assert(layout.scroll<=layout.width+1);assert(layout.search<=layout.dock,'search is visible before scrolling');if(device==='landscape')assert(layout.header<=64,'compact landscape header');for(const b of await page.locator('.sheet-actions button').all())assert((await b.boundingBox()).height>=48);await page.screenshot({path:resolve(out,device+'-guide.png')});
+  await page.locator('[data-a="navFilter"][data-v="facility"]').tap();assert.equal(await page.locator('[data-a="navFilter"][data-v="facility"]').evaluate(e=>e===document.activeElement),true,'filter focus survives redraw');
+  await page.locator('#navSearchInput').fill('宿屋');await page.locator('#navSearchInput').press('Escape');assert.equal(await page.evaluate(()=>G.sheet),null,'Escape closes search');await page.locator('.dock-actions [data-k="guide"]').tap();assert.equal(await page.locator('#navSearchInput').inputValue(),'宿屋','closing search preserves its draft');
+  await page.locator('[data-a="navClear"]').tap();assert.equal(await page.locator('#navSearchInput').evaluate(e=>e===document.activeElement),true,'clear returns focus to input');
+  await page.locator('#navSearchInput').fill('道具屋');await page.locator('.sheet-actions [data-a="returnToMap"]').tap();await page.locator('.dock-actions [data-k="guide"]').tap();assert.equal(await page.locator('#navSearchInput').inputValue(),'道具屋','direct MAP return also preserves a draft');await page.locator('[data-a="navClear"]').tap();
+  await page.locator('[data-a="navFilter"][data-v="all"]').tap();await page.locator('#navSearchInput').fill('新幹線');await page.locator('#navSearchInput').press('Enter');await page.locator('.nav-destination').tap();await page.locator('#navRoute').waitFor({state:'visible'});
+  const label=await page.locator('[data-route-name]').textContent();assert.equal(await page.locator('[data-route-name]').getAttribute('title'),label);assert((await page.locator('[data-route-toggle]').getAttribute('aria-label')).includes(label));assert.equal(await page.locator('[data-route-state]').getAttribute('aria-live'),'polite');
+  await page.locator('[data-route-toggle]').tap();await page.waitForFunction(()=>G.walkPlan?.paused&&!G.walk.path.length);assert.equal(await page.locator('[data-route-state]').textContent(),'一時停止');await page.locator('[data-route-cancel]').tap();assert(await page.locator('#navRoute').isHidden());
+  await page.evaluate(()=>{G.st.mapId=HUBS.KY01.fieldMap;G.st.run=createFieldRun(G.st,Object.values(MAPS[G.st.mapId].zones)[0],{count:0,picks:[0,0]});G.screen='battle';G.cmd={};G.sheet=null;G.dlg=null;render();});
+  assert.equal(await page.evaluate(()=>G.st.run.enemies.length),1);await page.locator('[data-a="cmdType"][data-v="attack"]').tap();await page.locator('.dock-back').tap();assert.equal(await page.evaluate(()=>G.cmd.type),undefined,'single-enemy Back returns to command selection');
+  await page.evaluate(()=>{const old=document.querySelector('[data-a="cmdType"][data-v="attack"]');old.classList.add('kfocus');document.querySelector('[data-a="cmdType"][data-v="guard"]').focus();PAD.pressA();});assert.equal(await page.evaluate(()=>G.cmd.type),'guard','actual focus wins over old highlight');await page.locator('.dock-back').tap();assert.equal(await page.evaluate(()=>G.cmd.type),undefined,'guard also exits a single auto target');
+  await page.screenshot({path:resolve(out,device+'-battle.png')});
+  assert.deepEqual(errors,[]);report.push({device,passed:true});console.log('PASS follow-up UI '+device);
+ }catch(e){await page.screenshot({path:resolve(out,device+'-failure.png'),fullPage:true}).catch(()=>{});throw e;}finally{await context.close();}
+}}finally{await browser.close();await app.close();await writeFile(resolve(out,'report.json'),JSON.stringify({url:app.url,physicalDevice:false,controlledRandomness:true,report},null,2));}

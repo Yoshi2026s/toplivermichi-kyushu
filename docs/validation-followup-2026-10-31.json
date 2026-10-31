@@ -1,0 +1,167 @@
+[
+  {
+    "round": 1,
+    "label": "single-enemy-back",
+    "checkedAt": "2026-10-31T11:58:24.248Z",
+    "checks": [
+      {
+        "command": "scripts/check-control-actions.mjs",
+        "passed": true,
+        "output": "Control actions: back unwinds target/item/action, idle opens pause, ready action confirms, dialogue goes back, held movement releases\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 2,
+    "label": "escape-from-search",
+    "checkedAt": "2026-10-31T11:58:39.421Z",
+    "checks": [
+      {
+        "command": "scripts/check-input-editing.mjs",
+        "passed": true,
+        "output": "Native form editing, IME and modified shortcuts preserved; game movement remains active\n"
+      },
+      {
+        "command": "scripts/check-input-modal.mjs",
+        "passed": true,
+        "output": "Modal Tab boundaries wrap, native form traversal remains available and page Tab is unchanged\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 3,
+    "label": "native-focus-priority",
+    "checkedAt": "2026-10-31T11:59:04.377Z",
+    "checks": [
+      {
+        "command": "scripts/check-control-actions.mjs",
+        "passed": true,
+        "output": "Control actions: back unwinds target/item/action, idle opens pause, ready action confirms, dialogue goes back, held movement releases\n"
+      },
+      {
+        "command": "scripts/check-input-stick.mjs",
+        "passed": true,
+        "output": "Joystick center confirms once; drag, ring, cancel, capture loss, blur and extra-pointer guards passed\nOff-center origin, sensitive start, direction stability, deliberate turns and neutral return passed\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 4,
+    "label": "simultaneous-gamepad-buttons",
+    "checkedAt": "2026-10-31T11:59:21.111Z",
+    "checks": [
+      {
+        "command": "scripts/check-input-background.mjs",
+        "passed": true,
+        "output": "Gamepad ignores hidden/unfocused pages and retains focused edge-triggered input\n"
+      },
+      {
+        "command": "scripts/check-input-release.mjs",
+        "passed": true,
+        "output": "Focus loss clears held input, queued movement and stick visuals\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 5,
+    "label": "stale-navigation-actions",
+    "checkedAt": "2026-10-31T11:59:49.254Z",
+    "checks": [
+      {
+        "command": "scripts/check-navigation.mjs",
+        "passed": true,
+        "output": "Navigation: 51 town/field pairs, pure reachable distances, facility search, escaped queries, stale actions, pause/resume, manual override, quest destinations, battle interruption, safe abandonment and read-only guards passed\nSearch: compound region/type query, preserved draft, accessible result count and reset path passed\nRecommended quest: explicit acceptance and direct next-destination shortcut passed\nMovement: invalid destinations preserve the current plan and own-tile tap cancels safely\nRead-only UI: acceptance and abandonment are visibly disabled and settings/view actions remain pure\nMap edges: off-map approach cells do not create phantom shortcuts\nStale controls: closed guide rows, unrelated sheets and previous-route stop buttons are rejected\nArrival: opening the destination completes the route instead of leaving a stale resume action\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 6,
+    "label": "honest-facility-search",
+    "checkedAt": "2026-10-31T12:00:16.617Z",
+    "checks": [
+      {
+        "command": "scripts/check-navigation.mjs",
+        "passed": true,
+        "output": "Navigation: 51 town/field pairs, pure reachable distances, facility search, escaped queries, stale actions, pause/resume, manual override, quest destinations, battle interruption, safe abandonment and read-only guards passed\nSearch: compound region/type query, preserved draft, accessible result count and reset path passed\nRecommended quest: explicit acceptance and direct next-destination shortcut passed\nMovement: invalid destinations preserve the current plan and own-tile tap cancels safely\nRead-only UI: acceptance and abandonment are visibly disabled and settings/view actions remain pure\nMap edges: off-map approach cells do not create phantom shortcuts\nStale controls: closed guide rows, unrelated sheets and previous-route stop buttons are rejected\nArrival: opening the destination completes the route instead of leaving a stale resume action\nSearch accuracy: healing excludes date-only rest and missing type aliases stay empty\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 7,
+    "label": "search-and-filter-focus",
+    "checkedAt": "2026-10-31T12:00:50.886Z",
+    "checks": [
+      {
+        "command": "scripts/check-navigation.mjs",
+        "passed": true,
+        "output": "Navigation: 51 town/field pairs, pure reachable distances, facility search, escaped queries, stale actions, pause/resume, manual override, quest destinations, battle interruption, safe abandonment and read-only guards passed\nSearch: compound region/type query, preserved draft, accessible result count and reset path passed\nRecommended quest: explicit acceptance and direct next-destination shortcut passed\nMovement: invalid destinations preserve the current plan and own-tile tap cancels safely\nRead-only UI: acceptance and abandonment are visibly disabled and settings/view actions remain pure\nMap edges: off-map approach cells do not create phantom shortcuts\nStale controls: closed guide rows, unrelated sheets and previous-route stop buttons are rejected\nArrival: opening the destination completes the route instead of leaving a stale resume action\nSearch accuracy: healing excludes date-only rest and missing type aliases stay empty\n"
+      },
+      {
+        "command": "scripts/check-input-editing.mjs",
+        "passed": true,
+        "output": "Native form editing, IME and modified shortcuts preserved; game movement remains active\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 8,
+    "label": "route-labels-and-retained-drafts",
+    "checkedAt": "2026-10-31T12:02:10.209Z",
+    "checks": [
+      {
+        "command": "scripts/test-followup-ui.mjs",
+        "passed": true,
+        "output": "PASS follow-up UI standard\nPASS follow-up UI small\nPASS follow-up UI landscape\nPASS follow-up UI short\n"
+      },
+      {
+        "command": "scripts/check-navigation.mjs",
+        "passed": true,
+        "output": "Navigation: 51 town/field pairs, pure reachable distances, facility search, escaped queries, stale actions, pause/resume, manual override, quest destinations, battle interruption, safe abandonment and read-only guards passed\nSearch: compound region/type query, preserved draft, accessible result count and reset path passed\nRecommended quest: explicit acceptance and direct next-destination shortcut passed\nMovement: invalid destinations preserve the current plan and own-tile tap cancels safely\nRead-only UI: acceptance and abandonment are visibly disabled and settings/view actions remain pure\nMap edges: off-map approach cells do not create phantom shortcuts\nStale controls: closed guide rows, unrelated sheets and previous-route stop buttons are rejected\nArrival: opening the destination completes the route instead of leaving a stale resume action\nSearch accuracy: healing excludes date-only rest and missing type aliases stay empty\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 9,
+    "label": "reward-receipt-accuracy",
+    "checkedAt": "2026-10-31T12:02:55.624Z",
+    "checks": [
+      {
+        "command": "scripts/test-result-overview.mjs",
+        "passed": true,
+        "output": "PASS 40 result scenarios: summary fits, 48px one-click MAP return, low/KO and legacy history\n"
+      },
+      {
+        "command": "scripts/check-result-return.mjs",
+        "passed": true,
+        "output": "Result return is one action, cancels stale movement, rejects modal/read-only/battle and repeated callbacks\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 10,
+    "label": "final-layout-and-regression",
+    "checkedAt": "2026-10-31T12:08:05.051Z",
+    "checks": [
+      {
+        "command": "scripts/test-followup-ui.mjs",
+        "passed": true,
+        "output": "PASS follow-up UI standard\nPASS follow-up UI small\nPASS follow-up UI landscape\nPASS follow-up UI short\n"
+      },
+      {
+        "command": "scripts/check-all.mjs",
+        "passed": true,
+        "output": "PASS check-art-cache.mjs\nPASS check-audio-channels.mjs\nPASS check-audio-codec.mjs\nPASS check-audio-duck.mjs\nPASS check-auto-items.mjs\nPASS check-auto-ui-guards.mjs\nPASS check-badge-list.mjs\nPASS check-battle-audio-race.mjs\nPASS check-battle-fx.mjs\nPASS check-battle-log.mjs\nPASS check-character-art.mjs\nPASS check-clean-output.mjs\nPASS check-control-actions.mjs\nPASS check-expanded-battle.mjs\nPASS check-expressive-score.mjs\nPASS check-field-encounters.mjs\nPASS check-hd-art.mjs\nPASS check-illustrated-art.mjs\nPASS check-input-background.mjs\nPASS check-input-editing.mjs\nPASS check-input-modal.mjs\nPASS check-input-release.mjs\nPASS check-input-stick.mjs\nPASS check-integration.mjs\nPASS check-listeners.mjs\nPASS check-management.mjs\nPASS check-map-facilities.mjs\nPASS check-map-loop.mjs\nPASS check-merged-instructions.mjs\nPASS check-national-story.mjs\nPASS check-national.mjs\nPASS check-nationwide.mjs\nPASS check-navigation.mjs\nPASS check-ocean.mjs\nPASS check-pets.mjs\nPASS check-regional-art.mjs\nPASS check-release.mjs\nPASS check-result-return.mjs\nPASS check-saga.mjs\nPASS check-save.mjs\nPASS check-selected-fixes.mjs\nPASS check-shop.mjs\nPASS check-split-maps.mjs\nPASS check-stream-actions.mjs\nPASS check-target.mjs\nPASS check-title-score.mjs\nPASS check-town-layout.mjs\nPASS check-travel-modes.mjs\nPASS check-vault.mjs\nPASS check-walk-animation.mjs\nPASS check-world-art.mjs\n51/51 regression programs passed; generated HTML syntax OK\n"
+      }
+    ],
+    "passed": true
+  }
+]

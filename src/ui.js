@@ -245,7 +245,7 @@ function renderExplore(){
       <div class="goal">${esc(objective())}</div>
       <div class="xsave small" aria-live="polite">保存：<span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（閲覧のみ）":""}</div>
     </header>
-    <div class="mapwrap" data-map-kind="${esc(m.kind)}"><canvas id="map" aria-label="${esc(m.name)}の地図。地面をタップすると移動します。"></canvas>
+    <div class="mapwrap" data-map-kind="${esc(m.kind)}"><aside id="navRoute" class="map-route" aria-label="移動先" hidden></aside><canvas id="map" aria-label="${esc(m.name)}の地図。地面をタップすると移動します。"></canvas>
       <canvas id="minimap" aria-label="全体ミニマップ。白丸は現在地、白枠は表示範囲。城門は砦、家は街、ベッドは宿屋、瓶は道具屋、書類は職業窓口"></canvas>
       ${exit?`<button class="btn map-exit" data-a="guideTo" data-v="${exit.id}">${m.kind==="town"?"街外へ":"街へ戻る"}</button>`:""}
     </div>
@@ -372,10 +372,10 @@ function startLoop(){
   };
   G.raf=requestAnimationFrame(loop);
 }
-function bfs(m,sx,sy,goal){
+function bfs(m,sx,sy,goal,avoidTransitions=false){
   const key=(x,y)=>y*m.w+x; const prev=new Map(); const q=[[sx,sy]]; prev.set(key(sx,sy),null);
   while(q.length){ const [x,y]=q.shift(); if(goal(x,y)&&!(x===sx&&y===sy)){ const path=[]; let k=key(x,y); while(k!==key(sx,sy)){ path.unshift({x:k%m.w,y:Math.floor(k/m.w)}); k=prev.get(k);} return path; }
-    for(const [dx,dy] of [[0,1],[0,-1],[-1,0],[1,0]]){ const nx=x+dx, ny=y+dy; if(nx<0||ny<0||nx>=m.w||ny>=m.h) continue; const k=key(nx,ny); if(prev.has(k)) continue; if(!walkable(m,nx,ny)) continue; prev.set(k,key(x,y)); q.push([nx,ny]); } }
+    for(const [dx,dy] of [[0,1],[0,-1],[-1,0],[1,0]]){ const nx=x+dx, ny=y+dy; if(nx<0||ny<0||nx>=m.w||ny>=m.h) continue; const k=key(nx,ny); if(prev.has(k)) continue; if(!walkable(m,nx,ny)) continue; const transit=objAt(m,nx,ny);if(avoidTransitions&&transit?.walk&&transit.to&&!goal(nx,ny))continue; prev.set(k,key(x,y)); q.push([nx,ny]); } }
   return null;
 }
 function walkTo(x,y,pending){
@@ -383,8 +383,8 @@ function walkTo(x,y,pending){
   let path;
   const obj=objAt(m,x,y);
   if(obj && !obj.walk){ if(Math.abs(obj.x-st.pos.x)+Math.abs(obj.y-st.pos.y)===1 || (Math.max(Math.abs(obj.x-st.pos.x),Math.abs(obj.y-st.pos.y))<=1)){ interact(obj); return; }
-    path=bfs(m,st.pos.x,st.pos.y,(px,py)=>Math.abs(px-x)+Math.abs(py-y)===1); pending=obj; }
-  else { if(x===st.pos.x&&y===st.pos.y) return; if(!walkable(m,x,y)) return; path=bfs(m,st.pos.x,st.pos.y,(px,py)=>px===x&&py===y); }
+    path=bfs(m,st.pos.x,st.pos.y,(px,py)=>Math.abs(px-x)+Math.abs(py-y)===1,true); pending=obj; }
+  else { if(x===st.pos.x&&y===st.pos.y) return; if(!walkable(m,x,y)) return; path=bfs(m,st.pos.x,st.pos.y,(px,py)=>px===x&&py===y,true); }
   if(!path) return toast("そこへは行けません。");
   G.walk.path=path; G.walk.prog=0; G.walk.pending=pending||(obj&&obj.walk?obj:null);
 }
@@ -486,7 +486,7 @@ function renderDialog(){
     <div class="row3"><button class="btn" data-a="dlgBack" ${d.i?"":"disabled"}>戻る</button>
     <button class="btn" data-a="dlgSkip">省略</button>
     <button class="btn primary" id="dlgNext" data-a="dlgNext">${d.i<d.lines.length-1?"次へ ▼":"閉じる"}</button></div>
-    <div class="small">${d.i+1}／${d.lines.length}</div></div></div>`;
+    <div class="small" role="status" aria-live="polite" aria-label="会話のページ">${d.i+1}／${d.lines.length}</div></div></div>`;
 }
 function playScene(id, after){ const sc=SCENES[id]; if(id.startsWith("RANK_")) SND.sfx("rank"); if(id==="RANK_D2"){ SND.play("ending"); const a0=after; after=()=>{ exploreBgm(); if(a0) a0(); }; } G.st.scenes[id]=true; commit(); say([["",`― ${sc.title} ―`],...sc.lines(G.st.profile.name)], after); }
 
@@ -546,9 +546,9 @@ function renderBattle(){
     const pct=Math.round(100*e.hp/e.maxHP);
     return `<div class="ecard ${e.hp<=0?"down":""} ${e.boss?"isboss":""}" id="ec${e.slot}">
       <canvas data-enemy="${e.slot}" width="${e.boss?128:64}" height="${e.boss?128:64}" class="esprite ${e.boss?"boss":""}" aria-hidden="true"></canvas>
-      <div class="einfo"><div class="ename">${esc(e.display)}${e.rarity>1?` <span class="rar">${"★".repeat(e.rarity)}${["","通常","やや珍しい","希少","極希少","幻影"][e.rarity]}</span>`:""}</div>
+      <div class="einfo"><div class="ename">${esc(e.display)}${e.rarity>1?` <span class="rar" title="${["","通常","やや珍しい","希少","極希少","幻影"][e.rarity]}" aria-label="${["","通常","やや珍しい","希少","極希少","幻影"][e.rarity]}">${"★".repeat(e.rarity)}</span>`:""}</div>
       <span class="bar enemy"><i style="width:${pct}%"></i></span>
-      <div class="estat">体力 ${e.hp}/${e.maxHP}・防御力${e.def}</div>
+      <div class="estat">HP ${e.hp}/${e.maxHP}・防${e.def}</div>
       ${e.hp<=0?`<div class="tele">鎮まった</div>`:""}</div></div>`; }).join("");
   const chain = run.kiraDone?"キラコメ済":`キラコメ${run.chain.stage}/3 次:${["挨拶","作戦","感謝"][run.chain.stage]}`;
   const battleLines=Array.isArray(run.log)?run.log:[];
@@ -1369,7 +1369,7 @@ const ACT = {
   step(el){ if(G.sheet||G.dlg) return; const d=+el.dataset.d; const st=G.st; const m=MAPS[st.mapId]; st.dir=d; const v=[[0,1],[0,-1],[-1,0],[1,0]][d];
     const nx=st.pos.x+v[0], ny=st.pos.y+v[1]; const o=objAt(m,nx,ny); if(o&&!o.walk) return interact(o); if(walkable(m,nx,ny)){ G.walk.path=[{x:nx,y:ny}]; G.walk.prog=0; } },
   stop(){ if(G.walk.path.length>1) G.walk.path=G.walk.path.slice(0,1); G.walk.pending=null; },
-  interactId(el){ const o=MAPS[G.st.mapId].objects.find(x=>x.id===el.dataset.v); G.sheet=null; render(); interact(o); },
+  interactId(el){ const o=MAPS[G.st.mapId].objects.find(x=>x.id===el.dataset.v); if(!o)return; G.sheet=null; render(); interact(o); },
   guideTo(el){ const o=MAPS[G.st.mapId].objects.find(x=>x.id===el.dataset.v); G.sheet=null; render(); walkTo(o.x,o.y); },
   doTravel(){ return toast("街間は街外MAPの道を歩くか、新幹線駅から移動してください。"); },
   worldGo(el){

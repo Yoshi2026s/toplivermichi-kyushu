@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
+let rendered=0,paused=0,confirmed=0,skipped=0;
+const noop=()=>{},G={screen:'battle',st:{run:{state:'input'}},cmd:{actor:0,type:'item',item:'I01',target:0},walk:{path:[]}},confirm={click(){confirmed++;}},chip={getAttribute:()=> 'true'};
+const screen={contains:()=>true,querySelector:()=>null,querySelectorAll:()=>[]};
+const document={hidden:false,activeElement:chip,addEventListener:noop,getElementById:()=>screen,querySelector:s=>s==='.cmd [data-a="confirmAct"]:not([disabled])'?confirm:null,querySelectorAll:()=>[]};
+const ACT={pauseBattle(){paused++;},dlgBack(){G.dlg.i--;},dlgSkip(){skipped++;G.dlg=null;}};
+const pad=runInNewContext(readFileSync(new URL('../src/input.js',import.meta.url),'utf8')+';PAD',{G,ACT,document,window:{addEventListener:noop},render(){rendered++;},SND:{sfx:noop},boot:noop,performance:{now:()=>0},requestAnimationFrame:noop});
+pad.pressB();assert.equal(G.cmd.type,'item');assert.equal(G.cmd.item,'I01');assert.equal(G.cmd.target,undefined);
+pad.pressB();assert.equal(G.cmd.type,'item');assert.equal(G.cmd.item,undefined);
+pad.pressB();assert.equal(G.cmd.type,undefined);pad.pressB();assert.equal(paused,1);
+G.cmd={actor:0,type:'attack',target:0};pad.pressA();assert.equal(confirmed,1,'selected valid action confirms directly');
+G.dlg={i:1,after:()=>{},lines:[['','one'],['','two']]};pad.pressB();assert.equal(G.dlg.i,0);pad.pressB();assert(G.dlg);assert.equal(skipped,0,'back at story start does not skip');
+G.dlg={i:0,sceneId:'HS00',lines:[['','story']]};pad.pressB();assert.equal(skipped,0,'story without callback is not skipped');
+G.dlg={i:0,lines:[['','normal']]};pad.pressB();assert.equal(skipped,1);
+G.walkPlan={paused:false};G.walk={path:[{x:1,y:0}],prog:.4,pending:{}};pad.release();assert(G.walkPlan.paused);assert.equal(G.walk.path.length,0);assert.equal(G.walk.pending,null);
+console.log('Control actions: back unwinds target/item/action, idle opens pause, ready action confirms, dialogue goes back, held movement releases');

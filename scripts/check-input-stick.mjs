@@ -28,3 +28,5 @@ pointer('pointermove',63,74);assert.equal(base.dataset.dir,'下','deliberate tur
 pointer('pointermove',58,54);assert.equal(base.dataset.dir,'','returning to the touch origin stops');
 pointer('pointerup',58,54);assert.equal(confirmations,3,'movement never confirms');
 console.log('Off-center origin, sensitive start, direction stability, deliberate turns and neutral return passed');
+
+const beforeStale=confirmations;G.controlEpoch=1;pointer('pointerdown');G.controlEpoch=2;pointer('pointerup');assert.equal(confirmations,beforeStale,'a screen redraw cancels held confirm');

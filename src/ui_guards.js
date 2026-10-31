@@ -1,6 +1,6 @@
 /* すべての画面から同じ禁止状態を使う。保存中の別操作と、古いボタンの直接呼出しも拒否する。 */
 const READ_ONLY_ACTIONS=new Set([
-  "openSheet","closeSheet","returnToMap","openHelp","dlgNext","dlgBack","dlgSkip","toTitle","dexNav","partyView","shopTab","shopItem","shopQty","vaultOpen","vaultBack",
+  "navReset","navFilter","navSearch","navClear","navPage","openSheet","closeSheet","returnToMap","openHelp","dlgNext","dlgBack","dlgSkip","toTitle","dexNav","partyView","shopTab","shopItem","shopQty","vaultOpen","vaultBack",
   "shareCopy","shareNative","replayStory","replay","battleLogLine","battleLogBack","battleLogPage","battleLogExpand","battleChallengeFilter","badgeFilter",
   "itemVaultOpen","itemVaultMode","itemVaultFilter","itemVaultSearch","itemVaultPage","itemVaultSelect","itemVaultQty","itemVaultEdit","itemVaultBack",
   "petView","petFilter","petPage","petSupplySelect","petDetails","petWalkView","petTravelPolicy","petVaultOpen",

@@ -26,3 +26,5 @@ const move=event('ArrowRight',{tagName:'BODY'});keydown(move);assert.equal(move.
 handlers.keydown.at(-1)();assert.equal(resumes,1,'a fresh gesture retries enabled audio');
 sound.on=false;handlers.keydown.at(-1)();assert.equal(enables,0,'a fresh gesture must respect saved mute');
 console.log('Native form editing, IME and modified shortcuts preserved; game movement remains active');
+
+for(const key of ['Enter',' ']){const e=event(key,{tagName:'BUTTON'});keydown(e);assert.equal(e.prevented,false,'focused buttons keep native activation');const repeated=event(key,{tagName:'BUTTON'},{repeat:true});keydown(repeated);assert.equal(repeated.prevented,true,'held confirm cannot repeat native activation');}

@@ -33,6 +33,9 @@ jobs:
       - run: node scripts/test-map-ui.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-controls-navigation.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - run: node scripts/test-result-overview.mjs
         env:
           MOBILE_BROWSER: chromium
@@ -65,6 +68,8 @@ jobs:
         with:
           name: mobile-emulation
           path: |
+            .task/controls-navigation/*.png
+            .task/controls-navigation/report.json
             .task/regional-qa/*.png
             .task/regional-qa/report.json
             .task/music-qa/report.json

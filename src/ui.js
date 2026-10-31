@@ -527,7 +527,7 @@ function startBattle(run){
 function partyCard(m,i,run){
   const sel=G.cmd.actor===i; const pct=Math.round(100*m.hp/m.maxHP);
   const ko=m.hp<=0;
-  const badges=[ko?"戦闘不能":isLow(m.hp,m.maxHP)?"体力わずか":"",m.acted?"行動済":"", m.ward?`防護${m.ward}`:"", m.guard?"ガード中":""].filter(Boolean);
+  const badges=[ko?"戦闘不能":isLow(m.hp,m.maxHP)?"体力わずか":"",m.acted?"行動済":"", m.ward?`防護${m.ward}`:"", m.guard?"ガード中":"",m.petAttackBonus?`攻撃↑${m.petAttackBonus}`:"",m.petDefenseBonus?`防御↑${m.petDefenseBonus}`:"",m.petSpeedBonus?"すばやさ↑":""].filter(Boolean);
   return `<button class="pcard ${sel?"on":""} ${ko?"ko":""} ${isLow(m.hp,m.maxHP)?"low":""} ${m.acted?"done":""}" data-a="pickActor" data-i="${i}" ${ko||m.acted||run.state!=="input"?"aria-disabled=\"true\"":""}>
     <canvas class="party-portrait" data-char="${m.cid}" width="128" height="160" aria-hidden="true"></canvas><span class="pline"><b>${sel?"▶":""}${esc(m.name)}</b><span class="pjob">${esc(JOBS[m.job].name)} 熟練度${m.R}</span></span><span class="pbadges">${badges.map(t=>`<span class="pst">${t}</span>`).join("")}</span>
     <span class="bar"><i style="width:${pct}%"></i></span>
@@ -551,7 +551,7 @@ function renderBattle(){
       <div class="einfo"><div class="ename">${esc(e.display)}${e.rarity>1?` <span class="rar" title="${["","通常","やや珍しい","希少","極希少","幻影"][e.rarity]}" aria-label="${["","通常","やや珍しい","希少","極希少","幻影"][e.rarity]}">${"★".repeat(e.rarity)}</span>`:""}</div>
       <span class="bar enemy"><i style="width:${pct}%"></i></span>
       <div class="estat">HP ${e.hp}/${e.maxHP}・防${e.def}</div>
-      ${e.hp<=0?`<div class="tele">鎮まった</div>`:""}</div></div>`; }).join("");
+      ${e.hp<=0?`<div class="tele">鎮まった</div>`:e.petSleep?`<div class="pet-enemy-state">睡眠・次の行動を休む</div>`:e.petConfuse?`<div class="pet-enemy-state">混乱・次は自分を攻撃</div>`:e.petStunTurns?`<div class="pet-enemy-state">足止め・次の行動を休む</div>`:e.petWeaken?`<div class="pet-enemy-state">攻撃低下25%・このターン</div>`:""}</div></div>`; }).join("");
   const chain = run.kiraDone?"キラコメ済":`キラコメ${run.chain.stage}/3 次:${["挨拶","作戦","感謝"][run.chain.stage]}`;
   const battleLines=Array.isArray(run.log)?run.log:[];
   return `<section class="battle">

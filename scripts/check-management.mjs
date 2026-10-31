@@ -3,19 +3,19 @@ import {readFileSync,existsSync} from 'node:fs';
 import {resolve} from 'node:path';
 import vm from 'node:vm';
 const root=resolve(import.meta.dirname,'..'),read=f=>readFileSync(resolve(root,'src',f),'utf8');
-const files=['data_enemies.js','data_saga_enemies.js','data_items.js','data_national.js','data.js','data_nationwide.js','data_nationwide_story.js','data_maps.js','data_character.js','data_pets.js','data_ocean.js','data_extras.js','core.js','pets.js','ocean.js','listeners.js','ui.js','ui_character.js','ui_pets.js','ui_ocean.js','ui_systems.js','ui_management.js'].filter(f=>existsSync(resolve(root,'src',f)));
+const files=['data_enemies.js','data_saga_enemies.js','data_items.js','data_national.js','data.js','data_nationwide.js','data_nationwide_story.js','data_maps.js','data_character.js','data_pets.js','data_ocean.js','data_extras.js','core.js','pets.js','ocean.js','listeners.js','ui.js','ui_character.js','ui_pets.js','ui_ocean.js','ui_systems.js','ui_management.js','ui_navigation.js','ui_action_safety.js','ui_search.js'].filter(f=>existsSync(resolve(root,'src',f)));
 const noop=()=>{},fields={};
-const ctx={console,performance:{now:()=>0},setTimeout:()=>0,clearTimeout:noop,setInterval:()=>0,clearInterval:noop,navigator:{},localStorage:{getItem:()=>null},SND:{sfx:noop,play:noop,setVolumes:noop},document:{hidden:false,addEventListener:noop,querySelector:s=>fields[s]||null,getElementById:()=>null},window:{addEventListener:noop,matchMedia:()=>({matches:true})}};
+const ctx={console,performance:{now:()=>0},setTimeout:()=>0,clearTimeout:noop,setInterval:()=>0,clearInterval:noop,navigator:{},localStorage:{getItem:()=>null},SND:{sfx:noop,play:noop,setVolumes:noop},document:{hidden:false,addEventListener:noop,querySelector:s=>fields[s]||null,querySelectorAll:()=>[],getElementById:()=>null},window:{addEventListener:noop,matchMedia:()=>({matches:true})}};
 vm.createContext(ctx);
 const g=vm.runInContext(files.map(read).join('\n')+`\nrender=()=>{};commit=()=>Promise.resolve(true);drawMiniSprites=()=>{};({G,ACT,MAPS,HUBS,NPCS,EQUIP,QUESTS,newGame,ensureVitals,restoreAll,charStats,shopOffer,shopOfferToken,managementToken,managementEquipPlanToken,managementGearPlan,managementExchangePreview,managementFacilityOffer,MANAGEMENT_RARE_GEAR,managementShopEntries,renderShop,renderParty,renderManagementEquipPreview,renderManagementExchange,renderManagementGear,availableCount,equippedCount,talkNpc})`,ctx);
 const make=()=>{const st=g.newGame('管理検査','女性');g.ensureVitals(st);return st;};
 function explore(st,map='KY01'){g.G.st=st;g.G.screen='explore';g.G.sheet=null;g.G.dlg=null;g.G.readOnly=false;g.G.walk={path:[]};st.mapId=map;st.pos={x:g.MAPS[map].safeAnchor[0],y:g.MAPS[map].safeAnchor[1]};}
 function near(st,type){const o=g.MAPS[st.mapId].objects.find(o=>o.type===type);assert(o,`map must contain ${type}`);st.pos={x:o.x+1,y:o.y};return o;}
 const st=make();explore(st);st.gold=10000;const shop=near(st,'shop');g.G.sheet='shop';g.G.sheetData={shop:shop.shop,npc:shop.npc,tab:'buy'};
-let html=g.renderShop();assert.match(html,/検索/);assert.match(html,/1／\d+ページ/);assert((html.match(/data-a="shopItem"/g)||[]).length<=6);
+let html=g.renderShop();assert.match(html,/検索/);assert.match(html,/\d+件・1／\d+/);assert((html.match(/data-a="shopItem"/g)||[]).length<=6);
 g.G.sheetData.query='声合わせ';assert(g.managementShopEntries(st,g.G.sheetData).every(id=>g.EQUIP[id].name.includes('声合わせ')));
 g.G.sheetData.query='ｃｗ０１';assert(g.managementShopEntries(st,g.G.sheetData).includes('CW01'),'search normalizes fullwidth IDs');
-g.G.sheetData.query='存在しない品';assert.match(g.renderShop(),/一致する品物がありません/);
+g.G.sheetData.query='存在しない品';assert.match(g.renderShop(),/見つかりません。解除で検索条件をリセットできます/);
 g.G.sheetData.query='';g.G.sheetData.filter='w';assert(g.managementShopEntries(st,g.G.sheetData).every(id=>g.EQUIP[id].slot==='w'));
 g.ACT.managementShopFilter({dataset:{v:'constructor'}});assert.equal(g.G.sheetData.filter,'w','inherited filter keys rejected');
 g.G.sheetData={shop:shop.shop,npc:shop.npc,tab:'item',item:'IT001',qty:1};

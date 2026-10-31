@@ -86,6 +86,8 @@ jobs:
         with:
           name: mobile-emulation
           path: |
+            .task/pet-next/*.png
+            .task/pet-next/report.json
             .task/pet-complete/*.png
             .task/pet-complete/report.json
             .task/queued-mobile/*.png

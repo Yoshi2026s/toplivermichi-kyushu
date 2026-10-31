@@ -73,7 +73,7 @@ const PAD = (()=>{
       if(el.closest("[hidden]")) return false; const r=el.getBoundingClientRect(); return r.width>0&&r.height>0;
     });
   }
-  function current(sc){ const k=sc.querySelector(".kfocus"); if(k) return k; const a=document.activeElement; return a&&sc.contains(a)&&a!==document.body?a:null; }
+  function current(sc){ const a=document.activeElement;if(a&&a!==document.body&&sc.contains(a)&&focusables(sc).includes(a))return a;return sc.querySelector(".kfocus"); }
   function setCursor(el){
     document.querySelectorAll(".kfocus").forEach(x=>x.classList.remove("kfocus"));
     if(!el) return; el.classList.add("kfocus");
@@ -129,7 +129,8 @@ const PAD = (()=>{
     if(G.screen==='battle'&&G.auto){ACT.autoOff();return;}
     if(G.screen==='battle'&&G.st?.run?.state==='input'){
       const c=G.cmd;
-      if(c.target!=null||c.ally!=null){delete c.target;delete c.ally;}
+      const targetChoice=c.target!=null&&G.st.run.enemies?.filter(e=>e.hp>0).length!==1;
+      if(targetChoice||c.ally!=null){delete c.target;delete c.ally;}
       else if(c.item||c.mode||c.line||c.o){delete c.item;delete c.mode;delete c.line;delete c.o;}
       else if(c.type)G.cmd={actor:c.actor};
       else if(typeof ACT.pauseBattle==='function'){ACT.pauseBattle();return;}
@@ -153,10 +154,10 @@ const PAD = (()=>{
     const now={a:b(aIdx), b:b(bIdx), start:b(9)};
     if(gamepadRearm){prevBtn=now;if(d==null&&!Object.values(now).some(Boolean))gamepadRearm=false;setDir(null,"gamepad");return;}
     setDir(d,"gamepad");
-    if(now.a&&!prevBtn.a) pressA();
-    if(now.b&&!prevBtn.b) pressB();
-    if(now.start&&!prevBtn.start&&isMoveMode()) openSheet("menu");
-    prevBtn=now;
+    const back=now.b&&!prevBtn.b,confirm=now.a&&!prevBtn.a,start=now.start&&!prevBtn.start;prevBtn=now;
+    if(back){pressB();return;}
+    if(confirm){pressA();return;}
+    if(start&&isMoveMode()) openSheet("menu");
   }
   window.addEventListener("gamepadconnected",e=>toast(`コントローラーを接続しました（${(e.gamepad.id||"").slice(0,24)}）`));
 
@@ -174,6 +175,7 @@ const PAD = (()=>{
       }
       return;
     }
+    if(e.key==="Escape"&&(G.sheet||G.dlg)){e.preventDefault();if(!e.repeat)pressB();return;}
     if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.tagName==="SELECT"||t.tagName==="SUMMARY"||t.isContentEditable)) return;
     if(t?.tagName==="BUTTON"&&(e.key==="Enter"||e.key===" ")){if(e.repeat)e.preventDefault();return;}
     if(KEYS[e.key]!=null){ e.preventDefault(); if(!e.repeat) setDir(KEYS[e.key],"key"); return; }

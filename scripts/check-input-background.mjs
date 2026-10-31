@@ -4,7 +4,7 @@ import {runInNewContext} from 'node:vm';
 
 const source=readFileSync(new URL('../src/input.js',import.meta.url),'utf8');
 for(const hidden of [false,true]){
-  let focused=false,advances=0,nextFrame;
+  let focused=false,advances=0,cancels=0,nextFrame;
   const stick={dataset:{},addEventListener(){}};
   const dock={dataset:{},querySelector:()=>stick};
   const document={hidden,hasFocus:()=>focused,addEventListener(){},querySelector:()=>null,
@@ -12,7 +12,7 @@ for(const hidden of [false,true]){
   const gamepad={id:'standard',axes:[0,0],buttons:[{pressed:true}]};
   const pad=runInNewContext(source+'\nPAD',{
     document,window:{addEventListener(){}},G:{screen:'title',dlg:{},walk:{path:[]}},boot(){},
-    navigator:{getGamepads:()=>[gamepad]},
+    navigator:{getGamepads:()=>[gamepad]},ACT:{dlgSkip(){cancels++;}},
     requestAnimationFrame:fn=>{nextFrame=fn;}
   });
   pad.mount();nextFrame(0);
@@ -21,5 +21,6 @@ for(const hidden of [false,true]){
   assert.equal(advances,1,'focused game still responds to controller');
   nextFrame(32);assert.equal(advances,1,'held button does not repeatedly confirm');
   pad.release();nextFrame(48);assert.equal(advances,1,'context release cannot retrigger held confirm');gamepad.buttons[0].pressed=false;gamepad.axes[0]=1;nextFrame(64);gamepad.buttons[0].pressed=true;nextFrame(80);assert.equal(advances,1,'held stick keeps controller disarmed');gamepad.buttons[0].pressed=false;gamepad.axes[0]=0;nextFrame(96);gamepad.buttons[0].pressed=true;nextFrame(112);assert.equal(advances,2,'neutral controller permits a fresh confirmation');
+  gamepad.buttons[0].pressed=false;nextFrame(128);gamepad.buttons[0].pressed=true;gamepad.buttons[1]={pressed:true};nextFrame(144);assert.equal(advances,2,'simultaneous A/B must not confirm then cancel across screens');assert.equal(cancels,1,'Back wins a simultaneous press');nextFrame(160);assert.equal(cancels,1,'held Back stays edge triggered');
 }
 console.log('Gamepad ignores hidden/unfocused pages and retains focused edge-triggered input');

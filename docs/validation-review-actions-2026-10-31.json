@@ -1,0 +1,197 @@
+[
+  {
+    "round": 1,
+    "label": "dialogue-callback-safety",
+    "checkedAt": "2026-10-31T12:31:17.702Z",
+    "checks": [
+      {
+        "command": "scripts/check-action-safety.mjs",
+        "passed": true,
+        "output": "Dialogue stale buttons and repeated completion are safe\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 2,
+    "label": "nearby-interaction-context",
+    "checkedAt": "2026-10-31T12:31:31.197Z",
+    "checks": [
+      {
+        "command": "scripts/check-action-safety.mjs",
+        "passed": true,
+        "output": "Dialogue stale buttons and repeated completion are safe\nNearby interaction rejects remote and out-of-context controls\n"
+      },
+      {
+        "command": "scripts/check-navigation.mjs",
+        "passed": true,
+        "output": "Navigation: 51 town/field pairs, pure reachable distances, facility search, escaped queries, stale actions, pause/resume, manual override, quest destinations, battle interruption, safe abandonment and read-only guards passed\nSearch: compound region/type query, preserved draft, accessible result count and reset path passed\nRecommended quest: explicit acceptance and direct next-destination shortcut passed\nMovement: invalid destinations preserve the current plan and own-tile tap cancels safely\nRead-only UI: acceptance and abandonment are visibly disabled and settings/view actions remain pure\nMap edges: off-map approach cells do not create phantom shortcuts\nStale controls: closed guide rows, unrelated sheets and previous-route stop buttons are rejected\nArrival: opening the destination completes the route instead of leaving a stale resume action\nSearch accuracy: healing excludes date-only rest and missing type aliases stay empty\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 3,
+    "label": "manual-command-validation",
+    "checkedAt": "2026-10-31T12:32:03.100Z",
+    "checks": [
+      {
+        "command": "scripts/check-action-safety.mjs",
+        "passed": true,
+        "output": "Dialogue stale buttons and repeated completion are safe\nNearby interaction rejects remote and out-of-context controls\nManual battle selection validates actor, command, target and frontmost screen\n"
+      },
+      {
+        "command": "scripts/check-control-actions.mjs",
+        "passed": true,
+        "output": "Control actions: back unwinds target/item/action, idle opens pause, ready action confirms, dialogue goes back, held movement releases\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 4,
+    "label": "battle-confirm-safety",
+    "checkedAt": "2026-10-31T12:32:21.378Z",
+    "checks": [
+      {
+        "command": "scripts/check-action-safety.mjs",
+        "passed": true,
+        "output": "Dialogue stale buttons and repeated completion are safe\nNearby interaction rejects remote and out-of-context controls\nManual battle selection validates actor, command, target and frontmost screen\nConfirm rejects stale/modal/incomplete actions and valid action executes once\n"
+      },
+      {
+        "command": "scripts/check-auto-ui-guards.mjs",
+        "passed": true,
+        "output": "Auto UI rejects repeated start, modal/read-only starts and hidden/read-only/completed actions\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 5,
+    "label": "defeat-return-once",
+    "checkedAt": "2026-10-31T12:32:39.154Z",
+    "checks": [
+      {
+        "command": "scripts/check-action-safety.mjs",
+        "passed": true,
+        "output": "Dialogue stale buttons and repeated completion are safe\nNearby interaction rejects remote and out-of-context controls\nManual battle selection validates actor, command, target and frontmost screen\nConfirm rejects stale/modal/incomplete actions and valid action executes once\nDefeat return is context checked and applies its existing cost once\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 6,
+    "label": "retreat-and-pause-context",
+    "checkedAt": "2026-10-31T12:32:53.362Z",
+    "checks": [
+      {
+        "command": "scripts/check-action-safety.mjs",
+        "passed": true,
+        "output": "Dialogue stale buttons and repeated completion are safe\nNearby interaction rejects remote and out-of-context controls\nManual battle selection validates actor, command, target and frontmost screen\nConfirm rejects stale/modal/incomplete actions and valid action executes once\nDefeat return is context checked and applies its existing cost once\nRetreat requires live confirmation and cannot discard won rewards\n"
+      },
+      {
+        "command": "scripts/check-result-return.mjs",
+        "passed": true,
+        "output": "Result return is one action, cancels stale movement, rejects modal/read-only/battle and repeated callbacks\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 7,
+    "label": "readonly-battle-and-result-affordances",
+    "checkedAt": "2026-10-31T12:33:49.869Z",
+    "checks": [
+      {
+        "command": "scripts/test-review-actions-ui.mjs",
+        "passed": true,
+        "output": "PASS review actions standard\nPASS review actions small\nPASS review actions landscape\nPASS review actions short\n"
+      },
+      {
+        "command": "scripts/check-action-safety.mjs",
+        "passed": true,
+        "output": "Dialogue stale buttons and repeated completion are safe\nNearby interaction rejects remote and out-of-context controls\nManual battle selection validates actor, command, target and frontmost screen\nConfirm rejects stale/modal/incomplete actions and valid action executes once\nDefeat return is context checked and applies its existing cost once\nRetreat requires live confirmation and cannot discard won rewards\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 8,
+    "label": "help-search-native-submit",
+    "checkedAt": "2026-10-31T12:34:37.283Z",
+    "checks": [
+      {
+        "command": "scripts/check-action-safety.mjs",
+        "passed": true,
+        "output": "Dialogue stale buttons and repeated completion are safe\nNearby interaction rejects remote and out-of-context controls\nManual battle selection validates actor, command, target and frontmost screen\nConfirm rejects stale/modal/incomplete actions and valid action executes once\nDefeat return is context checked and applies its existing cost once\nRetreat requires live confirmation and cannot discard won rewards\nHelp search supports Enter and retains query through filtering\n"
+      },
+      {
+        "command": "scripts/test-review-actions-ui.mjs",
+        "passed": true,
+        "output": "PASS review actions standard\nPASS review actions small\nPASS review actions landscape\nPASS review actions short\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 9,
+    "label": "help-empty-results-and-pagination",
+    "checkedAt": "2026-10-31T12:35:14.762Z",
+    "checks": [
+      {
+        "command": "scripts/check-action-safety.mjs",
+        "passed": true,
+        "output": "Dialogue stale buttons and repeated completion are safe\nNearby interaction rejects remote and out-of-context controls\nManual battle selection validates actor, command, target and frontmost screen\nConfirm rejects stale/modal/incomplete actions and valid action executes once\nDefeat return is context checked and applies its existing cost once\nRetreat requires live confirmation and cannot discard won rewards\nHelp search supports Enter and retains query through filtering\nHelp empty results reset and query-aware pagination are available read-only\n"
+      },
+      {
+        "command": "scripts/check-merged-instructions.mjs",
+        "passed": true,
+        "output": "Merged instructions: URL sharing, fallback/cancel/read-only, reduced motion, 12px minimum passed\nLow HP: 30% boundary, healthy and KO labels passed\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 10,
+    "label": "paging-focus-and-final-regression",
+    "checkedAt": "2026-10-31T12:40:11.528Z",
+    "checks": [
+      {
+        "command": "scripts/test-review-actions-ui.mjs",
+        "passed": true,
+        "output": "PASS review actions standard\nPASS review actions small\nPASS review actions landscape\nPASS review actions short\n"
+      },
+      {
+        "command": "scripts/check-all.mjs",
+        "passed": true,
+        "output": "PASS check-action-safety.mjs\nPASS check-art-cache.mjs\nPASS check-audio-channels.mjs\nPASS check-audio-codec.mjs\nPASS check-audio-duck.mjs\nPASS check-auto-items.mjs\nPASS check-auto-ui-guards.mjs\nPASS check-badge-list.mjs\nPASS check-battle-audio-race.mjs\nPASS check-battle-fx.mjs\nPASS check-battle-log.mjs\nPASS check-character-art.mjs\nPASS check-clean-output.mjs\nPASS check-control-actions.mjs\nPASS check-expanded-battle.mjs\nPASS check-expressive-score.mjs\nPASS check-field-encounters.mjs\nPASS check-hd-art.mjs\nPASS check-illustrated-art.mjs\nPASS check-input-background.mjs\nPASS check-input-editing.mjs\nPASS check-input-modal.mjs\nPASS check-input-release.mjs\nPASS check-input-stick.mjs\nPASS check-integration.mjs\nPASS check-listeners.mjs\nPASS check-management.mjs\nPASS check-map-facilities.mjs\nPASS check-map-loop.mjs\nPASS check-merged-instructions.mjs\nPASS check-national-story.mjs\nPASS check-national.mjs\nPASS check-nationwide.mjs\nPASS check-navigation.mjs\nPASS check-ocean.mjs\nPASS check-pets.mjs\nPASS check-regional-art.mjs\nPASS check-release.mjs\nPASS check-result-return.mjs\nPASS check-saga.mjs\nPASS check-save.mjs\nPASS check-selected-fixes.mjs\nPASS check-shop.mjs\nPASS check-split-maps.mjs\nPASS check-stream-actions.mjs\nPASS check-target.mjs\nPASS check-title-score.mjs\nPASS check-town-layout.mjs\nPASS check-travel-modes.mjs\nPASS check-vault.mjs\nPASS check-walk-animation.mjs\nPASS check-world-art.mjs\n52/52 regression programs passed; generated HTML syntax OK\n"
+      },
+      {
+        "command": "scripts/test-controls-navigation.mjs",
+        "passed": true,
+        "output": "standard: swapped dock and native Enter on back\nstandard: native search, real walk, pause/back, center resume and manual override\nstandard: quest acceptance, active filter and safe default cancel\nstandard: quest next-destination walks through town exit\nstandard: back unwinds selection and pauses, center confirms once, enemy art enlarged\nstandard: redraw cancels a held center gesture\nstandard: dialogue previous page and explicit skip\nstandard: read-only filters work and movement cannot mutate saves\nPASS controls/navigation standard\nsmall: swapped dock and native Enter on back\nsmall: native search, real walk, pause/back, center resume and manual override\nsmall: quest acceptance, active filter and safe default cancel\nsmall: quest next-destination walks through town exit\nsmall: back unwinds selection and pauses, center confirms once, enemy art enlarged\nsmall: redraw cancels a held center gesture\nsmall: dialogue previous page and explicit skip\nsmall: read-only filters work and movement cannot mutate saves\nPASS controls/navigation small\nlandscape: swapped dock and native Enter on back\nlandscape: native search, real walk, pause/back, center resume and manual override\nlandscape: quest acceptance, active filter and safe default cancel\nlandscape: quest next-destination walks through town exit\nlandscape: back unwinds selection and pauses, center confirms once, enemy art enlarged\nlandscape: redraw cancels a held center gesture\nlandscape: dialogue previous page and explicit skip\nlandscape: read-only filters work and movement cannot mutate saves\nPASS controls/navigation landscape\nshort: swapped dock and native Enter on back\nshort: native search, real walk, pause/back, center resume and manual override\nshort: quest acceptance, active filter and safe default cancel\nshort: quest next-destination walks through town exit\nshort: back unwinds selection and pauses, center confirms once, enemy art enlarged\nshort: redraw cancels a held center gesture\nshort: dialogue previous page and explicit skip\nshort: read-only filters work and movement cannot mutate saves\nPASS controls/navigation short\n"
+      },
+      {
+        "command": "scripts/test-followup-ui.mjs",
+        "passed": true,
+        "output": "PASS follow-up UI standard\nPASS follow-up UI small\nPASS follow-up UI landscape\nPASS follow-up UI short\n"
+      },
+      {
+        "command": "scripts/test-result-overview.mjs",
+        "passed": true,
+        "output": "PASS 40 result scenarios: summary fits, 48px one-click MAP return, low/KO and legacy history\n"
+      },
+      {
+        "command": "scripts/test-map-ui.mjs",
+        "passed": true,
+        "output": "PASS final MAP UI: 4 sizes, controls >=48px, no dock clipping, guide/back and boss map\n"
+      },
+      {
+        "command": "scripts/test-battle-readability.mjs",
+        "passed": true,
+        "output": "PASS readability standard\nPASS readability small\nPASS readability landscape\nPASS readability short\n"
+      }
+    ],
+    "passed": true
+  }
+]

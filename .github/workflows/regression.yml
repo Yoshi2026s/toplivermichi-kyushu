@@ -39,6 +39,9 @@ jobs:
       - run: node scripts/test-followup-ui.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-review-actions-ui.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - run: node scripts/test-result-overview.mjs
         env:
           MOBILE_BROWSER: chromium
@@ -71,6 +74,8 @@ jobs:
         with:
           name: mobile-emulation
           path: |
+            .task/review-actions/*.png
+            .task/review-actions/report.json
             .task/followup-ui/*.png
             .task/followup-ui/report.json
             .task/controls-navigation/*.png

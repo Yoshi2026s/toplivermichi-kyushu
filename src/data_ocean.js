@@ -51,8 +51,8 @@ for(let region=0;region<OCEAN_THEMES.length;region++){
   }
   route.points=points;route.destination=points[14];
   MAPS[mapId]={hub:theme.hub,name:route.name,kind:"field",combatDomain:"sea",oceanRoute:routeId,w,h,tiles,objects,zones:{},safeAnchor:[3,3],townMap:theme.hub,encountersByCell:byCell};
-  const town=MAPS[theme.hub],queue=[town.safeAnchor],seen=new Set([town.safeAnchor.join(",")]);let dock=null;
-  for(let i=0;i<queue.length;i++){
+  const town=MAPS[theme.hub],queue=[town.safeAnchor],seen=new Set([town.safeAnchor.join(",")]);let dock=town.reserveSites?.harbor||null;
+  for(let i=0;!dock&&i<queue.length;i++){
     const [x,y]=queue[i];
     if(i>0&&!town.objects.some(o=>o.x===x&&o.y===y)){dock=[x,y];break;}
     for(const [dx,dy]of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy,k=`${nx},${ny}`;if(seen.has(k)||!".,w=".includes(town.tiles[ny]?.[nx]||""))continue;seen.add(k);if(!town.objects.some(o=>o.x===nx&&o.y===ny&&!o.walk))queue.push([nx,ny]);}

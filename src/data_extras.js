@@ -35,6 +35,6 @@ for(const [hub,H] of Object.entries(HUBS)){
     const [x,y]=queue[i];
     for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy,k=`${nx},${ny}`;if(seen.has(k)||nx<1||ny<1||nx>=m.w-1||ny>=m.h-1||!".,w=".includes(m.tiles[ny][nx])||m.objects.some(o=>o.x===nx&&o.y===ny))continue;seen.add(k);queue.push([nx,ny]);}
   }
-  const point=queue.find(([x,y])=>Math.abs(x-m.safeAnchor[0])+Math.abs(y-m.safeAnchor[1])>=4&&!m.objects.some(o=>Math.abs(o.x-x)+Math.abs(o.y-y)<2));
+  const point=m.reserveSites?.jobcenter||queue.find(([x,y])=>Math.abs(x-m.safeAnchor[0])+Math.abs(y-m.safeAnchor[1])>=4&&!m.objects.some(o=>Math.abs(o.x-x)+Math.abs(o.y-y)<2));
   if(point)m.objects.push({id:`${hub}_jobcenter`,x:point[0],y:point[1],type:"jobcenter",label:"ハローワーク（職業イベント・転職）"});
 }

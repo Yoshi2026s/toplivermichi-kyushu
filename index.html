@@ -880,6 +880,7 @@ p{margin:0 0 8px;overflow-wrap:anywhere}.kv{grid-template-columns:minmax(88px,.8
 .battle .ename,.battle .estat{background:#091724df}
 .mapwrap{background:linear-gradient(135deg,#b8cbaa,#526c65);border-color:#d7c38d;box-shadow:inset 0 0 18px #102b3b55,0 0 0 1px #d1c29b33}
 @media(min-height:760px){.battle .enemies{min-height:150px;padding-top:50px;align-content:end}}
+.mapwrap[data-map-kind="town"]{background:linear-gradient(135deg,#777763,#3e535b);border-color:#e0c58f}.mapwrap[data-map-kind="field"]{background:linear-gradient(135deg,#436550,#1a3843);border-color:#83ab8e}
 </style>
 <main id="screen" aria-live="off"></main>
 <div id="dock" class="dock" aria-label="ジョイコントローラー">
@@ -1868,7 +1869,7 @@ SCENES.NATIONWIDE_END={title:"全国編 終章　あなたの返事を待って�
 
 /* 全国の街と街外を分離する地形データ。既存の拠点・依頼・出入口IDを保ち、
    MAPだけを作り直す。街と室内には遭遇区域を一切置かない。 */
-const MAP_LAYOUT_VERSION = 2;
+const MAP_LAYOUT_VERSION = 3;
 const NATIONAL_MAP_PAIRS = {};
 const NATIONAL_LANDSCAPES = {
   JP01:["forest","白樺と星明かりの原野"], JP02:["coast","りんご畑と海峡の道"],
@@ -1903,7 +1904,7 @@ function nationalMapRect(tiles,t,x,y,w,h){
 }
 function nationalMapPath(tiles,from,to,t=",",wide=1,bend=false){
   let [x,y]=from; const [tx,ty]=to;
-  const stamp=()=>nationalMapRect(tiles,t,x-wide+1,y-wide+1,wide*2-1,wide*2-1);
+  const stamp=()=>{if(t!=='w')return nationalMapRect(tiles,t,x-wide+1,y-wide+1,wide*2-1,wide*2-1);for(let yy=y-wide+1;yy<=y+wide-1;yy++)for(let xx=x-wide+1;xx<=x+wide-1;xx++)if(xx>0&&yy>0&&xx<tiles[0].length-1&&yy<tiles.length-1)tiles[yy][xx]='~='.includes(tiles[yy][xx])?'=':'w';};
   stamp(); const goX=()=>{while(x!==tx){x+=Math.sign(tx-x);stamp();}};
   const goY=()=>{while(y!==ty){y+=Math.sign(ty-y);stamp();}};
   if(bend){goY();goX();}else{goX();goY();}
@@ -1911,10 +1912,57 @@ function nationalMapPath(tiles,from,to,t=",",wide=1,bend=false){
 function nationalMapZone(tiles,tag,cx,cy,seed){
   const rx=4+seed%2,ry=3+Math.floor(seed/3)%2;
   for(let y=cy-ry;y<=cy+ry;y++) for(let x=cx-rx;x<=cx+rx;x++){
-    const clipped=Math.abs(x-cx)===rx&&Math.abs(y-cy)===ry;
+    const distance=((x-cx)/rx)**2+((y-cy)/ry)**2,clipped=distance>1+Math.sin(x*1.7+y+seed)*.10||'~T='.includes(tiles[y]?.[x]);
     if(!clipped&&tiles[y]?.[x]!==undefined&&x>0&&x<tiles[0].length-1&&y>0&&y<tiles.length-1) tiles[y][x]=tag;
   }
 }
+
+/* Parcels are reserved before roads. Entrances face their own sidewalk, never a carved-through wall. */
+function nationalTownPlan(hub,terrain,w,h,cx,cy,residents){
+ const seed=nationalMapSeed(hub),tiles=Array.from({length:h},(_,y)=>Array.from({length:w},(_,x)=>x===0||y===0||x===w-1||y===h-1?'W':'.'));
+ const rect=(t,x,y,ww,hh)=>nationalMapRect(tiles,t,x,y,ww,hh);
+ // A main avenue, two shopping streets, narrow residential lanes and a waterfront promenade.
+ rect(',',cx-1,1,3,h-2);rect(',',1,cy-1,w-2,3);rect(',',2,cy-9,w-4,3);rect(',',2,h-6,w-4,2);
+ for(const side of [-1,1])rect(',',cx+side*8,cy-10,1,14);
+ rect(',',cx-3,cy,7,4);
+ const plots=[],buildings=[];
+ for(let row=0;row<2;row++)for(let col=0;col<4;col++){
+  const i=row*4+col,side=col%2?1:-1,distance=col<2?4:11,offset=(seed>>>i)&1,width=5-((seed>>>(i+8))&1),x=cx+side*(distance+offset),front=cy-2-row*8;
+  const plot={x:x-2,y:front-4,w:width,h:5,door:[x,front],district:row?'residential':'market',style:(seed>>>(i+16))%4};plots.push(plot);
+  rect('c',plot.x,plot.y,plot.w,3);rect('#',plot.x,plot.y+3,plot.w,2);tiles[front][x]=',';
+  // Each threshold opens into the street immediately south of its facade.
+  rect(',',x-1,front+1,3,1);
+  buildings.push({...plot,service:null,objectId:null});
+ }
+ const available=[0,1,2,3,5,6,7],objects=[],occupied=new Set(),put=(o,x,y,site)=>{const key=x+','+y;if(occupied.has(key))throw Error('Town object overlap: '+hub+'/'+o.id);occupied.add(key);tiles[y][x]=',';objects.push({...o,x,y,site});};
+ const service=residents.filter(o=>['shop','inn','door'].includes(o.type));
+ service.sort((a,b)=>['shop','inn','door'].indexOf(a.type)-['shop','inn','door'].indexOf(b.type));
+ for(const o of service){const p=available.shift(),b=buildings[p];b.service=o.type;b.objectId=o.id;put(o,...b.door,'building');}
+ // Reserve a proper civic entrance for the job center installed by data_extras.
+ buildings[4].service='jobcenter';buildings[4].objectId=hub+'_jobcenter';
+ const npcSpots=[[cx-2,cy+1],[cx+2,cy+1],[cx-5,cy-1],[cx+5,cy-1],[cx-11,cy-1],[cx+11,cy-1],[cx-2,cy-7],[cx+2,cy-7],[cx-5,cy-9],[cx+5,cy-9]];
+ const smallSpots=[[cx+5,cy+2],[cx+7,cy+2],[cx-5,cy+3],[cx+5,cy+3],[cx-7,cy+2],[cx+9,cy+2],[cx-10,cy+3],[cx+11,cy+3]];
+ let ni=0,si=0,bi=0;
+ for(const o of residents.filter(o=>!service.includes(o))){
+  if(o.type==='npc'){const p=npcSpots[ni++];if(!p)throw Error('Town NPC capacity: '+hub);put(o,...p,'sidewalk');}
+  else if(o.type==='box'){const x=cx+(bi%2?-10:10),y=cy+3;bi++;put(o,x,y,'courtyard');rect(',',x-1,y,3,1);}
+  else{let p=smallSpots[si++];while(p&&occupied.has(p.join(',')))p=smallSpots[si++];if(!p)throw Error('Town service capacity: '+hub);put(o,...p,o.type==='rest'?'garden':'civic-square');}
+ }
+ // Trees and trimmed hedges belong to parks, outside the carriageway and entrances.
+ for(const side of [-1,1]){
+  const x=cx+side*(w/2-3|0);for(let y=4;y<cy-10;y+=3)if(tiles[y]?.[x]==='.')tiles[y][x]='T';
+  for(let y=cy+2;y<h-2;y++)if(tiles[y]?.[cx+side*14]==='.')tiles[y][cx+side*14]='f';
+ }
+ for(let i=0;i<8;i++){const x=3+i*2,y=2+((seed>>>(i+16))&1);if(tiles[y]?.[x]==='.')tiles[y][x]=i%2?'T':'f';}
+ // A quay or a park basin gives every optional sea-route entrance an actual waterside site.
+ const harborX=terrain==='coast'?cx:6;
+ rect('~',terrain==='coast'?1:3,h-4,terrain==='coast'?w-2:7,3);rect('=',harborX,h-4,2,2);
+ rect(',',harborX-1,h-5,4,1);
+ put({id:hub+'_station',type:'station',label:'新幹線駅（訪問済みの街へ）'},1,cy,'station-platform');
+ for(const b of buildings)if(!b.service)tiles[b.door[1]][b.door[0]]='#';
+ return {tiles,objects,buildings,reserveSites:{jobcenter:buildings[4].door,harbor:[harborX,h-4]},districts:{plaza:[cx-3,cy,7,4],market:[2,cy-6,w-4,8],residential:[2,cy-14,w-4,7],promenade:[2,h-6,w-4,2]}};
+}
+
 for(const [hub,hubData] of Object.entries(HUBS)){
   const old=MAPS[hub];
   const prefId=Object.entries(NATIONAL_IMPLEMENTED_HUBS).find(([,ids])=>ids.includes(hub))?.[0];
@@ -1922,79 +1970,15 @@ for(const [hub,hubData] of Object.entries(HUBS)){
   const fieldId=`${hub}-field`;
   const w=hub==="KY01"?40:36+(seed%4)*2,h=28+(Math.floor(seed/7)%3)*2;
   const cx=hub==="KY01"?19:Math.floor(w/2),cy=hub==="KY01"?19:h-9;
-  const town=buildMap(w,h,[[".",1,1,w-2,h-2]]);
-  /* 地方ごとの市街景観。道路は後で通し、建物や水面による行き止まりを防ぐ。 */
-  if(terrain==="coast"){
-    nationalMapRect(town,"~",1,h-5,w-2,4);
-    nationalMapRect(town,",",2,h-6,w-4,2);
-    for(let x=5+(seed%3);x<w-4;x+=7) nationalMapRect(town,"=",x,h-5,2,3);
-  }else if(terrain==="river"){
-    const riverX=6+seed%4;
-    nationalMapRect(town,"~",riverX,1,3,h-2);
-    nationalMapRect(town,"=",riverX,cy-1,3,3);
-    nationalMapRect(town,"=",riverX,8,3,2);
-  }else if(terrain==="lake"){
-    nationalMapRect(town,"~",2,3,8,7);
-    nationalMapRect(town,",",2,11,10,2);
-  }else if(terrain==="mountain"){
-    for(let r=0;r<3;r++) nationalMapRect(town,"T",2+r*2,2+r*3,5,2);
-    nationalMapRect(town,"T",w-8,2,6,6+seed%4);
-  }else if(terrain==="forest"){
-    for(let x=2;x<w-3;x+=6) nationalMapRect(town,"T",x,3+(x%3),3,3);
-    nationalMapRect(town,"~",w-9,3,5,4);
-  }else{
-    nationalMapRect(town,"~",2,3,5,4);
-    for(let x=10;x<w-3;x+=7) nationalMapRect(town,"T",x,3,2,4);
-  }
-  /* 各街の庭園・並木の区画も固定シードで変える。同じ地方の街でも
-     木立、路地、広場の並びが重ならない。 */
-  for(let row=0;row<2;row++) for(let col=0;col<6;col++){
-    const garden=nationalMapSeed(`${hub}:garden:${row}:${col}`);
-    const x=3+col*5,y=3+row*4;
-    if(x+2<w-2) nationalMapRect(town,garden%3===0?",":garden%3===1?".":"T",x,y,2+garden%2,2);
-  }
-  const residentialBlocks=[[cx-13,5],[cx+8,6],[cx-13,11],[cx+8,12],[cx-13,cy+2],[cx+8,cy+2]];
-  const houseFronts=[];
-  for(let i=0;i<residentialBlocks.length;i++){
-    let [x,y]=residentialBlocks[i];x+=Math.floor(seed/(i+3))%2;
-    if(y+4>=h-1||[0,1,2,3].some(d=>town[y+d]?.slice(x,x+5).includes("~"))) continue;
-    nationalMapRect(town,"c",x,y,5,1);
-    nationalMapRect(town,"#",x,y+1,5,2);
-    houseFronts.push([x+2,y+3]);
-  }
-  const outdoor=old.objects.filter(o=>["sign","boss","tower"].includes(o.type));
-  const gates=old.objects.filter(o=>o.type==="gate");
-  const residents=old.objects.filter(o=>!["sign","boss","tower","gate"].includes(o.type));
-  /* 旅の途中でも回復道具を補充できるよう、道具店がなかった街にも
-     既存の販売システムを使う支店を設ける。買い物は街の安全地帯で行う。 */
-  if(!residents.some(o=>o.type==="shop")){
-    const shopId=`SH_${hub}`;
-    SHOPS[shopId]={name:`${hubData.name}の旅支度店`,items:[...new Set([...SHOPS.SH01.items,...SHOPS.SH02.items])]};
-    residents.push({id:`${hub}_supply`,type:"shop",label:`${hubData.name}の旅支度店（道具・装備）`,shop:shopId,npc:"shigeru"});
-  }
-  const slots=[[-7,-3],[7,-3],[-4,-6],[4,-6],[-10,3],[10,3],[-5,3],[5,3],[-12,-8],[12,-8],[-12,0],[12,0],[-2,5],[2,5],[-7,-10],[7,-10],[-10,-5],[10,-5]];
-  const objects=[];
-  for(let i=0;i<residents.length;i++){
-    const o={...residents[i]},[dx,dy]=slots[i]||[-12+(i%7)*4,-12-Math.floor(i/7)*2];
-    o.x=Math.max(3,Math.min(w-4,cx+dx));o.y=Math.max(4,Math.min(h-3,cy+dy));
-    if(["door","inn","shop"].includes(o.type)){
-      nationalMapRect(town,"#",o.x-2,o.y-3,5,3);
-      nationalMapRect(town,"c",o.x-2,o.y-4,5,1);
-    }
-    objects.push(o);
-  }
-  /* 中央広場、街道、街の出口をつなぐ。全サービスへ枝道を用意する。 */
-  nationalMapRect(town,",",cx-2,2,5,h-5);
-  nationalMapRect(town,",",1,cy-1,w-2,3);
-  nationalMapRect(town,",",cx-6,cy-2,13,5);
-  for(const front of houseFronts) nationalMapPath(town,[cx,cy],front,",",1,false);
-  for(const o of objects) nationalMapPath(town,[cx,cy],[o.x,o.y],",",1,!!(seed%2));
-  objects.push({id:`${hub}_station`,x:1,y:cy,type:"station",label:"新幹線駅（訪問済みの街へ）"});
+  const outdoor=old.objects.filter(o=>['sign','boss','tower'].includes(o.type)),gates=old.objects.filter(o=>o.type==='gate');
+  const residents=old.objects.filter(o=>!['sign','boss','tower','gate'].includes(o.type));
+  if(!residents.some(o=>o.type==='shop')){const shopId='SH_'+hub;SHOPS[shopId]={name:hubData.name+'の旅支度店',items:[...new Set([...SHOPS.SH01.items,...SHOPS.SH02.items])]};residents.push({id:hub+'_supply',type:'shop',label:hubData.name+'の旅支度店（道具・装備）',shop:shopId,npc:'shigeru'});}
+  const plan=nationalTownPlan(hub,terrain,w,h,cx,cy,residents),town=plan.tiles,objects=plan.objects;
   const fw=40+(seed%5)*2,fh=30+(Math.floor(seed/11)%3)*2,fx=Math.floor(fw/2);
   const entrance=[fx,fh-4],back=[fx,fh-2];
   objects.push({id:`${hub}_field_exit`,x:cx,y:1,type:"door",walk:true,fieldExit:true,label:`街の出口 → ${fieldName}（戦闘エリア）`,to:fieldId,tx:entrance[0],ty:entrance[1]});
   town[1][cx]=",";
-  MAPS[hub]={...old,name:hubData.name,kind:"town",layoutVersion:MAP_LAYOUT_VERSION,w,h,tiles:town,objects,zones:{},safeAnchor:[cx,cy],fieldMap:fieldId,terrain};
+  MAPS[hub]={...old,name:hubData.name,kind:"town",layoutVersion:MAP_LAYOUT_VERSION,w,h,tiles:town,objects,zones:{},safeAnchor:[cx,cy],fieldMap:fieldId,terrain,buildings:plan.buildings,districts:plan.districts,reserveSites:plan.reserveSites};
   hubData.fieldMap=fieldId;
   /* 街外は海岸・川・山・森・湖・野原の6種。県ごとの寸法と曲がり方を加え、
      3探索区域へ進み、奥地のボスに至る歩ける地形を作る。 */
@@ -2044,11 +2028,12 @@ for(const [hub,hubData] of Object.entries(HUBS)){
   ];
   let last=entrance;
   for(let z=0;z<3;z++){
-    nationalMapPath(field,last,zonePoints[z],",",2,!!((seed+z)%2));last=zonePoints[z];
+    nationalMapPath(field,last,zonePoints[z],"w",1,!!((seed+z)%2));last=zonePoints[z];
   }
   const bossPoint=[zonePoints[2][0],3];
-  nationalMapPath(field,last,bossPoint,",",2,true);
-  nationalMapPath(field,back,entrance,",",2);
+  nationalMapPath(field,last,bossPoint,"w",1,true);
+  nationalMapPath(field,back,entrance,"w",1);
+  const trailCells=field.map(row=>row.map(t=>'w='.includes(t)));
   for(let z=0;z<3;z++) nationalMapZone(field,String(z+1),...zonePoints[z],seed+z*17);
   const fieldObjects=[];
   let bossIndex=0,towerIndex=0;
@@ -2057,10 +2042,11 @@ for(const [hub,hubData] of Object.entries(HUBS)){
     if(o.type==="sign"){
       const zone=Math.max(0,Math.min(2,Number(String(o.area).match(/A(\d+)$/)?.[1]||1)-1));
       o.x=zonePoints[zone][0]+2;o.y=zonePoints[zone][1]+2;
+      nationalMapPath(field,zonePoints[zone],[o.x,o.y],"w",1);
     }else if(o.type==="boss"){
       o.x=bossPoint[0]+bossIndex*3;o.y=bossPoint[1];bossIndex++;
       o.label=`${BOSSES[o.boss]?.name||"地域ボス"}の待機地点（街外の奥地）`;o.walk=true;
-      field[o.y][o.x]=",";
+      field[o.y][o.x]="w";
     }else{
       o.x=bossPoint[0]+towerIndex*3;o.y=1;towerIndex++;
       field[o.y][o.x]=".";
@@ -2070,11 +2056,11 @@ for(const [hub,hubData] of Object.entries(HUBS)){
   fieldObjects.push({id:`${hub}_town_exit`,x:back[0],y:back[1],type:"door",walk:true,fieldExit:true,label:`${hubData.name}へ戻る（安全な街）`,to:hub,tx:cx,ty:2});
   for(let i=0;i<gates.length;i++){
     const original=gates[i],x=i%2?fw-3:2,y=fh-6-Math.floor(i/2)*3;
-    nationalMapPath(field,entrance,[x,y],",",1,false);
-    field[y][x+(x<fw/2?1:-1)]=",";
+    nationalMapPath(field,entrance,[x,y],"w",1,false);
+    field[y][x+(x<fw/2?1:-1)]="w";
     fieldObjects.push({...original,x,y,walk:true,fieldRoute:true,toHub:original.to,label:`街外の道 → ${HUBS[original.to].name}方面`});
   }
-  MAPS[fieldId]={hub,name:`${hubData.name}・街外／${fieldName}`,kind:"field",layoutVersion:MAP_LAYOUT_VERSION,w:fw,h:fh,tiles:field,objects:fieldObjects,zones:{...old.zones},safeAnchor:entrance,townMap:hub,terrain};
+  MAPS[fieldId]={hub,name:`${hubData.name}・街外／${fieldName}`,kind:"field",layoutVersion:MAP_LAYOUT_VERSION,w:fw,h:fh,tiles:field,objects:fieldObjects,zones:{...old.zones},safeAnchor:entrance,townMap:hub,terrain,trailCells};
   NATIONAL_MAP_PAIRS[hub]={town:hub,field:fieldId,prefId,terrain};
 }
 /* 旧街MAPの座標は使わず、移動先の中央広場へ着く。室内からは入った扉の前へ戻す。 */
@@ -2280,8 +2266,8 @@ for(let region=0;region<OCEAN_THEMES.length;region++){
   }
   route.points=points;route.destination=points[14];
   MAPS[mapId]={hub:theme.hub,name:route.name,kind:"field",combatDomain:"sea",oceanRoute:routeId,w,h,tiles,objects,zones:{},safeAnchor:[3,3],townMap:theme.hub,encountersByCell:byCell};
-  const town=MAPS[theme.hub],queue=[town.safeAnchor],seen=new Set([town.safeAnchor.join(",")]);let dock=null;
-  for(let i=0;i<queue.length;i++){
+  const town=MAPS[theme.hub],queue=[town.safeAnchor],seen=new Set([town.safeAnchor.join(",")]);let dock=town.reserveSites?.harbor||null;
+  for(let i=0;!dock&&i<queue.length;i++){
     const [x,y]=queue[i];
     if(i>0&&!town.objects.some(o=>o.x===x&&o.y===y)){dock=[x,y];break;}
     for(const [dx,dy]of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy,k=`${nx},${ny}`;if(seen.has(k)||!".,w=".includes(town.tiles[ny]?.[nx]||""))continue;seen.add(k);if(!town.objects.some(o=>o.x===nx&&o.y===ny&&!o.walk))queue.push([nx,ny]);}
@@ -2328,7 +2314,7 @@ for(const [hub,H] of Object.entries(HUBS)){
     const [x,y]=queue[i];
     for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy,k=`${nx},${ny}`;if(seen.has(k)||nx<1||ny<1||nx>=m.w-1||ny>=m.h-1||!".,w=".includes(m.tiles[ny][nx])||m.objects.some(o=>o.x===nx&&o.y===ny))continue;seen.add(k);queue.push([nx,ny]);}
   }
-  const point=queue.find(([x,y])=>Math.abs(x-m.safeAnchor[0])+Math.abs(y-m.safeAnchor[1])>=4&&!m.objects.some(o=>Math.abs(o.x-x)+Math.abs(o.y-y)<2));
+  const point=m.reserveSites?.jobcenter||queue.find(([x,y])=>Math.abs(x-m.safeAnchor[0])+Math.abs(y-m.safeAnchor[1])>=4&&!m.objects.some(o=>Math.abs(o.x-x)+Math.abs(o.y-y)<2));
   if(point)m.objects.push({id:`${hub}_jobcenter`,x:point[0],y:point[1],type:"jobcenter",label:"ハローワーク（職業イベント・転職）"});
 }
 
@@ -4193,25 +4179,47 @@ const WORLD_ART=(()=>{
   for(let row=0;row<(organic?2:1);row++)for(let col=0;col<(organic?2:1);col++){p.save();p.translate(col?size*2:0,row?size*2:0);p.scale(col?-1:1,row?-1:1);p.drawImage(atlas,index%4*cw,Math.floor(index/4)*ch,cw,ch,0,0,size,size);p.restore();}patterns.set(index,c);
  }return g.createPattern(patterns.get(index),'repeat');}
 
- const base=(m,t)=>m.combatDomain==='sea'?(t==='P'?9:t==='.'?0:t==='S'?2:3):t===','?1:t==='w'?2:t==='2'||t==='3'?8:t==='~'||t==='='?3:t==='c'?6:t==='#'?7:t==='1'?11:m.terrain==='forest'?10:0;
+ function base(m,t,x,y){
+  if(m.combatDomain==='sea')return t==='P'?9:t==='.'?0:t==='S'?2:3;
+  if(t==='~'||t==='=')return 3;if(t==='c')return 6;if(t==='#')return 7;if(t==='W')return 8;if(t==='f')return 4;
+  if(m.kind==='town')return t===','?1:t==='w'?2:0;
+  if(t==='w'||t===','||m.trailCells?.[y]?.[x])return 2;
+  if('123'.includes(t))return m.terrain==='forest'?10:m.terrain==='mountain'?0:m.terrain==='coast'&&t==='2'?2:11;
+  return m.terrain==='forest'?10:m.terrain==='mountain'?8:0;
+ }
+
  function mapLayer(id,frame=0){const m=MAPS[id];if(!atlas||m.kind==='in')return legacy(id,frame);
   if(cache.has(id)){const c=cache.get(id);cache.delete(id);cache.set(id,c);return c;}
   const ratio=m.w*m.h*64*64*4>LIMIT?2:4,tile=16*ratio,c=make(m.w*tile,m.h*tile),g=c.getContext('2d');c.artScale=ratio;
   g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
   const at=(x,y)=>m.tiles[y]?.[x]||'T';
   // One shared pattern per material continues across neighboring cells, without tile seams.
-  for(let index=0;index<12;index++){g.beginPath();let used=false;for(let y=0;y<m.h;y++)for(let x=0;x<m.w;x++)if(base(m,at(x,y))===index){g.rect(x*tile,y*tile,tile,tile);used=true;}if(used){g.save();g.clip();g.fillStyle=material(g,index);g.fillRect(0,0,c.width,c.height);g.restore();}}
+  for(let index=0;index<12;index++){g.beginPath();let used=false;for(let y=0;y<m.h;y++)for(let x=0;x<m.w;x++)if(base(m,at(x,y),x,y)===index){g.rect(x*tile,y*tile,tile,tile);used=true;}if(used){g.save();g.clip();g.fillStyle=material(g,index);g.fillRect(0,0,c.width,c.height);g.restore();}}
   for(let y=0;y<m.h;y++)for(let x=0;x<m.w;x++){const t=at(x,y),X=x*tile,Y=y*tile;
+   if(t==='W'){g.fillStyle='#718186';g.fillRect(X,Y,tile,tile);g.strokeStyle='#394d59';g.lineWidth=ratio*.6;for(let row=0;row<3;row++){g.beginPath();g.moveTo(X,Y+row*tile/3);g.lineTo(X+tile,Y+row*tile/3);g.stroke();for(let col=0;col<2;col++){const xx=X+(col*.5+(row%2?.25:0))*tile;g.beginPath();g.moveTo(xx,Y+row*tile/3);g.lineTo(xx,Y+(row+1)*tile/3);g.stroke();}}g.fillStyle='#dae2d0';g.fillRect(X,Y,tile,ratio);}
+   if(t==='f'){g.fillStyle='#123b2b55';g.fillRect(X,Y+tile*.65,tile,tile*.35);g.strokeStyle='#b1c98b';g.lineWidth=ratio*.7;g.strokeRect(X+ratio,Y+ratio,tile-ratio*2,tile*.75);}
+   if(m.kind==='field'&&'123'.includes(t)&&!m.trailCells?.[y]?.[x]){g.fillStyle=t==='1'?'#bfcf6818':t==='2'?'#65934418':'#967c6020';g.fillRect(X,Y,tile,tile);}
    if(t==='T'){
     g.fillStyle='#142d2d66';g.beginPath();g.ellipse(X+tile*.55,Y+tile*.63,tile*.46,tile*.36,0,0,Math.PI*2);g.fill();
     g.save();g.beginPath();g.ellipse(X+tile*.48,Y+tile*.45,tile*.47,tile*.44,0,0,Math.PI*2);g.clip();g.fillStyle=material(g,m.terrain==='mountain'?5:4);g.fillRect(X,Y,tile,tile);const light=g.createLinearGradient(X,Y,X+tile,Y+tile);light.addColorStop(0,'#e0f4a62b');light.addColorStop(1,'#072b3655');g.fillStyle=light;g.fillRect(X,Y,tile,tile);g.restore();
    }
    if(',w23'.includes(t)){g.lineWidth=Math.max(1,ratio*.45);for(const[dx,dy,a,b]of [[0,-1,[0,0],[1,0]],[0,1,[0,1],[1,1]],[-1,0,[0,0],[0,1]],[1,0,[1,0],[1,1]]])if(!',w23='.includes(at(x+dx,y+dy))){g.strokeStyle=dy===1?'#40594399':'#f4e2b6b0';g.beginPath();g.moveTo(X+a[0]*tile,Y+a[1]*tile);g.lineTo(X+b[0]*tile,Y+b[1]*tile);g.stroke();}}
    if(t==='~'){for(const[dx,dy,a,b]of [[0,-1,[0,0],[1,0]],[0,1,[0,1],[1,1]],[-1,0,[0,0],[0,1]],[1,0,[1,0],[1,1]]])if(!'~='.includes(at(x+dx,y+dy))){g.strokeStyle='#d8f6e8c9';g.lineWidth=ratio*1.2;g.beginPath();g.moveTo(X+a[0]*tile,Y+a[1]*tile);g.lineTo(X+b[0]*tile,Y+b[1]*tile);g.stroke();}}
-   if(t==='='){g.fillStyle=material(g,9);g.fillRect(X+ratio*1.5,Y,tile-ratio*3,tile);g.fillStyle='#edd4a7';g.fillRect(X+ratio,Y,ratio,tile);g.fillStyle='#665139';g.fillRect(X+tile-ratio*2,Y,ratio,tile);}
+   if(t==='='){g.save();g.translate(X,Y);if(at(x-1,y)==='='||at(x+1,y)==='='){g.translate(tile,0);g.rotate(Math.PI/2);}g.fillStyle=material(g,9);g.fillRect(ratio*1.5,0,tile-ratio*3,tile);g.fillStyle='#edd4a7';g.fillRect(ratio,0,ratio,tile);g.fillStyle='#665139';g.fillRect(tile-ratio*2,0,ratio,tile);g.restore();}
+
    if(t==='c'||t==='#'){if(at(x,y+1)!==t){g.fillStyle=t==='c'?'#593d3270':'#24323470';g.fillRect(X,Y+tile-ratio*2,tile,ratio*2);}if(at(x,y-1)!==t){g.fillStyle='#fff0c16b';g.fillRect(X,Y,tile,ratio*.6);}}
    if(m.combatDomain==='sea'&&'ESP'.includes(t)){g.save();g.strokeStyle='#fff3c5cc';g.lineWidth=ratio*.6;g.setLineDash([ratio*1.2,ratio*1.4]);for(const[dx,dy]of [[0,1],[0,-1],[1,0],[-1,0]])if('ESP'.includes(at(x+dx,y+dy))){g.beginPath();g.moveTo(X+tile/2,Y+tile/2);g.lineTo(X+(dx+1)*tile/2,Y+(dy+1)*tile/2);g.stroke();}g.restore();}
-   if(m.combatDomain!=='sea'&&!'.1T,w23~=#c'.includes(t))g.drawImage(ART.tile(t,0),X,Y,tile,tile);
+   if(m.combatDomain!=='sea'&&!'.1TfW,w23~=#c'.includes(t))g.drawImage(ART.tile(t,0),X,Y,tile,tile);
+  }
+  for(const b of m.buildings||[]){
+   const X=b.x*tile,Y=b.y*tile,W=b.w*tile,H=b.h*tile,cx=(b.door[0]+.5)*tile,dy=b.door[1]*tile;
+   g.fillStyle='#132a3938';g.fillRect(X+ratio,Y+H,W,ratio*2);
+   g.fillStyle=['#6f32351e','#754c1720','#253c4326','#57443b20'][b.style];g.fillRect(X,Y,W,tile*3);
+   g.strokeStyle='#563a33';g.lineWidth=ratio*1.2;g.strokeRect(X+ratio*.5,Y+ratio*.5,W-ratio,tile*3-ratio);
+   g.strokeStyle='#f5d9a077';g.lineWidth=ratio*.6;g.beginPath();g.moveTo(X+ratio,Y+tile*.4);g.lineTo(X+W-ratio,Y+tile*.4);g.stroke();
+   g.fillStyle='#dfcba7';g.fillRect(cx-tile*.5,dy,tile,tile);g.fillStyle=b.service?'#233b43':'#70523c';g.fillRect(cx-tile*.29,dy+tile*.1,tile*.58,tile*.85);g.strokeStyle='#a4895a';g.lineWidth=ratio*.6;g.strokeRect(cx-tile*.29,dy+tile*.1,tile*.58,tile*.85);
+   if(!b.service){g.fillStyle='#dfc98b';g.beginPath();g.arc(cx+tile*.17,dy+tile*.59,ratio*.7,0,Math.PI*2);g.fill();}
+   if(b.service){const label=({shop:'道具店',inn:'宿屋',jobcenter:'職業窓口',door:'入口'})[b.service],tw=Math.max(tile*1.4,label.length*tile*.34);g.fillStyle='#142d3ee8';g.fillRect(cx-tw/2,dy-tile*1.72,tw,tile*.52);g.strokeStyle='#e0bf80';g.lineWidth=ratio*.4;g.strokeRect(cx-tw/2,dy-tile*1.72,tw,tile*.52);g.fillStyle='#fff0c8';g.font='600 '+tile*.32+'px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(label,cx,dy-tile*1.45);}
   }
   // Broad, static daylight and soft cloud shadows add depth without per-frame work.
   const glow=g.createLinearGradient(0,0,c.width,c.height);glow.addColorStop(0,'#fff1c31f');glow.addColorStop(.5,'#fff9e500');glow.addColorStop(1,'#0a344827');g.fillStyle=glow;g.fillRect(0,0,c.width,c.height);
@@ -5329,7 +5337,7 @@ function renderExplore(){
       <div class="goal">${esc(objective())}</div>
       <div class="xsave small" aria-live="polite">保存：<span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（閲覧のみ）":""}</div>
     </header>
-    <div class="mapwrap"><canvas id="map" aria-label="${esc(m.name)}の地図。地面をタップすると移動します。"></canvas>
+    <div class="mapwrap" data-map-kind="${esc(m.kind)}"><canvas id="map" aria-label="${esc(m.name)}の地図。地面をタップすると移動します。"></canvas>
       ${exit?`<button class="btn map-exit" data-a="guideTo" data-v="${exit.id}">${m.kind==="town"?"街外へ":"街へ戻る"}</button>`:""}
     </div>
     ${partyStrip()}
@@ -6526,7 +6534,7 @@ function migrate(s){
   s.gameVersion=GAME_VERSION;
   const layoutChanged=s.mapLayoutVersion!==MAP_LAYOUT_VERSION;
   const map=MAPS[s.mapId],p=s.pos;
-  if(layoutChanged||!p||!Number.isInteger(p.x)||!Number.isInteger(p.y)||p.x<0||p.y<0||p.x>=map.w||p.y>=map.h||!(map.combatDomain==="sea"?".,123w=ESP":".,123w=").includes(map.tiles[p.y]?.[p.x])||map.objects.some(o=>o.x===p.x&&o.y===p.y&&!o.walk)) s.pos={x:map.safeAnchor[0],y:map.safeAnchor[1]};
+  if(layoutChanged&&map.combatDomain!=="sea"&&map.kind!=="in"||!p||!Number.isInteger(p.x)||!Number.isInteger(p.y)||p.x<0||p.y<0||p.x>=map.w||p.y>=map.h||!(map.combatDomain==="sea"?".,123w=ESP":".,123w=").includes(map.tiles[p.y]?.[p.x])||map.objects.some(o=>o.x===p.x&&o.y===p.y&&!o.walk)) s.pos={x:map.safeAnchor[0],y:map.safeAnchor[1]};
   if(!Array.isArray(s.visitedMaps)) s.visitedMaps=[];
   if(!Array.isArray(s.visitedHubs)) s.visitedHubs=[];
   if(!s.visitedMaps.includes(s.mapId)) s.visitedMaps.push(s.mapId);
@@ -6572,7 +6580,7 @@ function migrate(s){
   }
   refreshMainQuests(s);
   for(const j of JOIN_PLAN) if(s.visitedHubs.includes(j.hub)&&!s.roster.includes(j.cid)) joinMember(s,j.cid);
-  if(s.run&&layoutChanged){
+  if(s.run&&layoutChanged&&map.combatDomain!=="sea"){
     const field=HUBS[map.hub].fieldMap;
     s.mapId=field; s.pos={x:MAPS[field].safeAnchor[0],y:MAPS[field].safeAnchor[1]};
     s.run.returnPos={map:field,...s.pos};

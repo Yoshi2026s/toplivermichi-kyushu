@@ -1,6 +1,6 @@
 /* 全国の街と街外を分離する地形データ。既存の拠点・依頼・出入口IDを保ち、
    MAPだけを作り直す。街と室内には遭遇区域を一切置かない。 */
-const MAP_LAYOUT_VERSION = 2;
+const MAP_LAYOUT_VERSION = 3;
 const NATIONAL_MAP_PAIRS = {};
 const NATIONAL_LANDSCAPES = {
   JP01:["forest","白樺と星明かりの原野"], JP02:["coast","りんご畑と海峡の道"],
@@ -35,7 +35,7 @@ function nationalMapRect(tiles,t,x,y,w,h){
 }
 function nationalMapPath(tiles,from,to,t=",",wide=1,bend=false){
   let [x,y]=from; const [tx,ty]=to;
-  const stamp=()=>nationalMapRect(tiles,t,x-wide+1,y-wide+1,wide*2-1,wide*2-1);
+  const stamp=()=>{if(t!=='w')return nationalMapRect(tiles,t,x-wide+1,y-wide+1,wide*2-1,wide*2-1);for(let yy=y-wide+1;yy<=y+wide-1;yy++)for(let xx=x-wide+1;xx<=x+wide-1;xx++)if(xx>0&&yy>0&&xx<tiles[0].length-1&&yy<tiles.length-1)tiles[yy][xx]='~='.includes(tiles[yy][xx])?'=':'w';};
   stamp(); const goX=()=>{while(x!==tx){x+=Math.sign(tx-x);stamp();}};
   const goY=()=>{while(y!==ty){y+=Math.sign(ty-y);stamp();}};
   if(bend){goY();goX();}else{goX();goY();}
@@ -43,10 +43,57 @@ function nationalMapPath(tiles,from,to,t=",",wide=1,bend=false){
 function nationalMapZone(tiles,tag,cx,cy,seed){
   const rx=4+seed%2,ry=3+Math.floor(seed/3)%2;
   for(let y=cy-ry;y<=cy+ry;y++) for(let x=cx-rx;x<=cx+rx;x++){
-    const clipped=Math.abs(x-cx)===rx&&Math.abs(y-cy)===ry;
+    const distance=((x-cx)/rx)**2+((y-cy)/ry)**2,clipped=distance>1+Math.sin(x*1.7+y+seed)*.10||'~T='.includes(tiles[y]?.[x]);
     if(!clipped&&tiles[y]?.[x]!==undefined&&x>0&&x<tiles[0].length-1&&y>0&&y<tiles.length-1) tiles[y][x]=tag;
   }
 }
+
+/* Parcels are reserved before roads. Entrances face their own sidewalk, never a carved-through wall. */
+function nationalTownPlan(hub,terrain,w,h,cx,cy,residents){
+ const seed=nationalMapSeed(hub),tiles=Array.from({length:h},(_,y)=>Array.from({length:w},(_,x)=>x===0||y===0||x===w-1||y===h-1?'W':'.'));
+ const rect=(t,x,y,ww,hh)=>nationalMapRect(tiles,t,x,y,ww,hh);
+ // A main avenue, two shopping streets, narrow residential lanes and a waterfront promenade.
+ rect(',',cx-1,1,3,h-2);rect(',',1,cy-1,w-2,3);rect(',',2,cy-9,w-4,3);rect(',',2,h-6,w-4,2);
+ for(const side of [-1,1])rect(',',cx+side*8,cy-10,1,14);
+ rect(',',cx-3,cy,7,4);
+ const plots=[],buildings=[];
+ for(let row=0;row<2;row++)for(let col=0;col<4;col++){
+  const i=row*4+col,side=col%2?1:-1,distance=col<2?4:11,offset=(seed>>>i)&1,width=5-((seed>>>(i+8))&1),x=cx+side*(distance+offset),front=cy-2-row*8;
+  const plot={x:x-2,y:front-4,w:width,h:5,door:[x,front],district:row?'residential':'market',style:(seed>>>(i+16))%4};plots.push(plot);
+  rect('c',plot.x,plot.y,plot.w,3);rect('#',plot.x,plot.y+3,plot.w,2);tiles[front][x]=',';
+  // Each threshold opens into the street immediately south of its facade.
+  rect(',',x-1,front+1,3,1);
+  buildings.push({...plot,service:null,objectId:null});
+ }
+ const available=[0,1,2,3,5,6,7],objects=[],occupied=new Set(),put=(o,x,y,site)=>{const key=x+','+y;if(occupied.has(key))throw Error('Town object overlap: '+hub+'/'+o.id);occupied.add(key);tiles[y][x]=',';objects.push({...o,x,y,site});};
+ const service=residents.filter(o=>['shop','inn','door'].includes(o.type));
+ service.sort((a,b)=>['shop','inn','door'].indexOf(a.type)-['shop','inn','door'].indexOf(b.type));
+ for(const o of service){const p=available.shift(),b=buildings[p];b.service=o.type;b.objectId=o.id;put(o,...b.door,'building');}
+ // Reserve a proper civic entrance for the job center installed by data_extras.
+ buildings[4].service='jobcenter';buildings[4].objectId=hub+'_jobcenter';
+ const npcSpots=[[cx-2,cy+1],[cx+2,cy+1],[cx-5,cy-1],[cx+5,cy-1],[cx-11,cy-1],[cx+11,cy-1],[cx-2,cy-7],[cx+2,cy-7],[cx-5,cy-9],[cx+5,cy-9]];
+ const smallSpots=[[cx+5,cy+2],[cx+7,cy+2],[cx-5,cy+3],[cx+5,cy+3],[cx-7,cy+2],[cx+9,cy+2],[cx-10,cy+3],[cx+11,cy+3]];
+ let ni=0,si=0,bi=0;
+ for(const o of residents.filter(o=>!service.includes(o))){
+  if(o.type==='npc'){const p=npcSpots[ni++];if(!p)throw Error('Town NPC capacity: '+hub);put(o,...p,'sidewalk');}
+  else if(o.type==='box'){const x=cx+(bi%2?-10:10),y=cy+3;bi++;put(o,x,y,'courtyard');rect(',',x-1,y,3,1);}
+  else{let p=smallSpots[si++];while(p&&occupied.has(p.join(',')))p=smallSpots[si++];if(!p)throw Error('Town service capacity: '+hub);put(o,...p,o.type==='rest'?'garden':'civic-square');}
+ }
+ // Trees and trimmed hedges belong to parks, outside the carriageway and entrances.
+ for(const side of [-1,1]){
+  const x=cx+side*(w/2-3|0);for(let y=4;y<cy-10;y+=3)if(tiles[y]?.[x]==='.')tiles[y][x]='T';
+  for(let y=cy+2;y<h-2;y++)if(tiles[y]?.[cx+side*14]==='.')tiles[y][cx+side*14]='f';
+ }
+ for(let i=0;i<8;i++){const x=3+i*2,y=2+((seed>>>(i+16))&1);if(tiles[y]?.[x]==='.')tiles[y][x]=i%2?'T':'f';}
+ // A quay or a park basin gives every optional sea-route entrance an actual waterside site.
+ const harborX=terrain==='coast'?cx:6;
+ rect('~',terrain==='coast'?1:3,h-4,terrain==='coast'?w-2:7,3);rect('=',harborX,h-4,2,2);
+ rect(',',harborX-1,h-5,4,1);
+ put({id:hub+'_station',type:'station',label:'新幹線駅（訪問済みの街へ）'},1,cy,'station-platform');
+ for(const b of buildings)if(!b.service)tiles[b.door[1]][b.door[0]]='#';
+ return {tiles,objects,buildings,reserveSites:{jobcenter:buildings[4].door,harbor:[harborX,h-4]},districts:{plaza:[cx-3,cy,7,4],market:[2,cy-6,w-4,8],residential:[2,cy-14,w-4,7],promenade:[2,h-6,w-4,2]}};
+}
+
 for(const [hub,hubData] of Object.entries(HUBS)){
   const old=MAPS[hub];
   const prefId=Object.entries(NATIONAL_IMPLEMENTED_HUBS).find(([,ids])=>ids.includes(hub))?.[0];
@@ -54,79 +101,15 @@ for(const [hub,hubData] of Object.entries(HUBS)){
   const fieldId=`${hub}-field`;
   const w=hub==="KY01"?40:36+(seed%4)*2,h=28+(Math.floor(seed/7)%3)*2;
   const cx=hub==="KY01"?19:Math.floor(w/2),cy=hub==="KY01"?19:h-9;
-  const town=buildMap(w,h,[[".",1,1,w-2,h-2]]);
-  /* 地方ごとの市街景観。道路は後で通し、建物や水面による行き止まりを防ぐ。 */
-  if(terrain==="coast"){
-    nationalMapRect(town,"~",1,h-5,w-2,4);
-    nationalMapRect(town,",",2,h-6,w-4,2);
-    for(let x=5+(seed%3);x<w-4;x+=7) nationalMapRect(town,"=",x,h-5,2,3);
-  }else if(terrain==="river"){
-    const riverX=6+seed%4;
-    nationalMapRect(town,"~",riverX,1,3,h-2);
-    nationalMapRect(town,"=",riverX,cy-1,3,3);
-    nationalMapRect(town,"=",riverX,8,3,2);
-  }else if(terrain==="lake"){
-    nationalMapRect(town,"~",2,3,8,7);
-    nationalMapRect(town,",",2,11,10,2);
-  }else if(terrain==="mountain"){
-    for(let r=0;r<3;r++) nationalMapRect(town,"T",2+r*2,2+r*3,5,2);
-    nationalMapRect(town,"T",w-8,2,6,6+seed%4);
-  }else if(terrain==="forest"){
-    for(let x=2;x<w-3;x+=6) nationalMapRect(town,"T",x,3+(x%3),3,3);
-    nationalMapRect(town,"~",w-9,3,5,4);
-  }else{
-    nationalMapRect(town,"~",2,3,5,4);
-    for(let x=10;x<w-3;x+=7) nationalMapRect(town,"T",x,3,2,4);
-  }
-  /* 各街の庭園・並木の区画も固定シードで変える。同じ地方の街でも
-     木立、路地、広場の並びが重ならない。 */
-  for(let row=0;row<2;row++) for(let col=0;col<6;col++){
-    const garden=nationalMapSeed(`${hub}:garden:${row}:${col}`);
-    const x=3+col*5,y=3+row*4;
-    if(x+2<w-2) nationalMapRect(town,garden%3===0?",":garden%3===1?".":"T",x,y,2+garden%2,2);
-  }
-  const residentialBlocks=[[cx-13,5],[cx+8,6],[cx-13,11],[cx+8,12],[cx-13,cy+2],[cx+8,cy+2]];
-  const houseFronts=[];
-  for(let i=0;i<residentialBlocks.length;i++){
-    let [x,y]=residentialBlocks[i];x+=Math.floor(seed/(i+3))%2;
-    if(y+4>=h-1||[0,1,2,3].some(d=>town[y+d]?.slice(x,x+5).includes("~"))) continue;
-    nationalMapRect(town,"c",x,y,5,1);
-    nationalMapRect(town,"#",x,y+1,5,2);
-    houseFronts.push([x+2,y+3]);
-  }
-  const outdoor=old.objects.filter(o=>["sign","boss","tower"].includes(o.type));
-  const gates=old.objects.filter(o=>o.type==="gate");
-  const residents=old.objects.filter(o=>!["sign","boss","tower","gate"].includes(o.type));
-  /* 旅の途中でも回復道具を補充できるよう、道具店がなかった街にも
-     既存の販売システムを使う支店を設ける。買い物は街の安全地帯で行う。 */
-  if(!residents.some(o=>o.type==="shop")){
-    const shopId=`SH_${hub}`;
-    SHOPS[shopId]={name:`${hubData.name}の旅支度店`,items:[...new Set([...SHOPS.SH01.items,...SHOPS.SH02.items])]};
-    residents.push({id:`${hub}_supply`,type:"shop",label:`${hubData.name}の旅支度店（道具・装備）`,shop:shopId,npc:"shigeru"});
-  }
-  const slots=[[-7,-3],[7,-3],[-4,-6],[4,-6],[-10,3],[10,3],[-5,3],[5,3],[-12,-8],[12,-8],[-12,0],[12,0],[-2,5],[2,5],[-7,-10],[7,-10],[-10,-5],[10,-5]];
-  const objects=[];
-  for(let i=0;i<residents.length;i++){
-    const o={...residents[i]},[dx,dy]=slots[i]||[-12+(i%7)*4,-12-Math.floor(i/7)*2];
-    o.x=Math.max(3,Math.min(w-4,cx+dx));o.y=Math.max(4,Math.min(h-3,cy+dy));
-    if(["door","inn","shop"].includes(o.type)){
-      nationalMapRect(town,"#",o.x-2,o.y-3,5,3);
-      nationalMapRect(town,"c",o.x-2,o.y-4,5,1);
-    }
-    objects.push(o);
-  }
-  /* 中央広場、街道、街の出口をつなぐ。全サービスへ枝道を用意する。 */
-  nationalMapRect(town,",",cx-2,2,5,h-5);
-  nationalMapRect(town,",",1,cy-1,w-2,3);
-  nationalMapRect(town,",",cx-6,cy-2,13,5);
-  for(const front of houseFronts) nationalMapPath(town,[cx,cy],front,",",1,false);
-  for(const o of objects) nationalMapPath(town,[cx,cy],[o.x,o.y],",",1,!!(seed%2));
-  objects.push({id:`${hub}_station`,x:1,y:cy,type:"station",label:"新幹線駅（訪問済みの街へ）"});
+  const outdoor=old.objects.filter(o=>['sign','boss','tower'].includes(o.type)),gates=old.objects.filter(o=>o.type==='gate');
+  const residents=old.objects.filter(o=>!['sign','boss','tower','gate'].includes(o.type));
+  if(!residents.some(o=>o.type==='shop')){const shopId='SH_'+hub;SHOPS[shopId]={name:hubData.name+'の旅支度店',items:[...new Set([...SHOPS.SH01.items,...SHOPS.SH02.items])]};residents.push({id:hub+'_supply',type:'shop',label:hubData.name+'の旅支度店（道具・装備）',shop:shopId,npc:'shigeru'});}
+  const plan=nationalTownPlan(hub,terrain,w,h,cx,cy,residents),town=plan.tiles,objects=plan.objects;
   const fw=40+(seed%5)*2,fh=30+(Math.floor(seed/11)%3)*2,fx=Math.floor(fw/2);
   const entrance=[fx,fh-4],back=[fx,fh-2];
   objects.push({id:`${hub}_field_exit`,x:cx,y:1,type:"door",walk:true,fieldExit:true,label:`街の出口 → ${fieldName}（戦闘エリア）`,to:fieldId,tx:entrance[0],ty:entrance[1]});
   town[1][cx]=",";
-  MAPS[hub]={...old,name:hubData.name,kind:"town",layoutVersion:MAP_LAYOUT_VERSION,w,h,tiles:town,objects,zones:{},safeAnchor:[cx,cy],fieldMap:fieldId,terrain};
+  MAPS[hub]={...old,name:hubData.name,kind:"town",layoutVersion:MAP_LAYOUT_VERSION,w,h,tiles:town,objects,zones:{},safeAnchor:[cx,cy],fieldMap:fieldId,terrain,buildings:plan.buildings,districts:plan.districts,reserveSites:plan.reserveSites};
   hubData.fieldMap=fieldId;
   /* 街外は海岸・川・山・森・湖・野原の6種。県ごとの寸法と曲がり方を加え、
      3探索区域へ進み、奥地のボスに至る歩ける地形を作る。 */
@@ -176,11 +159,12 @@ for(const [hub,hubData] of Object.entries(HUBS)){
   ];
   let last=entrance;
   for(let z=0;z<3;z++){
-    nationalMapPath(field,last,zonePoints[z],",",2,!!((seed+z)%2));last=zonePoints[z];
+    nationalMapPath(field,last,zonePoints[z],"w",1,!!((seed+z)%2));last=zonePoints[z];
   }
   const bossPoint=[zonePoints[2][0],3];
-  nationalMapPath(field,last,bossPoint,",",2,true);
-  nationalMapPath(field,back,entrance,",",2);
+  nationalMapPath(field,last,bossPoint,"w",1,true);
+  nationalMapPath(field,back,entrance,"w",1);
+  const trailCells=field.map(row=>row.map(t=>'w='.includes(t)));
   for(let z=0;z<3;z++) nationalMapZone(field,String(z+1),...zonePoints[z],seed+z*17);
   const fieldObjects=[];
   let bossIndex=0,towerIndex=0;
@@ -189,10 +173,11 @@ for(const [hub,hubData] of Object.entries(HUBS)){
     if(o.type==="sign"){
       const zone=Math.max(0,Math.min(2,Number(String(o.area).match(/A(\d+)$/)?.[1]||1)-1));
       o.x=zonePoints[zone][0]+2;o.y=zonePoints[zone][1]+2;
+      nationalMapPath(field,zonePoints[zone],[o.x,o.y],"w",1);
     }else if(o.type==="boss"){
       o.x=bossPoint[0]+bossIndex*3;o.y=bossPoint[1];bossIndex++;
       o.label=`${BOSSES[o.boss]?.name||"地域ボス"}の待機地点（街外の奥地）`;o.walk=true;
-      field[o.y][o.x]=",";
+      field[o.y][o.x]="w";
     }else{
       o.x=bossPoint[0]+towerIndex*3;o.y=1;towerIndex++;
       field[o.y][o.x]=".";
@@ -202,11 +187,11 @@ for(const [hub,hubData] of Object.entries(HUBS)){
   fieldObjects.push({id:`${hub}_town_exit`,x:back[0],y:back[1],type:"door",walk:true,fieldExit:true,label:`${hubData.name}へ戻る（安全な街）`,to:hub,tx:cx,ty:2});
   for(let i=0;i<gates.length;i++){
     const original=gates[i],x=i%2?fw-3:2,y=fh-6-Math.floor(i/2)*3;
-    nationalMapPath(field,entrance,[x,y],",",1,false);
-    field[y][x+(x<fw/2?1:-1)]=",";
+    nationalMapPath(field,entrance,[x,y],"w",1,false);
+    field[y][x+(x<fw/2?1:-1)]="w";
     fieldObjects.push({...original,x,y,walk:true,fieldRoute:true,toHub:original.to,label:`街外の道 → ${HUBS[original.to].name}方面`});
   }
-  MAPS[fieldId]={hub,name:`${hubData.name}・街外／${fieldName}`,kind:"field",layoutVersion:MAP_LAYOUT_VERSION,w:fw,h:fh,tiles:field,objects:fieldObjects,zones:{...old.zones},safeAnchor:entrance,townMap:hub,terrain};
+  MAPS[fieldId]={hub,name:`${hubData.name}・街外／${fieldName}`,kind:"field",layoutVersion:MAP_LAYOUT_VERSION,w:fw,h:fh,tiles:field,objects:fieldObjects,zones:{...old.zones},safeAnchor:entrance,townMap:hub,terrain,trailCells};
   NATIONAL_MAP_PAIRS[hub]={town:hub,field:fieldId,prefId,terrain};
 }
 /* 旧街MAPの座標は使わず、移動先の中央広場へ着く。室内からは入った扉の前へ戻す。 */

@@ -165,6 +165,17 @@ const alternate=town.tiles.flatMap((row,y)=>row.map((_,x)=>g.walkable(town,x,y)&
 currentLayout.pos={x:alternate[0],y:alternate[1]};g.migrate(currentLayout);
 assert.equal(currentLayout.pos.x,alternate[0]);assert.equal(currentLayout.pos.y,alternate[1],'current-layout saves keep their saved location');
 const caps=makeState();
+for(const [id,map] of Object.entries(g.MAPS)){
+ const saved=makeState();saved.mapId=id;saved.mapLayoutVersion=2;
+ const pos=map.tiles.flatMap((row,y)=>row.map((_,x)=>g.walkable(map,x,y)&&!map.objects.some(o=>o.x===x&&o.y===y)?[x,y]:null)).find(p=>p&&(p[0]!==map.safeAnchor[0]||p[1]!==map.safeAnchor[1]));
+ if(!pos)continue;
+ saved.pos={x:pos[0],y:pos[1]};saved.gold=4321;saved.opened={layoutTest:true};
+ g.migrate(saved);
+ const expected=map.kind==='in'||map.combatDomain==='sea'?pos:map.safeAnchor;
+ assert.equal(saved.pos.x,expected[0],id+': layout migration x');assert.equal(saved.pos.y,expected[1],id+': layout migration y');
+ assert.equal(saved.gold,4321);assert.equal(saved.opened.layoutTest,true);
+ const once=JSON.stringify(saved);g.migrate(saved);assert.equal(JSON.stringify(saved),once,id+': migrated save remains stable');
+}
 assert.equal(g.chapterCap(caps),100);
 for(let i=0;i<g.STORY_CHAPTERS.length;i++){
   const chapter=g.STORY_CHAPTERS[i];assert(g.QUESTS[chapter.completionQuest]?.main);

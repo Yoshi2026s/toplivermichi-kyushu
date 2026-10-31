@@ -28,6 +28,75 @@ const NATIONAL_LANDSCAPES = {
   JP45:["forest","神話の森と日向の道"], JP46:["mountain","火山灰と黒潮の裾野"],
   JP47:["coast","珊瑚の海と風の道"]
 };
+
+/* Regional scenery is an original fantasy interpretation, not a geographic reconstruction.
+   Visual metadata never changes collision, destinations, encounters or stored positions. */
+const REGIONAL_TOWNS = {
+ JP01:['赤れんがと白樺の街','brick','#52656b','#b6755a','#bd937d','birch','clock','snow','#4e7483'],
+ JP02:['りんご並木の海峡街','port','#536a78','#eee1bd','#b6b6a2','apple','sail','sea','#c44c45'],
+ JP03:['石と清流の城下町','castle','#4e5961','#e1dcd1','#9eada9','pine','bridge','ridge','#647c8c'],
+ JP04:['杜の並木と七夕飾り','machiya','#456b60','#efe5c9','#b7b798','zelkova','streamer','grove','#318e80'],
+ JP05:['杉の町家と竿燈の灯り','machiya','#4c5257','#d4c8ab','#a6a192','cedar','lantern','grove','#d4ae54'],
+ JP06:['山あいの蔵と紅花','kura','#5b6272','#eee8d5','#b8ada1','safflower','flower','ridge','#cc7250'],
+ JP07:['果樹と山裾の宿場','rural','#6b5750','#e5d7b9','#bfb58d','peach','fruit','ridge','#d7929b'],
+ JP08:['梅の白壁と庭園','kura','#52645e','#f0e8da','#b9b8a5','plum','flower','grove','#a95570'],
+ JP09:['大谷石と緑の街路','stone','#5a6770','#bbbda2','#b0b39c','maple','stone','ridge','#6d886c'],
+ JP10:['川風とれんがの街','brick','#665447','#c29677','#c0b0a0','willow','bridge','river','#4e989d'],
+ JP11:['蔵と盆栽の路地','kura','#566269','#f1e7ce','#bcb29b','bonsai','garden','grove','#5c8061'],
+ JP12:['海風と港の並木','port','#487886','#efe4c7','#d2c3a2','pine','sail','sea','#65aab2'],
+ JP13:['高層の輪郭と都会の庭','urban','#3b546c','#b7c8cf','#9eaeb8','ginkgo','tower','city','#4a9fad'],
+ JP14:['赤れんがと洋館の港','port','#55616b','#c78a6f','#b2a192','plane','clock','sea','#327f94'],
+ JP15:['白壁の港と柳並木','kura','#565e6a','#eee6d4','#b8b5ad','willow','sail','river','#668e9b'],
+ JP16:['立山を望む水の街','stone','#55737e','#e1e5d6','#a1b7b6','cedar','bridge','snow','#5eabb3'],
+ JP17:['格子の茶屋と金色の庭','machiya','#4e505d','#c6a57c','#b6ae99','pine','garden','grove','#c8a350'],
+ JP18:['石垣と山あいの街','castle','#556669','#e5e4d4','#a8b4ad','cedar','stone','ridge','#698a82'],
+ JP19:['ぶどう棚と山の城下町','castle','#635d69','#e6ddc6','#bcac98','grape','fruit','ridge','#927292'],
+ JP20:['白樺と山門の宿場','rural','#63594f','#e3d9c5','#b8b3a6','birch','gate','snow','#6d8e76'],
+ JP21:['川辺の格子と鵜飼い灯','machiya','#525f64','#c8b08b','#b4b3a3','willow','lantern','river','#cf9b57'],
+ JP22:['茶の緑と富士見の街','rural','#586d5d','#e5e0bd','#b6b994','tea','mountain','fuji','#729555'],
+ JP23:['金の屋根飾りと城下町','castle','#436d68','#e3dcc0','#b2b3a0','ginkgo','crest','city','#d6b45f'],
+ JP24:['伊勢路の木組みと松','machiya','#685648','#e3d7bb','#bdb194','pine','gate','sea','#af8556'],
+ JP25:['湖風の白壁と葦原','kura','#54727d','#eee9d6','#b4c1b2','reed','sail','lake','#6bafbb'],
+ JP26:['京格子と竹の路地','machiya','#505961','#e1cfae','#adae9b','bamboo','lantern','grove','#b15c4e'],
+ JP27:['水都の橋と商いの街','urban','#4d6470','#e0d3b6','#b4aaa0','ginkgo','bridge','river','#bd754e'],
+ JP28:['山手の洋館と港','port','#536f6b','#ead7c9','#c2aea3','plane','sail','ridge','#9e514d'],
+ JP29:['古都の木組みと若草','machiya','#594d45','#dfc6a0','#b7ac90','maple','pagoda','grove','#a66a43'],
+ JP30:['城下の白壁とみかん','castle','#536d69','#e5dfc5','#b7b49d','citrus','crest','grove','#dc9b50'],
+ JP31:['砂丘色の街と海松','rural','#8b7155','#e6d3a6','#d6c092','pine','dune','dune','#a88d60'],
+ JP32:['湖畔の黒瓦と夕映え','castle','#475963','#e4dfca','#b3b2ab','pine','sail','lake','#bc8c78'],
+ JP33:['白桃と白壁の街','kura','#66727a','#f1e6cc','#c6b8a2','peach','fruit','grove','#d78e98'],
+ JP34:['川筋の街と島の稜線','urban','#547477','#e4dac8','#b1beb4','maple','bridge','sea','#aa6454'],
+ JP35:['白壁の小路と緑の山','machiya','#675a4b','#eee2c7','#bfb19d','bamboo','pagoda','ridge','#a0684e'],
+ JP36:['藍の家並みと川風','machiya','#3e637b','#dce1d7','#acb6ac','reed','streamer','river','#4d82a2'],
+ JP37:['松の庭と瀬戸内の港','castle','#61746c','#e8e0c7','#c3bda5','pine','garden','sea','#83a478'],
+ JP38:['温泉の木造館とみかん','onsen','#696153','#e8ceaa','#c7b59b','citrus','steam','ridge','#d29148'],
+ JP39:['漆喰の城下町と清流','castle','#52676c','#f0e5cc','#b6b7a6','cedar','crest','river','#4d9b93'],
+ JP40:['海風の商都','port','#477c83','#ece1c3','#c2baa3','pine','sail','sea','#4d9ea1'],
+ JP41:['白壁と松の城下町','kura','#66736f','#ece6d0','#bfbba4','pine','pottery','grove','#7296a0'],
+ JP42:['洋館と灯りの港町','port','#527e77','#ead6b5','#b9a89d','camphor','lantern','sea','#bc795e'],
+ JP43:['石垣の城下と草原','castle','#3f5355','#d3d7c3','#a7b0a0','camphor','crest','ridge','#699079'],
+ JP44:['湯けむりと石の街路','onsen','#686f69','#e3dcc7','#b8bbb1','bamboo','steam','ridge','#71a6a0'],
+ JP45:['椰子並木と南国の光','tropical','#a97652','#eee0b9','#d6c6a0','palm','sun','sea','#59a9a5'],
+ JP46:['火山の稜線と石造り','stone','#59656d','#b9b9a6','#a5b0a6','palm','volcano','volcano','#8b7973'],
+ JP47:['赤瓦と珊瑚色の海','tropical','#ad5238','#eee0b7','#d8c9a6','palm','shisa','sea','#4aaea8']
+};
+const REGIONAL_CITY_OVERRIDES={
+ KY01:['博多の格子と海風','machiya','#566a70','#e5d4b7','#bdb79f','camphor','streamer','sea','#697da1'],
+ KY02:['れんが倉庫と工房の港','brick','#4a6067','#ab725a','#aaa99e','plane','chimney','sea','#4e8c9b'],
+ KY03:['松原と陶器の城下町','castle','#607f7c','#eee3c8','#c8bca0','pine','pottery','sea','#5d9da1'],
+ KY04:['水路と白壁の蔵通り','kura','#56656d','#f0e6d1','#bcb8ab','willow','bridge','river','#7c9c91'],
+ KY05:['海軍色の洋館と入り江','port','#435a73','#e2d9c5','#aeaeb0','camphor','sail','sea','#617c9f'],
+ KY06:['異国の洋館と港の灯り','port','#4e7b6f','#f1d9ba','#bfae9c','camphor','lantern','ridge','#bf775f'],
+ KY07:['黒瓦と石垣の城下町','castle','#34494b','#e4e0c7','#a4ada0','camphor','crest','ridge','#6b9273'],
+ KY08:['草原と山並みの木造宿','rural','#655143','#d2bc8c','#b8b58e','grass','mountain','volcano','#7b985b']
+};
+function regionalTownProfile(hub,prefId){
+ const row=REGIONAL_CITY_OVERRIDES[hub]||REGIONAL_TOWNS[prefId];
+ if(!row)throw Error('Missing regional town: '+hub);
+ const [name,architecture,roof,wall,paving,plant,feature,scenery,accent]=row;
+ return {id:hub,name,architecture,roof,wall,paving,plant,feature,scenery,accent};
+}
+
 function nationalMapSeed(id){ let n=2166136261; for(const c of id){n^=c.charCodeAt(0);n=Math.imul(n,16777619);} return n>>>0; }
 function nationalMapRect(tiles,t,x,y,w,h){
   for(let yy=Math.max(1,y);yy<Math.min(tiles.length-1,y+h);yy++)
@@ -98,7 +167,7 @@ for(const [hub,hubData] of Object.entries(HUBS)){
   const old=MAPS[hub];
   const prefId=Object.entries(NATIONAL_IMPLEMENTED_HUBS).find(([,ids])=>ids.includes(hub))?.[0];
   const seed=nationalMapSeed(hub),[terrain,fieldName]=NATIONAL_LANDSCAPES[prefId]||["plain",`${hubData.name}の街外`];
-  const fieldId=`${hub}-field`;
+  const fieldId=`${hub}-field`,regional=regionalTownProfile(hub,prefId);
   const w=hub==="KY01"?40:36+(seed%4)*2,h=28+(Math.floor(seed/7)%3)*2;
   const cx=hub==="KY01"?19:Math.floor(w/2),cy=hub==="KY01"?19:h-9;
   const outdoor=old.objects.filter(o=>['sign','boss','tower'].includes(o.type)),gates=old.objects.filter(o=>o.type==='gate');
@@ -109,7 +178,7 @@ for(const [hub,hubData] of Object.entries(HUBS)){
   const entrance=[fx,fh-4],back=[fx,fh-2];
   objects.push({id:`${hub}_field_exit`,x:cx,y:1,type:"door",walk:true,fieldExit:true,label:`街の出口 → ${fieldName}（戦闘エリア）`,to:fieldId,tx:entrance[0],ty:entrance[1]});
   town[1][cx]=",";
-  MAPS[hub]={...old,name:hubData.name,kind:"town",layoutVersion:MAP_LAYOUT_VERSION,w,h,tiles:town,objects,zones:{},safeAnchor:[cx,cy],fieldMap:fieldId,terrain,buildings:plan.buildings,districts:plan.districts,reserveSites:plan.reserveSites};
+  MAPS[hub]={...old,name:hubData.name,kind:"town",layoutVersion:MAP_LAYOUT_VERSION,w,h,tiles:town,objects,zones:{},safeAnchor:[cx,cy],fieldMap:fieldId,terrain,regional,buildings:plan.buildings,districts:plan.districts,reserveSites:plan.reserveSites};
   hubData.fieldMap=fieldId;
   /* 街外は海岸・川・山・森・湖・野原の6種。県ごとの寸法と曲がり方を加え、
      3探索区域へ進み、奥地のボスに至る歩ける地形を作る。 */
@@ -191,7 +260,7 @@ for(const [hub,hubData] of Object.entries(HUBS)){
     field[y][x+(x<fw/2?1:-1)]="w";
     fieldObjects.push({...original,x,y,walk:true,fieldRoute:true,toHub:original.to,label:`街外の道 → ${HUBS[original.to].name}方面`});
   }
-  MAPS[fieldId]={hub,name:`${hubData.name}・街外／${fieldName}`,kind:"field",layoutVersion:MAP_LAYOUT_VERSION,w:fw,h:fh,tiles:field,objects:fieldObjects,zones:{...old.zones},safeAnchor:entrance,townMap:hub,terrain,trailCells};
+  MAPS[fieldId]={hub,name:`${hubData.name}・街外／${fieldName}`,kind:"field",layoutVersion:MAP_LAYOUT_VERSION,w:fw,h:fh,tiles:field,objects:fieldObjects,zones:{...old.zones},safeAnchor:entrance,townMap:hub,terrain,regional,trailCells};
   NATIONAL_MAP_PAIRS[hub]={town:hub,field:fieldId,prefId,terrain};
 }
 /* 旧街MAPの座標は使わず、移動先の中央広場へ着く。室内からは入った扉の前へ戻す。 */

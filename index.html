@@ -5138,7 +5138,7 @@ function petWalkPreview(st,id,place){
   const item=`${id}-${where.care}-${where.tier}`,gains={bond:Math.min(2,100-p.bond),mood:Math.min(4,100-p.mood)};
   return {...petReceivePreview(st,item,1),item,quantity:1,gains};
 }
-function walkPet(st,id,place){const offer=petWalkPreview(st,id,place);if(!offer.ok)return offer;const received=petReceive(st,offer.item,1);if(!received.ok)return received;const p=petOwned(st,id);p.bond+=offer.gains.bond;p.mood+=offer.gains.mood;st.petState.walkDay=st.day;return {...offer,...received,sound:"pet"};}
+function walkPet(st,id,place){const offer=petWalkPreview(st,id,place);if(!offer.ok)return offer;const received=petReceive(st,offer.item,1);if(!received.ok)return received;const p=petOwned(st,id);p.bond+=offer.gains.bond;p.mood+=offer.gains.mood;st.petState.walkDay=st.day;petRemember(st,id,"おさんぽに行った");return {...offer,...received,sound:"pet"};}
 function petTravelPreview(st,policy){
   const ps=petData(st),p=ps&&petOwned(st,ps.favorite),rule=Object.hasOwn(PET_TRAVEL_POLICIES,policy)?PET_TRAVEL_POLICIES[policy]:null;
   if(!p||!rule)return {ok:false,reason:"お気に入りのペットと回復方針を選んでください。",targets:[]};
@@ -5151,7 +5151,7 @@ function petTravelPreview(st,policy){
   if(!targets.some(t=>t.hp>0||t.mp>0))return {ok:false,reason:policy==="mp"?"生存メンバーのMPは十分です。HPを回復する場合は『バランス』か『HP重視』を選んでください。":policy==="hp"?"生存メンバーのHPは十分です。MPを回復する場合は『バランス』か『MP重視』を選んでください。":"生存メンバーのHP・MPは十分です。回復不要のため今日の回数は消費しません。",targets,hpRate,mpRate};
   return {ok:true,targets,hpRate,mpRate};
 }
-function petTravelHelp(st,policy){const offer=petTravelPreview(st,policy);if(!offer.ok)return offer;ensureVitals(st);for(const t of offer.targets){st.vitals[t.cid].hp+=t.hp;st.vitals[t.cid].c+=t.mp;}st.petState.travelDay=st.day;st.petState.travelPolicy=policy;return offer;}
+function petTravelHelp(st,policy){const offer=petTravelPreview(st,policy);if(!offer.ok)return offer;ensureVitals(st);for(const t of offer.targets){st.vitals[t.cid].hp+=t.hp;st.vitals[t.cid].c+=t.mp;}st.petState.travelDay=st.day;st.petState.travelPolicy=policy;petRemember(st,st.petState.favorite,"旅のお手伝いをした");return offer;}
 function preparePetRun(st,run){
   if(!run)return run;
   if(Array.isArray(run.pets)){const ids=new Set();run.pets=run.pets.filter(p=>p&&petSpecies(p.id)&&!ids.has(p.id)&&ids.add(p.id)).slice(0,2).map(p=>({...p,stage:Math.max(1,Math.min(10,Number(p.stage)||1)),rarity:PET_SPECIES[p.id].rarity,policy:p.policy==="support"?"support":"heal"}));return run;}
@@ -5217,7 +5217,7 @@ function petBadgeApplicable(run,id){
   if(id==="B074")return pets.length>=2;if(id==="B076")return has("mp");
   if(id==="B077")return heal&&run.party.some(m=>m.cid==="hero");
   if(id==="B078")return heal&&run.party.some(m=>m.cid==="moe");
-  if(id==="B079")return has("attack");if(id==="B080")return has("slow");return false;
+  if(id==="B079")return has("attack");if(id==="B080")return ["slow","sleep","confuse"].some(has);return false;
 }
 function petSpriteSvg(id,stage=1){
  if(typeof SOFT_ART!=="undefined")return SOFT_ART.petSvg(id,stage);

@@ -4,7 +4,7 @@ const SOFT_ART=(()=>{
  const sources={front:'__SOFT_FRONT_DATA_URI__',back:'__SOFT_BACK_DATA_URI__',side:'__SOFT_SIDE_DATA_URI__',npc:'__SOFT_NPC_DATA_URI__',pets:'__SOFT_PETS_DATA_URI__',enemies:'__SOFT_ENEMIES_DATA_URI__'};
  const loaded=Promise.all(Object.entries(sources).map(([key,src])=>new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>{images[key]=image;resolve();};image.onerror=()=>{errors.push(key);reject(new Error('Character artwork could not load: '+key));};image.src=src;})));
  const hash=s=>{let h=2166136261;for(const c of String(s))h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0;};
- function keep(key,make){if(cache.has(key))return cache.get(key);const c=make();cache.set(key,c);if(cache.size>LIMIT)cache.delete(cache.keys().next().value);return c;}
+ function keep(key,make){if(cache.has(key)){const c=cache.get(key);cache.delete(key);cache.set(key,c);return c;}const c=make();cache.set(key,c);if(cache.size>LIMIT)cache.delete(cache.keys().next().value);return c;}
  function canvas(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c;}
  function phase(distance,moving,still=false){return !moving||still?0:1+Math.floor(((Math.max(0,distance)||0)%32)/4);}
  function pose(frame){const t=(frame-1)*TAU/8;return frame?{stride:Math.sin(t)*.14,lift:Math.cos(t)*.07,bob:(1-Math.cos(t*2))*.025}:{stride:0,lift:0,bob:0};}

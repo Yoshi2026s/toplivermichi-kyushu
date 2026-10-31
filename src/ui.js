@@ -398,17 +398,17 @@ function startLoop(){
 }
 function bfs(m,sx,sy,goal,avoidTransitions=false){
   const key=(x,y)=>y*m.w+x; const prev=new Map(); const q=[[sx,sy]]; prev.set(key(sx,sy),null);
-  while(q.length){ const [x,y]=q.shift(); if(goal(x,y)&&!(x===sx&&y===sy)){ const path=[]; let k=key(x,y); while(k!==key(sx,sy)){ path.unshift({x:k%m.w,y:Math.floor(k/m.w)}); k=prev.get(k);} return path; }
+  for(let head=0;head<q.length;head++){ const [x,y]=q[head]; if(goal(x,y)&&!(x===sx&&y===sy)){ const path=[]; let k=key(x,y); while(k!==key(sx,sy)){ path.push({x:k%m.w,y:Math.floor(k/m.w)}); k=prev.get(k);} return path.reverse(); }
     for(const [dx,dy] of [[0,1],[0,-1],[-1,0],[1,0]]){ const nx=x+dx, ny=y+dy; if(nx<0||ny<0||nx>=m.w||ny>=m.h) continue; const k=key(nx,ny); if(prev.has(k)) continue; if(!walkable(m,nx,ny)) continue; const transit=objAt(m,nx,ny);if(avoidTransitions&&transit?.walk&&transit.to&&!goal(nx,ny))continue; prev.set(k,key(x,y)); q.push([nx,ny]); } }
   return null;
 }
-function walkTo(x,y,pending){
+function walkTo(x,y,pending,preparedPath){
   const st=G.st, m=MAPS[st.mapId]; if(G.readOnly) return toast("閲覧のみのタブです。");
   let path;
   const obj=objAt(m,x,y);
   if(obj && !obj.walk){ if(Math.abs(obj.x-st.pos.x)+Math.abs(obj.y-st.pos.y)===1 || (Math.max(Math.abs(obj.x-st.pos.x),Math.abs(obj.y-st.pos.y))<=1)){ interact(obj); return; }
-    path=bfs(m,st.pos.x,st.pos.y,(px,py)=>Math.abs(px-x)+Math.abs(py-y)===1,true); pending=obj; }
-  else { if(x===st.pos.x&&y===st.pos.y) return; if(!walkable(m,x,y)) return; path=bfs(m,st.pos.x,st.pos.y,(px,py)=>px===x&&py===y,true); }
+    path=preparedPath||bfs(m,st.pos.x,st.pos.y,(px,py)=>Math.abs(px-x)+Math.abs(py-y)===1,true); pending=obj; }
+  else { if(x===st.pos.x&&y===st.pos.y) return; if(!walkable(m,x,y)) return; path=preparedPath||bfs(m,st.pos.x,st.pos.y,(px,py)=>px===x&&py===y,true); }
   if(!path) return toast("そこへは行けません。");
   G.walk.path=path; G.walk.prog=0; G.walk.pending=pending||(obj&&obj.walk?obj:null);
 }

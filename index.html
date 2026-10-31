@@ -7228,11 +7228,11 @@ function oceanOverview(){
 }
 function oceanDexHtml(){
   const st=G.st,id=oceanDefaultArea(),a=OCEAN_AREAS[id],page=Math.max(0,Math.min(4,Number(G.sheetData.page)||0)),seen=Object.keys(st.seen||{}).filter(k=>k.startsWith("OCN-")).length;
-  return `<p>海洋図鑑 ${seen}/${OCEAN_ENEMY_COUNT}項目。各海域に5系統×10段階。姿は地方ごとの創作です。</p><h3 class="label">${esc(a.name)}（${esc(OCEAN_THEMES[a.region].name)}）</h3><p class="small">出現場所：航路E・海辺S。適正レベル${a.q}。港は安全です。</p>
+  return `<p>海洋図鑑 ${seen}/${OCEAN_ENEMY_COUNT}項目</p><h3 class="label">${esc(a.name)}（${esc(OCEAN_THEMES[a.region].name)}）</h3><p class="small">出現場所：航路・海辺。推奨レベル${a.q}。港は安全です。</p>
     <div class="row3"><button class="btn" data-a="oceanDexPage" data-page="${page-1}" ${page>0?"":"disabled"}>前の10件</button><span role="status">${page+1}/5ページ</span><button class="btn" data-a="oceanDexPage" data-page="${page+1}" ${page<4?"":"disabled"}>次の10件</button></div>
     <div class="stack">${Array.from({length:10},(_,i)=>{
       const idx=page*10+i,e=oceanEnemyDef(id,idx),known=!!st.seen[e.id];
-      return `<div class="qcard"><canvas data-ocean-sprite="${id}|${idx}" width="64" height="64" style="width:64px;height:64px;image-rendering:pixelated" aria-hidden="true"></canvas><b>${known?"● 遭遇済み":"○ 未遭遇"} ${esc(e.name)}</b><p class="small">${esc(e.id)}／${e.species}系・${e.stage}/10段階／推奨${e.q}／討伐${st.killCount[e.id]||0}体</p><p class="small">${esc(e.trait)} ${esc(e.counter)}</p></div>`;
+      return `<div class="qcard"><canvas data-ocean-sprite="${id}|${idx}" width="64" height="64" style="width:64px;height:64px;image-rendering:pixelated" aria-hidden="true"></canvas><b>${known?"● 遭遇済み":"○ 未遭遇"} ${esc(e.name)}</b><p class="small">${esc(e.species)}系・成長${e.stage}/10・推奨レベル${e.q}・討伐${st.killCount[e.id]||0}体</p><p class="small">${esc(e.trait)} ${esc(e.counter)}</p></div>`;
     }).join("")}</div><details class="ocean-area-picker"><summary>別の海域を選ぶ</summary><div class="stack">${Object.values(OCEAN_AREAS).map(v=>`<button class="btn" data-a="oceanDexArea" data-area="${v.id}">${esc(v.name)}</button>`).join("")}</div></details>`;
 }
 renderSheet=function(){

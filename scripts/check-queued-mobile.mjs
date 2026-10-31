@@ -30,3 +30,5 @@ g.G.sheet='petShop';g.G.sheetData={pet:g.petData(st).favorite,page:0};const pet=
 g.G.sheet='oceanDex';g.G.sheetData={};g.ACT.oceanDexPage(el({page:'1'}));assert.equal(g.G.sheetData.page,1);g.ACT.oceanDexPage(el({page:'2',actionEpoch:'2'}));assert.equal(g.G.sheetData.page,1);assert(g.oceanDexHtml().includes('ocean-area-picker'));console.log('Ocean pages reject stale controls and expose a large area picker');
 
 g.G.sheet='status';g.G.sheetData={};assert(g.renderStatus().includes('物語ランク'));assert(g.partyStrip().includes('ゴールド・物語 '));console.log('Party and status screens explain story rank without repeating the partner name');
+
+html=g.oceanDexHtml();assert(!/OCN-OCEAN-/.test(html));assert(html.includes('出現場所：航路・海辺'));assert(html.includes('推奨レベル'));console.log('Ocean cards show useful species and level information without internal record IDs');

@@ -191,5 +191,28 @@
       }
     ],
     "passed": true
+  },
+  {
+    "round": 12,
+    "label": "ocean-readable-copy",
+    "checkedAt": "2026-10-31T15:51:44.255Z",
+    "checks": [
+      {
+        "command": "scripts/check-ocean.mjs",
+        "passed": true,
+        "output": "Ocean: 65 areas, 3,250 distinct enemy records, 8 connected routes (224 cells/216 sea), safe ports, 40 rendered forms, capped caches, isolated kills, transactional once-only events and save/read-only/stale guards passed\n"
+      },
+      {
+        "command": "scripts/check-queued-mobile.mjs",
+        "passed": true,
+        "output": "Additional-skill search uses Enter/reset without changing the battle\nSkill search accepts multiword/fullwidth input and paging retains the draft\nSkill list keeps effects/resources while moving learned requirements to details\nAdditional skill targets expose their selected state and meaningful group\nSkill detail Back preserves its battle/list context\nPet menu keeps the same actions in compact, clearly labelled groups\nEmpty pet filters recover in one action and reject stale controls\nPet supplies page counts follow stock and preserve the selected pet\nOcean pages reject stale controls and expose a large area picker\nParty and status screens explain story rank without repeating the partner name\nOcean cards show useful species and level information without internal record IDs\n"
+      },
+      {
+        "command": "scripts/test-queued-mobile-ui.mjs",
+        "passed": true,
+        "output": "PASS queued mobile standard\nPASS queued mobile small\nPASS queued mobile landscape\nPASS queued mobile short\nPASS queued mobile narrow\nPASS queued mobile keyboard\n"
+      }
+    ],
+    "passed": true
   }
 ]

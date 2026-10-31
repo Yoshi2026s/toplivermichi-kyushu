@@ -551,7 +551,7 @@ function renderBattle(){
       <div class="einfo"><div class="ename">${esc(e.display)}${e.rarity>1?` <span class="rar" title="${["","通常","やや珍しい","希少","極希少","幻影"][e.rarity]}" aria-label="${["","通常","やや珍しい","希少","極希少","幻影"][e.rarity]}">${"★".repeat(e.rarity)}</span>`:""}</div>
       <span class="bar enemy"><i style="width:${pct}%"></i></span>
       <div class="estat">HP ${e.hp}/${e.maxHP}・防${e.def}</div>
-      ${e.hp<=0?`<div class="tele">鎮まった</div>`:e.petSleep?`<div class="pet-enemy-state">睡眠・次の行動を休む</div>`:e.petConfuse?`<div class="pet-enemy-state">混乱・次は自分を攻撃</div>`:e.petStunTurns?`<div class="pet-enemy-state">足止め・次の行動を休む</div>`:e.petWeaken?`<div class="pet-enemy-state">攻撃低下25%・このターン</div>`:""}</div></div>`; }).join("");
+      ${e.hp<=0?`<div class="tele">鎮まった</div>`:e.petSleep?`<div class="pet-enemy-state">睡眠・次の行動を休む</div>`:e.petConfuse?`<div class="pet-enemy-state">混乱・次は自分を攻撃</div>`:e.petStunTurns?`<div class="pet-enemy-state">足止め・次の行動を休む</div>`:e.petWeaken?`<div class="pet-enemy-state">攻撃低下${Math.round(e.petWeaken*100)}%・このターン</div>`:""}</div></div>`; }).join("");
   const chain = run.kiraDone?"キラコメ済":`キラコメ${run.chain.stage}/3 次:${["挨拶","作戦","感謝"][run.chain.stage]}`;
   const battleLines=Array.isArray(run.log)?run.log:[];
   return `<section class="battle">

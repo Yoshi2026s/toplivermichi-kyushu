@@ -484,7 +484,7 @@ function actLabel(run,a,act){
 function enemyPhase(run,visual=[]){
   const log=[];
   for(const e of run.enemies.filter(x=>x.hp>0).sort((x,y)=>x.slot-y.slot)){
-    if(e.petSleep>0||e.petConfuse>0){if(e.petSleep>0){e.petSleep=0;log.push(e.display+"は眠っていて動けない。");}else{e.petConfuse=0;const n=Math.min(e.hp,Math.max(1,Math.ceil(e.maxHP*.08)));e.hp-=n;visual.push({side:"enemy",slot:e.slot,kind:"hit",amount:n});log.push(e.display+"は混乱して自分に"+n+"ダメージ。");}if(run.petHistory)run.petHistory.stopped=true;continue;}
+    if(e.petSleep>0||e.petConfuse>0){if(e.petSleep>0){e.petSleep=0;log.push(e.display+"は眠っていて動けない。");}else{e.petConfuse=0;const n=Math.min(e.hp,Math.max(1,Math.ceil(e.maxHP*(e.petConfusePower||.08))));e.hp-=n;visual.push({side:"enemy",slot:e.slot,kind:"hit",amount:n});log.push(e.display+"は混乱して自分に"+n+"ダメージ。");}if(run.petHistory)run.petHistory.stopped=true;continue;}
     if(e.petStunTurns>0){e.petStunTurns--;if(run.petHistory)run.petHistory.stopped=true;log.push(`${e.display}は足止めされて動けない。`);continue;}
     const act = enemyAction(run,e);
     if(act.type==="c"){ visual.push({side:"enemy",slot:e.slot,kind:"charge",counter:true,attr:e.attr}); log.push(`${e.display}は力をためている。`); continue; }

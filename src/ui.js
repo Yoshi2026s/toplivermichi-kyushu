@@ -106,6 +106,7 @@ function render(){
   else if(s==="result") html=renderResult();
   root.innerHTML = html + renderSheet() + renderDialog() + `<div id="toast" class="toast" role="status" hidden></div>`;
   document.body.classList.toggle("in-battle", s==="battle"); document.body.classList.toggle("in-explore", s==="explore");
+  document.body.classList.toggle("in-result",s==="result");
   if(s==="explore") mountCanvas();
   if(s==="battle"){ drawEnemies(); startBattleTimer(); }
   if(s==="new") mountNew();
@@ -118,6 +119,7 @@ function render(){
   const dh=document.querySelector("#dock .hint"); if(dh) dh.textContent = (s==="explore"&&!G.sheet&&!G.dlg)?"スティックで移動・中央で決定":"スティックで選択・中央で決定";
   if(G.dlg){ const b=$("#dlgNext"); if(b) b.focus({preventScroll:true}); }
   PAD.restore();
+  if(s==="result"&&!G.sheet&&!G.dlg){window.scrollTo?.(0,0);$('[data-a="resultDone"]')?.focus?.({preventScroll:true});}
 }
 function statusBar(){
   const st=G.st; const m=MAPS[st.mapId];
@@ -239,7 +241,7 @@ function renderExplore(){
       <div class="xsave small" aria-live="polite">保存：<span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（閲覧のみ）":""}</div>
     </header>
     <div class="mapwrap" data-map-kind="${esc(m.kind)}"><canvas id="map" aria-label="${esc(m.name)}の地図。地面をタップすると移動します。"></canvas>
-      <canvas id="minimap" aria-label="全体ミニマップ。白丸は現在地、白枠は表示範囲"></canvas>
+      <canvas id="minimap" aria-label="全体ミニマップ。白丸は現在地、白枠は表示範囲。城門は砦、家は街、ベッドは宿屋、瓶は道具屋、書類は職業窓口"></canvas>
       ${exit?`<button class="btn map-exit" data-a="guideTo" data-v="${exit.id}">${m.kind==="town"?"街外へ":"街へ戻る"}</button>`:""}
     </div>
     ${partyStrip()}
@@ -283,13 +285,24 @@ function bossBaseSprite(){
  g.fillStyle='#df8555';for(const x of [14,47]){g.fillRect(x,61,3,10);g.beginPath();g.moveTo(x-2,61);g.lineTo(x+2,50);g.lineTo(x+6,61);g.fill();}
  g.fillStyle='#ada4a3';g.fillRect(18,86,28,3);g.fillRect(14,90,36,3);c.bossBase=true;bossBaseImage=c;return c;
 }
+function mapFacilityKind(o){return o.type==='boss'?'fort':o.fieldExit||o.fieldRoute||o.type==='station'?'town':['inn','shop','jobcenter'].includes(o.type)?o.type:null;}
+function drawFacilitySymbol(g,kind,x,y,size){
+ g.save();g.translate(x,y);g.scale(size/12,size/12);g.lineWidth=1.4;g.lineJoin='round';g.strokeStyle='#fff2cb';g.fillStyle=kind==='fort'?'#733b4b':kind==='inn'?'#345888':kind==='shop'?'#a14360':'#246c64';g.fillRect(-6,-6,12,12);
+ g.fillStyle='#fff2cb';
+ if(kind==='fort'){g.fillRect(-4,-1,8,5);for(const xx of [-4,-1,2])g.fillRect(xx,-4,2,4);g.fillStyle='#733b4b';g.fillRect(-1,1,2,3);}
+ else if(kind==='inn'){g.fillRect(-4,0,8,3);g.fillRect(-4,-2,2,2);g.fillRect(-4,3,1,2);g.fillRect(3,3,1,2);}
+ else if(kind==='shop'){g.fillRect(-3,-1,6,5);g.fillRect(-1.5,-4,3,3);g.strokeRect(-3,-1,6,5);}
+ else if(kind==='jobcenter'){g.fillRect(-4,-3,8,7);g.fillStyle='#246c64';for(let y=-1;y<4;y+=2)g.fillRect(-2,y,4,1);}
+ else{g.beginPath();g.moveTo(-5,0);g.lineTo(0,-5);g.lineTo(5,0);g.closePath();g.fill();g.fillRect(-3,0,6,5);}
+ g.restore();
+}
 function drawMiniMap(m,cam){
  const cv=document.getElementById('minimap');if(!cv)return;
- const g=cv.getContext('2d'),u=2;cv.width=m.w*u;cv.height=m.h*u;
+ const g=cv.getContext('2d'),u=6;cv.width=m.w*u;cv.height=m.h*u;
  for(let y=0;y<m.h;y++)for(let x=0;x<m.w;x++){const t=m.tiles[y][x];g.fillStyle=t==='~'?'#487f9b':t==='T'?'#294f40':',w='.includes(t)?'#dfc88d':t==='#'||t==='c'?'#88665c':'#739366';g.fillRect(x*u,y*u,u,u);}
- for(const o of m.objects){g.fillStyle=o.type==='boss'?'#f66c68':o.fieldExit||o.fieldRoute?'#ffe8a7':'#e1e9df';g.fillRect(o.x*u,o.y*u,2,2);}
- g.strokeStyle='#ffffffb0';g.lineWidth=.7;g.strokeRect(cam.x/16*u,cam.y/16*u,G.vw*u,G.vh*u);
- g.fillStyle='#fff';g.beginPath();g.arc((G.st.pos.x+.5)*u,(G.st.pos.y+.5)*u,2.2,0,Math.PI*2);g.fill();
+ g.strokeStyle='#ffffffb0';g.lineWidth=2;g.strokeRect(cam.x/16*u,cam.y/16*u,G.vw*u,G.vh*u);
+ for(const o of m.objects){const kind=mapFacilityKind(o);if(kind)drawFacilitySymbol(g,kind,(o.x+.5)*u,(o.y+.5)*u,Math.max(16,m.w*.075*u));}
+ g.fillStyle='#fff';g.strokeStyle='#142d44';g.lineWidth=2;g.beginPath();g.arc((G.st.pos.x+.5)*u,(G.st.pos.y+.5)*u,5,0,Math.PI*2);g.fill();g.stroke();
 }
 function drawMap(){
   const cv=G.cv; if(!cv||!cv.isConnected) return; const g=cv.getContext("2d"); g.imageSmoothingEnabled=true; g.imageSmoothingQuality="high";
@@ -538,7 +551,7 @@ function renderBattle(){
     <div class="bhead"><span>ターン${run.turn}・${esc(DIFFICULTY[run.difficulty].name)}・${run.kind==="boss"?"地域ボス":esc(AREAS[run.areaId].name)}</span><span>コメント連携${run.B}・${chain}</span></div>
     <div class="gauge" aria-label="エール${run.A}"><span>エール</span><span class="bar ale"><i style="width:${run.A}%"></i></span><b>${run.A}</b></div>
     ${cueText(run)}
-    <div class="enemies" data-terrain="${esc(MAPS[st.mapId]?.combatDomain==="sea"?"coast":MAPS[st.mapId]?.terrain||"plain")}"><canvas class="stagebg" width="160" height="64" aria-hidden="true"></canvas>${enemies}</div>
+    <div class="enemies" data-count="${run.enemies.length}" data-terrain="${esc(MAPS[st.mapId]?.combatDomain==="sea"?"coast":MAPS[st.mapId]?.terrain||"plain")}"><canvas class="stagebg" width="160" height="64" aria-hidden="true"></canvas>${enemies}</div>
     <div class="party">${run.party.map((m,i)=>partyCard(m,i,run)).join("")}</div>
     ${renderCommand(run)}
     <details class="battle-records" ${G.logExpanded?"open":""}><summary>戦闘記録・バッジ</summary>${run.support&&SUPPORTS[run.support]?`<p class="battle-support small">地域支援：${esc(SUPPORTS[run.support].name)}（${esc(SUPPORTS[run.support].text)}）</p>`:""}<button class="btn" data-a="openSheet" data-k="battleChallenges">挑戦・戦闘バッジ</button>
@@ -564,7 +577,7 @@ function renderCommand(run){
     return `<div class="win cmd autopanel" aria-live="polite">
       <p class="autotitle">オート戦闘中</p>
       <p class="small">敵の予告と残り体力・MPに合わせて行動します。</p>
-      <p class="autolast">${G.autoLast?esc(G.autoLast):"考え中…"}</p>
+      <p class="autolast" role="status">${G.autoLast?esc(G.autoLast):"考え中…"}</p>
       <p class="small">このターンの未行動：${al2.map(m=>esc(m.name)).join("・")||"なし"}</p>
       <div class="confirmrow"><span></span><button class="btn primary stopauto" data-a="autoOff">中断</button></div></div>`;
   }
@@ -618,9 +631,9 @@ function renderCommand(run){
   else if(c.type) prev += `<span class="hint">対象・台詞を選んでください</span>`;
   else prev = `<span class="hint">${esc(a.name)}の行動を選んでください（未行動${al.length}人）</span>`;
   return `<div class="win cmd">
-    <div class="cmdgrid">${entries.map(([k,n])=>`<button class="btn ${c.type===k?"on":""}" data-a="cmdType" data-v="${k}">${c.type===k?"▶":""}${esc(n)}</button>`).join("")}</div>
+    <div class="cmdgrid">${entries.map(([k,n])=>`<button class="btn ${c.type===k?"on":""}" data-a="cmdType" data-v="${k}" aria-pressed="${c.type===k}">${c.type===k?"▶":""}${esc(n).replace("コメント","<wbr>コメント").replace("コール","<wbr>コール")}</button>`).join("")}</div>
     ${sub?`<div class="chips">${sub}</div>`:""}
-    <div class="confirmrow"><div class="preview">${prev}</div><button class="btn auto" data-a="autoOn" ${G.readOnly?"disabled":""}>オート</button><button class="btn primary" data-a="confirmAct" ${act&&ok&&!G.readOnly?"":"disabled"}>確定</button></div></div>`;
+    <div class="confirmrow"><div class="preview" id="battlePreview" role="status" aria-live="polite">${prev}</div><button class="btn auto" data-a="autoOn" ${G.readOnly?"disabled":""}>オート</button><button class="btn primary" data-a="confirmAct" aria-describedby="battlePreview" ${act&&ok&&!G.readOnly?"":"disabled"}>確定</button></div></div>`;
 }
 function buildAct(a){
   const c=G.cmd; if(!c.type) return null;
@@ -707,7 +720,7 @@ function confirmAct(forced){
 function autoStep(){
   clearTimeout(G.autoT);
   const st=G.st, run=st&&st.run;
-  if(!G.auto || G.screen!=="battle" || !run) { G.auto=false; return; }
+  if(!G.auto || G.readOnly || G.screen!=="battle" || !run) { G.auto=false; return; }
   if(run.state!=="input"){ G.auto=false; G.autoLast=null; render(); return; }
   if(G.sheet||G.dlg||document.hidden){ G.autoT=setTimeout(autoStep,400); return; }
   const pick=aiChoose(run);
@@ -745,24 +758,23 @@ function renderResult(){
   const foes=r.enemies||[];
   const title = r.kind==="boss" ? "ボスを鎮めた！" : "勝利！";
   const sub = (r.turns?`${r.turns}ターン`:"")+(foes.length?`・${foes.map(e=>esc(e.name)).join("、")}を鎮めた`:"");
+  const formatResult=n=>new Intl.NumberFormat("ja-JP",{notation:Math.abs(n)>=100000?"compact":"standard",maximumFractionDigits:1}).format(n);
   const card=(lab,val,cls="")=>`<div class="rstat ${cls}"><span class="rlab">${lab}</span><span class="rval">${val}</span></div>`;
-  const mem=(r.members||[]).map(x=>{
+  const resultMembers=r.members?.length?r.members:st.party.map(cid=>({cid,maxBefore:charStats(st,cid,L).maxHP,maxAfter:charStats(st,cid,L).maxHP}));
+  const mem=resultMembers.map(x=>{
     const j=(r.jp||[]).find(y=>y.cid===x.cid)||{gain:0}; const s=charStats(st,x.cid,L); const v=vitalOf(x.cid);
     const jp=jpOf(st,x.cid,s.job), R=rankOf(jp,jobLimit(st,x.cid,s.job)), jpA=jpFor(R), jpB=R<999?jpFor(R+1):jpA+1;
     const low=isLow(v.hp,s.maxHP), down=v.hp<=0;
     return `<div class="rmem ${low||down?"low":""}">
-      <div class="rmh"><b>${esc(charName(st,x.cid))}</b><span class="small">${esc(JOBS[s.job].name)}</span>${j.R1>j.R0?`<span class="rbadge">熟練度 ${j.R0}→${j.R1}</span>`:""}</div>
-      <div class="gauge"><span>熟練度${R}</span><span class="bar jp"><i style="width:${pct(jp-jpA,jpB-jpA)}%"></i></span><b>＋${j.gain}</b></div>
-      <div class="gauge"><span>体力</span><span class="bar"><i style="width:${pct(v.hp,s.maxHP)}%"></i></span><b>${v.hp}/${s.maxHP}</b></div>
-      <div class="gauge"><span>MP</span><span class="bar cp"><i style="width:${pct(v.c,s.startC)}%"></i></span><b>${v.c}/${s.startC}</b></div>
-      ${up&&x.maxAfter>x.maxBefore?`<p class="small good">最大体力 ${x.maxBefore} → ${x.maxAfter}</p>`:""}
-      ${down?`<p class="small warn">戦闘不能。宿屋か蘇生の道具で回復しよう。</p>`:low?`<p class="small warn">体力わずか。回復しておこう。</p>`:""}
+      <div class="rmh"><b>${esc(charName(st,x.cid))}</b><span class="small">${esc(JOBS[s.job].name)}</span></div>
+      <div class="rvitals"><span class="${down||low?"warn":""}">体力 <b>${v.hp}/${s.maxHP}</b>${down?" 戦闘不能":low?" 要回復":""}</span><span>MP <b>${v.c}/${s.startC}</b></span></div>
+      <div class="gauge"><span>熟練度${R}${j.R1>j.R0?`（${j.R0}→${j.R1}）`:""}</span><span class="bar jp"><i style="width:${pct(jp-jpA,jpB-jpA)}%"></i></span><b>＋${j.gain}</b>${up&&x.maxAfter>x.maxBefore?`<span class="good">最大HP＋${x.maxAfter-x.maxBefore}</span>`:""}</div>
     </div>`; }).join("");
   const items=[...(r.items||[]).map(x=>`<li class="ritem"><span class="rst">${"★".repeat(ITEMS[x.id].stars)}</span>${esc(ITEMS[x.id].name)} ×${x.n}<span class="small">（${esc(x.why)}）</span></li>`),
     ...(r.itemsVaulted||[]).map(x=>`<li class="ritem">${esc(ITEMS[x.id].name)} ×${x.n} はアイテム金庫へ</li>`),
     ...(r.itemsKept||[]).map(x=>`<li class="warn">${esc(ITEMS[x.id].name)} ×${x.n} は袋がいっぱいのため宿屋の預かり所へ</li>`),
     ...(r.itemsLost||[]).map(x=>`<li class="warn">${esc(ITEMS[x.id].name)} ×${x.n} は金庫と預かり所もいっぱいで受け取れず</li>`)];
-  const gifts=r.gifts.map(g=>`<li class="ritem">専用品「${esc(EQUIP[g].name)}」を贈られた</li>`);
+  const gifts=(r.gifts||[]).map(g=>`<li class="ritem">専用品「${esc(EQUIP[g].name)}」を贈られた</li>`);
   const usedItems=(r.itemsUsed||[]).map(x=>{
     const effects=[x.hp>0?`体力＋${x.hp}`:"",x.c>0?`MP＋${x.c}`:"",x.revives>0?`復帰${x.revives}人`:""].filter(Boolean);
     const actor=x.actor==="hero"||CHARS[x.actor]?`${esc(charName(st,x.actor))}：`:"";
@@ -771,24 +783,30 @@ function renderResult(){
   const anyLow=st.roster.some(c=>{const v=vitalOf(c),s=charStats(st,c,L); return v.hp<=0||isLow(v.hp,s.maxHP);});
   return `<section class="result" aria-labelledby="rtitle">
     <div class="rbanner ${r.kind==="boss"?"boss":""}"><h2 id="rtitle">${title}</h2><p>${sub}</p></div>
-    ${up?`<div class="rlevel"><b>レベルアップ！</b><span>レベル${r.levelBefore} → <b class="big">${r.levelAfter}</b></span>${Vof(r.levelAfter)>Vof(r.levelBefore)?`<span class="small">技能・装備・道具の効果量が上昇</span>`:""}</div>`:""}
-    <div class="rgrid">${card("経験値",`＋${r.xp.toLocaleString()}`)}${card("ゴールド",`＋${r.gold.toLocaleString()}`,"gold")}${r.tickets?card("チケット",`＋${r.tickets.toLocaleString()}`):card("所持金",`${st.gold.toLocaleString()}G`)}</div>
-    <div class="gauge rxp"><span>レベル${L}</span><span class="bar xp"><i style="width:${pct(xpNow,xpSpan)}%"></i></span><b>${L<levelLimit(st)?`次まで${Math.max(0,xpSpan-xpNow).toLocaleString()}`:"最大"}</b></div>
-    ${r.quest?`<div class="rquest done">依頼「${r.quest} ${esc(QUESTS[r.quest].name)}」完了！</div>`:r.kills&&r.killQuest?`<div class="rquest"><span>依頼 ${r.killQuest} 討伐</span><span class="bar"><i style="width:${pct(r.killNow,r.killNeed)}%"></i></span><b>${r.killNow}/${r.killNeed}</b></div>`:""}
-    ${items.length||gifts.length?`<div class="rbox"><h3 class="label">手に入れたもの</h3><ul class="rlist">${[...items,...gifts].join("")}</ul></div>`:""}
-    ${renderUsedItemHistory(r,usedItems)}
-    ${(r.newBadges||[]).length?`<details class="rbox result-badges"><summary>新しい戦闘バッジ（${r.newBadges.length}件）</summary><ul class="rlist">${r.newBadges.map(id=>`<li>${id} ${esc(ITEM_BADGES[id]||GROWTH_BADGES[id]||PARTY_BADGES[id]||ACTION_BADGES[id]||HEAL_BADGES[id]||MP_BADGES[id]||CHEER_BADGES[id]||SPEED_BADGES[id]||ATTACK_BADGES[id]||GUARD_BADGES[id]||DEFENSE_BADGES[id]||EXTRA_BADGES[id]||id)}</li>`).join("")}</ul></details>`:""}
-    <button class="btn" data-a="openSheet" data-k="record">戦闘バッジ一覧を見る</button>
-    ${r.notes.filter(n=>!/効果量が上昇/.test(n)).map(n=>`<p class="good rnote">${esc(n)}</p>`).join("")}
-    <h3 class="label">仲間</h3><div class="rmems">${mem}</div>
-    ${anyLow?`<p class="small warn">体力が減っている仲間がいます。次の戦闘へ持ち越すので、道具や宿屋で回復しておこう。</p>`:""}
-    <div class="rfoot"><button class="btn primary wide" data-a="resultDone">探索へ</button></div></section>`;
+    <div class="rgrid">${card("経験値",`＋${formatResult(r.xp)}`)}${card("ゴールド",`＋${formatResult(r.gold)}`,"gold")}${r.tickets?card("チケット",`＋${formatResult(r.tickets)}`):card("所持金",`${formatResult(st.gold)}G`)}</div>
+    <div class="gauge rxp"><span>${up?`Lv${r.levelBefore}→${L}`: `レベル${L}`}</span><span class="bar xp"><i style="width:${pct(xpNow,xpSpan)}%"></i></span><b>${L<levelLimit(st)?`次まで${Math.max(0,xpSpan-xpNow).toLocaleString()}`:"最大"}</b></div>
+    ${r.quest?`<div class="rquest done">依頼「${esc(QUESTS[r.quest].name)}」完了！</div>`:r.kills&&r.killQuest?`<div class="rquest">依頼の討伐 ${r.killNow}/${r.killNeed}</div>`:""}
+    <div class="rmems ${resultMembers.length>2?"many":""}" aria-label="仲間の戦闘後の状態">${mem}</div>
+    ${anyLow?`<p class="rwarning warn" role="status">体力わずか・戦闘不能の仲間がいます。MAPで回復を。</p>`:""}
+    <p class="rsummary">入手 ${items.length+gifts.length}件・新バッジ ${(r.newBadges||[]).length}件・道具使用 ${usedItems.length}回${r.itemsUsedKnown===true?"":"（記録不完全）"}</p>
+    <div class="rfoot"><button class="btn primary wide" data-a="resultDone">MAPへ戻る</button></div>
+    <details class="rbox result-details"><summary>報酬・成長・戦闘の詳細</summary><p>経験値＋${r.xp.toLocaleString()}・ゴールド＋${r.gold.toLocaleString()}・所持金${st.gold.toLocaleString()}G${r.tickets?`・チケット＋${r.tickets.toLocaleString()}`:""}</p>
+      ${up?`<p class="good">レベルアップ！ ${r.levelBefore} → ${r.levelAfter}</p>`:""}
+      ${items.length||gifts.length?`<h3 class="label">手に入れたもの</h3><ul class="rlist">${[...items,...gifts].join("")}</ul>`:""}
+      ${renderUsedItemHistory(r,usedItems)}
+      ${(r.newBadges||[]).length?`<details class="rbox result-badges"><summary>新しい戦闘バッジ（${r.newBadges.length}件）</summary><ul class="rlist">${r.newBadges.map(id=>`<li>${id} ${esc(ITEM_BADGES[id]||GROWTH_BADGES[id]||PARTY_BADGES[id]||ACTION_BADGES[id]||HEAL_BADGES[id]||MP_BADGES[id]||CHEER_BADGES[id]||SPEED_BADGES[id]||ATTACK_BADGES[id]||GUARD_BADGES[id]||DEFENSE_BADGES[id]||EXTRA_BADGES[id]||id)}</li>`).join("")}</ul></details>`:""}
+      <button class="btn" data-a="openSheet" data-k="record">戦闘バッジ一覧を見る</button>
+      ${(r.notes||[]).map(n=>`<p class="good rnote">${esc(n)}</p>`).join("")}
+    </details></section>`;
+
 }
 function renderUsedItemHistory(result,usedItems){
   if(usedItems.length) return `<div class="rbox"><h3 class="label">この戦闘で使った道具（${usedItems.length}回）</h3><ul class="rlist">${usedItems.join("")}</ul>${result.itemsUsedKnown===true?"":`<p class="small">旧記録のため、使用履歴が一部欠けている可能性があります。</p>`}</div>`;
   return `<div class="rbox"><h3 class="label">この戦闘で使った道具</h3><p class="small">${result.itemsUsedKnown===true?"道具は使いませんでした。":"使用記録がありません（旧保存または履歴が不完全な戦闘）。"}</p></div>`;
 }
 function resultDone(){
+  if(!G.st||G.screen!=="result"||G.sheet||G.dlg||G.readOnly||G.st.run)return;
+  G.walk.path=[];G.walk.pending=null;G.cursorSig=null;
   const st=G.st,r=st.lastResult; G.screen="explore"; keepFlush(); render(); exploreBgm();
   const ids=[];
   if(r?.quest){
@@ -1373,7 +1391,7 @@ const ACT = {
   cmdType(el){ const t=el.dataset.v; G.cmd={actor:G.cmd.actor, type:t}; render(); },
   cmdSet(el){ const k=el.dataset.k; let v=el.dataset.v; if(k==="target"||k==="ally") v=+v; G.cmd[k]=v; if(k==="mode"||k==="item"){ delete G.cmd.ally; } render(); },
   confirmAct(el){ el.disabled=true; confirmAct(); },
-  autoOn(){ const run=G.st.run; if(!run||run.state!=="input") return; G.auto=true; G.autoLast=null; G.cursorSig="autoOff||||||"; render(); SND.sfx("ok"); G.autoT=setTimeout(autoStep,300); },
+  autoOn(){ const run=G.st?.run; if(G.auto||G.readOnly||G.screen!=="battle"||G.sheet||G.dlg||!run||run.state!=="input") return; G.auto=true; G.autoLast=null; G.cursorSig="autoOff||||||"; render(); SND.sfx("ok"); G.autoT=setTimeout(autoStep,300); },
   autoOff(){ G.auto=false; clearTimeout(G.autoT); G.autoLast=null; G.cmd={}; G.cursorSig=null; render(); SND.sfx("cancel"); toast("オートを中断しました。手動で操作できます。"); },
   toResult(){ toResult(); },
   resultDone(){ resultDone(); },

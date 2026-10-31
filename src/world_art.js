@@ -73,6 +73,23 @@ const WORLD_ART=(()=>{
   }
   g.restore();
  }
+
+ function serviceFacade(g,b,t){
+  if(!b.service)return;const x=b.x*t,y=b.y*t,w=b.w*t,cx=(b.door[0]+.5)*t;
+  g.save();g.lineWidth=t*.04;
+  if(b.service==='shop'){
+   g.fillStyle='#f3ddb2';g.fillRect(x,y+2.82*t,w,.52*t);
+   for(let i=0;i<b.w*3;i++){g.fillStyle=i%2?'#fff0c7':'#c15466';g.fillRect(x+i*t/3,y+2.82*t,t/3,.55*t);g.beginPath();g.arc(x+(i+.5)*t/3,y+3.37*t,t/6,0,Math.PI);g.fill();}
+   for(const side of [-1,1]){const xx=cx+side*1.5*t;g.fillStyle='#735240';g.fillRect(xx-.4*t,y+4.15*t,.8*t,.65*t);g.strokeStyle='#e2bf83';g.strokeRect(xx-.4*t,y+4.15*t,.8*t,.65*t);for(let i=0;i<3;i++){g.fillStyle=['#66c1b1','#debd65','#d57b8a'][i];g.fillRect(xx+(-.3+i*.23)*t,y+3.97*t,.15*t,.22*t);}}
+  }else if(b.service==='inn'){
+   g.fillStyle='#5b5557';g.fillRect(x+w*.76,y+.2*t,.48*t,1.4*t);g.fillStyle='#ddd1b7';g.fillRect(x+w*.73,y+.16*t,.54*t,.16*t);
+   g.fillStyle='#314a79';g.fillRect(cx-.8*t,y+2.9*t,1.6*t,.6*t);g.fillStyle='#ffe5a0';g.beginPath();g.arc(cx,y+3.17*t,.23*t,0,Math.PI*2);g.fill();g.fillStyle='#314a79';g.beginPath();g.arc(cx+.12*t,y+3.08*t,.2*t,0,Math.PI*2);g.fill();
+   for(const side of [-1,1]){g.fillStyle='#efb96c';g.fillRect(cx+side*1.2*t-.15*t,y+3.6*t,.3*t,.42*t);g.strokeStyle='#7e5542';g.strokeRect(cx+side*1.2*t-.15*t,y+3.6*t,.3*t,.42*t);}
+  }else if(b.service==='jobcenter'){
+   g.fillStyle='#367c7c';g.fillRect(x,y+2.75*t,w,.3*t);g.fillStyle='#e7dcbd';g.fillRect(cx-1.6*t,y+3.4*t,.8*t,.95*t);g.strokeStyle='#77553b';g.strokeRect(cx-1.6*t,y+3.4*t,.8*t,.95*t);g.fillStyle='#4d6a77';for(let i=0;i<3;i++)g.fillRect(cx-1.5*t,y+(3.55+i*.22)*t,.55*t,.05*t);
+  }else{g.fillStyle='#759e8a';g.fillRect(cx-.65*t,y+3*t,1.3*t,.3*t);}
+  g.restore();
+ }
  function regionalBuilding(g,m,b,t,index){
   const p=m.regional;if(!p)return;
   const X=b.x*t,Y=b.y*t,W=b.w*t,H=b.h*t,traditional=['machiya','kura','castle','rural','onsen','tropical'].includes(p.architecture);
@@ -182,6 +199,7 @@ const WORLD_ART=(()=>{
    g.strokeStyle='#563a33';g.lineWidth=ratio*1.2;g.strokeRect(X+ratio*.5,Y+ratio*.5,W-ratio,tile*3-ratio);
    g.strokeStyle='#f5d9a077';g.lineWidth=ratio*.6;g.beginPath();g.moveTo(X+ratio,Y+tile*.4);g.lineTo(X+W-ratio,Y+tile*.4);g.stroke();
    regionalBuilding(g,m,b,tile,index);
+   serviceFacade(g,b,tile);
    g.fillStyle='#dfcba7';g.fillRect(cx-tile*.5,dy,tile,tile);g.fillStyle=b.service?'#233b43':'#70523c';g.fillRect(cx-tile*.29,dy+tile*.1,tile*.58,tile*.85);g.strokeStyle='#a4895a';g.lineWidth=ratio*.6;g.strokeRect(cx-tile*.29,dy+tile*.1,tile*.58,tile*.85);
    if(!b.service){g.fillStyle='#dfc98b';g.beginPath();g.arc(cx+tile*.17,dy+tile*.59,ratio*.7,0,Math.PI*2);g.fill();}
    if(b.service){const label=({shop:'わくわく道具店',inn:'ほっと宿屋',jobcenter:'おしごと広場',door:'ようこそ！'})[b.service],tw=Math.max(tile*1.4,label.length*tile*.34);g.fillStyle=b.service==='shop'?'#b84b60':'#286b70';g.fillRect(cx-tw/2-2,dy-tile*1.72-2,tw+4,tile*.62);g.strokeStyle='#e0bf80';g.lineWidth=ratio*.4;g.strokeRect(cx-tw/2,dy-tile*1.72,tw,tile*.52);g.fillStyle='#fff0c8';g.font='800 '+tile*.32+'px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(label,cx,dy-tile*1.45);}

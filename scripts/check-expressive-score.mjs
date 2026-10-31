@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
+const root=new URL('../',import.meta.url),read=p=>readFileSync(new URL(p,root),'utf8'),source=read('src/audio.js');
+const api=runInNewContext(source.replace('return { sceneForMap,play, jingle,','return { sceneForMap, SONGS,compile,arrangement,play,jingle,')+';SND');
+const fingerprints=new Set();for(const [id,song]of Object.entries(api.SONGS)){
+ const c=api.compile(song),bars=song.chords.split(' ');assert.equal(bars.length,['battle','boss','seaBattle'].includes(id)?48:32,id+' long form');
+ for(const key of ['lead','leadAlt']){const parts=song[key].split('|');assert.equal(parts.length,bars.length,id+' '+key);for(const part of parts){const notes=part.trim().split(/\s+/);assert.equal(notes.length,8,id+' complete bar');assert(notes.every(n=>/^(?:[A-G][#b]?\d|-|\.)$/.test(n)));}}
+ assert.notEqual(song.lead,song.leadAlt,id+' developed second cycle');assert(!song.leadAlt.split('|').map(s=>s.trim()).join('|').includes(song.lead.split('|').reverse().map(s=>s.trim()).join('|')),'no reversed-bar substitute');
+ const sections=Array.from({length:bars.length/8},(_,i)=>api.arrangement(c,i*8,0));assert(new Set(sections.map(a=>a.lead)).size>=3,id+' changing lead instruments');assert(sections.some(a=>a.quiet)&&sections.some(a=>a.final));assert(new Set(sections.map(a=>a.bass)).size>=2);assert(new Set(sections.map(a=>JSON.stringify(a.arp))).size>=2);assert(new Set(sections.map(a=>a.rhythm)).size>=2||song.style==='soft',id+' articulation changes');
+ assert(c.lead.every(n=>Number.isFinite(n.n)&&n.step+n.len<=c.steps));fingerprints.add(song.lead);
+}assert.equal(fingerprints.size,25,'all scene melodies distinct');
+for(const terrain of ['forest','mountain','coast','river','lake'])assert.equal(api.sceneForMap({kind:'field',terrain}),'field_'+terrain);assert.equal(api.sceneForMap({kind:'town',terrain:'plain'}),'fukuoka');assert.equal(api.sceneForMap({kind:'town',terrain:'mountain'}),'town_mountain');
+const bank=JSON.parse(read('assets/audio/orchestra-bank.json'));assert.equal(bank.samples.length,20);assert(new Set(bank.samples.map(s=>s.instrument)).size>=11);let memory=0;
+for(const sample of bank.samples){const bytes=Buffer.from(sample.pcm,'base64');assert(bytes.length>20000);assert.equal(sample.rate,22050);assert(Number.isFinite(sample.root));assert(sample.loopEnd===0||sample.loopStart>.3&&sample.loopEnd>sample.loopStart&&sample.loopEnd*sample.rate<bytes.length/2);memory+=bytes.length*2;let peak=0;for(let i=0;i<bytes.length;i+=2)peak=Math.max(peak,Math.abs(bytes.readInt16LE(i)));assert(peak>10000&&peak<30000);}
+assert(memory<12*1024*1024,'decoded mono sample memory bounded');assert(read('assets/audio/VSCO-CC0.txt').includes('CC0 1.0 Universal'));const credits=JSON.parse(read('assets/audio/SOURCES.json'));assert.equal(credits.samples.length,20);assert(credits.samples.every(s=>/^[a-f0-9]{64}$/.test(s.sourceSHA256)));assert.equal(credits.samples.find(s=>s.instrument==='harp').root,48,'harp uses scientific octave naming');
+console.log('25 distinct scores, 32–48 bars, developed second cycles, contrasting instrumentation/rhythms, 20 acoustic samples, verified pitch roots, loop bounds and decoded memory budget');

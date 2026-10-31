@@ -2,15 +2,15 @@
   "version": "5.34",
   "schemaVersion": 5,
   "buildDate": "2026-10-31",
-  "sourceFileCount": 31,
+  "sourceFileCount": 32,
   "files": {
     "index.html": {
-      "bytes": 6957032,
-      "sha256": "b38ae5cccf5b8548a6fab2a06d7a7b6d19e6f049acfe44ac26fb27c2aadc179d"
+      "bytes": 10086119,
+      "sha256": "781f0afaf8193cca1e19efbf029200a3a9843db8ffd0b4d112edde1024a9e14c"
     },
     "README.md": {
-      "bytes": 5017,
-      "sha256": "0fd3b13afa00850f225efee5d9e55e928d77292a0454aa2bb1780fdabf138181"
+      "bytes": 5226,
+      "sha256": "09e5d146a6ac1b9aeb549d9982946f1d77aaaec5739fa4dd8ca71980b904ce8e"
     },
     "VERSION.txt": {
       "bytes": 156,
@@ -81,6 +81,10 @@
     "assets/fonts/quest-gothic-variable.woff2": {
       "bytes": 426040,
       "sha256": "5c21bcbfc88a04203864145e13de1925af02ddcb72647a0a77e6a42d31b47d37"
+    },
+    "assets/audio/orchestra-bank.json": {
+      "bytes": 3112601,
+      "sha256": "da66abe07f1f25a63a0144c0785966c7c7b242b240a5a306d1d7cd52f04c1337"
     }
   },
   "validation": "docs/validation-5.34.json"

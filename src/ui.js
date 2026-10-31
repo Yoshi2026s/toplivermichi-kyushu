@@ -374,7 +374,7 @@ function arrive(){
   } else if(o&&o.walk&&(o.type==="door")){ G.walk.path=[]; interact(o); }
   else if(!zone) refreshHere();
 }
-function exploreBgm(){ const st=G.st; if(!st) return SND.play("title"); const m=MAPS[st.mapId]; SND.play(m.kind==="field"?"field":"fukuoka"); }
+function exploreBgm(){ const st=G.st; if(!st) return SND.play("title"); const m=MAPS[st.mapId]; SND.play(SND.sceneForMap(m)); }
 function refreshHere(){ if(G.screen==="explore" && !G.sheet){ const el=$(".here"); if(el){ const tmp=document.createElement("div"); tmp.innerHTML=renderCurrentLocation(); const n=tmp.querySelector(".here"); el.innerHTML=n.innerHTML; } const g=$(".goal"); if(g) g.textContent=objective(); } }
 
 /* ---- 調べる・会話 ---- */

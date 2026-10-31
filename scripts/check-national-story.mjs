@@ -7,7 +7,7 @@ const root=resolve(import.meta.dirname,'..');
 const read=name=>readFileSync(resolve(root,'src',name),'utf8');
 const files=['data_enemies.js','data_saga_enemies.js','data_items.js','data_national.js','data.js','data_nationwide.js','data_nationwide_story.js','data_maps.js','core.js','ui.js'];
 const source=files.map(read).join('\n');
-const sound={current:null,play(name){this.current=name;},sfx(){},jingle(){}};
+const sound={current:null,play(name){this.current=name;},sfx(){},jingle(){},sceneForMap:runInNewContext(read('audio.js')+';SND.sceneForMap')};
 const noop=()=>{};
 const g=runInNewContext(`${source}
 render=()=>{};

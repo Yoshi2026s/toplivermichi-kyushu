@@ -4,6 +4,7 @@ import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url),{createCanvas,Image}=require(process.env.CANVAS_MODULE_PATH||'@napi-rs/canvas');
 const assets={FRONT:'party-front',BACK:'party-back',SIDE:'party-side',NPC:'npc-front',PETS:'pets',ENEMIES:'enemies'};
 export async function illustratedContext(code,extra={}){
+ if(code.includes('__ORCHESTRA_BANK_JSON__'))code=code.replaceAll('__ORCHESTRA_BANK_JSON__',readFileSync(new URL('../assets/audio/orchestra-bank.json',import.meta.url),'utf8').trim());
  for(const [token,name]of Object.entries(assets))code=code.replaceAll('__SOFT_'+token+'_DATA_URI__','data:image/webp;base64,'+readFileSync(new URL('../assets/illustrated/'+name+'.webp',import.meta.url)).toString('base64'));
  code=code.replaceAll('__WORLD_MATERIALS_DATA_URI__','data:image/webp;base64,'+readFileSync(new URL('../assets/illustrated/world-materials.webp',import.meta.url)).toString('base64'));
  const context=createContext({document:{createElement:()=>createCanvas(1,1)},Image,...extra});

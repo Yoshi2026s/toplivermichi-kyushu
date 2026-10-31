@@ -13,8 +13,8 @@ const manifest=JSON.parse(readFileSync(resolve(root,'release-manifest.json'),'ut
 assert.equal(Object.keys(manifest.assets).filter(n=>n.endsWith('.webp')).length,12,'title dawn, painted world materials, four battle backgrounds and six character atlases');
 assert.equal(Object.keys(manifest.assets).filter(n=>n.endsWith('.woff2')).length,2,'both Japanese fonts are tracked');
 for(const name of Object.keys(manifest.assets)){
- const bytes=readFileSync(resolve(root,name));if(name.endsWith('.webp')){assert.equal(bytes.subarray(0,4).toString(),'RIFF');assert.equal(bytes.subarray(8,12).toString(),'WEBP');}else assert.equal(bytes.subarray(0,4).toString(),'wOF2');
- assert(readFileSync(resolve(root,'index.html'),'utf8').includes(bytes.toString('base64')),name+' works without an image request');
+ const bytes=readFileSync(resolve(root,name));if(name.endsWith('.webp')){assert.equal(bytes.subarray(0,4).toString(),'RIFF');assert.equal(bytes.subarray(8,12).toString(),'WEBP');}else if(name.endsWith('.woff2'))assert.equal(bytes.subarray(0,4).toString(),'wOF2');else assert(Array.isArray(JSON.parse(bytes.toString('utf8')).samples),'audio bank must contain samples');
+ assert(readFileSync(resolve(root,'index.html'),'utf8').includes(name.endsWith('.json')?bytes.toString('utf8').trim():bytes.toString('base64')),name+' is embedded without a runtime asset request');
 }
 assert(readFileSync(resolve(root,'index.html'),'utf8').includes('SIL OPEN FONT LICENSE Version 1.1'),'standalone HTML includes font licenses');
 const fonts=JSON.parse(readFileSync(resolve(root,'assets/fonts/SOURCES.json'),'utf8')).fonts;

@@ -177,7 +177,7 @@ const PAD = (()=>{
 
   /* BGMは初期ON：ブラウザの制限で、最初に画面へ触れた時に鳴らし始める */
   function wantSound(){ if(G.soundWant!=null) return G.soundWant; if(G.st && G.st.settings && G.st.settings.sound===false) return false; return soundPref(); }
-  const unlock=()=>{ if(SND.on){ SND.resume(); return; } if(wantSound()){ SND.setOn(true); } };
+  const unlock=e=>{ if(e?.target?.closest?.('[data-a="titleMusic"]'))return; if(SND.on) SND.resume(); else if(wantSound()) SND.setOn(true); if(typeof refreshTitleMusic==="function")refreshTitleMusic(); };
   ["pointerdown","keydown","touchend"].forEach(ev=>document.addEventListener(ev,unlock,{capture:true,passive:true}));
   return { mount, restore, pressA, pressB };
 })();

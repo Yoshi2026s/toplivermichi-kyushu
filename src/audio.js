@@ -9,7 +9,7 @@ const SND = (()=>{
 
   /* 曲データ：lead は8分音符ごと（- は伸ばす、. は休符）。chords は1小節ごと */
   const SONGS = {
-    title:{bpm:104,style:"overture",chords:"D A G A7 D Bm Em A7 G Em A D Em Bm G A7 Bm G A D Em Em A A7 D G A D G D Em A7",
+    title:{bpm:96,style:"overture",chords:"D A G A7 D Bm Em A7 G Em A D Em Bm G A7 Bm G A D Em Em A A7 D G A D G D Em A7",
       lead:"D5 - A4 D5 F#5 - A5 - | G5 - F#5 E5 D5 - A4 - | B4 - D5 G5 A5 B5 - A5 | C#6 - A5 - E5 - - - | F#5 - A5 - D6 - C#6 B5 | A5 - F#5 E5 D5 - F#5 - | G5 A5 B5 - A5 G5 E5 - | F#5 - E5 - C#5 - A4 - | B4 - D5 - F#5 - A5 - | G5 - E5 - B4 - - - | A4 - C#5 E5 A5 - G5 - | F#5 - D5 - A4 - - - | G4 - B4 D5 G5 - F#5 E5 | F#5 - A5 - D6 - C#6 - | B5 - A5 G5 F#5 - E5 - | C#5 - E5 A5 C#6 - - - | B4 F#5 B5 - A5 F#5 D5 - | G5 - B5 - D6 - C#6 B5 | A5 - E5 A5 C#6 - B5 A5 | F#5 - D5 F#5 A5 - - - | E5 G5 B5 - A5 G5 F#5 E5 | G5 B5 E6 - D6 B5 A5 - | C#6 - B5 A5 G5 - E5 - | A5 - C#6 - E6 - - - | D6 - A5 D6 F#6 - E6 D6 | B5 - G5 B5 D6 - C#6 B5 | A5 - C#6 E6 D6 C#6 B5 A5 | F#5 - A5 D6 A5 - - - | B5 A5 G5 - D6 - B5 - | A5 F#5 D5 - F#5 - A5 - | G5 - B5 D6 E6 - C#6 - | D6 - - - A5 - C#6 -",
       leadAlt:"D6 - A5 D6 F#6 - E6 D6 | B5 - G5 B5 D6 - C#6 B5 | A5 - C#6 E6 D6 C#6 B5 A5 | F#5 - A5 D6 A5 - - - | B5 A5 G5 - D6 - B5 - | A5 F#5 D5 - F#5 - A5 - | G5 - B5 D6 E6 - C#6 - | D6 - - - A5 - C#6 - | B4 - D5 - F#5 - A5 - | G5 - E5 - B4 - - - | A4 - C#5 E5 A5 - G5 - | F#5 - D5 - A4 - - - | G4 - B4 D5 G5 - F#5 E5 | F#5 - A5 - D6 - C#6 - | B5 - A5 G5 F#5 - E5 - | C#5 - E5 A5 C#6 - - - | B4 F#5 B5 - A5 F#5 D5 - | G5 - B5 - D6 - C#6 B5 | A5 - E5 A5 C#6 - B5 A5 | F#5 - D5 F#5 A5 - - - | E5 G5 B5 - A5 G5 F#5 E5 | G5 B5 E6 - D6 B5 A5 - | C#6 - B5 A5 G5 - E5 - | A5 - C#6 - E6 - - - | D6 - A5 D6 F#6 - E6 D6 | B5 - G5 B5 D6 - C#6 B5 | A5 - C#6 E6 D6 C#6 B5 A5 | F#5 - A5 D6 A5 - - - | B5 A5 G5 - D6 - B5 - | A5 F#5 D5 - F#5 - A5 - | G5 - B5 D6 E6 - C#6 - | D6 - - - A5 - C#6 -"},
     fukuoka:{ bpm:120, style:"town", chords:"F C Dm Bb F C Bb C",
@@ -181,7 +181,7 @@ const SND = (()=>{
   // Every phrase has a distinct orchestration, rhythm and breathing space.
   function arrangement(S,bar,cycle=0){
     const section=Math.floor(bar/8),style=S.style,combat=['battle','boss'].includes(style),quiet=section===2||(style==='soft'&&section!==3),final=section===(combat?5:3),swap=cycle%2;
-    const leads=style==='town'?['oboe','flute','strings','oboe']:style==='pop'?['glock','strings','flute','trumpet']:style==='soft'?['flute','cello','oboe','strings']:style==='overture'?['trumpet','flute','oboe','trumpet']:combat?['strings','trumpet','oboe','strings','horn','trumpet']:['horn','strings','flute','trumpet'];
+    const leads=style==='town'?['oboe','flute','strings','oboe']:style==='pop'?['glock','strings','flute','trumpet']:style==='soft'?['flute','cello','oboe','strings']:style==='overture'?['horn','strings','flute','trumpet']:combat?['strings','trumpet','oboe','strings','horn','trumpet']:['horn','strings','flute','trumpet'];
     const lead=swap&&section===0?'flute':leads[section%leads.length];
     return {section,lead,quiet,final,combat,level:(quiet?.66:final?1.08:.88)*(1+.07*Math.sin((bar%8)*Math.PI/7)),tempo:quiet?.98:final?1.015:1,
       bass:quiet?'r . . . 5 . . .':style==='town'?'r . 5 . r8 . 5 .':combat&&section!==1?'r . r8 . 5 r r8 .':'r . . 5 r8 . 5 .',

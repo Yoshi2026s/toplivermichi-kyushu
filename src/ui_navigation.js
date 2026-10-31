@@ -84,7 +84,7 @@ function updateNavigationHud(){
  const toggle=el.querySelector('[data-route-toggle]'),cancel=el.querySelector('[data-route-cancel]');toggle.dataset.a=paused?'travelResume':'travelPause';toggle.dataset.v=cancel.dataset.v=String(p.version);toggle.disabled=cancel.disabled=G.readOnly;toggle.textContent=paused?'再開':'停止';toggle.setAttribute('aria-label',`${toggle.textContent}：${name.textContent}`);cancel.setAttribute('aria-label',`目的地を取り消す：${name.textContent}`);
 }
 function updateControlHints(){
- const auto=document.querySelector('[data-a="battleDockAuto"]');if(auto){auto.textContent=G.auto?'AUTO 停止':'AUTO オート';auto.setAttribute('aria-pressed',String(!!G.auto));auto.disabled=G.screen!=='battle'||!!G.sheet||!!G.dlg||!!G.readOnly||G.st?.run?.state!=='input';}
+ const auto=document.querySelector('[data-a="battleDockAuto"]');if(auto){const label=G.auto?'停止':'オート';if(auto.dataset.label!==label){auto.dataset.label=label;auto.innerHTML='<span>AUTO</span><span>'+label+'</span>';}auto.setAttribute('aria-pressed',String(!!G.auto));auto.disabled=G.screen!=='battle'||!!G.sheet||!!G.dlg||!!G.readOnly||G.st?.run?.state!=='input';}
  const confirm=document.querySelector('#dock .stick-confirm'),back=document.querySelector('#dock .dock-back');if(!confirm||!back)return;let a='決定',b='戻る';
  if(G.dlg){a=G.dlg.i<G.dlg.lines.length-1?'次へ':'閉じる';b=G.dlg.i>0?'前へ':G.dlg.after||G.dlg.sceneId?'戻る':'閉じる';}
  else if(G.screen==='explore'&&!G.sheet){const p=navigationValidPlan();a=p&&(p.paused||!G.walk.path.length)?'再開':G.walk.path.length?'停止':nearbyObjects().length?'調べる':'案内';b=p&&!p.paused?'停止':'戻る';}

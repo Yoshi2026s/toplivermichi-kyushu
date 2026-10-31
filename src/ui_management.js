@@ -96,7 +96,7 @@ renderSheet=function(){
   if(["inn","rest"].includes(G.sheet)){
     const offer=managementFacilityOffer(G.st,G.sheet),can=offer&&managementCanAct(),action=G.sheet==="inn"?"doInn":"doRest";
     html=html.replace(`data-a="${action}"`,`data-a="${action}" data-facility="${offer?.token||""}" ${can?"":"disabled"}`);
-    if(!offer)html=html.replace('</div></div>','<p class="warn">この施設のそばへ移動してから確認してください。</p></div></div>');
+    if(!offer)html=html.replace('</div></div>','</div></div><p class="warn facility-warning" role="status">この施設のそばへ移動してから確認してください。</p>');
   }
   return html;
 };

@@ -29,3 +29,8 @@ for(const state of ['walking','idle','reduced','menu','initial-follower']){
  assert.equal(calls.find(c=>c.id==='moe').frame,state==='walking'?6:0,state+' follower');
 }
 console.log('Illustrated cached walking poses, eight phases, four directions, movement-distance sync, follower, pause and map-loop checks passed');
+const {SOFT_ART:lru}=await illustratedContext(read('src/soft_art.js')+'\n({SOFT_ART})',{ART:{},CHARS:{hero:{},moe:{}}});
+const hot=lru.person('hero','#243044','#b84b4b',0,3),hotPixels=hot.toBuffer('image/png');let cold;
+for(let i=0;i<150;i++){assert.equal(lru.person('hero','#243044','#b84b4b',0,3),hot,'recently used walking pose survives unrelated artwork churn');const c=lru.creature('cache-test-'+i,'bird','#83b9ae',32,0);if(i===0)cold=c;assert(lru.stats().entries<=lru.stats().limit);}
+const regenerated=lru.creature('cache-test-0','bird','#83b9ae',32,0);assert.notEqual(regenerated,cold,'unused oldest artwork is evicted');assert.deepEqual(regenerated.toBuffer('image/png'),cold.toBuffer('image/png'));assert.deepEqual(hot.toBuffer('image/png'),hotPixels);assert.equal(lru.stats().limit,128);
+console.log('Pose LRU: hot walking image survives 150 cold entries; unused artwork regenerates identical pixels; 128-entry limit retained');

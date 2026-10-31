@@ -106,7 +106,7 @@ ACT.toTitle=function(){clearListenerComments();G.sheetHistory=[];G.walkPlan=null
 
 /* オート移動は目的地を保持し、戦闘後に現在位置から再計算する。 */
 const systemBaseWalkTo=walkTo,systemBaseStartBattle=startBattle,systemBaseGuide=renderSheet;
-walkTo=function(x,y,pending){if(G.st&&G.screen==="explore"&&!G.readOnly){G.walkPlanSeq=(G.walkPlanSeq||0)+1;G.walkPlan={state:G.st,map:G.st.mapId,x,y,version:G.walkPlanSeq,paused:false};}return systemBaseWalkTo(x,y,pending);};
+walkTo=function(x,y,pending,preparedPath){if(G.st&&G.screen==="explore"&&!G.readOnly){G.walkPlanSeq=(G.walkPlanSeq||0)+1;G.walkPlan={state:G.st,map:G.st.mapId,x,y,version:G.walkPlanSeq,paused:false};}return systemBaseWalkTo(x,y,pending,preparedPath);};
 startBattle=function(run){const result=systemBaseStartBattle(run);if(G.st?.run===run&&G.walkPlan&&G.st===G.walkPlan.state&&G.st.mapId===G.walkPlan.map)G.walkPlan.paused=true;return result;};
 renderSheet=function(){let html=systemBaseGuide();if(G.sheet==="guide"&&G.walkPlan?.paused&&G.walkPlan.map===G.st.mapId){const v=G.walkPlan.version;html=html.replace('</div></div>',`<div class="stack"><button class="btn" data-a="walkResume" data-v="${v}">中断したオート移動を再開</button><button class="btn" data-a="walkCancel" data-v="${v}">目的地を取り消す</button></div></div></div>`);}return html;};
 Object.assign(ACT,{

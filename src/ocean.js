@@ -69,7 +69,7 @@ function claimOceanEvent(st,areaId,event,context={}){
 }
 
 /* 専用ドット画像。海洋敵96件・海戦背景24件までのLRU。 */
-const OCEAN_ART_CACHE={enemies:new Map(),backgrounds:new Map(),maps:new Map(),ships:new Map()};
+const OCEAN_ART_CACHE={enemies:new Map(),backgrounds:new Map(),maps:new Map(),ships:new Map(),markers:new Map()};
 function oceanCached(cache,key,limit,make){if(cache.has(key)){const value=cache.get(key);cache.delete(key);cache.set(key,value);return value;}const value=make();cache.set(key,value);while(cache.size>limit)cache.delete(cache.keys().next().value);return value;}
 function oceanCanvas(w,h){const c=document.createElement("canvas");c.width=w;c.height=h;return [c,c.getContext("2d")];}
 function oceanEnemySprite(region,family,frame=0,size=32){
@@ -107,5 +107,5 @@ function installOceanArt(){
   ART.enemy=function(profile,species,attr,area,frame,size=32,boss=false){const a=OCEAN_AREAS[area];if(a&&!boss)return oceanEnemySprite(a.region,Math.max(0,Number(String(profile).replace("OF",""))-1),frame,size);return landEnemy(profile,species,attr,area,frame,size,boss);};
   ART.stage=(area,frame)=>OCEAN_AREAS[area]?oceanBattleStage(area,frame):landStage(area,frame);
   ART.mapLayer=(map,frame)=>MAPS[map]?.combatDomain==="sea"?oceanMapLayer(map,frame):landMap(map,frame);
-  ART.object=function(type,frame){if(type!=="oceanEvent")return landObject(type,frame);const [c,g]=oceanCanvas(16,24);g.fillStyle="#F4ECD8";g.fillRect(5,7,6,15);g.fillStyle="#B84B4B";g.fillRect(4,6,8,4);g.fillStyle="#D5B34C";g.fillRect(6,3,4,4);return c;};
+  ART.object=function(type,frame){if(type!=="oceanEvent")return landObject(type,frame);return oceanCached(OCEAN_ART_CACHE.markers,"event",1,()=>{const [c,g]=oceanCanvas(16,24);g.fillStyle="#F4ECD8";g.fillRect(5,7,6,15);g.fillStyle="#B84B4B";g.fillRect(4,6,8,4);g.fillStyle="#D5B34C";g.fillRect(6,3,4,4);return c;});};
 }

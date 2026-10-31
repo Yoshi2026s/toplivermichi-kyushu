@@ -72,6 +72,9 @@ for(let region=0;region<8;region++)for(let family=0;family<5;family++){
 assert.equal(forms.size,40,'40 distinct sea forms');assert(g.OCEAN_ART_CACHE.enemies.size<=96);
 for(const id of Object.keys(g.OCEAN_AREAS))for(let frame=0;frame<4;frame++)assert.equal(g.oceanBattleStage(id,frame).width,160);
 assert(g.OCEAN_ART_CACHE.backgrounds.size<=24);
+const marker=g.ART.object('oceanEvent',0),markerPixels=marker.toBuffer('image/png');
+for(let frame=0;frame<100;frame++)assert.equal(g.ART.object('oceanEvent',frame),marker,'static sea marker reuses its canvas');
+assert.equal(g.OCEAN_ART_CACHE.markers.size,1);assert.deepEqual(marker.toBuffer('image/png'),markerPixels,'reusing the marker never changes its pixels');
 const atlas=createCanvas(8*128,5*128),ctx=atlas.getContext('2d');for(let region=0;region<8;region++)for(let family=0;family<5;family++)ctx.drawImage(g.oceanEnemySprite(region,family,0,128),region*128,family*128);
 mkdirSync(resolve(root,'.task'),{recursive:true});writeFileSync(resolve(root,'.task/ocean-forms.png'),atlas.toBuffer('image/png'));
 console.log('Ocean: 65 areas, 3,250 distinct enemy records, 8 connected routes (224 cells/216 sea), safe ports, 40 rendered forms, capped caches, isolated kills, transactional once-only events and save/read-only/stale guards passed');

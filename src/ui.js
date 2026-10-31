@@ -119,6 +119,7 @@ function render(){
   const dh=document.querySelector("#dock .hint"); if(dh) dh.textContent = (s==="explore"&&!G.sheet&&!G.dlg)?"スティックで移動・中央で決定":"スティックで選択・中央で決定";
   if(G.dlg){ const b=$("#dlgNext"); if(b) b.focus({preventScroll:true}); }
   PAD.restore();
+  if(s==="battle"&&!G.sheet&&!G.dlg&&!G.auto&&G.cmd?.type){const key=JSON.stringify(G.cmd);if(G.commandView?.run!==G.st.run||G.commandView.key!==key){G.commandView={run:G.st.run,key};revealBattleCommand();}}else if(s!=="battle")G.commandView=null;
   if(s==="result"&&!G.sheet&&!G.dlg){window.scrollTo?.(0,0);$('[data-a="resultDone"]')?.focus?.({preventScroll:true});}
 }
 function statusBar(){
@@ -537,7 +538,7 @@ function partyCard(m,i,run){
   return `<button class="pcard ${sel?"on":""} ${ko?"ko":""} ${isLow(m.hp,m.maxHP)?"low":""} ${m.acted?"done":""}" data-a="pickActor" data-i="${i}" ${ko||m.acted||run.state!=="input"?"aria-disabled=\"true\"":""}>
     <canvas class="party-portrait" data-char="${m.cid}" width="128" height="160" aria-hidden="true"></canvas><span class="pline"><b>${sel?"▶":""}${esc(m.name)}</b><span class="pjob">${esc(JOBS[m.job].name)} 熟練度${m.R}</span></span><span class="pbadges">${badges.map(t=>`<span class="pst">${t}</span>`).join("")}</span>
     <span class="bar"><i style="width:${pct}%"></i></span>
-    <span class="pstat">体力<b>${m.hp}</b>/${m.maxHP} MP<b>${m.c}</b>/${battleMPCap(m)}</span>
+    <span class="pstat"><span class="p-vital"><span>HP <b>${m.hp}</b>/${m.maxHP}</span><span class="mini-meter"><i style="width:${pct}%"></i></span></span><span class="p-vital"><span>MP<b>${m.c}</b>/${battleMPCap(m)}</span><span class="mini-meter mp"><i style="width:${Math.round(100*m.c/battleMPCap(m))}%"></i></span></span></span>
   </button>`;
 }
 function cueText(run){
@@ -550,22 +551,21 @@ function cueText(run){
 }
 function renderBattle(){
   const st=G.st, run=st.run; if(!run) return "";
-  const enemies=run.enemies.map(e=>{
-    const pct=Math.round(100*e.hp/e.maxHP);
-    return `<div class="ecard ${e.hp<=0?"down":""} ${e.boss?"isboss":""}" id="ec${e.slot}">
-      <canvas data-enemy="${e.slot}" width="${e.boss?128:64}" height="${e.boss?128:64}" class="esprite ${e.boss?"boss":""}" aria-hidden="true"></canvas>
-      <div class="einfo"><div class="ename">${esc(e.display)}${e.rarity>1?` <span class="rar" title="${["","通常","やや珍しい","希少","極希少","幻影"][e.rarity]}" aria-label="${["","通常","やや珍しい","希少","極希少","幻影"][e.rarity]}">${"★".repeat(e.rarity)}</span>`:""}</div>
-      <span class="bar enemy"><i style="width:${pct}%"></i></span>
-      <div class="estat">HP ${e.hp}/${e.maxHP}・防${e.def}</div>
-      ${e.hp<=0?`<div class="tele">鎮まった</div>`:e.petSleep?`<div class="pet-enemy-state">睡眠・次の行動を休む</div>`:e.petConfuse?`<div class="pet-enemy-state">混乱・次は自分を攻撃</div>`:e.petStunTurns?`<div class="pet-enemy-state">足止め・次の行動を休む</div>`:e.petWeaken?`<div class="pet-enemy-state">攻撃低下${Math.round(e.petWeaken*100)}%・このターン</div>`:""}</div></div>`; }).join("");
+  const enemyData=run.enemies.map(e=>{
+    const pct=Math.round(100*e.hp/e.maxHP),state=e.hp<=0?'鎮まった':e.petSleep?'睡眠・次の行動を休む':e.petConfuse?'混乱・次は自分を攻撃':e.petStunTurns?'足止め・次の行動を休む':e.petWeaken?'攻撃低下'+Math.round(e.petWeaken*100)+'%・このターン':'';
+    return `<article class="enemy-data-card ${e.hp<=0?'down':''}"><b class="ename">${esc(e.display)}${e.rarity>1?` <span class="rar">${'★'.repeat(e.rarity)}</span>`:''}</b><span class="enemy-hp">HP <b>${e.hp}</b><small>／${e.maxHP}</small></span><span class="bar enemy"><i style="width:${pct}%"></i></span><span class="estat">防御 ${e.def}</span>${state?`<span class="pet-enemy-state">${esc(state)}</span>`:''}</article>`;
+  }).join('');
+  const enemies=run.enemies.map(e=>`<div class="ecard ${e.hp<=0?'down':''} ${e.boss?'isboss':''}" id="ec${e.slot}"><canvas data-enemy="${e.slot}" width="${e.boss?128:64}" height="${e.boss?128:64}" class="esprite ${e.boss?'boss':''}" aria-hidden="true"></canvas></div>`).join('');
   const chain = run.kiraDone?"キラコメ済":`キラコメ${run.chain.stage}/3 次:${["挨拶","作戦","感謝"][run.chain.stage]}`;
   const battleLines=Array.isArray(run.log)?run.log:[];
   return `<section class="battle">
+    <div class="enemy-overview"><div class="battle-section-title">敵データ <span>${run.enemies.filter(e=>e.hp>0).length}／${run.enemies.length}体</span></div><div class="enemy-data-grid">${enemyData}</div></div>
     <div class="bhead"><span>ターン${run.turn}・${esc(DIFFICULTY[run.difficulty].name)}・${run.kind==="boss"?"地域ボス":esc(AREAS[run.areaId].name)}</span><span>コメント連携${run.B}・${chain}</span></div>
     <div class="gauge" aria-label="エール${run.A}"><span>エール</span><span class="bar ale"><i style="width:${run.A}%"></i></span><b>${run.A}</b></div>
     ${cueText(run)}
     <div class="enemies" data-count="${run.enemies.length}" data-terrain="${esc(MAPS[st.mapId]?.combatDomain==="sea"?"coast":MAPS[st.mapId]?.terrain||"plain")}"><canvas class="stagebg" width="160" height="64" aria-hidden="true"></canvas>${enemies}</div>
-    <div class="party">${run.party.map((m,i)=>partyCard(m,i,run)).join("")}</div>
+    ${renderBattleProgress(run)}
+    <div class="party"><div class="battle-section-title">味方パーティー <span>タップして行動・詳細</span></div>${run.party.map((m,i)=>partyCard(m,i,run)).join("")}</div>
     ${renderCommand(run)}
     <details class="battle-records" ${G.logExpanded?"open":""}><summary>戦闘記録・バッジ</summary>${run.support&&SUPPORTS[run.support]?`<p class="battle-support small">地域支援：${esc(SUPPORTS[run.support].name)}（${esc(SUPPORTS[run.support].text)}）</p>`:""}<button class="btn" data-a="openSheet" data-k="battleChallenges">挑戦・戦闘バッジ</button>
     <div class="srow"><button class="btn" data-a="battleLogExpand" aria-pressed="${!!G.logExpanded}">${G.logExpanded?"ログを縮小":"ログを拡大"}</button><button class="btn" data-a="openSheet" data-k="battleLog">履歴を見る</button></div>
@@ -573,6 +573,13 @@ function renderBattle(){
     </details>
   </section>`;
 }
+function battleProgressIndex(run){
+ const lines=run.log||[],last=Math.max(0,lines.length-1);let reader=G.battleReader;
+ if(!reader||reader.run!==run)reader=G.battleReader={run,index:last,length:lines.length,tail:lines[last]};
+ else if(reader.tail!==lines[last]||reader.length!==lines.length){if(reader.index>=reader.length-1)reader.index=last;else if(reader.anchor){const found=lines.indexOf(reader.anchor);reader.index=found<0?0:found;}reader.length=lines.length;reader.tail=lines[last];}
+ reader.index=Math.max(0,Math.min(last,reader.index));reader.anchor=lines[reader.index];return reader.index;
+}
+function renderBattleProgress(run){const lines=run.log||[],i=battleProgressIndex(run);return `<section class="battle-progress" aria-label="戦闘の進行"><div class="battle-progress-nav"><button class="btn" data-a="battleProgressMove" data-v="-1" aria-label="前の進行文" ${i>0?'':'disabled'}>◀</button><span>進行 ${lines.length?i+1:0}／${lines.length}・全文を読む</span><button class="btn" data-a="battleProgressMove" data-v="1" aria-label="次の進行文" ${i+1<lines.length?'':'disabled'}>▶</button></div>${lines.length?`<button class="battle-progress-text" data-a="battleLogLine" data-v="${i}" aria-label="進行文の全文を読む">${esc(lines[i])}</button>`:'<p>戦闘の進行を表示します。</p>'}</section>`;}
 function renderBattleLog(){
   const lines=(Array.isArray(G.st?.run?.log)?G.st.run.log:[]).slice(-80).reverse();
   const pages=Math.max(1,Math.ceil(lines.length/8));
@@ -580,6 +587,13 @@ function renderBattleLog(){
   const selected=G.sheetData?.line;
   if(Number.isInteger(selected)&&selected>=0&&selected<lines.length) return `<p class="small">戦闘ログ・${lines.length-selected}件目</p><p>${esc(lines[selected])}</p><button class="btn" data-a="battleLogBack">履歴に戻る</button>`;
   return `<p class="small">直近${lines.length}件・新しい順（${page+1}/${pages}ページ）</p><div class="stack">${lines.slice(page*8,(page+1)*8).map((l,i)=>`<button class="btn" data-a="battleLogLine" data-v="${lines.length-1-(page*8+i)}">${esc(l)}</button>`).join("")||"<p>まだありません。</p>"}</div><div class="srow"><button class="btn" data-a="battleLogPage" data-v="${page-1}" ${page>0?"":"disabled"}>新しい記録</button><button class="btn" data-a="battleLogPage" data-v="${page+1}" ${page+1<pages?"":"disabled"}>古い記録</button></div>`;
+}
+function revealBattleCommand(){
+ if(typeof document==='undefined'||!document.body)return;
+ if(G.screen!=='battle'||G.sheet||G.dlg||G.auto)return;
+ const el=document.querySelector(G.cmd?.type?'.cmd [data-a="confirmAct"]':'.cmdgrid'),dock=document.querySelector('#dock');if(!el)return;
+ const r=el.getBoundingClientRect(),bottom=dock&&!document.body.classList.contains('no-dock')?dock.getBoundingClientRect().top:window.innerHeight;
+ if(r.bottom>bottom-8)window.scrollBy?.({top:r.bottom-bottom+8,behavior:'auto'});else if(r.top<8)window.scrollBy?.({top:r.top-8,behavior:'auto'});
 }
 function skillNeeds(job){ return ({J01:"enemy",J02:"line",J03:"ally",J04:"mode",J05:"enemy",J06:"mode",J07:"none",J08:"ally",J09:"enemy",J10:"none",J11:"none",J12:"none",J13:"ally",J14:"none",J15:"enemy",J16:"enemy",J17:"none",J18:"ally",J19:"enemy",J20:"none",J21:"enemy",J22:"allyOther"})[job]; }
 function renderCommand(run){
@@ -840,7 +854,7 @@ function resultDone(){
 /* ---- シート（メニュー） ---- */
 function openSheet(k,data={}){ if(G.vaultSaving||G.shopSaving||G.petSaving||G.characterSaving||G.featureSaving) return; G.sheet=k; G.sheetData=data; G.walk.path=[]; render(); const el=$(".sheet"); if(el) el.scrollTop=0; }
 function closeSheet(){ if(G.vaultSaving||G.shopSaving||G.petSaving||G.characterSaving||G.featureSaving) return; G.sheet=null; render(); }
-function sheetWrap(title, body){ return `<div class="overlay" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="win sheet ${['guide','quests'].includes(G.sheet)?'navigation-sheet':G.sheet==='help'?'help-sheet':''}"><div class="sheet-head"><h2 class="label">${esc(title)}</h2><div class="sheet-actions"><button class="btn" data-a="closeSheet" ${G.vaultSaving||G.shopSaving?"disabled":""}>戻る</button>${G.screen==="explore"&&G.st&&!G.st.run?`<button class="btn" data-a="returnToMap" aria-label="MAPへ戻る">MAPへ</button>`:""}</div></div>${body}</div></div>`; }
+function sheetWrap(title, body){ return `<div class="overlay" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div data-sheet="${esc(G.sheet||'')}" class="win sheet ${['guide','quests'].includes(G.sheet)?'navigation-sheet':G.sheet==='help'?'help-sheet':''}"><div class="sheet-head"><h2 class="label">${esc(title)}</h2><div class="sheet-actions"><button class="btn" data-a="closeSheet" ${G.vaultSaving||G.shopSaving?"disabled":""}>戻る</button>${G.screen==="explore"&&G.st&&!G.st.run?`<button class="btn" data-a="returnToMap" aria-label="MAPへ戻る">MAPへ</button>`:""}</div></div>${body}</div></div>`; }
 function renderSheet(){
   const k=G.sheet; if(!k) return ""; const st=G.st; const d=G.sheetData;
   switch(k){
@@ -855,7 +869,7 @@ function renderSheet(){
     case "travel": return sheetWrap("街外の道", "<p>街間の徒歩移動は街外MAPの道を進みます。街の出口から出発してください。</p>");
     case "rail": return sheetWrap("新幹線駅",renderRail());
     case "rest": return sheetWrap("休息", `${d.reason?`<p class="warn">${esc(d.reason)}</p>`:""}<p>日付を進めると翌日になります（費用なし）。体力とMPは回復しません。回復は宿屋で。今は${st.day}日目。</p><div class="stack"><button class="btn primary" data-a="doRest">日付を進める</button><button class="btn" data-a="closeSheet">やめる</button></div>`);
-    case "party": return sheetWrap("編成", renderParty());
+    case "party": return sheetWrap(G.sheetData?.view?.startsWith("eq:")?"装備":"編成", renderParty());
     case "status": return sheetWrap("パーティーのステータス", renderStatus());
     case "inn": { const hub=curHub(); const per=INN_PRICE[hub]||10; const n=st.roster.length; const total=per*n; const can=st.gold>=total;
       return sheetWrap(d.label||"宿屋", `<p>「いらっしゃいませ。お一人さま${per}ゴールド、${n}人で${total}ゴールドです。」</p>
@@ -899,7 +913,7 @@ function renderSettings(){
     <div class="stack"><button class="btn ${soundIsOn()?"on":""}" data-a="toggleSound" aria-pressed="${soundIsOn()}">${soundIsOn()?"BGM・効果音：ON":"BGM・効果音：OFF"}</button>
     <button class="btn ${s.reduceMotion?"on":""}" data-a="setOpt" data-k="reduceMotion" data-v="${!s.reduceMotion}">${s.reduceMotion?"▶ 演出を減らす：ON":"演出を減らす：OFF"}</button>
     <button class="btn ${s.dock!==false?"on":""}" data-a="setOpt" data-k="dock" data-v="${s.dock===false}" aria-pressed="${s.dock!==false}">操作パッド：${s.dock!==false?"表示":"非表示"}</button></div>
-    <details class="control-help"><summary>操作の説明</summary><p>戻るはスティックの右側。中央で決定します。</p>
+    <details class="control-help"><summary>操作の説明</summary><p>左が戻る、右がスティック。中央で決定します。</p>
     <p>探索はドラッグで移動、中央で調べる・停止・再開。メニューや戦闘は項目を選んで決定。会話は中央で次の台詞、戻るで前の台詞を表示します。対応するゲームコントローラーも使えます。</p></details>
     ${st?`<h3 class="label">保存</h3><p class="small">行動を確定するたびに、この端末のブラウザ内へ自動保存しています。状態：${esc(G.saveStatus)}</p>
     <p class="small">端末の変更やブラウザのデータ削除の前に、下の「バックアップを表示」で文字列をコピーし、メモ帳などへ保管してください。</p>
@@ -1302,6 +1316,7 @@ function renderMoe(){
 const ACT = {
   shareCopy(el){ return SHARE.copy(el.dataset.v==="intro"); },
   shareNative(){ return SHARE.native(); },
+  battleProgressMove(el){if(G.screen!=="battle"||G.sheet||G.dlg||!G.st?.run)return;const delta=Number(el.dataset.v);if(delta!==-1&&delta!==1)return;const run=G.st.run,index=battleProgressIndex(run);G.battleReader.index=Math.max(0,Math.min((run.log||[]).length-1,index+delta));G.battleReader.anchor=run.log[G.battleReader.index];render();},
   battleLogLine(el){ if(G.screen!=="battle"||!G.st?.run||G.dlg||!['battleLog',null].includes(G.sheet)) return; const lines=Array.isArray(G.st.run.log)?G.st.run.log:[],index=Number(el.dataset.v),first=Math.max(0,lines.length-80); if(!Number.isInteger(index)||index<first||index>=lines.length) return; const reversed=lines.length-1-index; G.sheet='battleLog'; G.sheetData={page:Math.floor(reversed/8),line:reversed}; render(); },
   battleLogBack(){ if(G.screen!=="battle"||G.sheet!=="battleLog"||!G.st?.run) return; delete G.sheetData.line; render(); },
   battleLogExpand(){ if(G.screen!=="battle"||G.sheet||G.dlg||!G.st?.run) return; if(G.auto){G.auto=false;clearTimeout(G.autoT);G.autoLast=null;G.cmd={};G.cursorSig=null;} G.logExpanded=!G.logExpanded; render(); },
@@ -1402,10 +1417,11 @@ const ACT = {
     say([["",`依頼「${id} ${QUESTS[id].name}」を受けた。`],["もえ",id==="M01"?"呼びかけと紹介の順番が重なってる……。始まりと返事の順番を取り戻そう。":id==="M02"?"港の声を、ひとつずつ届けたいな。":id==="M03"?"唐津の海辺で聞いた返事を、街に届けたいな。":id==="M04"?"佐賀市の川沿いと駅前で、街の声を集めよう。":id==="M05"?"佐世保市の港沿いと坂道で、届いた返事を集めよう。":id==="M06"?"長崎市の港と丘で、街の声を届けよう。":id==="M07"?"熊本市の川辺と石垣で、届いた声を集めよう。":id==="M08"?"阿蘇市の風の中で、返事を集めよう。":"一緒に考えよう。"],["",QUESTS[id].goal]]); },
   abandonQuest(el){ if(!canManageQuests()) return; const st=G.st, id=el.dataset.v; if(!QUESTS[id]||st.activeQuest!==id||!["active","bossReady"].includes(st.quests[id])) return toast("依頼の状態が変わりました。選び直してください。"); el.disabled=true; st.quests[id]="available"; st.qprog[id]=0; st.activeQuest=null; commit(); render(); toast("依頼を放棄した。受注費は戻りません。"); },
   bossGo(el){ const st=G.st,bid=el.dataset.v,qid=Object.keys(QUESTS).find(k=>QUESTS[k].boss===bid); if(!st||G.readOnly||G.screen!=="explore"||G.sheet!=="boss"||G.sheetData.bid!==bid||G.dlg||st.run||G.walk.path.length||!qid||st.activeQuest!==qid||st.quests[qid]!=="bossReady"||st.bossDefeated[bid]||MAPS[st.mapId].kind!=="field"||!nearbyObjects().some(o=>o.type==="boss"&&o.boss===bid)) return toast("ボスへの挑戦条件が変わりました。調べ直してください。"); el.disabled=true; startBattle(createBossRun(st,bid)); },
-  pickActor(el){ const i=+el.dataset.i; const m=G.st.run.party[i]; if(m.hp<=0||m.acted) return; G.cmd={actor:i}; render(); },
+  pickActor(el){ const i=+el.dataset.i; const m=G.st.run.party[i]; if(m.hp<=0||m.acted) return; G.cmd={actor:i}; render();revealBattleCommand(); },
   cmdType(el){ const t=el.dataset.v; G.cmd={actor:G.cmd.actor, type:t}; render(); },
   cmdSet(el){ const k=el.dataset.k; let v=el.dataset.v; if(k==="target"||k==="ally") v=+v; G.cmd[k]=v; if(k==="mode"||k==="item"){ delete G.cmd.ally; } render(); },
   confirmAct(el){ el.disabled=true; confirmAct(); },
+  battleDockAuto(){if(G.screen!=="battle"||G.sheet||G.dlg||G.readOnly||G.st?.run?.state!=="input")return;if(G.auto)ACT.autoOff();else ACT.autoOn();},
   autoOn(){ const run=G.st?.run; if(G.auto||G.readOnly||G.screen!=="battle"||G.sheet||G.dlg||!run||run.state!=="input") return; G.auto=true; G.autoLast=null; G.cursorSig="autoOff||||||"; render(); SND.sfx("ok"); G.autoT=setTimeout(autoStep,300); },
   autoOff(){ G.auto=false; clearTimeout(G.autoT); G.autoLast=null; G.cmd={}; G.cursorSig=null; render(); SND.sfx("cancel"); toast("オートを中断しました。手動で操作できます。"); },
   toResult(){ toResult(); },

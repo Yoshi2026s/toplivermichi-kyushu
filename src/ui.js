@@ -231,7 +231,7 @@ function renderExplore(){
       <div class="goal">${esc(objective())}</div>
       <div class="xsave small" aria-live="polite">保存：<span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（閲覧のみ）":""}</div>
     </header>
-    <div class="mapwrap"><canvas id="map" aria-label="${esc(m.name)}の地図。地面をタップすると移動します。"></canvas>
+    <div class="mapwrap" data-map-kind="${esc(m.kind)}"><canvas id="map" aria-label="${esc(m.name)}の地図。地面をタップすると移動します。"></canvas>
       ${exit?`<button class="btn map-exit" data-a="guideTo" data-v="${exit.id}">${m.kind==="town"?"街外へ":"街へ戻る"}</button>`:""}
     </div>
     ${partyStrip()}
@@ -1428,7 +1428,7 @@ function migrate(s){
   s.gameVersion=GAME_VERSION;
   const layoutChanged=s.mapLayoutVersion!==MAP_LAYOUT_VERSION;
   const map=MAPS[s.mapId],p=s.pos;
-  if(layoutChanged||!p||!Number.isInteger(p.x)||!Number.isInteger(p.y)||p.x<0||p.y<0||p.x>=map.w||p.y>=map.h||!(map.combatDomain==="sea"?".,123w=ESP":".,123w=").includes(map.tiles[p.y]?.[p.x])||map.objects.some(o=>o.x===p.x&&o.y===p.y&&!o.walk)) s.pos={x:map.safeAnchor[0],y:map.safeAnchor[1]};
+  if(layoutChanged&&map.combatDomain!=="sea"&&map.kind!=="in"||!p||!Number.isInteger(p.x)||!Number.isInteger(p.y)||p.x<0||p.y<0||p.x>=map.w||p.y>=map.h||!(map.combatDomain==="sea"?".,123w=ESP":".,123w=").includes(map.tiles[p.y]?.[p.x])||map.objects.some(o=>o.x===p.x&&o.y===p.y&&!o.walk)) s.pos={x:map.safeAnchor[0],y:map.safeAnchor[1]};
   if(!Array.isArray(s.visitedMaps)) s.visitedMaps=[];
   if(!Array.isArray(s.visitedHubs)) s.visitedHubs=[];
   if(!s.visitedMaps.includes(s.mapId)) s.visitedMaps.push(s.mapId);
@@ -1474,7 +1474,7 @@ function migrate(s){
   }
   refreshMainQuests(s);
   for(const j of JOIN_PLAN) if(s.visitedHubs.includes(j.hub)&&!s.roster.includes(j.cid)) joinMember(s,j.cid);
-  if(s.run&&layoutChanged){
+  if(s.run&&layoutChanged&&map.combatDomain!=="sea"){
     const field=HUBS[map.hub].fieldMap;
     s.mapId=field; s.pos={x:MAPS[field].safeAnchor[0],y:MAPS[field].safeAnchor[1]};
     s.run.returnPos={map:field,...s.pos};

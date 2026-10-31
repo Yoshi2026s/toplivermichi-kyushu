@@ -51,6 +51,9 @@ jobs:
       - run: node scripts/test-mobile-facilities-ui.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-mobile-usability.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - run: node scripts/test-photo-layout.mjs
         env:
           MOBILE_BROWSER: chromium
@@ -98,6 +101,8 @@ jobs:
           path: |
             .task/mobile-facilities/*.png
             .task/mobile-facilities/report.json
+            .task/mobile-usability/*.png
+            .task/mobile-usability/audit.json
             .task/photo-layout/*.png
             .task/photo-layout/report.json
             .task/pet-rarity/*.png

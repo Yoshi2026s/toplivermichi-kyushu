@@ -903,6 +903,7 @@ body.in-result:not(.no-dock){--dockH:64px}.in-result .dock .stick{width:60px;hei
 @media(orientation:portrait) and (max-height:550px){.result .rmems.many .gauge .bar{display:none}.result .rmems.many .gauge{gap:2px}.result .rmems.many .rmem{gap:0}}
 @media(orientation:portrait) and (max-height:550px){.result .rbanner h2{font-size:22px;line-height:1.2}}
 .result .rmems.many .rmh .small,.result .rmems.many .gauge .bar,.result .rmems.many .gauge .good{display:none}.result .rmems.many .rmem{gap:0}.result .rmems.many .rvitals,.result .rmems.many .gauge{font-size:12px}.result .rmems.many .rmh b{font-size:14px;line-height:1.25}
+.title-sound-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(70px,1fr);gap:8px}.title-screen .title-sound-row .btn{min-height:50px;padding:6px 8px;font-size:14px;letter-spacing:0}.title-music[aria-pressed="true"]{border-color:#e8cc86;background:linear-gradient(135deg,#345b62,#223a50)}
 </style>
 <main id="screen" aria-live="off"></main>
 <div id="dock" class="dock" aria-label="ジョイコントローラー">
@@ -4666,7 +4667,7 @@ const SND = (()=>{
 
   /* 曲データ：lead は8分音符ごと（- は伸ばす、. は休符）。chords は1小節ごと */
   const SONGS = {
-    title:{bpm:104,style:"overture",chords:"D A G A7 D Bm Em A7 G Em A D Em Bm G A7 Bm G A D Em Em A A7 D G A D G D Em A7",
+    title:{bpm:96,style:"overture",chords:"D A G A7 D Bm Em A7 G Em A D Em Bm G A7 Bm G A D Em Em A A7 D G A D G D Em A7",
       lead:"D5 - A4 D5 F#5 - A5 - | G5 - F#5 E5 D5 - A4 - | B4 - D5 G5 A5 B5 - A5 | C#6 - A5 - E5 - - - | F#5 - A5 - D6 - C#6 B5 | A5 - F#5 E5 D5 - F#5 - | G5 A5 B5 - A5 G5 E5 - | F#5 - E5 - C#5 - A4 - | B4 - D5 - F#5 - A5 - | G5 - E5 - B4 - - - | A4 - C#5 E5 A5 - G5 - | F#5 - D5 - A4 - - - | G4 - B4 D5 G5 - F#5 E5 | F#5 - A5 - D6 - C#6 - | B5 - A5 G5 F#5 - E5 - | C#5 - E5 A5 C#6 - - - | B4 F#5 B5 - A5 F#5 D5 - | G5 - B5 - D6 - C#6 B5 | A5 - E5 A5 C#6 - B5 A5 | F#5 - D5 F#5 A5 - - - | E5 G5 B5 - A5 G5 F#5 E5 | G5 B5 E6 - D6 B5 A5 - | C#6 - B5 A5 G5 - E5 - | A5 - C#6 - E6 - - - | D6 - A5 D6 F#6 - E6 D6 | B5 - G5 B5 D6 - C#6 B5 | A5 - C#6 E6 D6 C#6 B5 A5 | F#5 - A5 D6 A5 - - - | B5 A5 G5 - D6 - B5 - | A5 F#5 D5 - F#5 - A5 - | G5 - B5 D6 E6 - C#6 - | D6 - - - A5 - C#6 -",
       leadAlt:"D6 - A5 D6 F#6 - E6 D6 | B5 - G5 B5 D6 - C#6 B5 | A5 - C#6 E6 D6 C#6 B5 A5 | F#5 - A5 D6 A5 - - - | B5 A5 G5 - D6 - B5 - | A5 F#5 D5 - F#5 - A5 - | G5 - B5 D6 E6 - C#6 - | D6 - - - A5 - C#6 - | B4 - D5 - F#5 - A5 - | G5 - E5 - B4 - - - | A4 - C#5 E5 A5 - G5 - | F#5 - D5 - A4 - - - | G4 - B4 D5 G5 - F#5 E5 | F#5 - A5 - D6 - C#6 - | B5 - A5 G5 F#5 - E5 - | C#5 - E5 A5 C#6 - - - | B4 F#5 B5 - A5 F#5 D5 - | G5 - B5 - D6 - C#6 B5 | A5 - E5 A5 C#6 - B5 A5 | F#5 - D5 F#5 A5 - - - | E5 G5 B5 - A5 G5 F#5 E5 | G5 B5 E6 - D6 B5 A5 - | C#6 - B5 A5 G5 - E5 - | A5 - C#6 - E6 - - - | D6 - A5 D6 F#6 - E6 D6 | B5 - G5 B5 D6 - C#6 B5 | A5 - C#6 E6 D6 C#6 B5 A5 | F#5 - A5 D6 A5 - - - | B5 A5 G5 - D6 - B5 - | A5 F#5 D5 - F#5 - A5 - | G5 - B5 D6 E6 - C#6 - | D6 - - - A5 - C#6 -"},
     fukuoka:{ bpm:120, style:"town", chords:"F C Dm Bb F C Bb C",
@@ -4838,7 +4839,7 @@ const SND = (()=>{
   // Every phrase has a distinct orchestration, rhythm and breathing space.
   function arrangement(S,bar,cycle=0){
     const section=Math.floor(bar/8),style=S.style,combat=['battle','boss'].includes(style),quiet=section===2||(style==='soft'&&section!==3),final=section===(combat?5:3),swap=cycle%2;
-    const leads=style==='town'?['oboe','flute','strings','oboe']:style==='pop'?['glock','strings','flute','trumpet']:style==='soft'?['flute','cello','oboe','strings']:style==='overture'?['trumpet','flute','oboe','trumpet']:combat?['strings','trumpet','oboe','strings','horn','trumpet']:['horn','strings','flute','trumpet'];
+    const leads=style==='town'?['oboe','flute','strings','oboe']:style==='pop'?['glock','strings','flute','trumpet']:style==='soft'?['flute','cello','oboe','strings']:style==='overture'?['horn','strings','flute','trumpet']:combat?['strings','trumpet','oboe','strings','horn','trumpet']:['horn','strings','flute','trumpet'];
     const lead=swap&&section===0?'flute':leads[section%leads.length];
     return {section,lead,quiet,final,combat,level:(quiet?.66:final?1.08:.88)*(1+.07*Math.sin((bar%8)*Math.PI/7)),tempo:quiet?.98:final?1.015:1,
       bass:quiet?'r . . . 5 . . .':style==='town'?'r . 5 . r8 . 5 .':combat&&section!==1?'r . r8 . 5 r r8 .':'r . . 5 r8 . 5 .',
@@ -5464,7 +5465,7 @@ function render(){
   if(s==="explore") mountCanvas();
   if(s==="battle"){ drawEnemies(); startBattleTimer(); }
   if(s==="new") mountNew();
-  if(s==="title")SOFT_ART.title($("#titleArt"));
+  if(s==="title"){SOFT_ART.title($("#titleArt"));refreshTitleMusic();}
   drawMiniSprites();
   const dockOff = s==="new" || (G.st? G.st.settings.dock===false : (G.tmpSettings&&G.tmpSettings.dock===false));
   document.body.classList.toggle("no-dock", !!dockOff);
@@ -5486,6 +5487,11 @@ function statusBar(){
 }
 
 /* ---- タイトル ---- */
+function refreshTitleMusic(){
+ const button=document.querySelector('[data-a="titleMusic"]');if(!button)return;
+ const playing=SND.on&&SND.current==='title'&&SND.volumes.music>0;
+ button.dataset.play=playing?'false':'true';button.setAttribute('aria-pressed',String(playing));button.setAttribute('aria-label',playing?'タイトルBGMを消音':'タイトルBGMを再生');button.textContent=playing?'♪ BGM再生中・消音':'♪ タイトルBGMを再生';
+}
 function renderTitle(){
   return `<section class="title-screen">
     <div class="title-visual"><canvas id="titleArt" width="960" height="640" role="img" aria-label="暁の雲海に浮かぶ城と、光へ続く天空の橋"></canvas>
@@ -5493,7 +5499,7 @@ function renderTitle(){
     <div class="menu">
       <button class="btn primary" data-a="newGame">はじめから</button>
       <button class="btn" data-a="continue" ${G.hasSave?"":"disabled"}>つづきから${G.hasSave?"":"（記録なし）"}</button>
-      <button class="btn" data-a="openSheet" data-k="settings">設定</button>
+      <div class="title-sound-row"><button class="btn title-music" data-a="titleMusic" data-play="true" aria-pressed="false">♪ タイトルBGMを再生</button><button class="btn" data-a="openSheet" data-k="settings">設定</button></div>
       <button class="btn" data-a="openSheet" data-k="about">この作品について</button>
       <button class="btn" data-a="openSheet" data-k="share">友だちに教える（URLを共有）</button>
     </div>
@@ -6756,6 +6762,14 @@ const ACT = {
   doRetreat(){ const st=G.st; const run=st.run; storeVitals(st,run); if(run.bag) st.bag=clone(run.bag); st.run=null; st.mapId=run.returnPos.map; st.pos={x:run.returnPos.x,y:run.returnPos.y}; G.sheet=null; commit(); G.screen="explore"; exploreBgm(); render(); toast("撤退した。"); },
   pauseBattle(){ commit(); openSheet("pause"); },
   setOpt(el){ if(G.sheet!=="settings"||G.dlg||G.st?.run||G.walk.path.length)return;const k=el.dataset.k;let v=el.dataset.v;if(!["difficulty","reduceMotion","follow","dock"].includes(k))return;if(k==="difficulty"){if(!Object.hasOwn(DIFFICULTY,v))return;}else{if(!["true","false"].includes(v))return;v=v==="true";}const s=G.st?G.st.settings:(G.tmpSettings=G.tmpSettings||{difficulty:"std",sound:soundPref(),reduceMotion:false});s[k]=v;if(G.st)commit();render(); },
+  titleMusic(el){
+    if(G.screen!=="title"||G.sheet||G.dlg||G.readOnly)return;
+    const want=el.dataset.play==="true";
+    if(want&&SND.volumes.music===0){openSheet("settings");toast("BGM音量を上げると音楽が流れます。");return;}
+    const on=SND.setOn(want);G.soundWant=want;try{localStorage.setItem("tlr-kyushu-sound",want?"1":"0");}catch(e){}
+    if(G.st){G.st.settings.sound=want;commit();}if(G.tmpSettings)G.tmpSettings.sound=want;
+    SND.play("title");if(want&&!on)toast("この端末では音を出せませんでした。");refreshTitleMusic();
+  },
   toggleSound(){ const want=!soundIsOn(); const on=SND.setOn(want); G.soundWant=want; try{ localStorage.setItem("tlr-kyushu-sound", want?"1":"0"); }catch(e){}
     if(G.st){ G.st.settings.sound=want; commit(); } if(G.tmpSettings) G.tmpSettings.sound=want;
     if(want&&!on) toast("この端末では音を出せませんでした。消音で続けます。"); render(); },
@@ -7660,7 +7674,7 @@ const PAD = (()=>{
 
   /* BGMは初期ON：ブラウザの制限で、最初に画面へ触れた時に鳴らし始める */
   function wantSound(){ if(G.soundWant!=null) return G.soundWant; if(G.st && G.st.settings && G.st.settings.sound===false) return false; return soundPref(); }
-  const unlock=()=>{ if(SND.on){ SND.resume(); return; } if(wantSound()){ SND.setOn(true); } };
+  const unlock=e=>{ if(e?.target?.closest?.('[data-a="titleMusic"]'))return; if(SND.on) SND.resume(); else if(wantSound()) SND.setOn(true); if(typeof refreshTitleMusic==="function")refreshTitleMusic(); };
   ["pointerdown","keydown","touchend"].forEach(ev=>document.addEventListener(ev,unlock,{capture:true,passive:true}));
   return { mount, restore, pressA, pressB };
 })();

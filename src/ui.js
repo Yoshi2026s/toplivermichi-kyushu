@@ -110,7 +110,7 @@ function render(){
   if(s==="explore") mountCanvas();
   if(s==="battle"){ drawEnemies(); startBattleTimer(); }
   if(s==="new") mountNew();
-  if(s==="title")SOFT_ART.title($("#titleArt"));
+  if(s==="title"){SOFT_ART.title($("#titleArt"));refreshTitleMusic();}
   drawMiniSprites();
   const dockOff = s==="new" || (G.st? G.st.settings.dock===false : (G.tmpSettings&&G.tmpSettings.dock===false));
   document.body.classList.toggle("no-dock", !!dockOff);
@@ -132,6 +132,11 @@ function statusBar(){
 }
 
 /* ---- タイトル ---- */
+function refreshTitleMusic(){
+ const button=document.querySelector('[data-a="titleMusic"]');if(!button)return;
+ const playing=SND.on&&SND.current==='title'&&SND.volumes.music>0;
+ button.dataset.play=playing?'false':'true';button.setAttribute('aria-pressed',String(playing));button.setAttribute('aria-label',playing?'タイトルBGMを消音':'タイトルBGMを再生');button.textContent=playing?'♪ BGM再生中・消音':'♪ タイトルBGMを再生';
+}
 function renderTitle(){
   return `<section class="title-screen">
     <div class="title-visual"><canvas id="titleArt" width="960" height="640" role="img" aria-label="暁の雲海に浮かぶ城と、光へ続く天空の橋"></canvas>
@@ -139,7 +144,7 @@ function renderTitle(){
     <div class="menu">
       <button class="btn primary" data-a="newGame">はじめから</button>
       <button class="btn" data-a="continue" ${G.hasSave?"":"disabled"}>つづきから${G.hasSave?"":"（記録なし）"}</button>
-      <button class="btn" data-a="openSheet" data-k="settings">設定</button>
+      <div class="title-sound-row"><button class="btn title-music" data-a="titleMusic" data-play="true" aria-pressed="false">♪ タイトルBGMを再生</button><button class="btn" data-a="openSheet" data-k="settings">設定</button></div>
       <button class="btn" data-a="openSheet" data-k="about">この作品について</button>
       <button class="btn" data-a="openSheet" data-k="share">友だちに教える（URLを共有）</button>
     </div>
@@ -1402,6 +1407,14 @@ const ACT = {
   doRetreat(){ const st=G.st; const run=st.run; storeVitals(st,run); if(run.bag) st.bag=clone(run.bag); st.run=null; st.mapId=run.returnPos.map; st.pos={x:run.returnPos.x,y:run.returnPos.y}; G.sheet=null; commit(); G.screen="explore"; exploreBgm(); render(); toast("撤退した。"); },
   pauseBattle(){ commit(); openSheet("pause"); },
   setOpt(el){ if(G.sheet!=="settings"||G.dlg||G.st?.run||G.walk.path.length)return;const k=el.dataset.k;let v=el.dataset.v;if(!["difficulty","reduceMotion","follow","dock"].includes(k))return;if(k==="difficulty"){if(!Object.hasOwn(DIFFICULTY,v))return;}else{if(!["true","false"].includes(v))return;v=v==="true";}const s=G.st?G.st.settings:(G.tmpSettings=G.tmpSettings||{difficulty:"std",sound:soundPref(),reduceMotion:false});s[k]=v;if(G.st)commit();render(); },
+  titleMusic(el){
+    if(G.screen!=="title"||G.sheet||G.dlg||G.readOnly)return;
+    const want=el.dataset.play==="true";
+    if(want&&SND.volumes.music===0){openSheet("settings");toast("BGM音量を上げると音楽が流れます。");return;}
+    const on=SND.setOn(want);G.soundWant=want;try{localStorage.setItem("tlr-kyushu-sound",want?"1":"0");}catch(e){}
+    if(G.st){G.st.settings.sound=want;commit();}if(G.tmpSettings)G.tmpSettings.sound=want;
+    SND.play("title");if(want&&!on)toast("この端末では音を出せませんでした。");refreshTitleMusic();
+  },
   toggleSound(){ const want=!soundIsOn(); const on=SND.setOn(want); G.soundWant=want; try{ localStorage.setItem("tlr-kyushu-sound", want?"1":"0"); }catch(e){}
     if(G.st){ G.st.settings.sound=want; commit(); } if(G.tmpSettings) G.tmpSettings.sound=want;
     if(want&&!on) toast("この端末では音を出せませんでした。消音で続けます。"); render(); },

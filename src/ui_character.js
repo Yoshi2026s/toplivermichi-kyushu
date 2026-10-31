@@ -94,7 +94,7 @@ function renderTrainingSheet(){
   return `<p>街外の標的で、10ターン以内の実技に挑みます。全戦闘でオート利用可。5ターン以内の勝利で「締め前の余裕」を狙えます。</p>${can?"":'<p class="warn">街の出口から街外へ出てから挑戦できます。</p>'}<div class="stack">${JOB_IDS.map(job=>`<button class="btn" data-a="trainingStart" data-v="${job}" ${can&&!G.readOnly?"":"disabled"}>${esc(JOBS[job].name)}の実技${G.st.trainingWins?.[job]?"（達成済み）":""}</button>`).join("")}</div>`;
 }
 Object.assign(ACT,{
-  jobcenterView(el){if(!["jobcenter","jobCenter"].includes(G.sheet)||!["events","change"].includes(el.dataset.v))return;G.sheetData={view:el.dataset.v};render();},
+  jobcenterView(el){if(!["jobcenter","jobCenter"].includes(G.sheet)||!["events","change"].includes(el.dataset.v))return;const {query,cid}=G.sheetData;G.sheetData={view:el.dataset.v,query,cid};render();},
   jobcenterSearch(){if(!["jobcenter","jobCenter"].includes(G.sheet))return;G.sheetData.query=$("#jobcenterSearch")?.value||"";G.sheetData.page=0;render();},
   jobcenterPage(el){if(!["jobcenter","jobCenter"].includes(G.sheet))return;const n=Number(el.dataset.v);if(!Number.isInteger(n)||n<0)return;G.sheetData.page=n;render();},
   jobcenterActor(el){if(!["jobcenter","jobCenter"].includes(G.sheet)||!G.st.roster.includes(el.dataset.c))return;G.sheetData.cid=el.dataset.c;render();},

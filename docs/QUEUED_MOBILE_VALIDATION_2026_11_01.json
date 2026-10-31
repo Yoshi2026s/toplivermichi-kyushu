@@ -1,0 +1,195 @@
+[
+  {
+    "round": 1,
+    "label": "skill-native-search-and-reset",
+    "checkedAt": "2026-10-31T15:39:34.396Z",
+    "checks": [
+      {
+        "command": "scripts/check-queued-mobile.mjs",
+        "passed": true,
+        "output": "Additional-skill search uses Enter/reset without changing the battle\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 2,
+    "label": "skill-query-and-page-consistency",
+    "checkedAt": "2026-10-31T15:40:04.901Z",
+    "checks": [
+      {
+        "command": "scripts/check-queued-mobile.mjs",
+        "passed": true,
+        "output": "Additional-skill search uses Enter/reset without changing the battle\nSkill search accepts multiword/fullwidth input and paging retains the draft\n"
+      },
+      {
+        "command": "scripts/check-expanded-battle.mjs",
+        "passed": true,
+        "output": "Expanded battle: 5 abilities, 22 traits, 33 careers/66 equipment, 66 additional skills/22 inherited skills/9 signatures; crit/evasion RNG isolation, cooldowns, 66 job decisions, physical-field practice, reward and save guards passed\nComplete release UI: physical jobcenter, 66 decision flow, save rollback, read-only and facility guards, job change and battle skill entry passed\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 3,
+    "label": "concise-skill-cards-and-cooldown-labels",
+    "checkedAt": "2026-10-31T15:40:34.690Z",
+    "checks": [
+      {
+        "command": "scripts/check-queued-mobile.mjs",
+        "passed": true,
+        "output": "Additional-skill search uses Enter/reset without changing the battle\nSkill search accepts multiword/fullwidth input and paging retains the draft\nSkill list keeps effects/resources while moving learned requirements to details\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 4,
+    "label": "skill-target-selection-feedback",
+    "checkedAt": "2026-10-31T15:41:22.360Z",
+    "checks": [
+      {
+        "command": "scripts/check-queued-mobile.mjs",
+        "passed": true,
+        "output": "Additional-skill search uses Enter/reset without changing the battle\nSkill search accepts multiword/fullwidth input and paging retains the draft\nSkill list keeps effects/resources while moving learned requirements to details\nAdditional skill targets expose their selected state and meaningful group\n"
+      },
+      {
+        "command": "scripts/check-expanded-battle.mjs",
+        "passed": true,
+        "output": "Expanded battle: 5 abilities, 22 traits, 33 careers/66 equipment, 66 additional skills/22 inherited skills/9 signatures; crit/evasion RNG isolation, cooldowns, 66 job decisions, physical-field practice, reward and save guards passed\nComplete release UI: physical jobcenter, 66 decision flow, save rollback, read-only and facility guards, job change and battle skill entry passed\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 5,
+    "label": "staged-skill-back-and-focus",
+    "checkedAt": "2026-10-31T15:41:58.194Z",
+    "checks": [
+      {
+        "command": "scripts/check-control-actions.mjs",
+        "passed": true,
+        "output": "Control actions: back unwinds target/item/action, idle opens pause, ready action confirms, dialogue goes back, held movement releases\n"
+      },
+      {
+        "command": "scripts/check-queued-mobile.mjs",
+        "passed": true,
+        "output": "Additional-skill search uses Enter/reset without changing the battle\nSkill search accepts multiword/fullwidth input and paging retains the draft\nSkill list keeps effects/resources while moving learned requirements to details\nAdditional skill targets expose their selected state and meaningful group\nSkill detail Back preserves its battle/list context\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 6,
+    "label": "compact-pet-menu-and-copy",
+    "checkedAt": "2026-10-31T15:42:44.184Z",
+    "checks": [
+      {
+        "command": "scripts/check-queued-mobile.mjs",
+        "passed": true,
+        "output": "Additional-skill search uses Enter/reset without changing the battle\nSkill search accepts multiword/fullwidth input and paging retains the draft\nSkill list keeps effects/resources while moving learned requirements to details\nAdditional skill targets expose their selected state and meaningful group\nSkill detail Back preserves its battle/list context\nPet menu keeps the same actions in compact, clearly labelled groups\n"
+      },
+      {
+        "command": "scripts/check-pets.mjs",
+        "passed": true,
+        "output": "Pets: 22 species, 88 learned skills, 264 supplies, 10 stages, care/daily/capacity, travel, two battle companions, once-per-turn/resume, UI guards passed\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 7,
+    "label": "pet-filter-recovery-and-focus",
+    "checkedAt": "2026-10-31T15:44:27.015Z",
+    "checks": [
+      {
+        "command": "scripts/check-queued-mobile.mjs",
+        "passed": true,
+        "output": "Additional-skill search uses Enter/reset without changing the battle\nSkill search accepts multiword/fullwidth input and paging retains the draft\nSkill list keeps effects/resources while moving learned requirements to details\nAdditional skill targets expose their selected state and meaningful group\nSkill detail Back preserves its battle/list context\nPet menu keeps the same actions in compact, clearly labelled groups\nEmpty pet filters recover in one action and reject stale controls\n"
+      },
+      {
+        "command": "scripts/check-pets.mjs",
+        "passed": true,
+        "output": "Pets: 22 species, 88 learned skills, 264 supplies, 10 stages, care/daily/capacity, travel, two battle companions, once-per-turn/resume, UI guards passed\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 8,
+    "label": "pet-supply-paging",
+    "checkedAt": "2026-10-31T15:44:47.962Z",
+    "checks": [
+      {
+        "command": "scripts/check-queued-mobile.mjs",
+        "passed": true,
+        "output": "Additional-skill search uses Enter/reset without changing the battle\nSkill search accepts multiword/fullwidth input and paging retains the draft\nSkill list keeps effects/resources while moving learned requirements to details\nAdditional skill targets expose their selected state and meaningful group\nSkill detail Back preserves its battle/list context\nPet menu keeps the same actions in compact, clearly labelled groups\nEmpty pet filters recover in one action and reject stale controls\nPet supplies page counts follow stock and preserve the selected pet\n"
+      },
+      {
+        "command": "scripts/check-pets.mjs",
+        "passed": true,
+        "output": "Pets: 22 species, 88 learned skills, 264 supplies, 10 stages, care/daily/capacity, travel, two battle companions, once-per-turn/resume, UI guards passed\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 9,
+    "label": "ocean-dex-touch-and-paging",
+    "checkedAt": "2026-10-31T15:44:58.950Z",
+    "checks": [
+      {
+        "command": "scripts/check-queued-mobile.mjs",
+        "passed": true,
+        "output": "Additional-skill search uses Enter/reset without changing the battle\nSkill search accepts multiword/fullwidth input and paging retains the draft\nSkill list keeps effects/resources while moving learned requirements to details\nAdditional skill targets expose their selected state and meaningful group\nSkill detail Back preserves its battle/list context\nPet menu keeps the same actions in compact, clearly labelled groups\nEmpty pet filters recover in one action and reject stale controls\nPet supplies page counts follow stock and preserve the selected pet\nOcean pages reject stale controls and expose a large area picker\n"
+      },
+      {
+        "command": "scripts/check-ocean.mjs",
+        "passed": true,
+        "output": "Ocean: 65 areas, 3,250 distinct enemy records, 8 connected routes (224 cells/216 sea), safe ports, 40 rendered forms, capped caches, isolated kills, transactional once-only events and save/read-only/stale guards passed\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 10,
+    "label": "clear-story-status-labels",
+    "checkedAt": "2026-10-31T15:45:07.530Z",
+    "checks": [
+      {
+        "command": "scripts/check-queued-mobile.mjs",
+        "passed": true,
+        "output": "Additional-skill search uses Enter/reset without changing the battle\nSkill search accepts multiword/fullwidth input and paging retains the draft\nSkill list keeps effects/resources while moving learned requirements to details\nAdditional skill targets expose their selected state and meaningful group\nSkill detail Back preserves its battle/list context\nPet menu keeps the same actions in compact, clearly labelled groups\nEmpty pet filters recover in one action and reject stale controls\nPet supplies page counts follow stock and preserve the selected pet\nOcean pages reject stale controls and expose a large area picker\nParty and status screens explain story rank without repeating the partner name\n"
+      },
+      {
+        "command": "scripts/check-control-actions.mjs",
+        "passed": true,
+        "output": "Control actions: back unwinds target/item/action, idle opens pause, ready action confirms, dialogue goes back, held movement releases\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 11,
+    "label": "pet-artwork-overlap-debug",
+    "checkedAt": "2026-10-31T15:49:10.655Z",
+    "checks": [
+      {
+        "command": "scripts/check-pets.mjs",
+        "passed": true,
+        "output": "Pets: 22 species, 88 learned skills, 264 supplies, 10 stages, care/daily/capacity, travel, two battle companions, once-per-turn/resume, UI guards passed\n"
+      },
+      {
+        "command": "scripts/check-queued-mobile.mjs",
+        "passed": true,
+        "output": "Additional-skill search uses Enter/reset without changing the battle\nSkill search accepts multiword/fullwidth input and paging retains the draft\nSkill list keeps effects/resources while moving learned requirements to details\nAdditional skill targets expose their selected state and meaningful group\nSkill detail Back preserves its battle/list context\nPet menu keeps the same actions in compact, clearly labelled groups\nEmpty pet filters recover in one action and reject stale controls\nPet supplies page counts follow stock and preserve the selected pet\nOcean pages reject stale controls and expose a large area picker\nParty and status screens explain story rank without repeating the partner name\n"
+      },
+      {
+        "command": "scripts/test-queued-mobile-ui.mjs",
+        "passed": true,
+        "output": "PASS queued mobile standard\nPASS queued mobile small\nPASS queued mobile landscape\nPASS queued mobile short\nPASS queued mobile narrow\nPASS queued mobile keyboard\n"
+      }
+    ],
+    "passed": true
+  }
+]

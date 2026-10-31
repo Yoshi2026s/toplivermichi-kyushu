@@ -51,7 +51,7 @@ function oceanOverview(){
     ${pending&&G.sheetData.opState===st?`<div class="qcard"><b>${esc(eventLabels[pending.event])}を実行します</b><p class="small">報酬はこの海域で一度だけです。</p><button class="btn primary" data-a="oceanEventDo" data-area="${pending.area}" data-event="${pending.event}" data-token="${esc(pending.token)}" ${G.oceanSaving?"disabled":""}>確定する</button><button class="btn" data-a="oceanEventCancel" ${G.oceanSaving?"disabled":""}>やめる</button></div>`:eventCards}
     <button class="btn" data-a="oceanDexOpen" data-area="${id}">海洋モンスター図鑑（65海域・3,250項目）</button>
     ${atSea&&localMap.oceanRoute===a.routeId?`<button class="btn" data-a="oceanMoveArea" data-area="${id}" ${G.readOnly?"disabled":""}>${esc(a.name)}の海面へ歩く</button>`:""}
-    <details><summary>海域を選ぶ（65海域）</summary>${Object.values(OCEAN_ROUTES).map(v=>`<h3 class="label">${esc(OCEAN_THEMES.find(t=>t.id===v.theme).name)}</h3><div class="stack">${v.areas.map(k=>`<button class="btn ${k===id?"on":""}" data-a="oceanArea" data-area="${k}">${esc(OCEAN_AREAS[k].name)}・Lv${OCEAN_AREAS[k].q}</button>`).join("")}</div>`).join("")}</details>
+    <details class="ocean-area-picker"><summary>海域を選ぶ（65海域）</summary>${Object.values(OCEAN_ROUTES).map(v=>`<h3 class="label">${esc(OCEAN_THEMES.find(t=>t.id===v.theme).name)}</h3><div class="stack">${v.areas.map(k=>`<button class="btn ${k===id?"on":""}" data-a="oceanArea" data-area="${k}">${esc(OCEAN_AREAS[k].name)}・Lv${OCEAN_AREAS[k].q}</button>`).join("")}</div>`).join("")}</details>
     <h3 class="label">8地方の新航路</h3><div class="stack">${Object.values(OCEAN_ROUTES).map(v=>{
       const unlocked=oceanRouteAvailable(st,v.id),atPort=st.mapId===v.hub;
       return `<div class="qcard"><b>${esc(v.name)}</b><p class="small">${esc(HUBS[v.hub].name)}の港／${unlocked?"解放済み":`「${esc(QUESTS[v.quest].name)}」完了で解放`}。港1・指定海面27区画。</p><button class="btn" data-a="oceanDepart" data-route="${v.id}" ${unlocked&&atPort&&!G.readOnly?"":"disabled"}>港まで歩いて出発</button>${atPort?"":`<p class="small">${esc(HUBS[v.hub].name)}の街から出発します。</p>`}</div>`;
@@ -60,11 +60,11 @@ function oceanOverview(){
 function oceanDexHtml(){
   const st=G.st,id=oceanDefaultArea(),a=OCEAN_AREAS[id],page=Math.max(0,Math.min(4,Number(G.sheetData.page)||0)),seen=Object.keys(st.seen||{}).filter(k=>k.startsWith("OCN-")).length;
   return `<p>海洋図鑑 ${seen}/${OCEAN_ENEMY_COUNT}項目。各海域に5系統×10段階。姿は地方ごとの創作です。</p><h3 class="label">${esc(a.name)}（${esc(OCEAN_THEMES[a.region].name)}）</h3><p class="small">出現場所：航路E・海辺S。適正レベル${a.q}。港は安全です。</p>
-    <div class="row3"><button class="btn" data-a="oceanDexPage" data-page="${page-1}" ${page>0?"":"disabled"}>前の10件</button><span>${page+1}/5ページ</span><button class="btn" data-a="oceanDexPage" data-page="${page+1}" ${page<4?"":"disabled"}>次の10件</button></div>
+    <div class="row3"><button class="btn" data-a="oceanDexPage" data-page="${page-1}" ${page>0?"":"disabled"}>前の10件</button><span role="status">${page+1}/5ページ</span><button class="btn" data-a="oceanDexPage" data-page="${page+1}" ${page<4?"":"disabled"}>次の10件</button></div>
     <div class="stack">${Array.from({length:10},(_,i)=>{
       const idx=page*10+i,e=oceanEnemyDef(id,idx),known=!!st.seen[e.id];
       return `<div class="qcard"><canvas data-ocean-sprite="${id}|${idx}" width="64" height="64" style="width:64px;height:64px;image-rendering:pixelated" aria-hidden="true"></canvas><b>${known?"● 遭遇済み":"○ 未遭遇"} ${esc(e.name)}</b><p class="small">${esc(e.id)}／${e.species}系・${e.stage}/10段階／推奨${e.q}／討伐${st.killCount[e.id]||0}体</p><p class="small">${esc(e.trait)} ${esc(e.counter)}</p></div>`;
-    }).join("")}</div><details><summary>別の海域を選ぶ</summary><div class="stack">${Object.values(OCEAN_AREAS).map(v=>`<button class="btn" data-a="oceanDexArea" data-area="${v.id}">${esc(v.name)}</button>`).join("")}</div></details>`;
+    }).join("")}</div><details class="ocean-area-picker"><summary>別の海域を選ぶ</summary><div class="stack">${Object.values(OCEAN_AREAS).map(v=>`<button class="btn" data-a="oceanDexArea" data-area="${v.id}">${esc(v.name)}</button>`).join("")}</div></details>`;
 }
 renderSheet=function(){
   if(G.sheet==="ocean")return oceanSheetWrap("航海・海上イベント",oceanOverview());

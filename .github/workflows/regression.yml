@@ -48,6 +48,9 @@ jobs:
       - run: node scripts/test-list-search-ui.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-queued-mobile-ui.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - run: node scripts/test-result-overview.mjs
         env:
           MOBILE_BROWSER: chromium
@@ -80,6 +83,8 @@ jobs:
         with:
           name: mobile-emulation
           path: |
+            .task/queued-mobile/*.png
+            .task/queued-mobile/report.json
             .task/list-search/*.png
             .task/list-search/report.json
             .task/mobile-copy/*.png

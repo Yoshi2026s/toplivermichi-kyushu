@@ -5383,7 +5383,7 @@ function claimOceanEvent(st,areaId,event,context={}){
 }
 
 /* 専用ドット画像。海洋敵96件・海戦背景24件までのLRU。 */
-const OCEAN_ART_CACHE={enemies:new Map(),backgrounds:new Map(),maps:new Map(),ships:new Map()};
+const OCEAN_ART_CACHE={enemies:new Map(),backgrounds:new Map(),maps:new Map(),ships:new Map(),markers:new Map()};
 function oceanCached(cache,key,limit,make){if(cache.has(key)){const value=cache.get(key);cache.delete(key);cache.set(key,value);return value;}const value=make();cache.set(key,value);while(cache.size>limit)cache.delete(cache.keys().next().value);return value;}
 function oceanCanvas(w,h){const c=document.createElement("canvas");c.width=w;c.height=h;return [c,c.getContext("2d")];}
 function oceanEnemySprite(region,family,frame=0,size=32){
@@ -5421,7 +5421,7 @@ function installOceanArt(){
   ART.enemy=function(profile,species,attr,area,frame,size=32,boss=false){const a=OCEAN_AREAS[area];if(a&&!boss)return oceanEnemySprite(a.region,Math.max(0,Number(String(profile).replace("OF",""))-1),frame,size);return landEnemy(profile,species,attr,area,frame,size,boss);};
   ART.stage=(area,frame)=>OCEAN_AREAS[area]?oceanBattleStage(area,frame):landStage(area,frame);
   ART.mapLayer=(map,frame)=>MAPS[map]?.combatDomain==="sea"?oceanMapLayer(map,frame):landMap(map,frame);
-  ART.object=function(type,frame){if(type!=="oceanEvent")return landObject(type,frame);const [c,g]=oceanCanvas(16,24);g.fillStyle="#F4ECD8";g.fillRect(5,7,6,15);g.fillStyle="#B84B4B";g.fillRect(4,6,8,4);g.fillStyle="#D5B34C";g.fillRect(6,3,4,4);return c;};
+  ART.object=function(type,frame){if(type!=="oceanEvent")return landObject(type,frame);return oceanCached(OCEAN_ART_CACHE.markers,"event",1,()=>{const [c,g]=oceanCanvas(16,24);g.fillStyle="#F4ECD8";g.fillRect(5,7,6,15);g.fillStyle="#B84B4B";g.fillRect(4,6,8,4);g.fillStyle="#D5B34C";g.fillRect(6,3,4,4);return c;});};
 }
 
 /* 表示用の時刻は保存せず、直近の文・名の重複回避だけを対象セーブへ保存する。 */
@@ -5548,7 +5548,7 @@ function acquireLock(){
 /* OSの演出抑制も、保存内の設定を変えずに尊重する。 */
 function reducedMotion(){
   const settings=G.st?.settings||G.tmpSettings;
-  return !!settings?.reduceMotion || !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  return !!settings?.reduceMotion || !!(reducedMotion.preference ||= window.matchMedia?.("(prefers-reduced-motion: reduce)"))?.matches;
 }
 /* ===== ui 共通 ===== */
 const $ = s=>document.querySelector(s);
@@ -5813,6 +5813,11 @@ function drawMiniMap(m,cam){
  cv.miniMapModel=m;cv.miniMapKey=key;
 }
 function drawMapAmbient(g,m,cam,now,still,vw,vh){if(still)return;g.save();g.lineWidth=.55;const phase=now/700;for(let y=Math.max(0,Math.floor(cam.y/16));y<Math.min(m.h,Math.ceil((cam.y+vh)/16));y++)for(let x=Math.max(0,Math.floor(cam.x/16));x<Math.min(m.w,Math.ceil((cam.x+vw)/16));x++){const tile=m.tiles[y][x],xx=x*16-cam.x,yy=y*16-cam.y;if(tile==='~'||m.combatDomain==='sea'&&'ES'.includes(tile)){g.strokeStyle='#c4edf05c';const offset=Math.sin(phase+x*.7+y)*2;g.beginPath();g.moveTo(xx+2,yy+6+offset);g.quadraticCurveTo(xx+8,yy+3+offset,xx+14,yy+6+offset);g.stroke();}else if(['.','f','T'].includes(tile)&&(x+y)%3===0){const sway=Math.sin(phase+x+y)*1.7;g.strokeStyle='#8cbe6870';g.beginPath();g.moveTo(xx+5,yy+13);g.quadraticCurveTo(xx+4+sway,yy+9,xx+5+sway,yy+6);g.moveTo(xx+8,yy+13);g.lineTo(xx+8+sway,yy+8);g.stroke();}}g.restore();}
+function mapObjectVisible(o,cam,vw,vh){
+  // Include the tallest boss, NPC sway and shadows beyond a tile's anchor.
+  const x=o.x*16,y=o.y*16;
+  return x+32>=cam.x&&x-16<=cam.x+vw&&y+24>=cam.y&&y-40<=cam.y+vh;
+}
 function drawMap(){
   const cv=G.cv; if(!cv||!cv.isConnected) return; const g=cv.getContext("2d"); g.imageSmoothingEnabled=true; g.imageSmoothingQuality="high";
   const st=G.st, m=MAPS[st.mapId]; const cam=camera(); drawMiniMap(m,cam); const now=performance.now();
@@ -5825,6 +5830,7 @@ function drawMap(){
   drawMapAmbient(g,m,cam,now,still,vw,vh);
   const sprites=[];
   for(const o of m.objects){
+    if(!mapObjectVisible(o,cam,vw,vh))continue;
     let img;
     if(o.type==="npc"){ const n=NPCS[o.npc]; img = o.npc==="moe"? charSprite("moe",0,0) : ART.person(o.npc,n.sprite[1],n.sprite[0],0,f2*2,{long:["akari","chiyo","misuzu"].includes(o.npc)}); }
     else if(o.type==="shop"){ const n=NPCS[o.npc]; sprites.push({y:o.y-0.1,img:ART.object("shop",0),x:o.x}); img=ART.person(o.npc,n.sprite[1],n.sprite[0],0,f2*2); }

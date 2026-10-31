@@ -33,6 +33,9 @@ jobs:
       - run: node scripts/test-map-ui.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-map-visibility.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - run: node scripts/test-smooth-runtime.mjs
         env:
           MOBILE_BROWSER: chromium
@@ -108,6 +111,8 @@ jobs:
             .task/mobile-usability/audit.json
             .task/smooth-runtime/*.png
             .task/smooth-runtime/report.json
+            .task/map-visibility/*.png
+            .task/map-visibility/report.json
             .task/photo-layout/*.png
             .task/photo-layout/report.json
             .task/pet-rarity/*.png

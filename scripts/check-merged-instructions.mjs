@@ -37,7 +37,7 @@ delete navigator.share;await share.native();
 const settings={reduceMotion:false};let osReduce=true;
 const G={st:{settings},readOnly:true};
 const reduced=ui.match(/function reducedMotion\(\)\{[\s\S]*?\n\}/)[0];
-const check=runInNewContext(`${reduced}\nreducedMotion`,{G,window:{matchMedia:()=>({matches:osReduce})}});
+const check=runInNewContext(`${reduced}\nreducedMotion`,{G,window:{matchMedia:()=>({get matches(){return osReduce;}})}});
 assert(check()); assert.equal(settings.reduceMotion,false);osReduce=false;assert(!check());settings.reduceMotion=true;assert(check());
 const guardSource=readFileSync(resolve(root,'src','ui_guards.js'),'utf8');
 const readOnlyAllowed=JSON.parse(guardSource.match(/const READ_ONLY_ACTIONS=new Set\((\[[\s\S]*?\])\);/)?.[1]||'[]');

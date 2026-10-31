@@ -100,6 +100,7 @@ const SND = (()=>{
     if(ac) return true;
     try{
       ac=new (window.AudioContext||window.webkitAudioContext)({latencyHint:"interactive"});
+      ac.addEventListener?.("statechange",()=>{if(typeof refreshTitleMusic==="function")refreshTitleMusic();});
       const comp=ac.createDynamicsCompressor(); comp.threshold.value=-16; comp.knee.value=12; comp.ratio.value=3.5; comp.attack.value=0.004; comp.release.value=0.18;
       master=ac.createGain(); master.gain.value=0.85; master.connect(comp); comp.connect(ac.destination);
       const low=ac.createBiquadFilter(); low.type="lowshelf"; low.frequency.value=140; low.gain.value=2.5;
@@ -297,5 +298,5 @@ const SND = (()=>{
   }
   function suspend(){ if(jingleT){ clearTimeout(jingleT); jingleT=null; } stopBgm(); stopSources(); if(ac&&ac.state==="running") ac.suspend().catch(()=>{}); }
   function resume(){ if(!on||!ac) return; if(ac.state==="suspended") ac.resume().catch(()=>{}); if(timer||jingleT) return; const c=cur; cur=null; if(c) play(c); }
-  return { sceneForMap,play, jingle, sfx, setOn, setVolumes, suspend, resume, get songs(){return Object.keys(SONGS);},get scores(){return Object.fromEntries(Object.entries(SONGS).map(([id,s])=>[id,{bars:s.chords.split(' ').length,bpm:s.bpm,seconds:s.chords.split(' ').length*240/s.bpm}]));},get instrumentation(){return {sampledInstruments:sampleBanks.size,sampleNotes,droppedSampleNotes};},get metrics(){return {...timing};},get sourceCount(){return activeSources.size;},get volumes(){return {music:musicVolume,effects:effectVolume};}, get on(){return on;}, get current(){return cur;} };
+  return { sceneForMap,play, jingle, sfx, setOn, setVolumes, suspend, resume, get songs(){return Object.keys(SONGS);},get scores(){return Object.fromEntries(Object.entries(SONGS).map(([id,s])=>[id,{bars:s.chords.split(' ').length,bpm:s.bpm,seconds:s.chords.split(' ').length*240/s.bpm}]));},get instrumentation(){return {sampledInstruments:sampleBanks.size,sampleNotes,droppedSampleNotes};},get metrics(){return {...timing};},get sourceCount(){return activeSources.size;},get volumes(){return {music:musicVolume,effects:effectVolume};}, get playing(){return !!(on&&ac?.state==="running"&&timer&&!pageHidden());}, get on(){return on;}, get current(){return cur;} };
 })();

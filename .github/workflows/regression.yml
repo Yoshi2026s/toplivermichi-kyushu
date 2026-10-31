@@ -30,6 +30,9 @@ jobs:
       - run: npm run test:mobile
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-map-ui.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - run: npm run test:battle-ui
         env:
           MOBILE_BROWSER: chromium

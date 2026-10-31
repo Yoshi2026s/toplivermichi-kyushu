@@ -47,7 +47,7 @@ try{
       await closeDialogs(page);await page.locator('#map').waitFor();await layout(page);
       await page.screenshot({path:resolve(output,device+'-map.png')});steps.push('touch setup, start game and dialogue');
       await page.locator('[data-a="openSheet"][data-k="menu"]').tap();
-      await page.locator('[data-a="openSheet"][data-k="settings"]').tap();await layout(page);
+      await page.locator('.overlay [data-a="openSheet"][data-k="settings"]').tap();await layout(page);
       await page.screenshot({path:resolve(output,device+'-settings.png')});
       const prior=await page.evaluate(()=>({name:G.st.profile.name,gold:G.st.gold,mapId:G.st.mapId,moveSpeed:G.st.settings.moveSpeed}));
       await page.locator('[data-a="moveSpeed"]').tap();

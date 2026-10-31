@@ -567,10 +567,19 @@ p{margin:0 0 8px;overflow-wrap:anywhere}.kv{grid-template-columns:minmax(88px,.8
 .mapwrap{background:linear-gradient(135deg,#b8cbaa,#526c65);border-color:#d7c38d;box-shadow:inset 0 0 18px #102b3b55,0 0 0 1px #d1c29b33}
 @media(min-height:760px){.battle .enemies{min-height:150px;padding-top:50px;align-content:end}}
 .mapwrap[data-map-kind="town"]{background:linear-gradient(135deg,#777763,#3e535b);border-color:#e0c58f}.mapwrap[data-map-kind="field"]{background:linear-gradient(135deg,#436550,#1a3843);border-color:#83ab8e}
+/* 2列メニューとスティック左の戻る操作 */
+body.in-explore:not(.no-dock){--dockH:116px}
+.dock{gap:8px;padding-left:10px;padding-right:10px}.dock-center{flex:1;min-width:0;order:1}.dock-actions{width:100%}.dock-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.dock-actions .btn{min-height:48px;padding:4px;font-size:13px;white-space:nowrap}.dock-back{order:2;min-width:48px;width:48px;padding:3px;font-size:14px}.dock .stick{order:3;width:86px;height:86px}
+body:not(.in-explore) .dock-actions{display:none}
+#minimap{position:absolute;left:8px;top:8px;width:clamp(72px,24vw,112px);height:auto;border:2px solid #e8d8a8;border-radius:5px;box-shadow:0 2px 5px #10283888;pointer-events:none;image-rendering:pixelated;background:#17322d;opacity:.94}
+@media(max-width:350px){.dock{gap:5px;padding-left:6px;padding-right:6px}.stick{width:70px;height:70px}.dock-actions .btn{font-size:12px}}
+@media(max-height:500px){body.in-explore:not(.no-dock){--dockH:108px}.dock-actions{gap:3px}}
 </style>
 <main id="screen" aria-live="off"></main>
 <div id="dock" class="dock" aria-label="ジョイコントローラー">
   <button class="btn dock-back" data-pad="back" aria-label="戻る">戻る</button>
-  <div class="dock-center"><div class="hint">スティックで移動・中央で決定</div></div>
+  <div class="dock-center"><nav class="dock-actions" aria-label="冒険メニュー">
+<button class="btn" data-a="openSheet" data-k="quests">やる事リスト</button><button class="btn" data-a="openSheet" data-k="guide">オート移動</button><button class="btn" data-a="openSheet" data-k="menu">メニュー</button><button class="btn" data-a="openSheet" data-k="settings">設定・保存</button>
+</nav></div>
   <div class="stick" role="application" aria-label="スティック。ドラッグで移動・カーソル移動、中央で決定"><div class="ring"></div><div class="knob"><button class="stick-confirm" aria-label="決定">決定</button></div></div>
 </div>

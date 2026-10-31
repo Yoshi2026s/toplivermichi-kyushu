@@ -881,11 +881,20 @@ p{margin:0 0 8px;overflow-wrap:anywhere}.kv{grid-template-columns:minmax(88px,.8
 .mapwrap{background:linear-gradient(135deg,#b8cbaa,#526c65);border-color:#d7c38d;box-shadow:inset 0 0 18px #102b3b55,0 0 0 1px #d1c29b33}
 @media(min-height:760px){.battle .enemies{min-height:150px;padding-top:50px;align-content:end}}
 .mapwrap[data-map-kind="town"]{background:linear-gradient(135deg,#777763,#3e535b);border-color:#e0c58f}.mapwrap[data-map-kind="field"]{background:linear-gradient(135deg,#436550,#1a3843);border-color:#83ab8e}
+/* 2列メニューとスティック左の戻る操作 */
+body.in-explore:not(.no-dock){--dockH:116px}
+.dock{gap:8px;padding-left:10px;padding-right:10px}.dock-center{flex:1;min-width:0;order:1}.dock-actions{width:100%}.dock-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.dock-actions .btn{min-height:48px;padding:4px;font-size:13px;white-space:nowrap}.dock-back{order:2;min-width:48px;width:48px;padding:3px;font-size:14px}.dock .stick{order:3;width:86px;height:86px}
+body:not(.in-explore) .dock-actions{display:none}
+#minimap{position:absolute;left:8px;top:8px;width:clamp(72px,24vw,112px);height:auto;border:2px solid #e8d8a8;border-radius:5px;box-shadow:0 2px 5px #10283888;pointer-events:none;image-rendering:pixelated;background:#17322d;opacity:.94}
+@media(max-width:350px){.dock{gap:5px;padding-left:6px;padding-right:6px}.stick{width:70px;height:70px}.dock-actions .btn{font-size:12px}}
+@media(max-height:500px){body.in-explore:not(.no-dock){--dockH:108px}.dock-actions{gap:3px}}
 </style>
 <main id="screen" aria-live="off"></main>
 <div id="dock" class="dock" aria-label="ジョイコントローラー">
   <button class="btn dock-back" data-pad="back" aria-label="戻る">戻る</button>
-  <div class="dock-center"><div class="hint">スティックで移動・中央で決定</div></div>
+  <div class="dock-center"><nav class="dock-actions" aria-label="冒険メニュー">
+<button class="btn" data-a="openSheet" data-k="quests">やる事リスト</button><button class="btn" data-a="openSheet" data-k="guide">オート移動</button><button class="btn" data-a="openSheet" data-k="menu">メニュー</button><button class="btn" data-a="openSheet" data-k="settings">設定・保存</button>
+</nav></div>
   <div class="stick" role="application" aria-label="スティック。ドラッグで移動・カーソル移動、中央で決定"><div class="ring"></div><div class="knob"><button class="stick-confirm" aria-label="決定">決定</button></div></div>
 </div>
 <script>
@@ -1351,7 +1360,7 @@ const NPCS = {
     first:p=>[["案内人",`${p}さん、佐賀市へようこそ。唐津での配信を聞きました。`],["案内人","街灯の広場で声が重なっています。やる事でM04を受け、川沿いと駅前から調べてください。"]],
     normal:p=>[["案内人","唐津へは西の門から戻れます。街灯の広場へ向かう前に宿屋で整えてください。"]]},
   karatsuGuide:{name:"唐津の案内人", hub:"KY03", sprite:[PAL.sand,PAL.sea],
-    first:p=>[["案内人",`${p}さん、唐津へようこそ。海辺の案内板から、この街の声を聞いてみてください。`],["案内人","見晴らし台の返事が乱れています。やる事でM03を受け、海辺の探索区域を調べてください。"]],
+    first:p=>[["案内人",`${p}さん、唐津へようこそ。海辺を歩いて、この街の声を聞いてみてください。`],["案内人","見晴らし台の返事が乱れています。やる事でM03を受け、海辺の探索区域を調べてください。"]],
     normal:p=>[["案内人","北九州へは西の門から戻れます。見晴らし台へ行く前に宿屋で整えてください。"]] },
   moe:{name:"もえ", sprite:[PAL.cream,PAL.violet]}
 };
@@ -2146,6 +2155,9 @@ for(const m of Object.values(MAPS)) for(const o of m.objects){
     if(entrance){o.tx=entrance.x;o.ty=entrance.y+1;}else [o.tx,o.ty]=MAPS[o.to].safeAnchor;
   }
 }
+
+// 案内板を撤去。区域IDと保存形式は維持する。
+for(const m of Object.values(MAPS))m.objects=m.objects.filter(o=>o.type!=='sign'&&!(o.type==='landmark'&&o.label.includes('案内板')));
 
 /* 能力・職業特性・職歴装備。旧セーブの数値と所持品は移行時に保持する。 */
 const CHARACTER_SYSTEM_VERSION=1;
@@ -4422,7 +4434,7 @@ const WORLD_ART=(()=>{
    regionalBuilding(g,m,b,tile,index);
    g.fillStyle='#dfcba7';g.fillRect(cx-tile*.5,dy,tile,tile);g.fillStyle=b.service?'#233b43':'#70523c';g.fillRect(cx-tile*.29,dy+tile*.1,tile*.58,tile*.85);g.strokeStyle='#a4895a';g.lineWidth=ratio*.6;g.strokeRect(cx-tile*.29,dy+tile*.1,tile*.58,tile*.85);
    if(!b.service){g.fillStyle='#dfc98b';g.beginPath();g.arc(cx+tile*.17,dy+tile*.59,ratio*.7,0,Math.PI*2);g.fill();}
-   if(b.service){const label=({shop:'道具店',inn:'宿屋',jobcenter:'職業窓口',door:'入口'})[b.service],tw=Math.max(tile*1.4,label.length*tile*.34);g.fillStyle='#142d3ee8';g.fillRect(cx-tw/2,dy-tile*1.72,tw,tile*.52);g.strokeStyle='#e0bf80';g.lineWidth=ratio*.4;g.strokeRect(cx-tw/2,dy-tile*1.72,tw,tile*.52);g.fillStyle='#fff0c8';g.font='600 '+tile*.32+'px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(label,cx,dy-tile*1.45);}
+   if(b.service){const label=({shop:'わくわく道具店',inn:'ほっと宿屋',jobcenter:'おしごと広場',door:'ようこそ！'})[b.service],tw=Math.max(tile*1.4,label.length*tile*.34);g.fillStyle=b.service==='shop'?'#b84b60':'#286b70';g.fillRect(cx-tw/2-2,dy-tile*1.72-2,tw+4,tile*.62);g.strokeStyle='#e0bf80';g.lineWidth=ratio*.4;g.strokeRect(cx-tw/2,dy-tile*1.72,tw,tile*.52);g.fillStyle='#fff0c8';g.font='800 '+tile*.32+'px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(label,cx,dy-tile*1.45);}
   }
   // Broad, static daylight and soft cloud shadows add depth without per-frame work.
   const glow=g.createLinearGradient(0,0,c.width,c.height);glow.addColorStop(0,'#fff1c31f');glow.addColorStop(.5,'#fff9e500');glow.addColorStop(1,'#0a344827');g.fillStyle=glow;g.fillRect(0,0,c.width,c.height);
@@ -5378,7 +5390,14 @@ function curHub(){ return hubOf(G.st.mapId); }
 function tileAt(m,x,y){ return (m.tiles[y]&&m.tiles[y][x])||"T"; }
 function objAt(m,x,y){ return m.objects.find(o=>o.x===x&&o.y===y); }
 function walkable(m,x,y){ const o=objAt(m,x,y); if(o) return !!o.walk; return ".,123w=".includes(tileAt(m,x,y)); }
-function zoneAt(m,x,y){ if(m.kind!=="field") return null; const o=objAt(m,x,y); if(o&&o.walk) return null; return m.zones[tileAt(m,x,y)]||null; }
+const fieldZoneCache=new WeakMap();
+function zoneAt(m,x,y){ if(m.kind!=="field") return null; const o=objAt(m,x,y); if(o&&o.walk) return null; const direct=m.zones[tileAt(m,x,y)];if(direct)return direct;
+ if(m.combatDomain==='sea'||!walkable(m,x,y))return null;
+ let cache=fieldZoneCache.get(m);if(!cache){cache={cells:new Map(),seeds:[]};for(let yy=0;yy<m.h;yy++)for(let xx=0;xx<m.w;xx++){const area=m.zones[m.tiles[yy][xx]];if(area)cache.seeds.push({x:xx,y:yy,area});}fieldZoneCache.set(m,cache);}
+ const key=y*m.w+x;if(cache.cells.has(key))return cache.cells.get(key);
+ let best=null,distance=Infinity;for(const seed of cache.seeds){const d=Math.abs(x-seed.x)+Math.abs(y-seed.y);if(d<distance){best=seed.area;distance=d;}}
+ cache.cells.set(key,best);return best; }
+function encounterDenominator(m,x,y){const base=m.encounterRate||24;return m.combatDomain!=='sea'&&',w='.includes(tileAt(m,x,y))?Math.round(base*1.17):base;}
 function isSafe(){ return MAPS[G.st.mapId].kind!=="field"; }
 function busyReason(){ const st=G.st; if(st.run) return "戦闘中です。"; return null; }
 function objective(){
@@ -5407,8 +5426,8 @@ function render(){
   else if(s==="battle") html=renderBattle();
   else if(s==="result") html=renderResult();
   root.innerHTML = html + renderSheet() + renderDialog() + `<div id="toast" class="toast" role="status" hidden></div>`;
-  if(s==="explore") mountCanvas();
   document.body.classList.toggle("in-battle", s==="battle"); document.body.classList.toggle("in-explore", s==="explore");
+  if(s==="explore") mountCanvas();
   if(s==="battle"){ drawEnemies(); startBattleTimer(); }
   if(s==="new") mountNew();
   if(s==="title")SOFT_ART.title($("#titleArt"));
@@ -5541,14 +5560,11 @@ function renderExplore(){
       <div class="xsave small" aria-live="polite">保存：<span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（閲覧のみ）":""}</div>
     </header>
     <div class="mapwrap" data-map-kind="${esc(m.kind)}"><canvas id="map" aria-label="${esc(m.name)}の地図。地面をタップすると移動します。"></canvas>
+      <canvas id="minimap" aria-label="全体ミニマップ。白丸は現在地、白枠は表示範囲"></canvas>
       ${exit?`<button class="btn map-exit" data-a="guideTo" data-v="${exit.id}">${m.kind==="town"?"街外へ":"街へ戻る"}</button>`:""}
     </div>
     ${partyStrip()}
-    <nav class="menu-grid explore-actions" aria-label="MAP操作">
-      <button class="btn" data-a="openSheet" data-k="quests">やる事</button>
-      <button class="btn" data-a="openSheet" data-k="guide">オート移動</button>
-      <button class="btn primary" data-a="openSheet" data-k="menu">メニュー</button>
-    </nav>
+
   </section>`;
 }
 function nearbyObjects(){ const st=G.st, m=MAPS[st.mapId]; return m.objects.filter(o=>Math.max(Math.abs(o.x-st.pos.x),Math.abs(o.y-st.pos.y))<=1 && o.type!=="tower"); }
@@ -5576,9 +5592,29 @@ function playerPixel(){
   if(w.path.length){ const n=w.path[0]; x+= (n.x-st.pos.x)*16*w.prog; y+=(n.y-st.pos.y)*16*w.prog; }
   return {x:x, y:y};
 }
+let bossBaseImage=null;
+function bossBaseSprite(){
+ if(bossBaseImage)return bossBaseImage;
+ const c=document.createElement('canvas');c.width=64;c.height=96;const g=c.getContext('2d');
+ g.fillStyle='#242733';g.fillRect(7,27,50,59);g.fillStyle='#4e5060';g.fillRect(3,19,15,67);g.fillRect(46,19,15,67);
+ g.fillStyle='#28232e';for(const x of [3,46]){g.beginPath();g.moveTo(x-2,20);g.lineTo(x+7.5,3);g.lineTo(x+17,20);g.fill();}
+ g.fillStyle='#22232d';g.fillRect(16,20,32,8);for(let x=17;x<48;x+=9)g.fillRect(x,14,5,7);
+ g.fillStyle='#ac4153';g.fillRect(10,29,7,21);g.fillRect(47,29,7,21);g.fillStyle='#e6c082';g.fillRect(10,29,7,3);g.fillRect(47,29,7,3);
+ g.fillStyle='#c18d77';g.beginPath();g.arc(32,64,12,Math.PI,0);g.lineTo(44,86);g.lineTo(20,86);g.fill();g.fillStyle='#130f20';g.beginPath();g.arc(32,65,9,Math.PI,0);g.lineTo(41,86);g.lineTo(23,86);g.fill();
+ g.fillStyle='#df8555';for(const x of [14,47]){g.fillRect(x,61,3,10);g.beginPath();g.moveTo(x-2,61);g.lineTo(x+2,50);g.lineTo(x+6,61);g.fill();}
+ g.fillStyle='#ada4a3';g.fillRect(18,86,28,3);g.fillRect(14,90,36,3);c.bossBase=true;bossBaseImage=c;return c;
+}
+function drawMiniMap(m,cam){
+ const cv=document.getElementById('minimap');if(!cv)return;
+ const g=cv.getContext('2d'),u=2;cv.width=m.w*u;cv.height=m.h*u;
+ for(let y=0;y<m.h;y++)for(let x=0;x<m.w;x++){const t=m.tiles[y][x];g.fillStyle=t==='~'?'#487f9b':t==='T'?'#294f40':',w='.includes(t)?'#dfc88d':t==='#'||t==='c'?'#88665c':'#739366';g.fillRect(x*u,y*u,u,u);}
+ for(const o of m.objects){g.fillStyle=o.type==='boss'?'#f66c68':o.fieldExit||o.fieldRoute?'#ffe8a7':'#e1e9df';g.fillRect(o.x*u,o.y*u,2,2);}
+ g.strokeStyle='#ffffffb0';g.lineWidth=.7;g.strokeRect(cam.x/16*u,cam.y/16*u,G.vw*u,G.vh*u);
+ g.fillStyle='#fff';g.beginPath();g.arc((G.st.pos.x+.5)*u,(G.st.pos.y+.5)*u,2.2,0,Math.PI*2);g.fill();
+}
 function drawMap(){
   const cv=G.cv; if(!cv||!cv.isConnected) return; const g=cv.getContext("2d"); g.imageSmoothingEnabled=true; g.imageSmoothingQuality="high";
-  const st=G.st, m=MAPS[st.mapId]; const cam=camera(); const now=performance.now();
+  const st=G.st, m=MAPS[st.mapId]; const cam=camera(); drawMiniMap(m,cam); const now=performance.now();
   const still=reducedMotion(); const f=still?0:Math.floor(now/320)%4, f2=still?0:Math.floor(now/600)%2;
   const ratio=G.mapRenderScale||1,vw=G.vw*16,vh=G.vh*16;g.setTransform(ratio,0,0,ratio,0,0);
   g.fillStyle=PAL.ink; g.fillRect(0,0,vw,vh);
@@ -5592,7 +5628,7 @@ function drawMap(){
     else if(o.type==="shop"){ const n=NPCS[o.npc]; sprites.push({y:o.y-0.1,img:ART.object("shop",0),x:o.x}); img=ART.person(o.npc,n.sprite[1],n.sprite[0],0,f2*2); }
     else if(o.type==="inn"){ sprites.push({y:o.y-0.1,img:ART.object("inn",f),x:o.x}); img=ART.person("innkeeper",PAL.slate,PAL.navy,0,f2*2); }
     else if(o.type==="box") img=ART.object(st.boxes[o.box]?"boxOpen":"box",f);
-    else if(o.type==="boss"){ if(st.bossDefeated[o.boss]) continue; img=ART.object("boss",f); }
+    else if(o.type==="boss"){ if(st.bossDefeated[o.boss]) continue; img=bossBaseSprite(); }
     else img=ART.object(o.fieldExit||o.fieldRoute?"gate":o.type==="jobcenter"?"board":o.type,f);
     sprites.push({y:o.y,x:o.x,img});
   }
@@ -5611,7 +5647,7 @@ function drawMap(){
   }
   sprites.push({y:pp.y/16+0.01, px:pp, img:charSprite(lead,st.dir,wf)});
   sprites.sort((a,b)=>a.y-b.y);
-  for(const s of sprites){ const x=s.px?s.px.x:s.x*16, y=s.px?s.px.y:s.y*16; g.fillStyle='rgba(6,17,28,.27)'; g.beginPath(); g.ellipse(x+8-cam.x,y+13-cam.y,6,2,0,0,Math.PI*2); g.fill(); g.save();if(s.img.artScale){g.shadowColor='#071522b0';g.shadowBlur=ratio;g.shadowOffsetY=.5;g.drawImage(s.img.mapImage||s.img,x-2-cam.x,y-14-cam.y,20,30);}else g.drawImage(s.img,x-cam.x,y-8-cam.y,16,24);g.restore(); }
+  for(const s of sprites){ const x=s.px?s.px.x:s.x*16, y=s.px?s.px.y:s.y*16; g.fillStyle='rgba(6,17,28,.27)'; g.beginPath(); g.ellipse(x+8-cam.x,y+13-cam.y,6,2,0,0,Math.PI*2); g.fill(); g.save();if(s.img.bossBase){g.drawImage(s.img,x-8-cam.x,y-30-cam.y,32,48);}else if(s.img.artScale){g.shadowColor='#071522b0';g.shadowBlur=ratio;g.shadowOffsetY=.5;g.drawImage(s.img.mapImage||s.img,x-2-cam.x,y-14-cam.y,20,30);}else g.drawImage(s.img,x-cam.x,y-8-cam.y,16,24);g.restore(); }
   if(moving){ const d=G.walk.path[G.walk.path.length-1]; const bl=Math.floor(now/250)%2; g.strokeStyle=bl?PAL.cream:PAL.gold; g.strokeRect(d.x*16-cam.x+3.5,d.y*16-cam.y+3.5,9,9); }
 }
 function startLoop(){
@@ -5665,9 +5701,9 @@ function arrive(){
   const st=G.st, m=MAPS[st.mapId]; const zone=zoneAt(m,st.pos.x,st.pos.y);
   if(SND.current!==(m.kind==="field"?"field":"fukuoka")) exploreBgm();
   if(m.kind==="field" && zone){
-    // 第07A・23G節：危険タイル到着ごとに1/24の独立抽選（戦えるメンバーがいない時は抽選しない）
+    // 草地1/24、街道1/28。安全MAPと出入口では抽選しない。
     const canFight = st.party.some(c=>vitalOf(c).hp>0);
-    if(canFight && randInt(m.encounterRate||24)===0){
+    if(canFight && randInt(encounterDenominator(m,st.pos.x,st.pos.y))===0){
       const rolls={count:randInt(2), picks:[randInt(10000),randInt(10000)]};
       G.walk.path=[]; G.walk.pending=null;
       startBattle(createFieldRun(st,zone,rolls)); return;
@@ -7461,7 +7497,7 @@ const PAD = (()=>{
   }
 
   /* ---- カーソル（▶）の移動：今見えている一番手前の画面の中だけで動く ---- */
-  function scope(){ const d=document.querySelector(".dlg-ov"); if(d) return d; const s=document.querySelector(".overlay"); if(s) return s; return document.getElementById("screen"); }
+  function scope(){ const d=document.querySelector(".dlg-ov"); if(d) return d; const s=document.querySelector(".overlay"); if(s) return s; return G.screen==="explore"&&document.body?document.body:document.getElementById("screen"); }
   function focusables(sc){
     return [...sc.querySelectorAll("button,input,textarea,select,summary,a[href],[data-a]")].filter(el=>{
       if(el.disabled||el.getAttribute("aria-disabled")==="true") return false;

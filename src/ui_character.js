@@ -37,19 +37,19 @@ async function characterMutate(fn){
 }
 function renderJobcenter(){
   const st=G.st,d=G.sheetData,can=characterCanUseFacility(),view=d.view||"events";
-  const nav=`<p>職業体験を3段階クリアすると、その職業へ転職できます。料金・レベル条件はありません。</p>${can?"":'<p class="warn">転職と職業体験は、街のハローワークのそばで行います。</p>'}<div class="row3"><button class="btn ${view==="events"?"on":""}" data-a="jobcenterView" data-v="events">職業イベント</button><button class="btn ${view==="change"?"on":""}" data-a="jobcenterView" data-v="change">転職する</button></div>`;
+  const nav=`<p>職業体験3段階で転職を解放。無料・レベル制限なし。</p>${can?"":'<p class="warn">転職と職業体験は、街のハローワークのそばで行います。</p>'}<div class="row3"><button class="btn ${view==="events"?"on":""}" data-a="jobcenterView" data-v="events">職業イベント</button><button class="btn ${view==="change"?"on":""}" data-a="jobcenterView" data-v="change">転職する</button></div>`;
   if(view==="events"&&st.jobEvent){
     const e=st.jobEvent,event=JOB_EVENTS[e.job],q=event.stages[e.stage],token=jobEventToken(st);
     return nav+`<h3 class="label">${esc(event.name)} ${e.stage+1}/3</h3><p>${esc(q.question)}</p>${e.wrong!=null?`<p class="warn">${esc(q.advice)}</p>`:""}<div class="stack">${q.options.map((label,i)=>`<button class="btn" data-a="jobEventAnswer" data-v="${i}" data-token="${esc(token)}" ${can?"":"disabled"}>${esc(label)}</button>`).join("")}</div><button class="btn" data-a="jobEventCancel" data-token="${esc(token)}" ${can?"":"disabled"}>この体験を中断して選び直す</button><p class="small">途中経過は保存され、どの街のハローワークでも続けられます。</p>`;
   }
-  const query=String(d.query||"").normalize("NFKC").toLowerCase(),list=JOB_IDS.filter(job=>(JOBS[job].name+JOBS[job].field+JOB_EVENTS[job].name).normalize("NFKC").toLowerCase().includes(query));
+  const query=String(d.query||"").normalize("NFKC").toLowerCase().trim(),words=query.split(/\s+/).filter(Boolean),list=JOB_IDS.filter(job=>words.every(w=>(JOBS[job].name+JOBS[job].field+JOB_EVENTS[job].name).normalize("NFKC").toLowerCase().includes(w)));
   const pages=Math.max(1,Math.ceil(list.length/6)),page=Math.min(Math.max(0,d.page||0),pages-1),cid=st.roster.includes(d.cid)?d.cid:st.roster[0];
-  let html=nav+`<label for="jobcenterSearch">職業・役割・体験名で検索</label><input id="jobcenterSearch" class="input" maxlength="40" value="${esc(d.query||"")}"><button class="btn" data-a="jobcenterSearch">検索する</button>`;
+  let html=nav+`${listSearchForm('job')}`;
   if(view==="change")html+=`<h3 class="label">転職する仲間</h3><div class="opts">${st.roster.map(id=>`<button class="btn ${id===cid?"on":""}" data-a="jobcenterActor" data-c="${id}">${esc(charName(st,id))}</button>`).join("")}</div>`;
   html+=`<div class="stack">${list.slice(page*6,page*6+6).map(job=>{
     const event=JOB_EVENTS[job],done=st.jobEvents[job]===true,s=charStats(st,cid,levelOf(st.xp,st),job,previewEquipFor(st,cid,job));
     return `<section class="qcard"><b>${esc(JOBS[job].name)} ${done?"体験済み":"未体験"}</b><p>${esc(view==="events"?event.name:JOB_TRAITS[job].name)}</p><p class="small">${esc(view==="events"?event.intro:JOB_TRAITS[job].text)}</p>${view==="events"?`<button class="btn" data-a="jobEventStart" data-v="${job}" ${can&&!done?"":"disabled"}>この職業を体験する</button>`:`<p class="small">変更後：体力${s.maxHP}・攻撃${s.attackPower}・防御${s.defensePower}・熟練度${s.R}。前職専用装備は外します。</p><button class="btn" data-a="characterJobSet" data-c="${cid}" data-v="${job}" data-old="${st.jobs[cid]}" data-token="${esc(characterJobToken(st,cid,job))}" ${can&&done&&st.jobs[cid]!==job?"":"disabled"}>${esc(charName(st,cid))}をこの職業へ</button>`}</section>`;
-  }).join("")||'<p>一致する職業がありません。検索語を消して再検索してください。</p>'}</div><div class="row3"><button class="btn" data-a="jobcenterPage" data-v="${page-1}" ${page>0?"":"disabled"}>前へ</button><span>${page+1}/${pages}</span><button class="btn" data-a="jobcenterPage" data-v="${page+1}" ${page+1<pages?"":"disabled"}>次へ</button></div>`;
+  }).join("")||'<p>見つかりません。解除で検索をリセットできます。</p>'}</div><div class="row3"><button class="btn" data-a="jobcenterPage" data-v="${page-1}" ${page>0?"":"disabled"}>前へ</button><span>${page+1}/${pages}</span><button class="btn" data-a="jobcenterPage" data-v="${page+1}" ${page+1<pages?"":"disabled"}>次へ</button></div>`;
   return html;
 }
 function renderCharacterSkills(){

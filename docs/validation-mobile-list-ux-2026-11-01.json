@@ -1,0 +1,192 @@
+[
+  {
+    "round": 1,
+    "label": "shop-native-search",
+    "checkedAt": "2026-10-31T15:05:58.871Z",
+    "checks": [
+      {
+        "command": "scripts/check-list-search.mjs",
+        "passed": true,
+        "output": "Shop search has native submit and applies its query\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 2,
+    "label": "shop-draft-retention",
+    "checkedAt": "2026-10-31T15:07:21.402Z",
+    "checks": [
+      {
+        "command": "scripts/check-list-search.mjs",
+        "passed": true,
+        "output": "Shop search has native submit and applies its query\nShop filter and tab changes retain the current search draft\nEmpty shop results reset in one action without mutating saved state\n"
+      },
+      {
+        "command": "scripts/check-management.mjs",
+        "passed": true,
+        "output": "Management: six-item searchable shops, readonly views, quantity units, explicit equipment transfer/preview, six protected ticket gear, keeper conversations, atomic nearby inn/rest and save rollback passed\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 3,
+    "label": "shop-empty-result-recovery",
+    "checkedAt": "2026-10-31T15:06:38.337Z",
+    "checks": [
+      {
+        "command": "scripts/check-list-search.mjs",
+        "passed": true,
+        "output": "Shop search has native submit and applies its query\nShop filter and tab changes retain the current search draft\nEmpty shop results reset in one action without mutating saved state\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 4,
+    "label": "affordable-quantity-shortcuts",
+    "checkedAt": "2026-10-31T15:07:52.158Z",
+    "checks": [
+      {
+        "command": "scripts/check-list-search.mjs",
+        "passed": true,
+        "output": "Shop search has native submit and applies its query\nShop filter and tab changes retain the current search draft\nEmpty shop results reset in one action without mutating saved state\nShop quantity shortcuts respect affordability including zero balance\n"
+      },
+      {
+        "command": "scripts/check-shop.mjs",
+        "passed": true,
+        "output": "Shop offer bounds and stale token OK\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 5,
+    "label": "readable-vault-search-layout",
+    "checkedAt": "2026-10-31T15:09:35.236Z",
+    "checks": [
+      {
+        "command": "scripts/check-list-search.mjs",
+        "passed": true,
+        "output": "Shop search has native submit and applies its query\nShop filter and tab changes retain the current search draft\nEmpty shop results reset in one action without mutating saved state\nShop quantity shortcuts respect affordability including zero balance\nVault search uses the readable shared input before compact mode/category controls\n"
+      },
+      {
+        "command": "scripts/check-vault.mjs",
+        "passed": true,
+        "output": "Gold and item vault: transfer, overflow, capacity and legacy save OK\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 6,
+    "label": "consistent-vault-query-and-paging",
+    "checkedAt": "2026-10-31T15:10:25.033Z",
+    "checks": [
+      {
+        "command": "scripts/check-list-search.mjs",
+        "passed": true,
+        "output": "Shop search has native submit and applies its query\nShop filter and tab changes retain the current search draft\nEmpty shop results reset in one action without mutating saved state\nShop quantity shortcuts respect affordability including zero balance\nVault search uses the readable shared input before compact mode/category controls\nVault names/IDs accept fullwidth and multiple words consistently with paging\n"
+      },
+      {
+        "command": "scripts/check-vault.mjs",
+        "passed": true,
+        "output": "Gold and item vault: transfer, overflow, capacity and legacy save OK\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 7,
+    "label": "job-search-and-concise-intro",
+    "checkedAt": "2026-10-31T15:11:04.992Z",
+    "checks": [
+      {
+        "command": "scripts/check-list-search.mjs",
+        "passed": true,
+        "output": "Shop search has native submit and applies its query\nShop filter and tab changes retain the current search draft\nEmpty shop results reset in one action without mutating saved state\nShop quantity shortcuts respect affordability including zero balance\nVault search uses the readable shared input before compact mode/category controls\nVault names/IDs accept fullwidth and multiple words consistently with paging\nJob search supports trimmed input, view changes and one-action clearing\n"
+      },
+      {
+        "command": "scripts/check-integration.mjs",
+        "passed": true,
+        "output": "PASS title boot completes with an image title, with or without a saved game\nPASS all build modules load together\nPASS three-stage setup, IME, same names, drafts and atomic save rollback\nPASS custom partner name fully replaces fixed biography and profile names\nPASS new menus remain reachable through all render wrappers\nPASS menu back stack and direct MAP return respect readonly, saving and battles\nPASS all47 regional support unlocks and readonly mutation guard\nPASS all100 badge names and expanded/pet/challenge eligibility connect to main list\nPASS legacy5.33 inventories, quest progress, sea positions and saved battle migrate once\nPASS character save locks prevent cross-module callbacks and rollback races\nPASS readonly pet details and vault navigation do not mutate saved state\nPASS story replay rejects prototype IDs, unread scenes and stale readonly callbacks\nPASS autowalk tokens survive cancellation without reuse and save switches clear old plans\nPASS all51 quests complete through callbacks with new character and pet systems enabled\nIntegration: 14 combined build/module/UI/save/lock/campaign checks passed\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 8,
+    "label": "gear-search-and-clear-action-labels",
+    "checkedAt": "2026-10-31T15:12:10.979Z",
+    "checks": [
+      {
+        "command": "scripts/check-list-search.mjs",
+        "passed": true,
+        "output": "Shop search has native submit and applies its query\nShop filter and tab changes retain the current search draft\nEmpty shop results reset in one action without mutating saved state\nShop quantity shortcuts respect affordability including zero balance\nVault search uses the readable shared input before compact mode/category controls\nVault names/IDs accept fullwidth and multiple words consistently with paging\nJob search supports trimmed input, view changes and one-action clearing\nGear search resets without changing equipment and keeps explicit disposal confirmation\n"
+      },
+      {
+        "command": "scripts/check-management.mjs",
+        "passed": true,
+        "output": "Management: six-item searchable shops, readonly views, quantity units, explicit equipment transfer/preview, six protected ticket gear, keeper conversations, atomic nearby inn/rest and save rollback passed\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 9,
+    "label": "paging-focus-and-sticky-header",
+    "checkedAt": "2026-10-31T15:14:47.306Z",
+    "checks": [
+      {
+        "command": "scripts/test-list-search-ui.mjs",
+        "passed": true,
+        "output": "PASS list search standard\nPASS list search small\nPASS list search landscape\nPASS list search short\nPASS list search narrow\nPASS list search keyboard\n"
+      },
+      {
+        "command": "scripts/check-list-search.mjs",
+        "passed": true,
+        "output": "Shop search has native submit and applies its query\nShop filter and tab changes retain the current search draft\nEmpty shop results reset in one action without mutating saved state\nShop quantity shortcuts respect affordability including zero balance\nVault search uses the readable shared input before compact mode/category controls\nVault names/IDs accept fullwidth and multiple words consistently with paging\nJob search supports trimmed input, view changes and one-action clearing\nGear search resets without changing equipment and keeps explicit disposal confirmation\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 10,
+    "label": "clearer-shop-list-and-full-regression",
+    "checkedAt": "2026-10-31T15:21:51.100Z",
+    "checks": [
+      {
+        "command": "scripts/test-list-search-ui.mjs",
+        "passed": true,
+        "output": "PASS list search standard\nPASS list search small\nPASS list search landscape\nPASS list search short\nPASS list search narrow\nPASS list search keyboard\n"
+      },
+      {
+        "command": "scripts/check-all.mjs",
+        "passed": true,
+        "output": "PASS check-action-safety.mjs\nPASS check-art-cache.mjs\nPASS check-audio-channels.mjs\nPASS check-audio-codec.mjs\nPASS check-audio-duck.mjs\nPASS check-auto-items.mjs\nPASS check-auto-ui-guards.mjs\nPASS check-badge-list.mjs\nPASS check-battle-audio-race.mjs\nPASS check-battle-fx.mjs\nPASS check-battle-log.mjs\nPASS check-character-art.mjs\nPASS check-clean-output.mjs\nPASS check-control-actions.mjs\nPASS check-expanded-battle.mjs\nPASS check-expressive-score.mjs\nPASS check-field-encounters.mjs\nPASS check-hd-art.mjs\nPASS check-illustrated-art.mjs\nPASS check-input-background.mjs\nPASS check-input-editing.mjs\nPASS check-input-modal.mjs\nPASS check-input-release.mjs\nPASS check-input-stick.mjs\nPASS check-integration.mjs\nPASS check-list-search.mjs\nPASS check-listeners.mjs\nPASS check-management.mjs\nPASS check-map-facilities.mjs\nPASS check-map-loop.mjs\nPASS check-merged-instructions.mjs\nPASS check-mobile-copy.mjs\nPASS check-national-story.mjs\nPASS check-national.mjs\nPASS check-nationwide.mjs\nPASS check-navigation.mjs\nPASS check-ocean.mjs\nPASS check-pets.mjs\nPASS check-regional-art.mjs\nPASS check-release.mjs\nPASS check-result-return.mjs\nPASS check-saga.mjs\nPASS check-save.mjs\nPASS check-selected-fixes.mjs\nPASS check-shop.mjs\nPASS check-split-maps.mjs\nPASS check-stream-actions.mjs\nPASS check-target.mjs\nPASS check-title-score.mjs\nPASS check-town-layout.mjs\nPASS check-travel-modes.mjs\nPASS check-vault.mjs\nPASS check-walk-animation.mjs\nPASS check-world-art.mjs\n54/54 regression programs passed; generated HTML syntax OK\n"
+      },
+      {
+        "command": "scripts/test-mobile-copy.mjs",
+        "passed": true,
+        "output": "PASS mobile copy standard\nPASS mobile copy small\nPASS mobile copy landscape\nPASS mobile copy short\nPASS mobile copy narrow\nPASS mobile copy keyboard\n"
+      },
+      {
+        "command": "scripts/test-controls-navigation.mjs",
+        "passed": true,
+        "output": "standard: swapped dock and native Enter on back\nstandard: native search, real walk, pause/back, center resume and manual override\nstandard: quest acceptance, active filter and safe default cancel\nstandard: quest next-destination walks through town exit\nstandard: back unwinds selection and pauses, center confirms once, enemy art enlarged\nstandard: redraw cancels a held center gesture\nstandard: dialogue previous page and explicit skip\nstandard: read-only filters work and movement cannot mutate saves\nPASS controls/navigation standard\nsmall: swapped dock and native Enter on back\nsmall: native search, real walk, pause/back, center resume and manual override\nsmall: quest acceptance, active filter and safe default cancel\nsmall: quest next-destination walks through town exit\nsmall: back unwinds selection and pauses, center confirms once, enemy art enlarged\nsmall: redraw cancels a held center gesture\nsmall: dialogue previous page and explicit skip\nsmall: read-only filters work and movement cannot mutate saves\nPASS controls/navigation small\nlandscape: swapped dock and native Enter on back\nlandscape: native search, real walk, pause/back, center resume and manual override\nlandscape: quest acceptance, active filter and safe default cancel\nlandscape: quest next-destination walks through town exit\nlandscape: back unwinds selection and pauses, center confirms once, enemy art enlarged\nlandscape: redraw cancels a held center gesture\nlandscape: dialogue previous page and explicit skip\nlandscape: read-only filters work and movement cannot mutate saves\nPASS controls/navigation landscape\nshort: swapped dock and native Enter on back\nshort: native search, real walk, pause/back, center resume and manual override\nshort: quest acceptance, active filter and safe default cancel\nshort: quest next-destination walks through town exit\nshort: back unwinds selection and pauses, center confirms once, enemy art enlarged\nshort: redraw cancels a held center gesture\nshort: dialogue previous page and explicit skip\nshort: read-only filters work and movement cannot mutate saves\nPASS controls/navigation short\n"
+      },
+      {
+        "command": "scripts/test-result-overview.mjs",
+        "passed": true,
+        "output": "PASS 40 result scenarios: summary fits, 48px one-click MAP return, low/KO and legacy history\n"
+      },
+      {
+        "command": "scripts/test-battle-readability.mjs",
+        "passed": true,
+        "output": "PASS readability standard\nPASS readability small\nPASS readability landscape\nPASS readability short\n"
+      }
+    ],
+    "passed": true
+  }
+]

@@ -5,24 +5,24 @@
   "sourceFileCount": 32,
   "files": {
     "index.html": {
-      "bytes": 8031078,
-      "sha256": "0675da4f8a9e989b5a6af9ca010b3df96e2ebcb4815afaa57b9b5067f3009a8a"
+      "bytes": 8050965,
+      "sha256": "dcc2c9e65943b274265879ac525a5985667bfa15a27352e3c9630e9ad4961364"
     },
     "README.md": {
-      "bytes": 5424,
-      "sha256": "07583e5cf0bfb08b4fda2e61d62a8219d9240bcec301ea7e7b5356581172234d"
+      "bytes": 5696,
+      "sha256": "6df397ab62ae69c29e4a420f7e2650ab9df8f17ebfdfc43260fc614bb2b2f6cc"
     },
     "VERSION.txt": {
       "bytes": 156,
       "sha256": "4bc1061edf51ac10ad713f2821a194ff940adda9b29493df28c69f92fa49556e"
     },
     "GAME_SPEC.md": {
-      "bytes": 6179,
-      "sha256": "0ea806aa68fd211bdf06579f9ce0946168678ca25ea5bf42f6fa38303215fe31"
+      "bytes": 6514,
+      "sha256": "dbc248f20e6179a8585b62455c6dd68b6557561f32c0899094ece84481ead4ef"
     },
     "GAME_SPEC.txt": {
-      "bytes": 6179,
-      "sha256": "0ea806aa68fd211bdf06579f9ce0946168678ca25ea5bf42f6fa38303215fe31"
+      "bytes": 6514,
+      "sha256": "dbc248f20e6179a8585b62455c6dd68b6557561f32c0899094ece84481ead4ef"
     }
   },
   "assets": {

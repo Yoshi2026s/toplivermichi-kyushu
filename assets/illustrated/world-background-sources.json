@@ -1,0 +1,13 @@
+{
+  "created": "2026-10-31",
+  "method": "OpenAI built-in image generation",
+  "style": "Original premium illustrated fantasy environments, warm dawn light, rich painted materials; no text, UI or characters",
+  "backgrounds": [
+    {"asset":"battle-plain-dawn.webp","dimensions":[1440,960],"scene":"Verdant meadow, ruined ivory arches and mountain valley"},
+    {"asset":"battle-forest-dawn.webp","dimensions":[1440,960],"scene":"Ancient emerald forest, stone arches, sunbeams and waterfalls"},
+    {"asset":"battle-mountain-dawn.webp","dimensions":[1440,960],"scene":"Alpine sanctuary, snow peaks and rose-gold dawn"},
+    {"asset":"battle-coast-dawn.webp","dimensions":[1440,960],"scene":"Turquoise coast, island castle and golden sea"}
+  ],
+  "materials": {"asset":"world-materials.webp","dimensions":[1440,1080],"columns":4,"rows":3,"panels":["meadow","limestone","sand","water","broadleaf","pine","roof","facade","rock","timber","forest-floor","wildflowers"],"normalization":"Generated source rows were normalized to equal cells with inset cropping to prevent adjacent materials bleeding into repeated patterns"},
+  "encoding": "WebP quality 87 using @napi-rs/canvas"
+}

@@ -514,7 +514,7 @@ function renderBattle(){
     <div class="bhead"><span>ターン${run.turn}・${esc(DIFFICULTY[run.difficulty].name)}・${run.kind==="boss"?"地域ボス":esc(AREAS[run.areaId].name)}</span><span>コメント連携${run.B}・${chain}</span></div>
     <div class="gauge" aria-label="エール${run.A}"><span>エール</span><span class="bar ale"><i style="width:${run.A}%"></i></span><b>${run.A}</b></div>
     ${cueText(run)}
-    <div class="enemies" data-terrain="${esc(MAPS[st.mapId]?.terrain||"plain")}"><canvas class="stagebg" width="160" height="64" aria-hidden="true"></canvas>${enemies}</div>
+    <div class="enemies" data-terrain="${esc(MAPS[st.mapId]?.combatDomain==="sea"?"coast":MAPS[st.mapId]?.terrain||"plain")}"><canvas class="stagebg" width="160" height="64" aria-hidden="true"></canvas>${enemies}</div>
     <div class="party">${run.party.map((m,i)=>partyCard(m,i,run)).join("")}</div>
     ${renderCommand(run)}
     <details class="battle-records" ${G.logExpanded?"open":""}><summary>戦闘記録・バッジ</summary>${run.support&&SUPPORTS[run.support]?`<p class="battle-support small">地域支援：${esc(SUPPORTS[run.support].name)}（${esc(SUPPORTS[run.support].text)}）</p>`:""}<button class="btn" data-a="openSheet" data-k="battleChallenges">挑戦・戦闘バッジ</button>
@@ -1501,7 +1501,7 @@ document.addEventListener("visibilitychange",()=>{ if(document.hidden){ G.walk.p
 window.addEventListener("resize",()=>{ if(G.screen==="explore"){ G.walk.path=[]; clearTimeout(G.rsz); G.rsz=setTimeout(()=>{ if(G.screen==="explore") mountCanvas(); },120); } });
 
 async function boot(){
-  await SOFT_ART.loaded;
+  await Promise.all([SOFT_ART.loaded,WORLD_ART.loaded]);
   acquireLock(); PAD.mount(); SND.play("title");
   try{ const s=await loadSave(); G.hasSave=!!s; }catch(e){}
   const hot=window.claude&&window.claude.hot;

@@ -4,7 +4,7 @@
   "license": "CC0-1.0",
   "repository": "https://github.com/sgossner/VSCO-2-CE",
   "commit": "440300901dfe9275fd84e0b7763af1f8443ae62e",
-  "processing": "Mono PCM16, 22050 Hz, trimmed attacks and tails, peak normalized, sustaining loop crossfade; pitch roots verified from waveform; harp uses scientific octave names while other pitched instruments use C3 = MIDI 60",
+  "processing": "22050 Hz mono; source PCM16 trimmed and normalized, sustaining loop crossfade, adaptive IMA/companded delivery with >=30 dB quantization SNR or PCM fallback; pitch roots verified from waveform; harp uses scientific octave names while other pitched instruments use C3 = MIDI 60",
   "samples": [
     {
       "instrument": "strings",
@@ -26,7 +26,9 @@
           "note": 81,
           "power": 15798.28658078381
         }
-      ]
+      ],
+      "deliveryEncoding": "mulaw",
+      "compressionSnrDb": 37.886586213797486
     },
     {
       "instrument": "strings",
@@ -48,7 +50,9 @@
           "note": 74,
           "power": 102749.7904658315
         }
-      ]
+      ],
+      "deliveryEncoding": "mulaw",
+      "compressionSnrDb": 37.872412306987485
     },
     {
       "instrument": "strings",
@@ -70,7 +74,9 @@
           "note": 84,
           "power": 3591.2692312324034
         }
-      ]
+      ],
+      "deliveryEncoding": "mulaw",
+      "compressionSnrDb": 37.86638013961333
     },
     {
       "instrument": "cello",
@@ -92,7 +98,9 @@
           "note": 72,
           "power": 4398.4323020934235
         }
-      ]
+      ],
+      "deliveryEncoding": "ima",
+      "compressionSnrDb": 33.50662276196847
     },
     {
       "instrument": "cello",
@@ -114,7 +122,9 @@
           "note": 59,
           "power": 3875.5904939512757
         }
-      ]
+      ],
+      "deliveryEncoding": "ima",
+      "compressionSnrDb": 41.94543142511273
     },
     {
       "instrument": "bass",
@@ -136,7 +146,9 @@
           "note": 48,
           "power": 50005.478091335994
         }
-      ]
+      ],
+      "deliveryEncoding": "ima",
+      "compressionSnrDb": 42.72466624942314
     },
     {
       "instrument": "horn",
@@ -158,7 +170,9 @@
           "note": 72,
           "power": 519538.0974121529
         }
-      ]
+      ],
+      "deliveryEncoding": "ima",
+      "compressionSnrDb": 39.451823198291
     },
     {
       "instrument": "horn",
@@ -180,7 +194,9 @@
           "note": 65,
           "power": 50723.982551004265
         }
-      ]
+      ],
+      "deliveryEncoding": "ima",
+      "compressionSnrDb": 37.87150080426477
     },
     {
       "instrument": "trumpet",
@@ -202,7 +218,9 @@
           "note": 79,
           "power": 8660.06119101601
         }
-      ]
+      ],
+      "deliveryEncoding": "mulaw",
+      "compressionSnrDb": 37.93133057619134
     },
     {
       "instrument": "trumpet",
@@ -224,7 +242,9 @@
           "note": 96,
           "power": 13167.270338904045
         }
-      ]
+      ],
+      "deliveryEncoding": "mulaw",
+      "compressionSnrDb": 37.84890024443475
     },
     {
       "instrument": "flute",
@@ -246,7 +266,9 @@
           "note": 84,
           "power": 30892.331560772218
         }
-      ]
+      ],
+      "deliveryEncoding": "ima",
+      "compressionSnrDb": 35.53684444962948
     },
     {
       "instrument": "flute",
@@ -268,7 +290,9 @@
           "note": 96,
           "power": 2367.6127277348496
         }
-      ]
+      ],
+      "deliveryEncoding": "ima",
+      "compressionSnrDb": 30.837472776620135
     },
     {
       "instrument": "oboe",
@@ -290,7 +314,9 @@
           "note": 74,
           "power": 6887.6062170612
         }
-      ]
+      ],
+      "deliveryEncoding": "ima",
+      "compressionSnrDb": 30.021726824842272
     },
     {
       "instrument": "harp",
@@ -312,7 +338,9 @@
           "note": 60,
           "power": 6541.181279441012
         }
-      ]
+      ],
+      "deliveryEncoding": "ima",
+      "compressionSnrDb": 40.97059197940261
     },
     {
       "instrument": "harp",
@@ -334,7 +362,9 @@
           "note": 84,
           "power": 0.5040596224200785
         }
-      ]
+      ],
+      "deliveryEncoding": "ima",
+      "compressionSnrDb": 35.64559526987437
     },
     {
       "instrument": "pizz",
@@ -356,7 +386,9 @@
           "note": 81,
           "power": 5.674046491643074
         }
-      ]
+      ],
+      "deliveryEncoding": "ima",
+      "compressionSnrDb": 37.33110638507193
     },
     {
       "instrument": "spiccato",
@@ -378,7 +410,9 @@
           "note": 81,
           "power": 952.3867441803122
         }
-      ]
+      ],
+      "deliveryEncoding": "mulaw",
+      "compressionSnrDb": 37.81997243180441
     },
     {
       "instrument": "spiccato",
@@ -400,7 +434,9 @@
           "note": 81,
           "power": 24.886166435208118
         }
-      ]
+      ],
+      "deliveryEncoding": "ima",
+      "compressionSnrDb": 30.256093272366332
     },
     {
       "instrument": "glock",
@@ -422,7 +458,9 @@
           "note": 96,
           "power": 9.762980764295758e-7
         }
-      ]
+      ],
+      "deliveryEncoding": "mulaw",
+      "compressionSnrDb": 37.67488583511251
     },
     {
       "instrument": "timpani",
@@ -444,7 +482,9 @@
           "note": 59,
           "power": 0.9256000914313278
         }
-      ]
+      ],
+      "deliveryEncoding": "ima",
+      "compressionSnrDb": 46.26019024502058
     }
   ]
 }

@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
+const source=readFileSync(new URL('../src/audio_samples.js',import.meta.url),'utf8').replace('__ORCHESTRA_BANK_JSON__','null'),codec=runInNewContext(source+';ORCHESTRA_CODEC',{atob:s=>Buffer.from(s,'base64').toString('binary')});
+const vector=codec.decode({ima:Buffer.from([0x77]).toString('base64'),frames:2,rate:22050});assert.deepEqual(Array.from(vector,x=>Math.round(x*32768)),[11,41],'standard IMA positive nibble vector');
+const signed=codec.decode({ima:Buffer.from([0x87]).toString('base64'),frames:2,rate:22050});assert.deepEqual(Array.from(signed,x=>Math.round(x*32768)),[11,9],'low nibble order and sign bit');
+const companded=codec.decode({mulaw:Buffer.from([0,127,128,255]).toString('base64'),frames:4,rate:22050});assert.equal(companded[0],0);assert.equal(companded[1],1);assert.equal(companded[3],-1);
+assert.throws(()=>codec.decode({ima:'AA==',frames:5,rate:22050}),/length/);assert.throws(()=>codec.decode({mulaw:'AA==',frames:5,rate:22050}),/length/);
+const count=22050,binary=Buffer.alloc(count*2);for(let i=0;i<count;i++)binary.writeInt16LE(Math.round(Math.sin(i*2*Math.PI*440/22050)*15000*Math.min(1,i/512)),i*2);const packed=codec.pack(binary);assert(packed.snr>=30);assert(packed.bytes.length<=count);const decoded=codec.decode({[packed.encoding]:Buffer.from(packed.bytes).toString('base64'),frames:count,rate:22050});assert.equal(decoded.length,count);
+const bank=JSON.parse(readFileSync(new URL('../assets/audio/orchestra-bank.json',import.meta.url)));assert.equal(bank.version,2);assert(bank.samples.some(s=>s.ima)&&bank.samples.some(s=>s.mulaw));for(const sample of bank.samples)assert.equal(codec.decode(sample).length,sample.frames);assert(readFileSync(new URL('../assets/audio/orchestra-bank.json',import.meta.url)).length<1100000);
+console.log('IMA standard vectors, companded endpoints, malformed-length rejection, waveform quality, unchanged frame counts and compact bank budget passed');

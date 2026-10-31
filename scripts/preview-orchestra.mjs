@@ -1,6 +1,6 @@
 import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
 import {chromium,browserOptions} from './mobile-runtime.mjs';
-const source='const ORCHESTRA_BANK='+readFileSync(new URL('../assets/audio/orchestra-bank.json',import.meta.url),'utf8')+';'+readFileSync(new URL('../src/audio.js',import.meta.url),'utf8');
+const source=readFileSync(new URL('../src/audio_samples.js',import.meta.url),'utf8').replace('__ORCHESTRA_BANK_JSON__',readFileSync(new URL('../assets/audio/orchestra-bank.json',import.meta.url),'utf8').trim())+';'+readFileSync(new URL('../src/audio.js',import.meta.url),'utf8');
 const browser=await chromium.launch(browserOptions()),page=await browser.newPage();
 const report=[];mkdirSync(new URL('../.task/',import.meta.url),{recursive:true});
 try{for(const track of ['title','fukuoka','field','battle','boss','sea_RG01']){

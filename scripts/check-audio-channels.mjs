@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {runInNewContext} from 'node:vm';
-const source=readFileSync(resolve(import.meta.dirname,'../src/audio.js'),'utf8');
+const source=readFileSync(resolve(import.meta.dirname,'../src/audio_samples.js'),'utf8').replace('__ORCHESTRA_BANK_JSON__',readFileSync(resolve(import.meta.dirname,'../assets/audio/orchestra-bank.json'),'utf8').trim())+';'+readFileSync(resolve(import.meta.dirname,'../src/audio.js'),'utf8');
 const param=(value=0)=>({value,setValueAtTime(v){this.value=v;},linearRampToValueAtTime(v){this.value=v;},exponentialRampToValueAtTime(v){this.value=v;},cancelScheduledValues(){},cancelAndHoldAtTime(){}});
 let context;
 class FakeContext{

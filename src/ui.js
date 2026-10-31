@@ -251,7 +251,7 @@ function mountCanvas(){
   G.scale = (Math.floor(A/32)>=7 && Math.floor(H/32)>=4) ? 2 : 1;
   G.vw=Math.max(5,Math.min(14,Math.floor(A/(16*G.scale))));
   G.vh=Math.max(3,Math.min(14,Math.floor(H/(16*G.scale))));
-  G.mapRenderScale=2; cv.width=G.vw*16*G.mapRenderScale; cv.height=G.vh*16*G.mapRenderScale; cv.style.width=(G.vw*16*G.scale)+"px"; cv.style.height=(G.vh*16*G.scale)+"px";
+  G.mapRenderScale=Math.min(4,Math.max(2,Math.ceil((window.devicePixelRatio||1)*G.scale))); cv.width=G.vw*16*G.mapRenderScale; cv.height=G.vh*16*G.mapRenderScale; cv.style.width=(G.vw*16*G.scale)+"px"; cv.style.height=(G.vh*16*G.scale)+"px";
   cv.addEventListener("pointerup", onMapTap);
   drawMap(); startLoop();
 }
@@ -302,7 +302,7 @@ function drawMap(){
   }
   sprites.push({y:pp.y/16+0.01, px:pp, img:charSprite(lead,st.dir,wf)});
   sprites.sort((a,b)=>a.y-b.y);
-  for(const s of sprites){ const x=s.px?s.px.x:s.x*16, y=s.px?s.px.y:s.y*16; g.fillStyle='rgba(6,17,28,.27)'; g.beginPath(); g.ellipse(x+8-cam.x,y+13-cam.y,6,2,0,0,Math.PI*2); g.fill(); g.drawImage(s.img,x-cam.x,y-8-cam.y,16,24); }
+  for(const s of sprites){ const x=s.px?s.px.x:s.x*16, y=s.px?s.px.y:s.y*16; g.fillStyle='rgba(6,17,28,.27)'; g.beginPath(); g.ellipse(x+8-cam.x,y+13-cam.y,6,2,0,0,Math.PI*2); g.fill(); g.save();if(s.img.artScale){g.shadowColor='#071522b0';g.shadowBlur=ratio;g.shadowOffsetY=.5;g.drawImage(s.img.mapImage||s.img,x-2-cam.x,y-14-cam.y,20,30);}else g.drawImage(s.img,x-cam.x,y-8-cam.y,16,24);g.restore(); }
   if(moving){ const d=G.walk.path[G.walk.path.length-1]; const bl=Math.floor(now/250)%2; g.strokeStyle=bl?PAL.cream:PAL.gold; g.strokeRect(d.x*16-cam.x+3.5,d.y*16-cam.y+3.5,9,9); }
 }
 function startLoop(){

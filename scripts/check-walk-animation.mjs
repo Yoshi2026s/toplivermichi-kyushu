@@ -21,9 +21,10 @@ for(const speed of ['normal','fast']){
 }
 const drawCode=ui.slice(ui.indexOf('function drawMap(){'),ui.indexOf('function startLoop(){'));
 for(const state of ['walking','idle','reduced','menu','initial-follower']){
- const calls=[],g={setTransform(){},fillRect(){},drawImage(){},beginPath(){},ellipse(){},fill(){},strokeRect(){}};
+ const draws=[],calls=[],g={save(){},restore(){},setTransform(){},fillRect(){},drawImage(...args){draws.push(args);},beginPath(){},ellipse(){},fill(){},strokeRect(){}};
  const stopped=state==='idle',G={cv:{isConnected:true,getContext:()=>g},st:{mapId:'test',pos:{x:state==='initial-follower'?0:1,y:0},party:['hero','moe'],dir:3},fol:{x:0,y:0},vw:2,vh:2,walkDistance:4,walk:{path:stopped?[]:[{x:2,y:0}],prog:.5},sheet:state==='menu'?'menu':null};
- runInNewContext(drawCode+'\ndrawMap();',{G,document:{hidden:false},performance:{now:()=>100},MAPS:{test:{objects:[]}},PAL:{ink:'#000'},ART:{mapLayer:()=>({width:32,height:32})},camera:()=>({x:0,y:0}),playerPixel:()=>({x:16,y:0}),SOFT_ART:gait,reducedMotion:()=>state==='reduced',charSprite:(id,dir,frame)=>{calls.push({id,frame});return {};}});
+ runInNewContext(drawCode+'\ndrawMap();',{G,document:{hidden:false},performance:{now:()=>100},MAPS:{test:{objects:[]}},PAL:{ink:'#000'},ART:{mapLayer:()=>({width:32,height:32})},camera:()=>({x:0,y:0}),playerPixel:()=>({x:16,y:0}),SOFT_ART:gait,reducedMotion:()=>state==='reduced',charSprite:(id,dir,frame)=>{calls.push({id,frame});return {artScale:4};}});
+ assert(draws.filter(a=>a[0].artScale).every(a=>a[3]===20&&a[4]===30),'party uses readable size with original foot anchor');
  assert.equal(calls.find(c=>c.id==='hero').frame,['walking','initial-follower'].includes(state)?2:0,state+' leader');
  assert.equal(calls.find(c=>c.id==='moe').frame,state==='walking'?6:0,state+' follower');
 }

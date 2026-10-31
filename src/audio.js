@@ -1,4 +1,4 @@
-/* ===== platform/audio: 独自作曲の電子音（パルス2声＋三角波ベース＋ノイズ打楽器の4パート） ===== */
+/* Original symphonic adventure score: strings, horns, woodwinds, harp and timpani. */
 const SND = (()=>{
   let ac=null, master=null, bus=null, on=false, cur=null, timer=null, song=null, nextT=0, step=0, waves={}, noiseBuf=null;
   const NOTE={C:0,"C#":1,Db:1,D:2,"D#":3,Eb:3,E:4,F:5,"F#":6,Gb:6,G:7,"G#":8,Ab:8,A:9,"A#":10,Bb:10,B:11};
@@ -56,7 +56,7 @@ const SND = (()=>{
     const pat = p => p? p.split(" ") : [];
     const alt=[]; const alternate=(s.leadAlt||s.lead).replace(/\|/g," ").trim().split(/\s+/);
     alternate.forEach((t,i)=>{const n=midi(t);if(n!=null){let len=1;while(alternate[i+len]==="-")len++;alt.push({step:i,n,len});}});
-    return { bpm:s.bpm, steps:bars.length*8, bars, lead, alt, st, bass:pat(st.bass), arp:pat(st.arp), hat:pat(st.hat), kick:pat(st.kick), snare:pat(st.snare) };
+    return { bpm:s.bpm, steps:bars.length*8, bars, lead, alt, style:s.style, st, bass:pat(st.bass), arp:pat(st.arp), hat:pat(st.hat), kick:pat(st.kick), snare:pat(st.snare) };
   }
   /* 音の通り道：パート別バス → 音色EQ → コンプレッサー → 出力。リバーブとディレイは送りで混ぜる */
   let musicBus=null, sfxBus=null, revIn=null, dlyIn=null, dly=null, duckUntil=0, revOutput=null, delayOutput=null;
@@ -87,14 +87,15 @@ const SND = (()=>{
       sfxBus=ac.createGain(); sfxBus.gain.value=0.75*effectVolume; sfxBus.connect(low);
       bus=musicBus;
       // リバーブ（小さめのホール）
-      const conv=ac.createConvolver(); conv.buffer=impulse(1.7,2.6); const revLp=ac.createBiquadFilter(); revLp.type="lowpass"; revLp.frequency.value=4200;
+      const conv=ac.createConvolver(); conv.buffer=impulse(2.8,2.8); const revLp=ac.createBiquadFilter(); revLp.type="lowpass"; revLp.frequency.value=4200;
       revIn=ac.createGain(); revIn.gain.value=1; const revOut=ac.createGain(); revOutput=revOut; revOut.gain.value=0.55*musicVolume;
       revIn.connect(conv); conv.connect(revLp); revLp.connect(revOut); revOut.connect(low);
       // ディレイ（付点8分のこだま）
       dlyIn=ac.createGain(); dly=ac.createDelay(1.5); dly.delayTime.value=0.3; const fb=ac.createGain(); fb.gain.value=0.3; const dLp=ac.createBiquadFilter(); dLp.type="lowpass"; dLp.frequency.value=2600; const dOut=ac.createGain(); delayOutput=dOut; dOut.gain.value=0.45*musicVolume;
       dlyIn.connect(dly); dly.connect(dLp); dLp.connect(fb); fb.connect(dly); dLp.connect(dOut); dOut.connect(low); dOut.connect(revIn);
       const pulse=d=>{ const N=48, re=new Float32Array(N), im=new Float32Array(N); for(let n=1;n<N;n++) re[n]=2/(n*Math.PI)*Math.sin(n*Math.PI*d)*Math.exp(-n/36); return ac.createPeriodicWave(re,im); };
-      waves={p25:pulse(.25), p12:pulse(.125), p50:pulse(.5)};
+      const orchestral=(partials)=>{const re=new Float32Array(32),im=new Float32Array(32);partials.forEach((a,i)=>im[i+1]=a);return ac.createPeriodicWave(re,im);};
+      waves={p25:pulse(.25),p12:pulse(.125),p50:pulse(.5),strings:orchestral([1,.48,.3,.22,.16,.1,.08,.05]),horn:orchestral([1,.56,.27,.13,.06,.03]),flute:orchestral([1,.07,.12,.025]),harp:orchestral([1,.38,.18,.08,.03])};
       noiseBuf=ac.createBuffer(1,ac.sampleRate*1,ac.sampleRate); const nd=noiseBuf.getChannelData(0); for(let i=0;i<nd.length;i++) nd[i]=Math.random()*2-1;
       return true;
     }catch(e){ ac=null; return false; }
@@ -142,13 +143,20 @@ const SND = (()=>{
     if(nextT<now+.012){const missed=Math.ceil((now+.02-nextT)/sd);step+=missed;nextT+=missed*sd;timing.recoveries++;timing.skippedSteps+=missed;}
     while(nextT < now+timing.lookahead){
       const i=step%S.steps, bar=Math.floor(i/8), k=i%8, ch=S.bars[bar];
-      for(const e of (Math.floor(step/S.steps)%2?S.alt:S.lead)) if(e.step===i) voice(hz(e.n),nextT,sd*e.len*0.92,"p25",S.st.leadVol,{vib:true,detune:6,cutoff:3000,fenv:1800,q:1.2,rev:0.24,dly:0.2,a:0.008,d:0.1,sus:0.72,r:0.1});
-      const root=ch.root, bt=S.bass[k];
-      if(bt && bt!=="."){ const base=36+root+(root>7?-12:0)+12; const n = bt==="r"?base: bt==="r8"?base+12 : base+7; voice(hz(n),nextT,sd*0.85,"triangle",S.st.bassVol,{sub:true,cutoff:1300,fenv:600,a:0.004,d:0.06,sus:0.85,r:0.05}); }
-      const at=S.arp[k]; if(at!=null){ const q=ch.q; const n=60+root+(q[(+at)%q.length])+(+at>=q.length?12:0); voice(hz(n),nextT,sd*0.55,"p12",S.st.arpVol*1.2,{pan:k%2?0.4:-0.4,cutoff:2400,fenv:1200,rev:0.32,a:0.004,d:0.05,sus:0.45,r:0.08}); }
-      if(S.hat[k]==="x") hat(nextT,k);
-      if(S.kick[k]==="x") kick(nextT);
-      if(S.snare[k]==="x") snare(nextT);
+      const dramatic=['battle','boss'].includes(S.style),gentle=S.style==='soft',response=Math.floor(step/S.steps)%2;
+      const swell=.82+.18*Math.sin(Math.PI*(bar%8)/7),root=ch.root;
+      for(const e of (response?S.alt:S.lead))if(e.step===i){
+        voice(hz(e.n),nextT,sd*e.len*.94,gentle||response?'flute':'horn',.22*swell,{detune:gentle?0:3,cutoff:gentle?3800:2400,a:.035,d:.12,sus:.78,r:.19,rev:.36,pan:-.12});
+        if(dramatic)voice(hz(e.n-12),nextT,sd*e.len*.86,'strings',.10,{cutoff:3100,a:.025,d:.09,sus:.7,r:.15,rev:.24,pan:.3});
+      }
+      // Sustained string voicing with a separate horn response and low bowed foundation.
+      if(k===0||k===4){for(let j=0;j<3;j++)voice(hz(48+root+ch.q[j]),nextT,sd*3.75,'strings',.065*swell,{detune:3,cutoff:2300,a:.13,d:.15,sus:.72,r:.25,pan:[-.65,.15,.65][j],rev:.38});}
+      const bt=S.bass[k];if(bt&&bt!=='.'){const base=36+root+(root>7?-12:0),n=bt==='r'?base:bt==='r8'?base+12:base+7;voice(hz(n),nextT,sd*.88,'strings',.19,{cutoff:1000,a:.025,d:.08,sus:.75,r:.1});}
+      const at=S.arp[k];if(at!=null){const q=ch.q,n=60+root+q[(+at)%q.length]+(+at>=q.length?12:0);voice(hz(n),nextT,sd*.7,'harp',.10,{pan:k%2?.5:-.5,cutoff:3600,a:.004,d:.12,sus:.18,r:.22,rev:.32});}
+      if(response&&k===4)voice(hz(60+root+ch.q[1]),nextT,sd*2.7,'horn',.10,{a:.08,d:.1,sus:.65,r:.2,cutoff:2100,rev:.3,pan:.2});
+      if(!gentle&&(k===0||(dramatic&&k===4)))voice(hz(36+root),nextT,sd*1.4,'sine',.36,{slide:hz(36+root)*.82,a:.003,d:.12,sus:.18,r:.25,cutoff:700,rev:.3});
+      if(dramatic&&S.snare[k]==='x')noise(nextT,.14,.10,1700,{type:'bandpass',rev:.25});
+      if(k===0&&bar%4===0)noise(nextT,sd*3,.075,6200,{rev:.4});
       nextT+=sd; step++;
     }
   }
@@ -175,9 +183,9 @@ const SND = (()=>{
     const sd=60/J.bpm/2; let t0=ac.currentTime+0.05, steps=0;
     const lane=(str,wave,vol,o)=>{ const toks=str.replace(/\|/g," ").trim().split(/\s+/); steps=Math.max(steps,toks.length);
       toks.forEach((tk,i)=>{ const n=midi(tk); if(n==null) return; let len=1; while(toks[i+len]==="-") len++; voice(hz(n),t0+i*sd,sd*len*0.92,wave,vol,{vib:len>2,...o}); }); };
-    lane(J.lead,"p25",0.34,{detune:7,cutoff:3400,fenv:2000,q:1.2,rev:0.3,dly:0.15,sus:0.8,r:0.14});
-    lane(J.harm,"p12",0.18,{pan:-0.35,cutoff:2600,rev:0.35,sus:0.7,r:0.12});
-    lane(J.bass,"triangle",0.5,{sub:true,cutoff:1300,sus:0.9,r:0.08});
+    lane(J.lead,"horn",0.26,{detune:7,cutoff:3400,fenv:2000,q:1.2,rev:0.3,dly:0.15,sus:0.8,r:0.14});
+    lane(J.harm,"strings",0.16,{pan:-0.35,cutoff:2600,rev:0.35,sus:0.7,r:0.12});
+    lane(J.bass,"strings",0.3,{sub:true,cutoff:1300,sus:0.9,r:0.08});
     for(let i=0;i<steps;i+=4) kick(t0+i*sd);
     jingleT=setTimeout(()=>{ jingleT=null; if(next){ const n=next; cur=null; play(n); } }, (steps*sd+0.25)*1000);
   }

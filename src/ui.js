@@ -1136,7 +1136,7 @@ function renderBadgeRecord(st){
 function renderRecord(){
   const st=G.st; const L=levelOf(st.xp,st);
   const milestones=[["E1","新規開始"],["D1","M01完了"],["D2","M02完了"],["D3","M03完了"],["C1","M04完了"],["C2","M05完了"],["C3","M06完了"],["B1","M07完了"],["B2","M08完了"]];
-  return `<dl class="kv"><dt>共通レベル</dt><dd>${L}（経験値 ${st.xp.toLocaleString()}${L<levelLimit(st)?`・次まで${Math.max(0,xpFor(L+1)-st.xp).toLocaleString()}`:"・最大"}）</dd>
+  return `<dl class="kv"><dt>共通レベル</dt><dd><b class="record-level">${L}</b><span class="record-xp">経験値 ${st.xp.toLocaleString()}${L<levelLimit(st)?`・次まで${Math.max(0,xpFor(L+1)-st.xp).toLocaleString()}`:"・最大"}</span></dd>
     <dt>物語の到達ランク</dt><dd>${MOE_RANKS[st.moeRank]}</dd><dt>旅</dt><dd>${st.day}日目</dd></dl>
     <p class="small">もえのランクは物語上の到達記録です。レベル・熟練度・実際の応援ポイントとは別に表示します。</p>
     <ul class="list">${milestones.map(([r,c],i)=>`<li>${i<=st.moeRank?"●":"○"} ${r}：${c}</li>`).join("")}<li>全国の依頼を進めてS6へ。全51本編依頼完了で全国編エンディング。</li></ul>

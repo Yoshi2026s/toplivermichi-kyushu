@@ -981,6 +981,7 @@ body.in-battle .dock-back{min-height:64px}
 @media(orientation:portrait) and (max-height:600px){.result{display:grid;grid-template-columns:minmax(0,1fr);gap:5px}.result .rbanner{grid-row:1}.result .rgrid{grid-row:2}.result .rsummary{grid-row:3}.result .rwarning{grid-row:4}.result .rfoot{grid-row:5}.result .rxp,.result .rquest,.result .rmems,.result .result-details{grid-column:1}.result .rmems{gap:5px}.result .rmem{padding:5px}.result .rfoot .btn{min-height:48px}}
 @media(orientation:landscape) and (max-height:550px){.result{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:6px 10px}.result .rbanner{grid-column:1;grid-row:1}.result .rgrid{grid-column:1;grid-row:2}.result .rxp{grid-column:1;grid-row:3}.result .rquest{grid-column:1;grid-row:4}.result .rsummary{grid-column:2;grid-row:1}.result .rwarning{grid-column:2;grid-row:2}.result .rfoot{grid-column:2;grid-row:3}.result .rmems{grid-column:1/-1;grid-row:5}.result .result-details{grid-column:1/-1;grid-row:6}}
 @media(orientation:landscape) and (max-height:600px){.pstrip .pet-party{grid-template-columns:minmax(0,1fr)}}
+.sheet .kv dt,.sheet .kv dd{min-width:0;max-width:100%;white-space:normal;word-break:break-word;overflow-wrap:anywhere}.record-level{display:block;font-size:17px}.record-xp{display:block;font-size:14px;line-height:1.5;word-break:break-word;overflow-wrap:anywhere}
 </style>
 <main id="screen" aria-live="off"></main>
 <div id="dock" class="dock" aria-label="ジョイコントローラー">
@@ -6626,7 +6627,7 @@ function renderBadgeRecord(st){
 function renderRecord(){
   const st=G.st; const L=levelOf(st.xp,st);
   const milestones=[["E1","新規開始"],["D1","M01完了"],["D2","M02完了"],["D3","M03完了"],["C1","M04完了"],["C2","M05完了"],["C3","M06完了"],["B1","M07完了"],["B2","M08完了"]];
-  return `<dl class="kv"><dt>共通レベル</dt><dd>${L}（経験値 ${st.xp.toLocaleString()}${L<levelLimit(st)?`・次まで${Math.max(0,xpFor(L+1)-st.xp).toLocaleString()}`:"・最大"}）</dd>
+  return `<dl class="kv"><dt>共通レベル</dt><dd><b class="record-level">${L}</b><span class="record-xp">経験値 ${st.xp.toLocaleString()}${L<levelLimit(st)?`・次まで${Math.max(0,xpFor(L+1)-st.xp).toLocaleString()}`:"・最大"}</span></dd>
     <dt>物語の到達ランク</dt><dd>${MOE_RANKS[st.moeRank]}</dd><dt>旅</dt><dd>${st.day}日目</dd></dl>
     <p class="small">もえのランクは物語上の到達記録です。レベル・熟練度・実際の応援ポイントとは別に表示します。</p>
     <ul class="list">${milestones.map(([r,c],i)=>`<li>${i<=st.moeRank?"●":"○"} ${r}：${c}</li>`).join("")}<li>全国の依頼を進めてS6へ。全51本編依頼完了で全国編エンディング。</li></ul>

@@ -904,14 +904,30 @@ body.in-result:not(.no-dock){--dockH:64px}.in-result .dock .stick{width:60px;hei
 @media(orientation:portrait) and (max-height:550px){.result .rbanner h2{font-size:22px;line-height:1.2}}
 .result .rmems.many .rmh .small,.result .rmems.many .gauge .bar,.result .rmems.many .gauge .good{display:none}.result .rmems.many .rmem{gap:0}.result .rmems.many .rvitals,.result .rmems.many .gauge{font-size:12px}.result .rmems.many .rmh b{font-size:14px;line-height:1.25}
 .title-sound-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(70px,1fr);gap:8px}.title-screen .title-sound-row .btn{min-height:50px;padding:6px 8px;font-size:14px;letter-spacing:0}.title-music[aria-pressed="true"]{border-color:#e8cc86;background:linear-gradient(135deg,#345b62,#223a50)}
+
+/* 右端に戻る、その左にスティック。 */
+.dock .stick{order:2}.dock .dock-back{order:3;width:56px;min-width:56px;min-height:56px;padding:4px}.dock .stick-confirm{font-size:13px;line-height:1.1;white-space:nowrap}
+@media(max-width:390px){.dock-actions .btn{font-size:12px}}
+body.in-battle:not(.no-dock){--dockH:80px}.in-battle .dock .stick{width:72px;height:72px}.in-battle .dock .stick .knob{width:56px;height:56px;margin:-28px 0 0 -28px}.in-battle .dock .stick .ring{inset:6px}
+/* 数値は小さく残し、背景と敵の全身を見せる。 */
+.battle .enemies,.battle .enemies[data-count="2"]{grid-template-columns:repeat(auto-fit,minmax(0,1fr));min-height:190px;padding:8px 6px 4px;align-content:end;align-items:end;gap:8px;background-position:center 44%}
+.battle .ecard,.battle .ecard.isboss,.battle .enemies[data-count="2"] .ecard{display:flex;flex-direction:column;align-items:center;justify-content:end;gap:3px;background:transparent;box-shadow:none;padding:0;border:0}
+.battle .ecard .esprite,.battle .ecard.isboss .esprite,.battle .enemies[data-count="2"] .esprite{width:min(100%,124px);height:124px;object-fit:contain;filter:drop-shadow(0 4px 4px #06152188)}
+.battle .ecard.isboss .esprite{width:min(100%,144px);height:144px}.battle .ecard .einfo{width:100%;padding:3px 5px;box-sizing:border-box;border-radius:5px;background:#0b1e2fbd;gap:2px}.battle .ename,.battle .estat{font-size:12px;line-height:1.15}.battle .ecard .bar{height:4px}.battle .rar{font-size:12px}.battle .tele{font-size:12px}
+@media(max-height:700px){.battle .enemies,.battle .enemies[data-count="2"]{min-height:132px;padding:4px 4px 2px;gap:5px}.battle .ecard .esprite,.battle .ecard.isboss .esprite,.battle .enemies[data-count="2"] .esprite{width:min(100%,84px);height:84px}.battle .ecard.isboss .esprite{width:min(100%,96px);height:96px}.battle .pcard{min-height:60px}.battle .bhead{font-size:12px}.battle{gap:4px}}
+
+.nav-filters,.nav-shortcuts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:8px 0}.nav-filters .btn,.nav-shortcuts .btn{min-height:48px;font-size:13px;padding:4px}.nav-filters [aria-pressed="true"]{border-color:#ecd08c;background:#36595a}.nav-search{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:5px;align-items:stretch}.nav-search .input{min-width:0;width:100%;box-sizing:border-box}.nav-search .btn{min-width:48px;min-height:48px;padding:4px 8px}.nav-pages{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:8px 0;font-size:13px}.nav-pages .btn{min-height:48px;min-width:64px}.nav-results{display:grid;gap:6px}.nav-destination{text-align:left;min-height:60px;padding:7px 9px;display:flex;flex-direction:column;align-items:start;gap:4px;white-space:normal}.nav-destination b{font-size:15px;overflow-wrap:anywhere}.nav-destination span{font-size:12px;color:#d5dfd7}.nav-plan{border:1px solid #b9cd9d;padding:8px;border-radius:6px;margin:8px 0}.nav-plan b{font-size:14px}.nav-plan .btn{min-height:48px;flex:1}.nav-quest{padding:9px;margin:8px 0}.nav-quest .srow{align-items:start;flex-wrap:wrap}.nav-quest .btn{min-height:48px;white-space:normal;width:100%;margin-top:5px}.nav-quest summary{min-height:48px;align-content:center;cursor:pointer}.nav-quest .small{margin:4px 0}.nav-quest .tag{font-size:12px}.nav-quest.active,.nav-quest.bossReady{border-color:#e6c482}.map-route{position:absolute;left:8px;right:8px;bottom:8px;z-index:3;background:#102a3fed;border:1px solid #c8c5a2;border-radius:7px;display:flex;gap:5px;align-items:center;padding:5px;box-sizing:border-box}.map-route[hidden]{display:none}.map-route>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}.map-route small{display:block;overflow:hidden;text-overflow:ellipsis;font-size:12px}.map-route .btn{min-width:48px;min-height:48px;padding:4px;font-size:13px}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.nav-goal{display:grid;gap:5px;padding:8px;border-left:3px solid #e1c47a;background:#243e4d;margin:8px 0;font-size:14px}.nav-goal .btn{min-height:48px;text-align:left;white-space:normal;font-size:14px}
+@media(max-height:600px){.explore{height:calc(100dvh - 12px - var(--dockH) - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow:hidden}.explore .mapwrap{flex:1 1 0;min-height:0;height:auto}}
+@media(orientation:landscape) and (max-height:600px){.explore{display:grid;grid-template-columns:minmax(170px,.8fr) minmax(0,1.2fr);grid-template-rows:auto minmax(0,1fr);gap:5px}.explore .xhead{grid-column:1;grid-row:1;min-width:0;padding:4px 6px}.explore .pstrip{grid-column:1;grid-row:2;align-self:start;min-width:0;padding:4px 6px}.explore .mapwrap{grid-column:2;grid-row:1/3}.explore .xhead .place{font-size:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.explore .xhead .here{font-size:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.explore .xhead .goal{-webkit-line-clamp:1;font-size:12px}.explore .pmini .small{font-size:12px}.explore .pmline b{font-size:13px}.explore .pstop{font-size:12px}.map-route{left:4px;right:4px;padding:3px;gap:3px}}
 </style>
 <main id="screen" aria-live="off"></main>
 <div id="dock" class="dock" aria-label="ジョイコントローラー">
-  <button class="btn dock-back" data-pad="back" aria-label="戻る">戻る</button>
   <div class="dock-center"><nav class="dock-actions" aria-label="冒険メニュー">
 <button class="btn" data-a="openSheet" data-k="quests">やる事リスト</button><button class="btn" data-a="openSheet" data-k="guide">オート移動</button><button class="btn" data-a="openSheet" data-k="menu">メニュー</button><button class="btn" data-a="openSheet" data-k="settings">設定・保存</button>
 </nav></div>
-  <div class="stick" role="application" aria-label="スティック。ドラッグで移動・カーソル移動、中央で決定"><div class="ring"></div><div class="knob"><button class="stick-confirm" aria-label="決定">決定</button></div></div>
+  <div class="stick" role="application" aria-label="移動スティック。ドラッグで移動、中央は場面に応じて決定・停止・再開"><div class="ring"></div><div class="knob"><button class="stick-confirm" aria-label="決定">決定</button></div></div>
+  <button class="btn dock-back" data-pad="back" aria-label="戻る">戻る</button>
 </div>
 <script>
 const PROFILES=[["P01","エールスライム","反響体","音","交互拡散",42,2,[["s",10],["a",7]],"基礎2手周期：単体10 → 全体7。","単体の対象者を守り、次の全体攻撃までに集中攻撃する。"],["P02","コメキメーラ","光膜体","光","先手拡散",44,2,[["a",7],["s",11]],"基礎2手周期：全体7 → 単体11。","全体被弾後に回復し、次の単体予告は対象者だけガードする。"],["P03","おやすミック","配線体","電","間欠単発",40,2,[["s",12],["c",0]],"基礎2手周期：単体12 → 休止（攻撃なし）。","休止の手でMPを戻し、攻撃の手に対象者を守る。"],["P04","ためエールボム","火花体","熱","蓄熱単発",44,2,[["c",0],["s",16]],"基礎2手周期：休止（攻撃なし） → 単体16。","初手の休止を攻撃や準備に使い、次の強い単体予告へガードする。"],["P05","ホイイネスライム","水紋体","水","三拍交互",44,2,[["s",10],["a",6],["s",12]],"基礎3手周期：単体10 → 全体6 → 単体12。","単体と全体の予告を見分け、全体被弾後に回復をまとめる。"],["P06","ドラパチキー","風環体","風","連続単発",40,1,[["s",11],["s",13]],"基礎2手周期：単体11 → 単体13。","防御が薄いので集中攻撃を優先し、残った時だけ対象者を守る。"],["P07","ゴーコアレム","鉱殻体","土","休止重装",52,4,[["s",10],["c",0],["s",13]],"基礎3手周期：単体10 → 休止（攻撃なし） → 単体13。","防御が厚いので技能やコメント連携を使い、休止の手で準備する。"],["P08","ぽこゴブリン","微粒体","無","終拍拡散",44,2,[["s",10],["s",10],["a",6]],"基礎3手周期：単体10 → 単体10 → 全体6。","3手目の全体予告までに1体を減らす。長引けば全体被弾後に回復する。"],["P09","パチペットマン","音符体","音","拡散往復",42,2,[["a",6],["s",10],["a",7]],"基礎3手周期：全体6 → 単体10 → 全体7。","全体攻撃が続く周期境界を予告で確認し、HPをまとめて戻す。"],["P10","キラコメゴースト","灯籠体","光","消灯拡散",44,2,[["s",10],["c",0],["a",8]],"基礎3手周期：単体10 → 休止（攻撃なし） → 全体8。","休止の手に攻め、全体予告の手で必要な人数をガードする。"],["P11","メータルスライム","配線体","電","間欠連発",42,2,[["c",0],["s",16],["s",10]],"基礎3手周期：休止（攻撃なし） → 単体16 → 単体10。","休止の次は強い単体攻撃。休止中のガードが次手へ残らない点を確認する。"],["P12","コアテンダー","容器体","熱","追い蓄熱",46,2,[["s",10],["c",0],["s",18]],"基礎3手周期：単体10 → 休止（攻撃なし） → 単体18。","2手目にMPを戻し、3手目の単体対象をガードする。"],["P13","ぽこリスナーガ","光膜体","水","四拍交互",44,2,[["a",6],["s",12],["a",6],["s",10]],"基礎4手周期：全体6 → 単体12 → 全体6 → 単体10。","全体攻撃の手と単体攻撃の手を交互に確認し、回復をまとめる。"],["P14","タグラキーマ","紙片体","風","三連単発",40,1,[["s",12],["s",10],["s",14]],"基礎3手周期：単体12 → 単体10 → 単体14。","低い防御を突いて早めに倒す。3手目の予告対象はガードを検討する。"],["P15","ボックスゴーレム","鉱殻体","土","始動重装",54,5,[["c",0],["s",15],["s",10]],"基礎3手周期：休止（攻撃なし） → 単体15 → 単体10。","初手でコメント連携や技能を用意し、防御の厚さを補う。"],["P16","ぽこトンベール","回転体","無","休止混成",44,2,[["s",11],["a",7],["c",0]],"基礎3手周期：単体11 → 全体7 → 休止（攻撃なし）。","全体被弾後の休止に回復やMP回復を行う。"],["P17","コメルベロス","反響体","音","四拍反響",46,2,[["s",11],["a",7],["s",12],["a",6]],"基礎4手周期：単体11 → 全体7 → 単体12 → 全体6。","全体攻撃2回の間でHPを確認し、単体の手は対象者だけ守る。"],["P18","イイネビルアイ","投影体","光","明滅混成",42,3,[["a",7],["c",0],["s",13]],"基礎3手周期：全体7 → 休止（攻撃なし） → 単体13。","初手の全体被弾を休止の手で回復し、次の単体対象を確認する。"],["P19","コカパチリス","火花体","電","先打ち間欠",40,2,[["s",14],["c",0],["s",12]],"基礎3手周期：単体14 → 休止（攻撃なし） → 単体12。","初手の単体予告に対応し、休止の手で一気に削る。"],["P20","サラエールダー","容器体","熱","蓄熱拡散",48,2,[["c",0],["a",9],["s",12]],"基礎3手周期：休止（攻撃なし） → 全体9 → 単体12。","休止の後は全体攻撃。次手の予告と各人のHPを確認して守る。"],["P21","クラーコアケン","水紋体","水","往復分散",46,2,[["s",12],["a",7],["s",10],["a",6]],"基礎4手周期：単体12 → 全体7 → 単体10 → 全体6。","単体の対象と全体被弾を交互に管理し、回復は複数人へまとめる。"],["P22","しょけんキメラ","布帯体","風","四連単発",40,1,[["s",14],["s",10],["s",12],["s",10]],"基礎4手周期：単体14 → 単体10 → 単体12 → 単体10。","休止がないため薄い防御を狙って先に倒し、予告対象を順に守る。"],["P23","しめゴーレム","紙積体","土","耐久休止",56,4,[["s",10],["s",10],["c",0],["s",16]],"基礎4手周期：単体10 → 単体10 → 休止（攻撃なし） → 単体16。","長期戦に備えて技能と連携を使い、休止の手でMPを戻す。"],["P24","コメばけキノコ","文字体","無","挟み拡散",44,3,[["s",12],["a",6],["s",10]],"基礎3手周期：単体12 → 全体6 → 単体10。","中間の全体被弾後に回復し、単体の手は対象者を守る。"],["P25","ファミヒーモス","反響体","音","強弱拡散",46,2,[["a",8],["s",12],["a",6]],"基礎3手周期：全体8 → 単体12 → 全体6。","全体攻撃2回の強弱を予告で確認し、強い手へガードを合わせる。"],["P26","キラコメーマシン","投影体","光","四拍明滅",44,2,[["s",12],["a",8],["c",0],["s",14]],"基礎4手周期：単体12 → 全体8 → 休止（攻撃なし） → 単体14。","全体被弾後の休止で回復し、続く単体予告へガードを合わせる。"],["P27","メーターガイスト","配線体","電","交互通電",42,2,[["c",0],["s",18],["c",0],["s",14]],"基礎4手周期：休止（攻撃なし） → 単体18 → 休止（攻撃なし） → 単体14。","休止と攻撃を交互に利用し、強い単体予告の手だけ対象者を守る。"],["P28","エールフレイム","紙片体","熱","後拍放熱",46,2,[["s",12],["c",0],["a",9]],"基礎3手周期：単体12 → 休止（攻撃なし） → 全体9。","休止の手で攻撃準備を行い、3手目の全体予告に備える。"],["P29","ぽこボクボル","水紋体","水","波間休止",44,3,[["a",7],["s",14],["c",0],["s",12]],"基礎4手周期：全体7 → 単体14 → 休止（攻撃なし） → 単体12。","単体と全体を分けて受け止め、休止の手でHPやMPを戻す。"],["P30","ライバーハーピー","布帯体","風","減衰単発",40,1,[["s",16],["s",12],["s",10]],"基礎3手周期：単体16 → 単体12 → 単体10。","初手の強い単体対象を守り、低い防御へ集中攻撃する。"],["P31","コアビルアーマー","配線体","土","被覆重装",54,5,[["s",12],["c",0],["s",16],["s",10]],"基礎4手周期：単体12 → 休止（攻撃なし） → 単体16 → 単体10。","防御の厚さは技能・連携で補い、休止の後の強打を予告で受け止める。"],["P32","デスリスナイト","歯車体","無","四拍混成",46,3,[["s",12],["s",14],["a",7],["c",0]],"基礎4手周期：単体12 → 単体14 → 全体7 → 休止（攻撃なし）。","全体被弾後に休止が来るため、その手で回復やMP回復を行う。"],["P33","パチパチオーク","機材体","音","連続拡散",46,2,[["a",8],["a",6],["s",12]],"基礎3手周期：全体8 → 全体6 → 単体12。","全体攻撃が2手続く。HPの低い仲間を守り、全体回復を使う。"],["P34","キラコメデューサ","紙片体","光","間あき明滅",42,2,[["a",8],["s",12],["c",0],["a",7]],"基礎4手周期：全体8 → 単体12 → 休止（攻撃なし） → 全体7。","休止の手を使って回復し、周期の境目の全体攻撃も予告で確認する。"],["P35","ギガダイヤンテス","機材体","電","放電混成",42,1,[["s",16],["c",0],["a",8]],"基礎3手周期：単体16 → 休止（攻撃なし） → 全体8。","初手の対象者を守り、休止の手に攻めて全体攻撃前の撃破を狙う。"],["P36","イフリーエール","機材体","熱","蓄熱連射",48,2,[["c",0],["s",18],["a",8],["s",10]],"基礎4手周期：休止（攻撃なし） → 単体18 → 全体8 → 単体10。","休止の後は単体強打と全体攻撃。予告に合わせて守りと回復を分ける。"],["P37","リヴァいいねサン","光膜体","水","波紋休止",46,3,[["s",10],["a",8],["c",0],["a",7]],"基礎4手周期：単体10 → 全体8 → 休止（攻撃なし） → 全体7。","全体被弾後の休止で回復し、再び来る全体予告を確認する。"],["P38","ぽこタグルーダ","風環体","風","折返し単発",42,1,[["s",12],["s",16],["c",0],["s",14]],"基礎4手周期：単体12 → 単体16 → 休止（攻撃なし） → 単体14。","強い単体の手をガードし、休止には薄い防御を狙って攻める。"],["P39","ファミリッチ","反響体","音","厚声交互",48,3,[["a",7],["s",14],["a",8],["s",10]],"基礎4手周期：全体7 → 単体14 → 全体8 → 単体10。","全体と単体が交互に来る。強い全体予告へHPとガードを合わせる。"],["P40","キラドハンド","灯籠体","光","開幕強光",44,3,[["a",9],["c",0],["a",7],["s",12]],"基礎4手周期：全体9 → 休止（攻撃なし） → 全体7 → 単体12。","初手の全体予告に対応し、次の休止で回復する。"],["P41","ぽこグレムリン","機材体","電","先打ち通電",44,2,[["s",18],["c",0],["s",12],["c",0]],"基礎4手周期：単体18 → 休止（攻撃なし） → 単体12 → 休止（攻撃なし）。","最初の単体強打を対象者のガードで抑え、休止に攻撃や回復を行う。"],["P42","パチくだんいわ","火花体","熱","放熱強打",48,3,[["c",0],["a",9],["s",16],["s",10]],"基礎4手周期：休止（攻撃なし） → 全体9 → 単体16 → 単体10。","初手で準備し、全体攻撃と次の単体強打を予告に合わせて防ぐ。"],["P43","コアセイレーン","水紋体","水","深波交互",48,3,[["a",8],["s",14],["a",7],["s",12]],"基礎4手周期：全体8 → 単体14 → 全体7 → 単体12。","全体被弾を回復で補い、単体の手は狙われた仲間だけ守る。"],["P44","エールコンドル","紙片体","風","三連強打",40,1,[["s",16],["s",12],["s",18],["c",0]],"基礎4手周期：単体16 → 単体12 → 単体18 → 休止（攻撃なし）。","単体攻撃が続くが防御は薄い。早めに倒すか3手目の対象を守る。"],["P45","ボックスミック","容器体","土","厚殻強打",56,5,[["s",12],["s",14],["c",0],["s",18]],"基礎4手周期：単体12 → 単体14 → 休止（攻撃なし） → 単体18。","厚い防御へ技能と連携を使い、休止の次の強打は予告対象を守る。"],["P46","マジコメポット","歯車体","無","振り分け混成",48,3,[["s",14],["a",8],["s",12],["c",0]],"基礎4手周期：単体14 → 全体8 → 単体12 → 休止（攻撃なし）。","全体被弾後のHPを確認し、4手目の休止で立て直す。"],["P47","メーターキング","配線体","電","分岐通電",44,2,[["c",0],["a",9],["c",0],["s",18]],"基礎4手周期：休止（攻撃なし） → 全体9 → 休止（攻撃なし） → 単体18。","休止の後は全体と単体を交互に出す。毎手の対象表示に合わせて守る。"],["P48","タイタエール","鉱殻体","土","重殻混成",56,5,[["c",0],["s",18],["s",12],["a",7]],"基礎4手周期：休止（攻撃なし） → 単体18 → 単体12 → 全体7。","初手で連携を整え、強い単体と最後の全体予告へ別々に対応する。"],["P49","アーリスナー","光膜体","光","強光折返し",46,3,[["a",8],["s",14],["c",0],["a",9]],"基礎4手周期：全体8 → 単体14 → 休止（攻撃なし） → 全体9。","休止の次と周期の先頭に全体攻撃が来るため、休止でHPを戻す。"],["P50","ベヒエールモス","文字体","無","輪郭四拍",50,3,[["s",14],["a",8],["c",0],["s",18]],"基礎4手周期：単体14 → 全体8 → 休止（攻撃なし） → 単体18。","全体被弾後の休止で回復し、次の単体強打は対象者を守る。"]];
@@ -5601,7 +5617,7 @@ function renderExplore(){
       <div class="goal">${esc(objective())}</div>
       <div class="xsave small" aria-live="polite">保存：<span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（閲覧のみ）":""}</div>
     </header>
-    <div class="mapwrap" data-map-kind="${esc(m.kind)}"><canvas id="map" aria-label="${esc(m.name)}の地図。地面をタップすると移動します。"></canvas>
+    <div class="mapwrap" data-map-kind="${esc(m.kind)}"><aside id="navRoute" class="map-route" aria-label="移動先" hidden></aside><canvas id="map" aria-label="${esc(m.name)}の地図。地面をタップすると移動します。"></canvas>
       <canvas id="minimap" aria-label="全体ミニマップ。白丸は現在地、白枠は表示範囲。城門は砦、家は街、ベッドは宿屋、瓶は道具屋、書類は職業窓口"></canvas>
       ${exit?`<button class="btn map-exit" data-a="guideTo" data-v="${exit.id}">${m.kind==="town"?"街外へ":"街へ戻る"}</button>`:""}
     </div>
@@ -5728,10 +5744,10 @@ function startLoop(){
   };
   G.raf=requestAnimationFrame(loop);
 }
-function bfs(m,sx,sy,goal){
+function bfs(m,sx,sy,goal,avoidTransitions=false){
   const key=(x,y)=>y*m.w+x; const prev=new Map(); const q=[[sx,sy]]; prev.set(key(sx,sy),null);
   while(q.length){ const [x,y]=q.shift(); if(goal(x,y)&&!(x===sx&&y===sy)){ const path=[]; let k=key(x,y); while(k!==key(sx,sy)){ path.unshift({x:k%m.w,y:Math.floor(k/m.w)}); k=prev.get(k);} return path; }
-    for(const [dx,dy] of [[0,1],[0,-1],[-1,0],[1,0]]){ const nx=x+dx, ny=y+dy; if(nx<0||ny<0||nx>=m.w||ny>=m.h) continue; const k=key(nx,ny); if(prev.has(k)) continue; if(!walkable(m,nx,ny)) continue; prev.set(k,key(x,y)); q.push([nx,ny]); } }
+    for(const [dx,dy] of [[0,1],[0,-1],[-1,0],[1,0]]){ const nx=x+dx, ny=y+dy; if(nx<0||ny<0||nx>=m.w||ny>=m.h) continue; const k=key(nx,ny); if(prev.has(k)) continue; if(!walkable(m,nx,ny)) continue; const transit=objAt(m,nx,ny);if(avoidTransitions&&transit?.walk&&transit.to&&!goal(nx,ny))continue; prev.set(k,key(x,y)); q.push([nx,ny]); } }
   return null;
 }
 function walkTo(x,y,pending){
@@ -5739,8 +5755,8 @@ function walkTo(x,y,pending){
   let path;
   const obj=objAt(m,x,y);
   if(obj && !obj.walk){ if(Math.abs(obj.x-st.pos.x)+Math.abs(obj.y-st.pos.y)===1 || (Math.max(Math.abs(obj.x-st.pos.x),Math.abs(obj.y-st.pos.y))<=1)){ interact(obj); return; }
-    path=bfs(m,st.pos.x,st.pos.y,(px,py)=>Math.abs(px-x)+Math.abs(py-y)===1); pending=obj; }
-  else { if(x===st.pos.x&&y===st.pos.y) return; if(!walkable(m,x,y)) return; path=bfs(m,st.pos.x,st.pos.y,(px,py)=>px===x&&py===y); }
+    path=bfs(m,st.pos.x,st.pos.y,(px,py)=>Math.abs(px-x)+Math.abs(py-y)===1,true); pending=obj; }
+  else { if(x===st.pos.x&&y===st.pos.y) return; if(!walkable(m,x,y)) return; path=bfs(m,st.pos.x,st.pos.y,(px,py)=>px===x&&py===y,true); }
   if(!path) return toast("そこへは行けません。");
   G.walk.path=path; G.walk.prog=0; G.walk.pending=pending||(obj&&obj.walk?obj:null);
 }
@@ -5842,7 +5858,7 @@ function renderDialog(){
     <div class="row3"><button class="btn" data-a="dlgBack" ${d.i?"":"disabled"}>戻る</button>
     <button class="btn" data-a="dlgSkip">省略</button>
     <button class="btn primary" id="dlgNext" data-a="dlgNext">${d.i<d.lines.length-1?"次へ ▼":"閉じる"}</button></div>
-    <div class="small">${d.i+1}／${d.lines.length}</div></div></div>`;
+    <div class="small" role="status" aria-live="polite" aria-label="会話のページ">${d.i+1}／${d.lines.length}</div></div></div>`;
 }
 function playScene(id, after){ const sc=SCENES[id]; if(id.startsWith("RANK_")) SND.sfx("rank"); if(id==="RANK_D2"){ SND.play("ending"); const a0=after; after=()=>{ exploreBgm(); if(a0) a0(); }; } G.st.scenes[id]=true; commit(); say([["",`― ${sc.title} ―`],...sc.lines(G.st.profile.name)], after); }
 
@@ -5902,9 +5918,9 @@ function renderBattle(){
     const pct=Math.round(100*e.hp/e.maxHP);
     return `<div class="ecard ${e.hp<=0?"down":""} ${e.boss?"isboss":""}" id="ec${e.slot}">
       <canvas data-enemy="${e.slot}" width="${e.boss?128:64}" height="${e.boss?128:64}" class="esprite ${e.boss?"boss":""}" aria-hidden="true"></canvas>
-      <div class="einfo"><div class="ename">${esc(e.display)}${e.rarity>1?` <span class="rar">${"★".repeat(e.rarity)}${["","通常","やや珍しい","希少","極希少","幻影"][e.rarity]}</span>`:""}</div>
+      <div class="einfo"><div class="ename">${esc(e.display)}${e.rarity>1?` <span class="rar" title="${["","通常","やや珍しい","希少","極希少","幻影"][e.rarity]}" aria-label="${["","通常","やや珍しい","希少","極希少","幻影"][e.rarity]}">${"★".repeat(e.rarity)}</span>`:""}</div>
       <span class="bar enemy"><i style="width:${pct}%"></i></span>
-      <div class="estat">体力 ${e.hp}/${e.maxHP}・防御力${e.def}</div>
+      <div class="estat">HP ${e.hp}/${e.maxHP}・防${e.def}</div>
       ${e.hp<=0?`<div class="tele">鎮まった</div>`:""}</div></div>`; }).join("");
   const chain = run.kiraDone?"キラコメ済":`キラコメ${run.chain.stage}/3 次:${["挨拶","作戦","感謝"][run.chain.stage]}`;
   const battleLines=Array.isArray(run.log)?run.log:[];
@@ -6725,7 +6741,7 @@ const ACT = {
   step(el){ if(G.sheet||G.dlg) return; const d=+el.dataset.d; const st=G.st; const m=MAPS[st.mapId]; st.dir=d; const v=[[0,1],[0,-1],[-1,0],[1,0]][d];
     const nx=st.pos.x+v[0], ny=st.pos.y+v[1]; const o=objAt(m,nx,ny); if(o&&!o.walk) return interact(o); if(walkable(m,nx,ny)){ G.walk.path=[{x:nx,y:ny}]; G.walk.prog=0; } },
   stop(){ if(G.walk.path.length>1) G.walk.path=G.walk.path.slice(0,1); G.walk.pending=null; },
-  interactId(el){ const o=MAPS[G.st.mapId].objects.find(x=>x.id===el.dataset.v); G.sheet=null; render(); interact(o); },
+  interactId(el){ const o=MAPS[G.st.mapId].objects.find(x=>x.id===el.dataset.v); if(!o)return; G.sheet=null; render(); interact(o); },
   guideTo(el){ const o=MAPS[G.st.mapId].objects.find(x=>x.id===el.dataset.v); G.sheet=null; render(); walkTo(o.x,o.y); },
   doTravel(){ return toast("街間は街外MAPの道を歩くか、新幹線駅から移動してください。"); },
   worldGo(el){
@@ -7478,9 +7494,130 @@ Object.assign(ACT,{
   doRest(el){return managementFacilityConfirm(el,"rest");}
 });
 
+/* 行先・依頼・操作の補助。検索条件と移動予定は実行中だけ保持し、セーブ形式は変えない。 */
+const NAV_UI={state:null,serial:0,guide:{filter:'priority',query:'',page:0},quests:{filter:'local',query:'',page:0}};
+const NAV_GUIDE_FILTERS=[['priority','おすすめ'],['all','近い順'],['facility','施設'],['people','住人'],['treasure','宝箱'],['exit','街・出口'],['boss','ボス']];
+const NAV_QUEST_FILTERS=[['local','今いる街'],['active','受注中'],['available','受注可能'],['main','本編'],['complete','完了'],['all','すべて']];
+function navigationView(key=G.sheet){
+ if(NAV_UI.state!==G.st){NAV_UI.state=G.st;NAV_UI.guide={filter:'priority',query:'',page:0};NAV_UI.quests={filter:'local',query:'',page:0};NAV_UI.serial++;}
+ return NAV_UI[key==='quests'?'quests':'guide'];
+}
+function navigationWords(value){return String(value||'').normalize('NFKC').toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);}
+function navigationMatches(value,query){const hay=String(value).normalize('NFKC').toLocaleLowerCase();return navigationWords(query).every(w=>hay.includes(w));}
+function navigationDistances(m,pos=G.st.pos){
+ const distances=new Map([[pos.y*m.w+pos.x,0]]),queue=[[pos.x,pos.y]];
+ for(let i=0;i<queue.length;i++){const [x,y]=queue[i],d=distances.get(y*m.w+x);
+  for(const [dx,dy] of [[0,1],[0,-1],[-1,0],[1,0]]){const nx=x+dx,ny=y+dy,key=ny*m.w+nx;if(nx<0||ny<0||nx>=m.w||ny>=m.h||distances.has(key)||!walkable(m,nx,ny))continue;
+   distances.set(key,d+1);const o=objAt(m,nx,ny);if(!(o?.walk&&o.to))queue.push([nx,ny]);
+  }
+ }
+ return distances;
+}
+function navigationDistance(m,o,distances){
+ if(o.walk)return distances.get(o.y*m.w+o.x)??Infinity;
+ return Math.min(...[[0,1],[0,-1],[-1,0],[1,0]].map(([dx,dy])=>o.x+dx<0||o.y+dy<0||o.x+dx>=m.w||o.y+dy>=m.h?Infinity:distances.get((o.y+dy)*m.w+o.x+dx)??Infinity));
+}
+function navigationCategory(o){return o.fieldExit||o.fieldRoute||['gate','station','door'].includes(o.type)?'exit':o.type==='npc'?'people':o.type==='box'?'treasure':o.type==='boss'?'boss':'facility';}
+function navigationRows(m=MAPS[G.st.mapId]){
+ const st=G.st,distances=navigationDistances(m),low=st.party.some(cid=>{const v=vitalOf(cid),s=charStats(st,cid,levelOf(st.xp,st));return v.hp<s.maxHP*.65||v.c<s.startC*.25;});
+ return m.objects.filter(o=>o.type!=='tower'&&o.type!=='sign').map(o=>{
+  const category=navigationCategory(o),steps=navigationDistance(m,o,distances);let status='',rank=20;
+  if(o.type==='npc'){status=st.talked[o.npc]?'会話済み':'まだ話していません';rank=st.talked[o.npc]?35:10;}
+  if(o.type==='box'){status=st.boxes[o.box]?'開封済み':'未開封・条件は現地で確認';rank=st.boxes[o.box]?50:12;}
+  if(o.type==='inn'){const cost=(INN_PRICE[m.hub]||10)*st.roster.length;status=(low?'回復をおすすめ・':'')+`宿泊${cost}G`+(st.gold<cost?`（あと${cost-st.gold}G）`:'');rank=low?0:18;}if(o.type==='rest'){status='翌朝まで休む';rank=25;}
+  if(o.type==='shop'){status='道具・装備を補充';rank=15;}
+  if(o.type==='boss'){const q=Object.entries(QUESTS).find(([,q])=>q.boss===o.boss);status=st.bossDefeated[o.boss]?'討伐済み':q&&st.quests[q[0]]==='bossReady'?'挑戦できます':'依頼の進行が必要';rank=status==='挑戦できます'?0:45;}
+  if(o.fieldExit){status=m.kind==='town'?'街外の探索へ':'安全な街へ';rank=st.activeQuest&&m.kind==='town'?1:16;}
+  if(o.fieldRoute){const available=nationalRouteAvailable(st,m.hub,o.toHub);status=available?'隣の街への街道':'未解放の道';rank=available?25:55;}
+  return {o,category,steps,status,rank};
+ });
+}
+function navigationToolbar(key,filters){const d=navigationView(key);return `<div class="nav-filters" role="group" aria-label="絞り込み">${filters.map(([id,label])=>`<button class="btn" data-a="navFilter" data-v="${id}" aria-pressed="${d.filter===id}">${label}</button>`).join('')}</div><form class="nav-search" data-nav-search><label class="sr-only" for="navSearchInput">${key==='guide'?'行先':'依頼'}を検索</label><input class="input" id="navSearchInput" maxlength="64" autocomplete="off" value="${esc(d.query)}" placeholder="名前・種類・地域を検索"><button type="submit" class="btn">検索</button><button type="button" class="btn" data-a="navClear">解除</button></form>`;}
+function navigationPage(key,rows){const d=navigationView(key),pages=Math.max(1,Math.ceil(rows.length/6));d.page=Math.max(0,Math.min(pages-1,d.page));return {rows:rows.slice(d.page*6,d.page*6+6),html:`<div class="nav-pages"><button class="btn" data-a="navPage" data-v="${d.page-1}" ${d.page?'':'disabled'}>前へ</button><span role="status" aria-live="polite">${rows.length}件・${d.page+1}／${pages}</span><button class="btn" data-a="navPage" data-v="${d.page+1}" ${d.page+1<pages?'':'disabled'}>次へ</button></div>`};}
+function navigationValidPlan(){const p=G.walkPlan;return p&&p.state===G.st&&p.map===G.st?.mapId?p:null;}
+function navigationPlanControls(){const p=navigationValidPlan();if(!p)return '';const paused=p.paused||!G.walk.path.length;return `<div class="nav-plan"><b>${paused?'一時停止':'移動中'}：${esc(p.label||'選んだ地点')}</b><div class="srow"><button class="btn" data-a="${paused?'travelResume':'travelPause'}" data-v="${p.version}" ${G.readOnly?"disabled":""}>${paused?'再開':'一時停止'}</button><button class="btn" data-a="travelCancel" data-v="${p.version}">取り消す</button></div></div>`;}
+function navigationRecommendedQuest(){const st=G.st;if(st.activeQuest&&QUESTS[st.activeQuest])return st.activeQuest;return Object.keys(QUESTS).filter(id=>st.quests[id]==='available').sort((a,b)=>(QUESTS[b].hub===curHub()?1:0)-(QUESTS[a].hub===curHub()?1:0)||(QUESTS[b].main?1:0)-(QUESTS[a].main?1:0))[0]||null;}
+function navigationQuestShortcut(token){const id=navigationRecommendedQuest();if(!id)return '';const target=navigationQuestTarget(id);return `<div class="nav-goal"><b>次にすること：${esc(QUESTS[id].name)}</b>${target?`<button class="btn" data-a="navQuestGo" data-v="${id}" data-map="${esc(G.st.mapId)}" data-nav-token="${token}" ${G.readOnly?'disabled':''}>${esc(target.label)}へ（${target.steps}歩）</button>`:'<button class="btn" data-a="openSheet" data-k="quests">依頼を確認・受注する</button>'}</div>`;}
+function renderNavigationGuide(){
+ const m=MAPS[G.st.mapId],d=navigationView('guide');NAV_UI.serial++;const token=NAV_UI.serial;
+ const rows=navigationRows(m).filter(r=>(['priority','all'].includes(d.filter)||r.category===d.filter)&&navigationMatches(r.o.label+' '+r.status+' '+({shop:'道具屋 道具店 装備',inn:'宿屋 宿 回復',jobcenter:'職業 転職 ハローワーク',rest:'休憩 回復',npc:'住人',box:'宝箱',boss:'ボス 砦',station:'駅 新幹線'})[r.o.type]+' '+(r.category==='exit'?'出口 街':'')+' '+m.name,d.query));
+ rows.sort((a,b)=>Number.isFinite(b.steps)-Number.isFinite(a.steps)||(d.filter==='priority'?a.rank-b.rank:0)||a.steps-b.steps||a.o.label.localeCompare(b.o.label,'ja'));
+ const page=navigationPage('guide',rows);
+ return `<p class="small">${esc(m.name)}。実際に歩く距離で並びます。街外では敵と遭遇することがあります。</p>${navigationPlanControls()}${navigationQuestShortcut(token)}${navigationToolbar('guide',NAV_GUIDE_FILTERS)}${page.html}<div class="nav-results">${page.rows.map(({o,steps,status})=>`<button class="btn nav-destination" data-a="guideTo" data-v="${esc(o.id)}" data-map="${esc(G.st.mapId)}" data-nav-token="${token}" ${!Number.isFinite(steps)||G.readOnly?'disabled':''}><b>${esc(o.label)}</b><span>${Number.isFinite(steps)?steps?`${steps}歩`:'すぐ近く':'歩ける経路なし'}${status?'・'+esc(status):''}</span></button>`).join('')||'<p>見つかりません。</p><button class="btn" data-a="navReset">検索条件をリセット</button>'}</div><div class="nav-shortcuts"><button class="btn" data-a="openSheet" data-k="quests">やる事</button><button class="btn" data-a="openSheet" data-k="jobcenter">ハローワーク</button><button class="btn" data-a="openSheet" data-k="ocean">航海・海上イベント</button>${m.kind==='field'&&!m.combatDomain?'<button class="btn" data-a="openSheet" data-k="training">街外の実技チャレンジ</button>':''}</div>`;
+}
+function navigationQuestTarget(id){
+ const st=G.st,q=QUESTS[id],m=MAPS[st.mapId];if(!q||['locked','complete'].includes(st.quests[id]))return null;
+ let o;
+ if(m.kind==='in'||m.combatDomain==='sea')o=m.objects.find(o=>o.oceanReturn||o.type==='door');
+ else if(q.hub!==m.hub){
+  const itinerary=nationalItinerary(st,m.hub,q.hub);if(!itinerary||itinerary.length<2)return null;
+  o=m.kind==='town'?m.objects.find(o=>o.fieldExit):m.objects.find(o=>o.fieldRoute&&o.toHub===itinerary[1]);
+  if(o?.fieldRoute&&!nationalRouteAvailable(st,m.hub,o.toHub))return null;
+ }else if(st.quests[id]==='available'){if(m.kind==='town')return null;o=m.objects.find(o=>o.fieldExit);}
+ else if(m.kind==='town')o=m.objects.find(o=>o.fieldExit);
+ else if(st.quests[id]==='bossReady')o=m.objects.find(o=>o.boss===q.boss);
+ else{
+  const distances=navigationDistances(m);let best=null;
+  for(let y=1;y<m.h-1;y++)for(let x=1;x<m.w-1;x++){if(!m.zones[m.tiles[y][x]]||objAt(m,x,y)||!walkable(m,x,y))continue;const steps=distances.get(y*m.w+x);if(steps!==undefined&&steps>0&&(!best||steps<best.steps))best={x,y,steps,label:'街外の探索区域',walk:true};}
+  return best;
+ }
+ if(!o)return null;const steps=navigationDistance(m,o,navigationDistances(m));return Number.isFinite(steps)?{...o,steps}:null;
+}
+function renderNavigationQuests(){
+ const st=G.st,d=navigationView('quests'),hub=curHub(),labels={locked:'未解放',available:'受注可能',active:'受注中',bossReady:'ボスに挑戦',complete:'完了'};NAV_UI.serial++;const token=NAV_UI.serial;
+ let rows=Object.entries(QUESTS).filter(([id,q])=>{const status=st.quests[id]||'locked';return (d.filter==='all'||d.filter==='local'&&(q.hub===hub||id===st.activeQuest)||d.filter==='active'&&id===st.activeQuest||d.filter==='available'&&status==='available'||d.filter==='main'&&q.main||d.filter==='complete'&&status==='complete')&&navigationMatches(`${id} ${q.name} ${q.goal} ${HUBS[q.hub].name} ${q.main?"本編":"任意"} ${labels[status]}`,d.query);});
+ const rank=id=>id===st.activeQuest?-1:({bossReady:0,active:1,available:2,locked:3,complete:4})[st.quests[id]||'locked'];rows.sort((a,b)=>rank(a[0])-rank(b[0])||(a[1].hub===hub?-1:0)-(b[1].hub===hub?-1:0));const page=navigationPage('quests',rows);
+ return `<p class="small">本編 ${Object.entries(QUESTS).filter(([id,q])=>q.main&&st.quests[id]==='complete').length}/${Object.values(QUESTS).filter(q=>q.main).length}件完了。受注は同時に1件。案内は次の地点まで歩きます。</p>${navigationToolbar('quests',NAV_QUEST_FILTERS)}${page.html}${page.rows.map(([id,q])=>{const status=st.quests[id]||'locked',target=navigationQuestTarget(id),canAccept=status==='available'&&!G.readOnly&&!st.activeQuest&&q.hub===hub&&isSafe();return `<article class="qcard nav-quest ${status}"><div class="srow"><b>${esc(q.name)}</b><span class="tag">${labels[status]}</span></div><p class="small">${esc(HUBS[q.hub].name)}・${q.main?'本編':'任意'}${['active','bossReady','complete'].includes(status)?`・討伐 ${Math.min(st.qprog[id]||0,q.kills)}/${q.kills}（残り${Math.max(0,q.kills-(st.qprog[id]||0))}体）`:''}</p>${status==='available'?`<button class="btn primary" data-a="acceptQuest" data-v="${id}" ${canAccept?'':'disabled'}>受注する</button>${canAccept?'':`<p class="small">${G.readOnly?'閲覧中のため受注・変更はできません。':st.activeQuest?'ほかの依頼を受注中です。':esc(HUBS[q.hub].name)+'の街で受注できます。'}</p>`}`:''}${target?`<button class="btn" data-a="navQuestGo" data-v="${id}" data-map="${esc(st.mapId)}" data-nav-token="${token}" ${G.readOnly?'disabled':''}>次の目的地へ：${esc(target.label)}（${target.steps}歩）</button>`:''}<details><summary>依頼の内容・操作</summary><p>${esc(q.goal)}</p>${status==='locked'?`<p class="small">${q.requires?'先に「'+esc(QUESTS[q.requires]?.name||q.requires)+'」を完了してください。':'前の依頼や街の会話を進めると解放されます。'}</p>`:''}${id===st.activeQuest?`<button class="btn" data-a="navAbandon" data-v="${id}" ${G.readOnly?"disabled":""}>依頼を放棄する…</button>`:''}</details></article>`;}).join('')||'<p>条件に合う依頼はありません。</p><button class="btn" data-a="navReset">検索条件をリセット</button>'}`;
+}
+function updateNavigationHud(){
+ if(G.readOnly&&navigationValidPlan()){G.walkPlan.paused=true;G.walk.path=[];G.walk.pending=null;}
+ const el=document.querySelector('#navRoute');if(!el)return;const p=navigationValidPlan();el.hidden=!p;if(!p)return;
+ const paused=p.paused||!G.walk.path.length;
+ if(!el.querySelector('[data-route-name]'))el.innerHTML='<span><b data-route-state></b> <span data-route-name></span><small data-route-steps></small></span><button class="btn" data-route-toggle></button><button class="btn" data-route-cancel data-a="travelCancel" aria-label="目的地を取り消す">取消</button>';
+ el.querySelector('[data-route-state]').textContent=G.readOnly?'閲覧中':paused?'一時停止':'移動中';el.querySelector('[data-route-name]').textContent=p.label||'選んだ地点';el.querySelector('[data-route-steps]').textContent=paused?'現在地から道を調べ直して再開':`残り ${G.walk.path.length}歩`;
+ const toggle=el.querySelector('[data-route-toggle]'),cancel=el.querySelector('[data-route-cancel]');toggle.dataset.a=paused?'travelResume':'travelPause';toggle.dataset.v=cancel.dataset.v=String(p.version);toggle.disabled=cancel.disabled=G.readOnly;toggle.textContent=paused?'再開':'停止';
+}
+function updateControlHints(){
+ const confirm=document.querySelector('#dock .stick-confirm'),back=document.querySelector('#dock .dock-back');if(!confirm||!back)return;let a='決定',b='戻る';
+ if(G.dlg){a=G.dlg.i<G.dlg.lines.length-1?'次へ':'閉じる';b=G.dlg.i>0?'前へ':G.dlg.after||G.dlg.sceneId?'戻る':'閉じる';}
+ else if(G.screen==='explore'&&!G.sheet){const p=navigationValidPlan();a=p&&(p.paused||!G.walk.path.length)?'再開':G.walk.path.length?'停止':nearbyObjects().length?'調べる':'案内';b=p&&!p.paused?'停止':'戻る';}
+ else if(G.screen==='battle'&&!G.sheet){a=G.auto?'決定':document.querySelector('.cmd [data-a="confirmAct"]:not([disabled])')?'確定':'選ぶ';b=G.auto?'中断':!G.cmd?.type?'休止':'戻る';}
+ else if(G.screen==='result'&&!G.sheet)a='MAPへ';
+ back.disabled=!!(G.dlg&&(G.dlg.i||0)===0&&(G.dlg.after||G.dlg.sceneId));confirm.textContent=a;confirm.setAttribute('aria-label',a);back.textContent=b;back.setAttribute('aria-label',b);
+}
+function manualTravelOverride(){if(!G.walkPlan)return;G.walkPlan=null;G.walk.path=G.walk.path.slice(0,1);G.walk.pending=null;updateNavigationHud();updateControlHints();}
+function navigationReleaseOnContextChange(){const next={state:G.st,screen:G.screen,sheet:G.sheet,dialog:G.dlg,run:G.st?.run,readonly:G.readOnly},old=NAV_UI.inputContext;if(old&&Object.keys(next).some(k=>next[k]!==old[k])&&typeof PAD!=='undefined')PAD.release?.();NAV_UI.inputContext=next;}
+const navigationBaseScene=playScene;
+playScene=function(id,after){const result=navigationBaseScene(id,after);if(G.dlg)G.dlg.sceneId=id;updateControlHints();return result;};
+const navigationBaseRender=render,navigationBaseSheet=renderSheet,navigationBaseWalk=walkTo,navigationBaseArrive=arrive,navigationBaseOpen=openSheet;
+render=function(){navigationReleaseOnContextChange();if(G.walkPlan&&G.screen==='explore'&&!G.st?.run&&(G.walkPlan.state!==G.st||G.walkPlan.map!==G.st.mapId))G.walkPlan=null;G.controlEpoch=(G.controlEpoch||0)+1;const result=navigationBaseRender();if(G.sheet==='navAbandon'){const cancel=document.querySelector('[data-nav-cancel]');if(cancel){document.querySelectorAll('.kfocus').forEach(e=>e.classList.remove('kfocus'));cancel.classList.add('kfocus');cancel.focus({preventScroll:true});G.cursorSig=null;}}updateNavigationHud();updateControlHints();return result;};
+renderSheet=function(){if(G.sheet==='guide'&&G.st)return sheetWrap('オート移動',renderNavigationGuide());if(G.sheet==='quests'&&G.st)return sheetWrap('やる事',renderNavigationQuests());if(G.sheet==='navAbandon')return sheetWrap('依頼を放棄する',`<p>「${esc(QUESTS[G.sheetData.id]?.name||"この依頼")}」の討伐数${G.st.qprog[G.sheetData.id]||0}を0に戻します。受注費は戻りません。</p><button class="btn" data-nav-cancel data-a="closeSheet">続ける・戻る</button><button class="btn" data-a="navAbandonDo" data-v="${esc(G.sheetData.id)}" data-nav-token="${G.sheetData.token}" ${G.readOnly?"disabled":""}>放棄する</button>`);return navigationBaseSheet();};
+openSheet=function(key,data){if(navigationValidPlan()&&G.walk.path.length)G.walkPlan.paused=true;return navigationBaseOpen(key,data);};
+walkTo=function(x,y,pending){
+ if(G.st&&G.screen==='explore'&&!G.readOnly){const m=MAPS[G.st.mapId],o=objAt(m,x,y);if(!Number.isInteger(x)||!Number.isInteger(y)||x<0||y<0||x>=m.w||y>=m.h||!o&&!walkable(m,x,y))return toast('そこへは行けません。');if(x===G.st.pos.x&&y===G.st.pos.y){manualTravelOverride();return;}const adjacent=o&&!o.walk&&Math.max(Math.abs(x-G.st.pos.x),Math.abs(y-G.st.pos.y))<=1;if(!adjacent&&!bfs(m,G.st.pos.x,G.st.pos.y,(px,py)=>o&&!o.walk?Math.abs(px-x)+Math.abs(py-y)===1:px===x&&py===y,true))return toast('歩ける経路がありません。');}
+ const result=navigationBaseWalk(x,y,pending);if(navigationValidPlan()&&!G.walk.path.length&&!G.st.run)G.walkPlan=null;updateNavigationHud();updateControlHints();return result;};
+arrive=function(){const sheet=G.sheet,dialog=G.dlg;const result=navigationBaseArrive();const p=G.walkPlan;if(p&&!G.st?.run&&(p.state!==G.st||p.map!==G.st.mapId||!G.walk.path.length&&Math.abs(G.st.pos.x-p.x)+Math.abs(G.st.pos.y-p.y)<=1&&(!p.paused||G.sheet!==sheet||G.dlg!==dialog)))G.walkPlan=null;updateNavigationHud();updateControlHints();return result;};
+function navigationCaptureDraft(){const input=document.querySelector('#navSearchInput'),d=navigationView();if(input&&input.value!==d.query){d.query=input.value.slice(0,64);d.page=0;return true;}return false;}
+const navigationBaseAbandon=ACT.abandonQuest;
+Object.assign(ACT,{
+ navFilter(el){if(!['guide','quests'].includes(G.sheet))return;const filters=G.sheet==='guide'?NAV_GUIDE_FILTERS:NAV_QUEST_FILTERS;if(!filters.some(([id])=>id===el.dataset.v))return;navigationCaptureDraft();const d=navigationView();d.filter=el.dataset.v;d.page=0;render();},
+ navSearch(){if(!['guide','quests'].includes(G.sheet))return;const input=document.querySelector('#navSearchInput');if(!input)return;const d=navigationView();d.query=input.value.slice(0,64);d.page=0;render();const fresh=document.querySelector('#navSearchInput');fresh?.focus?.({preventScroll:true});fresh?.setSelectionRange?.(d.query.length,d.query.length);},
+ navReset(){if(!['guide','quests'].includes(G.sheet))return;const d=navigationView();d.filter='all';d.query='';d.page=0;render();},
+ navClear(){if(!['guide','quests'].includes(G.sheet))return;const d=navigationView();d.query='';d.page=0;render();},
+ navPage(el){if(!['guide','quests'].includes(G.sheet))return;const page=Number(el.dataset.v);if(!Number.isInteger(page)||page<0||page>1000)return;if(!navigationCaptureDraft())navigationView().page=page;render();},
+ guideTo(el){if(!G.st||G.screen!=='explore'||G.dlg||G.st.run||G.readOnly||el.dataset.map&&el.dataset.map!==G.st.mapId||el.dataset.navToken&&el.dataset.navToken!==String(NAV_UI.serial))return;const m=MAPS[G.st.mapId],o=m.objects.find(o=>o.id===el.dataset.v);if(!o)return;const distance=navigationDistance(m,o,navigationDistances(m));if(!Number.isFinite(distance))return toast('歩ける経路がありません。');NAV_UI.serial++;G.sheet=null;G.sheetHistory=[];G.cursorSig=null;render();if(o.walk&&o.x===G.st.pos.x&&o.y===G.st.pos.y)interact(o);else walkTo(o.x,o.y);if(navigationValidPlan())G.walkPlan.label=o.label;updateNavigationHud();updateControlHints();},
+ navQuestGo(el){if(!['quests','guide'].includes(G.sheet)||G.screen!=='explore'||G.st?.run||G.dlg||G.readOnly||el.dataset.map!==G.st.mapId||el.dataset.navToken!==String(NAV_UI.serial))return;const target=navigationQuestTarget(el.dataset.v);if(!target)return toast('依頼の状態が変わりました。');NAV_UI.serial++;G.sheet=null;G.sheetHistory=[];G.cursorSig=null;render();walkTo(target.x,target.y);if(navigationValidPlan())G.walkPlan.label=target.label;updateNavigationHud();updateControlHints();},
+ travelPause(){const p=navigationValidPlan();if(G.screen!=='explore'||G.st.run||G.dlg||G.readOnly||!p)return;p.paused=true;G.walk.path=G.walk.path.slice(0,1);G.walk.pending=null;updateNavigationHud();updateControlHints();},
+ travelResume(el){const p=navigationValidPlan();if(G.screen!=='explore'||G.st.run||G.dlg||G.readOnly||!p||String(p.version)!==el.dataset.v)return;const label=p.label;G.sheet=null;G.sheetHistory=[];G.cursorSig=null;render();walkTo(p.x,p.y);if(navigationValidPlan())G.walkPlan.label=label;updateNavigationHud();updateControlHints();},
+ travelCancel(el){const p=navigationValidPlan();if(G.screen!=='explore'||G.st.run||G.dlg||G.readOnly||!p||String(p.version)!==el.dataset.v)return;G.walkPlan=null;G.walk.path=G.walk.path.slice(0,1);G.walk.pending=null;if(G.sheet)render();else{updateNavigationHud();updateControlHints();}},
+ navAbandon(el){if(!canManageQuests()||el.dataset.v!==G.st.activeQuest)return;NAV_UI.serial++;G.cursorSig=null;openSheet('navAbandon',{id:el.dataset.v,token:NAV_UI.serial});},
+ navAbandonDo(el){if(G.sheet!=='navAbandon'||G.readOnly||G.st?.run||G.dlg||el.dataset.v!==G.st.activeQuest||el.dataset.v!==G.sheetData.id||el.dataset.navToken!==String(G.sheetData.token))return;closeSheet();if(G.sheet==='quests')navigationBaseAbandon(el);}
+});
+document.addEventListener('submit',e=>{if(e.target?.matches?.('[data-nav-search]')){e.preventDefault();ACT.navSearch();}});
+
 /* すべての画面から同じ禁止状態を使う。保存中の別操作と、古いボタンの直接呼出しも拒否する。 */
 const READ_ONLY_ACTIONS=new Set([
-  "openSheet","closeSheet","returnToMap","openHelp","dlgNext","dlgBack","dlgSkip","toTitle","dexNav","partyView","shopTab","shopItem","shopQty","vaultOpen","vaultBack",
+  "navReset","navFilter","navSearch","navClear","navPage","openSheet","closeSheet","returnToMap","openHelp","dlgNext","dlgBack","dlgSkip","toTitle","dexNav","partyView","shopTab","shopItem","shopQty","vaultOpen","vaultBack",
   "shareCopy","shareNative","replayStory","replay","battleLogLine","battleLogBack","battleLogPage","battleLogExpand","battleChallengeFilter","badgeFilter",
   "itemVaultOpen","itemVaultMode","itemVaultFilter","itemVaultSearch","itemVaultPage","itemVaultSelect","itemVaultQty","itemVaultEdit","itemVaultBack",
   "petView","petFilter","petPage","petSupplySelect","petDetails","petWalkView","petTravelPolicy","petVaultOpen",
@@ -7508,7 +7645,7 @@ const PAD = (()=>{
   function mount(){
     const dock=document.getElementById("dock"); if(!dock || dock.dataset.ready) return; dock.dataset.ready="1";
     const base=dock.querySelector(".stick"), knob=dock.querySelector(".knob");
-    let pid=null,centerTap=false,origin=null,stickDir=null;
+    let pid=null,centerTap=false,origin=null,stickDir=null,pressEpoch;
     const upd=e=>{
       const r=base.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2, R=r.width*0.34;
       let dx=e.clientX-origin.x, dy=e.clientY-origin.y; const d=Math.hypot(dx,dy);
@@ -7526,9 +7663,9 @@ const PAD = (()=>{
       }
       stickDir=next; setDir(next, "stick");
     };
-    base.addEventListener("pointerdown",e=>{ if(pid!==null)return; if(e.button!=null&&e.button!==0)return; pid=e.pointerId; const r=base.getBoundingClientRect(); const central=!!e.target.closest(".stick-confirm"); origin=central?{x:e.clientX,y:e.clientY}:{x:r.left+r.width/2,y:r.top+r.height/2}; stickDir=null; centerTap=!!e.target.closest(".stick-confirm"); base.setPointerCapture(pid); base.classList.add("on"); SND.sfx("step"); upd(e); e.preventDefault(); });
+    base.addEventListener("pointerdown",e=>{ if(pid!==null)return; if(e.button!=null&&e.button!==0)return; pid=e.pointerId;pressEpoch=G.controlEpoch; const r=base.getBoundingClientRect(); const central=!!e.target.closest(".stick-confirm"); origin=central?{x:e.clientX,y:e.clientY}:{x:r.left+r.width/2,y:r.top+r.height/2}; stickDir=null; centerTap=!!e.target.closest(".stick-confirm"); base.setPointerCapture(pid); base.classList.add("on"); SND.sfx("step"); upd(e); e.preventDefault(); });
     base.addEventListener("pointermove",e=>{ if(e.pointerId===pid) upd(e); });
-    const end=e=>{ if(e.pointerId!==pid) return; const confirm=e.type==="pointerup"&&centerTap; pid=null; centerTap=false; origin=null; stickDir=null; base.classList.remove("on"); knob.style.transform=""; setDir(null,"stick"); if(confirm)pressA(); };
+    const end=e=>{ if(e.pointerId!==pid) return; const confirm=e.type==="pointerup"&&centerTap&&pressEpoch===G.controlEpoch; pid=null; centerTap=false; origin=null; stickDir=null; base.classList.remove("on"); knob.style.transform=""; setDir(null,"stick"); if(confirm)pressA(); };
     cancelStick=()=>{pid=null;centerTap=false;origin=null;stickDir=null;};
     base.addEventListener("pointerup",end); base.addEventListener("pointercancel",end); base.addEventListener("lostpointercapture",end);
     dock.querySelector(".stick-confirm").addEventListener("click",e=>{if(e.detail===0)pressA();});
@@ -7540,6 +7677,7 @@ const PAD = (()=>{
     sources[src]=d;
     const nd = ["key","gamepad","stick"].map(s=>sources[s]).find(x=>x!=null) ?? null;
     if(nd===dir) return;
+    if(nd!=null&&isMoveMode()&&typeof manualTravelOverride==="function")manualTravelOverride();
     dir=nd; updateArrow();
     if(dir==null){ if(isMoveMode() && G.walk.path.length>1) G.walk.path=G.walk.path.slice(0,1); return; }
     if(!isMoveMode()){ moveCursor(dir); repeatT=performance.now()+300; }
@@ -7547,7 +7685,7 @@ const PAD = (()=>{
   function updateArrow(){ const a=document.querySelector("#dock .stick"); if(a) a.dataset.dir = dir==null?"":["下","上","左","右"][dir]; }
 
   /* 毎フレーム：移動の継続、カーソルの連続移動、ゲームパッドの読み取り */
-  let prevBtn={};
+  let prevBtn={},gamepadRearm=false;
   function tick(now){
     if(document.hidden||!document.hasFocus()){ requestAnimationFrame(tick); return; }
     pollGamepad();
@@ -7577,14 +7715,14 @@ const PAD = (()=>{
     if(!el) return; el.classList.add("kfocus");
     try{ el.focus({preventScroll:true}); }catch(e){}
     el.scrollIntoView({block:"nearest",inline:"nearest"});
-    G.cursorSig = sig(el);
+    G.cursorSig = sig(el);if(typeof updateControlHints==="function")updateControlHints();
   }
   function sig(el){ return [el.dataset.a,el.dataset.k,el.dataset.v,el.dataset.i,el.dataset.c,el.dataset.s,el.id].join("|"); }
   function moveCursor(d){
     const sc=scope(); if(!sc) return; const list=focusables(sc); if(!list.length) return;
     const cur=current(sc);
     if(!cur || !list.includes(cur)){
-      const pref = sc.querySelector(".cmd") ? list.find(el=>el.closest(".cmd")) : sc.querySelector(".sheet") ? list.find(el=>el.closest(".sheet")&&el.dataset.a!=="closeSheet") : null;
+      const pref = sc.querySelector(".cmd") ? list.find(el=>el.closest(".cmd")) : sc.querySelector(".sheet") ? list.find(el=>["guideTo","navQuestGo"].includes(el.dataset.a))||list.find(el=>el.closest(".sheet")&&!["closeSheet","returnToMap"].includes(el.dataset.a)) : null;
       setCursor(pref||list[0]); SND.sfx("ok"); return; }
     const r=cur.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2;
     let best=null, bs=Infinity;
@@ -7604,20 +7742,37 @@ const PAD = (()=>{
   /* ---- 決定（A）と戻る（B） ---- */
   function pressA(){
     const sc=scope();
-    if(isMoveMode()){ const near=nearbyObjects(); if(!near.length) return toast("近くに調べられるものはありません。"); if(near.length===1) return interact(near[0]); return openSheet("nearby"); }
-    if(G.dlg){ const b=document.getElementById("dlgNext"); if(b) b.click(); return; }
+    if(isMoveMode()){
+      if(G.walkPlan&&(G.walkPlan.paused||!G.walk.path.length)&&typeof ACT.travelResume==='function')return ACT.travelResume({dataset:{v:String(G.walkPlan.version)}});
+      if(G.walk.path.length&&typeof ACT.travelPause==='function')return ACT.travelPause();
+      const near=nearbyObjects();if(!near.length)return openSheet('guide');if(near.length===1)return interact(near[0]);return openSheet('nearby');
+    }
+    if(G.dlg){const b=document.getElementById('dlgNext');if(b)b.click();return;}
     const cur=sc&&current(sc);
-    if(cur && focusables(sc).includes(cur)){ cur.click(); return; }
-    moveCursor(0);
+    if(cur?.id==='navSearchInput'&&typeof ACT.navSearch==='function')return ACT.navSearch();
+    if(G.screen==='battle'&&!G.sheet&&!G.auto){
+      const confirm=document.querySelector('.cmd [data-a="confirmAct"]:not([disabled])');
+      if(confirm&&(!cur||cur.getAttribute?.('aria-pressed')==='true')){confirm.click();return;}
+      if(!cur&&!G.cmd?.type){const attack=document.querySelector('.cmdgrid [data-v="attack"]');if(attack){attack.click();return;}}
+    }
+    if(cur&&focusables(sc).includes(cur)){cur.click();return;}
+    moveCursor(0);const next=current(sc);if(next&&focusables(sc).includes(next))next.click();
   }
   function pressB(){
-    if(G.dlg){ ACT.dlgSkip(); return; }
-    if(G.sheet){ const back=document.querySelector(".overlay [data-a=closeSheet]")||document.querySelector(".overlay .sheet-head [data-a=oceanBack]"); if(back) back.click(); return; }
-    if(G.screen==="result"){ACT.resultDone();return;}
-    if(G.screen==="battle"&&G.auto){ ACT.autoOff(); return; }
-    if(G.screen==="battle"&&G.st&&G.st.run&&G.st.run.state==="input"){ G.cmd={actor:G.cmd.actor}; G.cursorSig=null; render(); SND.sfx("cancel"); return; }
-    if(isMoveMode()){ G.walk.path=G.walk.path.slice(0,1); G.walk.pending=null; return; }
-    SND.sfx("cancel");
+    if(G.dlg){if(G.dlg.i>0)ACT.dlgBack();else if(!G.dlg.after&&!G.dlg.sceneId)ACT.dlgSkip();else SND.sfx('cancel');return;}
+    if(G.sheet){const back=document.querySelector('.overlay [data-a=closeSheet]')||document.querySelector('.overlay .sheet-head [data-a=oceanBack]');if(back)back.click();return;}
+    if(G.screen==='result'){ACT.resultDone();return;}
+    if(G.screen==='battle'&&G.auto){ACT.autoOff();return;}
+    if(G.screen==='battle'&&G.st?.run?.state==='input'){
+      const c=G.cmd;
+      if(c.target!=null||c.ally!=null){delete c.target;delete c.ally;}
+      else if(c.item||c.mode||c.line||c.o){delete c.item;delete c.mode;delete c.line;delete c.o;}
+      else if(c.type)G.cmd={actor:c.actor};
+      else if(typeof ACT.pauseBattle==='function'){ACT.pauseBattle();return;}
+      G.cursorSig=null;render();SND.sfx('cancel');return;
+    }
+    if(isMoveMode()){if(typeof ACT.travelPause==='function'&&G.walkPlan)return ACT.travelPause();G.walk.path=G.walk.path.slice(0,1);G.walk.pending=null;return;}
+    SND.sfx('cancel');
   }
 
   /* ---- ゲームパッド（Joy-Con・Proコントローラー・一般のコントローラー） ---- */
@@ -7628,11 +7783,12 @@ const PAD = (()=>{
     let d=null;
     if(b(12)) d=1; else if(b(13)) d=0; else if(b(14)) d=2; else if(b(15)) d=3;
     else { const x=gp.axes[0]||0, y=gp.axes[1]||0; if(Math.hypot(x,y)>0.5) d = Math.abs(x)>Math.abs(y)?(x<0?2:3):(y<0?1:0); }
-    setDir(d,"gamepad");
     // 任天堂系は右ボタン(標準1番)が決定、それ以外は下ボタン(標準0番)が決定
     const nin=/joy-?con|nintendo|pro controller|057e/i.test(gp.id||"");
     const aIdx=nin?1:0, bIdx=nin?0:1;
     const now={a:b(aIdx), b:b(bIdx), start:b(9)};
+    if(gamepadRearm){prevBtn=now;if(d==null&&!Object.values(now).some(Boolean))gamepadRearm=false;setDir(null,"gamepad");return;}
+    setDir(d,"gamepad");
     if(now.a&&!prevBtn.a) pressA();
     if(now.b&&!prevBtn.b) pressB();
     if(now.start&&!prevBtn.start&&isMoveMode()) openSheet("menu");
@@ -7655,6 +7811,7 @@ const PAD = (()=>{
       return;
     }
     if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.tagName==="SELECT"||t.tagName==="SUMMARY"||t.isContentEditable)) return;
+    if(t?.tagName==="BUTTON"&&(e.key==="Enter"||e.key===" ")){if(e.repeat)e.preventDefault();return;}
     if(KEYS[e.key]!=null){ e.preventDefault(); if(!e.repeat) setDir(KEYS[e.key],"key"); return; }
     if(e.key==="Enter"||e.key===" "||e.key==="z"){ e.preventDefault(); if(!e.repeat) pressA(); }
     if(e.key==="Escape"||e.key==="x"||e.key==="Backspace"){ e.preventDefault(); if(!e.repeat) pressB(); }
@@ -7664,11 +7821,12 @@ const PAD = (()=>{
   function releaseInput(){
     if(typeof cancelStick==="function")cancelStick();
     for(const src of ["key","gamepad","stick"]) sources[src]=null;
-    setDir(null,"key"); prevBtn={};
+    setDir(null,"key"); prevBtn={};gamepadRearm=true;
+    if(G.walkPlan)G.walkPlan.paused=true;
     if(G.walk){ G.walk.path=[]; G.walk.prog=0; G.walk.pending=null; }
     const base=document.querySelector("#dock .stick"), knob=document.querySelector("#dock .knob");
     if(base) base.classList.remove("on");
-    if(knob) knob.style.transform="";
+    if(knob) knob.style.transform="";if(typeof updateControlHints==="function")updateControlHints();if(typeof updateNavigationHud==="function")updateNavigationHud();
   }
   window.addEventListener("blur",releaseInput);
   document.addEventListener("visibilitychange",()=>{ if(document.hidden) releaseInput(); });
@@ -7678,7 +7836,7 @@ const PAD = (()=>{
   function wantSound(){ if(G.soundWant!=null) return G.soundWant; if(G.st && G.st.settings && G.st.settings.sound===false) return false; return soundPref(); }
   const unlock=e=>{ if(e?.target?.closest?.('[data-a="titleMusic"]'))return; if(SND.on) SND.resume(); else if(wantSound()) SND.setOn(true); if(typeof refreshTitleMusic==="function")refreshTitleMusic(); };
   ["pointerdown","keydown","touchend"].forEach(ev=>document.addEventListener(ev,unlock,{capture:true,passive:true}));
-  return { mount, restore, pressA, pressB };
+  return { mount, restore, pressA, pressB, release:releaseInput };
 })();
 
 if(window.claude&&window.claude.hot&&window.claude.hot.ready) window.claude.hot.ready(()=>boot()); else boot();

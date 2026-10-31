@@ -1,0 +1,182 @@
+[
+  {
+    "round": 1,
+    "label": "storefronts",
+    "checkedAt": "2026-10-31T09:59:04.813Z",
+    "checks": [
+      {
+        "command": "scripts/check-world-art.mjs",
+        "passed": true,
+        "output": "Painted towns and fields in all six terrains; 4x resolution, frame-independent cache, deterministic regeneration, 32MB budget and unchanged gameplay maps\n"
+      },
+      {
+        "command": "scripts/check-regional-art.mjs",
+        "passed": true,
+        "output": "51 distinct regional renders on identical geometry; 10 architecture families, field consistency, unchanged gameplay data and bounded static cache\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 2,
+    "label": "facility-symbols",
+    "checkedAt": "2026-10-31T09:59:20.054Z",
+    "checks": [
+      {
+        "command": "scripts/test-map-ui.mjs",
+        "passed": true,
+        "output": "PASS final MAP UI: 4 sizes, controls >=48px, no dock clipping, guide/back and boss map\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 3,
+    "label": "result-summary",
+    "checkedAt": "2026-10-31T09:59:45.689Z",
+    "checks": [
+      {
+        "command": "scripts/check-integration.mjs",
+        "passed": true,
+        "output": "PASS title boot completes with an image title, with or without a saved game\nPASS all build modules load together\nPASS three-stage setup, IME, same names, drafts and atomic save rollback\nPASS custom partner name fully replaces fixed biography and profile names\nPASS new menus remain reachable through all render wrappers\nPASS menu back stack and direct MAP return respect readonly, saving and battles\nPASS all47 regional support unlocks and readonly mutation guard\nPASS all100 badge names and expanded/pet/challenge eligibility connect to main list\nPASS legacy5.33 inventories, quest progress, sea positions and saved battle migrate once\nPASS character save locks prevent cross-module callbacks and rollback races\nPASS readonly pet details and vault navigation do not mutate saved state\nPASS story replay rejects prototype IDs, unread scenes and stale readonly callbacks\nPASS autowalk tokens survive cancellation without reuse and save switches clear old plans\nPASS all51 quests complete through callbacks with new character and pet systems enabled\nIntegration: 14 combined build/module/UI/save/lock/campaign checks passed\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 4,
+    "label": "compact-result-viewport",
+    "checkedAt": "2026-10-31T10:03:52.085Z",
+    "checks": [
+      {
+        "command": "scripts/test-result-overview.mjs",
+        "passed": true,
+        "output": "PASS 16 result scenarios: summary fits, 48px one-click MAP return, low/KO and legacy history\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 5,
+    "label": "single-click-return",
+    "checkedAt": "2026-10-31T10:01:33.378Z",
+    "checks": [
+      {
+        "command": "scripts/check-result-return.mjs",
+        "passed": true,
+        "output": "Result return is one action, cancels stale movement, rejects modal/read-only/battle and repeated callbacks\n"
+      },
+      {
+        "command": "scripts/check-national-story.mjs",
+        "passed": true,
+        "output": "National story: 51 main quests, 43 local stories/bosses, 6 boss patterns, 146 outdoor encounter victories; complete UI progression, old-save migration, rewards, ending/replay and chapter caps passed\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 6,
+    "label": "status-and-reward-readability",
+    "checkedAt": "2026-10-31T10:02:17.936Z",
+    "checks": [
+      {
+        "command": "scripts/check-result-return.mjs",
+        "passed": true,
+        "output": "Result return is one action, cancels stale movement, rejects modal/read-only/battle and repeated callbacks\n"
+      },
+      {
+        "command": "scripts/check-integration.mjs",
+        "passed": true,
+        "output": "PASS title boot completes with an image title, with or without a saved game\nPASS all build modules load together\nPASS three-stage setup, IME, same names, drafts and atomic save rollback\nPASS custom partner name fully replaces fixed biography and profile names\nPASS new menus remain reachable through all render wrappers\nPASS menu back stack and direct MAP return respect readonly, saving and battles\nPASS all47 regional support unlocks and readonly mutation guard\nPASS all100 badge names and expanded/pet/challenge eligibility connect to main list\nPASS legacy5.33 inventories, quest progress, sea positions and saved battle migrate once\nPASS character save locks prevent cross-module callbacks and rollback races\nPASS readonly pet details and vault navigation do not mutate saved state\nPASS story replay rejects prototype IDs, unread scenes and stale readonly callbacks\nPASS autowalk tokens survive cancellation without reuse and save switches clear old plans\nPASS all51 quests complete through callbacks with new character and pet systems enabled\nIntegration: 14 combined build/module/UI/save/lock/campaign checks passed\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 7,
+    "label": "enemy-readability",
+    "checkedAt": "2026-10-31T10:03:08.796Z",
+    "checks": [
+      {
+        "command": "scripts/test-battle-readability.mjs",
+        "passed": true,
+        "output": "PASS readability standard\nPASS readability small\nPASS readability landscape\nPASS readability short\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 8,
+    "label": "command-feedback",
+    "checkedAt": "2026-10-31T10:04:02.726Z",
+    "checks": [
+      {
+        "command": "scripts/check-target.mjs",
+        "passed": true,
+        "output": "Target weighting and KO exclusion OK\n"
+      },
+      {
+        "command": "scripts/check-input-modal.mjs",
+        "passed": true,
+        "output": "Modal Tab boundaries wrap, native form traversal remains available and page Tab is unchanged\n"
+      },
+      {
+        "command": "scripts/check-input-release.mjs",
+        "passed": true,
+        "output": "Focus loss clears held input, queued movement and stick visuals\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 9,
+    "label": "auto-race-guards",
+    "checkedAt": "2026-10-31T10:04:38.775Z",
+    "checks": [
+      {
+        "command": "scripts/check-auto-ui-guards.mjs",
+        "passed": true,
+        "output": "Auto UI rejects repeated start, modal/read-only starts and hidden/read-only/completed actions\n"
+      },
+      {
+        "command": "scripts/check-input-background.mjs",
+        "passed": true,
+        "output": "Gamepad ignores hidden/unfocused pages and retains focused edge-triggered input\n"
+      },
+      {
+        "command": "scripts/check-listeners.mjs",
+        "passed": true,
+        "output": "Listeners: 352 contextual texts, 512+77 names, 1–5 timed bubbles, 650–1000ms spacing, 5sec lifetime, 12text/24name deduplication, independent save histories; 47 regional supports and 51 jobcenters passed\nListener visibility cleanup, fresh return and saved-off preference passed\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 10,
+    "label": "edge-cases-and-final-debug",
+    "checkedAt": "2026-10-31T10:08:46.807Z",
+    "checks": [
+      {
+        "command": "scripts/test-result-overview.mjs",
+        "passed": true,
+        "output": "PASS 32 result scenarios: summary fits, 48px one-click MAP return, low/KO and legacy history\n"
+      },
+      {
+        "command": "scripts/test-battle-readability.mjs",
+        "passed": true,
+        "output": "PASS readability standard\nPASS readability small\nPASS readability landscape\nPASS readability short\n"
+      },
+      {
+        "command": "scripts/check-map-facilities.mjs",
+        "passed": true,
+        "output": "3 distinct storefront facades, 5 unique map symbols, town/fort mapping and uncluttered NPC handling passed\n"
+      },
+      {
+        "command": "scripts/check-integration.mjs",
+        "passed": true,
+        "output": "PASS title boot completes with an image title, with or without a saved game\nPASS all build modules load together\nPASS three-stage setup, IME, same names, drafts and atomic save rollback\nPASS custom partner name fully replaces fixed biography and profile names\nPASS new menus remain reachable through all render wrappers\nPASS menu back stack and direct MAP return respect readonly, saving and battles\nPASS all47 regional support unlocks and readonly mutation guard\nPASS all100 badge names and expanded/pet/challenge eligibility connect to main list\nPASS legacy5.33 inventories, quest progress, sea positions and saved battle migrate once\nPASS character save locks prevent cross-module callbacks and rollback races\nPASS readonly pet details and vault navigation do not mutate saved state\nPASS story replay rejects prototype IDs, unread scenes and stale readonly callbacks\nPASS autowalk tokens survive cancellation without reuse and save switches clear old plans\nPASS all51 quests complete through callbacks with new character and pet systems enabled\nIntegration: 14 combined build/module/UI/save/lock/campaign checks passed\n"
+      }
+    ],
+    "passed": true
+  }
+]

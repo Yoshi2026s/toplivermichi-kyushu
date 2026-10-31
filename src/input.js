@@ -114,6 +114,7 @@ const PAD = (()=>{
   function pressB(){
     if(G.dlg){ ACT.dlgSkip(); return; }
     if(G.sheet){ const back=document.querySelector(".overlay [data-a=closeSheet]")||document.querySelector(".overlay .sheet-head [data-a=oceanBack]"); if(back) back.click(); return; }
+    if(G.screen==="result"){ACT.resultDone();return;}
     if(G.screen==="battle"&&G.auto){ ACT.autoOff(); return; }
     if(G.screen==="battle"&&G.st&&G.st.run&&G.st.run.state==="input"){ G.cmd={actor:G.cmd.actor}; G.cursorSig=null; render(); SND.sfx("cancel"); return; }
     if(isMoveMode()){ G.walk.path=G.walk.path.slice(0,1); G.walk.pending=null; return; }

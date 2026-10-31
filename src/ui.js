@@ -166,7 +166,7 @@ function renderNew(){
   }
   return `<section class="win">
     <h2 class="label">主人公の設定</h2>
-    <label for="nameInput" class="field-label">名前（全角1～${NAME_MAX}文字）</label>
+    <label for="nameInput" class="field-label">名前（1～${NAME_MAX}文字・英数字は半角）</label>
     <input id="nameInput" class="input" autocomplete="off" enterkeyhint="done" value="${esc(n.name)}" aria-describedby="nameHelp">
     <div id="nameHelp" class="small" aria-live="polite"></div>
     <fieldset class="gender"><legend class="field-label">性別（ゲーム内の主人公設定）</legend>
@@ -197,7 +197,7 @@ function defensePower(s,L){ return Vof(L)*s.armorD; }
 function partyStrip(){
   const st=G.st;
   return `<div class="pstrip" aria-label="パーティーの状態"><span class="pstop"><span>レベル${levelOf(st.xp,st)}・${st.gold.toLocaleString()}ゴールド・物語 ${MOE_RANKS[st.moeRank]}</span></span>${st.party.map(cid=>{ const L=levelOf(st.xp,st), s=charStats(st,cid,L), v=vitalOf(cid);
-    return `<span class="pmini ${v.hp<=0?"ko":""} ${isLow(v.hp,s.maxHP)?"low":""}"><span class="pmline"><b>${esc(charName(st,cid))}</b><span class="small">体力${v.hp}/${s.maxHP} MP${v.c}${v.hp<=0?"・戦闘不能":isLow(v.hp,s.maxHP)?"・体力わずか":""}</span></span><span class="bar"><i style="width:${Math.round(100*v.hp/s.maxHP)}%"></i></span></span>`; }).join("")}</div>`;
+    return `<span class="pmini ${v.hp<=0?"ko":""} ${isLow(v.hp,s.maxHP)?"low":""}"><span class="pmline"><b>${esc(charName(st,cid))}</b><span class="small">体力${v.hp}/${s.maxHP} MP${v.c}/${s.startC}${v.hp<=0?"・戦闘不能":isLow(v.hp,s.maxHP)?"・体力わずか":""}</span></span><span class="bar"><i style="width:${Math.round(100*v.hp/s.maxHP)}%"></i></span></span>`; }).join("")}</div>`;
 }
 function renderStatus(){
   const st=G.st; const L=levelOf(st.xp,st);
@@ -246,7 +246,7 @@ function renderExplore(){
       <div class="xsave small" aria-live="polite"><span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（閲覧のみ）":""}</div>
     </header>
     <div class="mapwrap" data-map-kind="${esc(m.kind)}"><aside id="navRoute" class="map-route" aria-label="移動先" hidden></aside><canvas id="map" aria-label="${esc(m.name)}の地図。地面をタップすると移動します。"></canvas>
-      <canvas id="minimap" aria-label="全体ミニマップ。白丸は現在地、白枠は表示範囲。城門は砦、家は街、ベッドは宿屋、瓶は道具屋、書類は職業窓口、肉球はペットの控え室・ショップ"></canvas>
+      <canvas id="minimap" aria-label="全体ミニマップ。白丸は現在地、白枠は表示範囲。城門は砦、家は街、ベッドは宿屋、瓶は道具屋、書類は職業窓口、肉球はペット施設。道＝道具、ペ＝ペット店、控＝控え所、宿＝宿屋、職＝職業、砦＝ボス、街＝出口"></canvas>
       ${exit?`<button class="btn map-exit" data-a="guideTo" data-v="${exit.id}" data-map="${esc(st.mapId)}">${m.kind==="town"?"街外へ":"街へ戻る"}</button>`:""}
     </div>
     ${partyStrip()}
@@ -290,26 +290,29 @@ function bossBaseSprite(){
  g.fillStyle='#df8555';for(const x of [14,47]){g.fillRect(x,61,3,10);g.beginPath();g.moveTo(x-2,61);g.lineTo(x+2,50);g.lineTo(x+6,61);g.fill();}
  g.fillStyle='#ada4a3';g.fillRect(18,86,28,3);g.fillRect(14,90,36,3);c.bossBase=true;bossBaseImage=c;return c;
 }
-function mapFacilityKind(o){return o.type==='boss'?'fort':o.fieldExit||o.fieldRoute||o.type==='station'?'town':['inn','shop','jobcenter','petroom'].includes(o.type)?o.type:null;}
+function mapFacilityKind(o){return o.type==='boss'?'fort':o.fieldExit||o.fieldRoute||o.type==='station'?'town':['inn','shop','jobcenter','petroom','petshop'].includes(o.type)?o.type:null;}
 function drawFacilitySymbol(g,kind,x,y,size){
  g.save();g.translate(x,y);g.scale(size/12,size/12);g.lineWidth=1.4;g.lineJoin='round';g.strokeStyle='#fff2cb';g.fillStyle=kind==='fort'?'#733b4b':kind==='inn'?'#345888':kind==='shop'?'#a14360':'#246c64';g.fillRect(-6,-6,12,12);
  g.fillStyle='#fff2cb';
  if(kind==='fort'){g.fillRect(-4,-1,8,5);for(const xx of [-4,-1,2])g.fillRect(xx,-4,2,4);g.fillStyle='#733b4b';g.fillRect(-1,1,2,3);}
  else if(kind==='inn'){g.fillRect(-4,0,8,3);g.fillRect(-4,-2,2,2);g.fillRect(-4,3,1,2);g.fillRect(3,3,1,2);}
  else if(kind==='shop'){g.fillRect(-3,-1,6,5);g.fillRect(-1.5,-4,3,3);g.strokeRect(-3,-1,6,5);}
- else if(kind==='petroom'){g.beginPath();g.arc(0,2,2.4,0,Math.PI*2);g.fill();for(const [x,y]of [[-3,-2],[0,-4],[3,-2]]){g.beginPath();g.arc(x,y,1.2,0,Math.PI*2);g.fill();}}
+ else if(kind==='petroom'||kind==='petshop'){g.beginPath();g.arc(0,2,2.4,0,Math.PI*2);g.fill();for(const [x,y]of [[-3,-2],[0,-4],[3,-2]]){g.beginPath();g.arc(x,y,1.2,0,Math.PI*2);g.fill();}}
  else if(kind==='jobcenter'){g.fillRect(-4,-3,8,7);g.fillStyle='#246c64';for(let y=-1;y<4;y+=2)g.fillRect(-2,y,4,1);}
  else{g.beginPath();g.moveTo(-5,0);g.lineTo(0,-5);g.lineTo(5,0);g.closePath();g.fill();g.fillRect(-3,0,6,5);}
  g.restore();
 }
+function miniMapFacilityLabel(o,kind){return ({shop:'道',petshop:'ペ',petroom:'控',inn:'宿',jobcenter:'職',boss:'砦',station:'駅'})[o.type]||(kind==='town'?'街':kind==='fort'?'砦':'');}
+function drawMiniMapLabel(g,o,kind,x,y,w,h){const text=miniMapFacilityLabel(o,kind);if(!text)return;const font=w/11,xx=Math.max(font*.6,Math.min(w-font*.6,x)),yy=Math.max(font,Math.min(h-font*.2,y+font*1.2));g.save();g.font='700 '+font+'px "Quest Gothic",sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle='#12283ee8';g.fillRect(xx-font*.6,yy-font*.55,font*1.2,font*1.1);g.fillStyle='#fff1bd';g.fillText(text,xx,yy);g.restore();}
 function drawMiniMap(m,cam){
  const cv=document.getElementById('minimap');if(!cv)return;
  const g=cv.getContext('2d'),u=6;cv.width=m.w*u;cv.height=m.h*u;
  for(let y=0;y<m.h;y++)for(let x=0;x<m.w;x++){const t=m.tiles[y][x];g.fillStyle=t==='~'?'#487f9b':t==='T'?'#294f40':',w='.includes(t)?'#dfc88d':t==='#'||t==='c'?'#88665c':'#739366';g.fillRect(x*u,y*u,u,u);}
  g.strokeStyle='#ffffffb0';g.lineWidth=2;g.strokeRect(cam.x/16*u,cam.y/16*u,G.vw*u,G.vh*u);
- for(const o of m.objects){const kind=mapFacilityKind(o);if(kind)drawFacilitySymbol(g,kind,(o.x+.5)*u,(o.y+.5)*u,Math.max(16,m.w*.075*u));}
+ for(const o of m.objects){const kind=mapFacilityKind(o);if(kind){drawFacilitySymbol(g,kind,(o.x+.5)*u,(o.y+.5)*u,Math.max(16,m.w*.075*u));drawMiniMapLabel(g,o,kind,(o.x+.5)*u,(o.y+.5)*u,cv.width,cv.height);}}
  g.fillStyle='#fff';g.strokeStyle='#142d44';g.lineWidth=2;g.beginPath();g.arc((G.st.pos.x+.5)*u,(G.st.pos.y+.5)*u,5,0,Math.PI*2);g.fill();g.stroke();
 }
+function drawMapAmbient(g,m,cam,now,still,vw,vh){if(still)return;g.save();g.lineWidth=.55;const phase=now/700;for(let y=Math.max(0,Math.floor(cam.y/16));y<Math.min(m.h,Math.ceil((cam.y+vh)/16));y++)for(let x=Math.max(0,Math.floor(cam.x/16));x<Math.min(m.w,Math.ceil((cam.x+vw)/16));x++){const tile=m.tiles[y][x],xx=x*16-cam.x,yy=y*16-cam.y;if(tile==='~'||m.combatDomain==='sea'&&'ES'.includes(tile)){g.strokeStyle='#c4edf05c';const offset=Math.sin(phase+x*.7+y)*2;g.beginPath();g.moveTo(xx+2,yy+6+offset);g.quadraticCurveTo(xx+8,yy+3+offset,xx+14,yy+6+offset);g.stroke();}else if(['.','f','T'].includes(tile)&&(x+y)%3===0){const sway=Math.sin(phase+x+y)*1.7;g.strokeStyle='#8cbe6870';g.beginPath();g.moveTo(xx+5,yy+13);g.quadraticCurveTo(xx+4+sway,yy+9,xx+5+sway,yy+6);g.moveTo(xx+8,yy+13);g.lineTo(xx+8+sway,yy+8);g.stroke();}}g.restore();}
 function drawMap(){
   const cv=G.cv; if(!cv||!cv.isConnected) return; const g=cv.getContext("2d"); g.imageSmoothingEnabled=true; g.imageSmoothingQuality="high";
   const st=G.st, m=MAPS[st.mapId]; const cam=camera(); drawMiniMap(m,cam); const now=performance.now();
@@ -319,6 +322,7 @@ function drawMap(){
   const layer=ART.mapLayer(st.mapId,0);
   const sx=Math.max(0,cam.x), sy=Math.max(0,cam.y), w=Math.min(vw,layer.width/(layer.artScale||1)-sx), h=Math.min(vh,layer.height/(layer.artScale||1)-sy);
   const lr=layer.artScale||1;g.drawImage(layer,sx*lr,sy*lr,w*lr,h*lr,sx-cam.x,sy-cam.y,w,h);
+  drawMapAmbient(g,m,cam,now,still,vw,vh);
   const sprites=[];
   for(const o of m.objects){
     let img;
@@ -327,8 +331,8 @@ function drawMap(){
     else if(o.type==="inn"){ sprites.push({y:o.y-0.1,img:ART.object("inn",f),x:o.x}); img=ART.person("innkeeper",PAL.slate,PAL.navy,0,f2*2); }
     else if(o.type==="box") img=ART.object(st.boxes[o.box]?"boxOpen":"box",f);
     else if(o.type==="boss"){ if(st.bossDefeated[o.boss]) continue; img=bossBaseSprite(); }
-    else img=ART.object(o.fieldExit||o.fieldRoute?"gate":o.type==="jobcenter"?"board":o.type,f);
-    sprites.push({y:o.y,x:o.x,img});
+    else img=ART.object(o.fieldExit||o.fieldRoute?"gate":o.type==="jobcenter"?"board":o.type==="petshop"?"petroom":o.type,f);
+    sprites.push({y:o.y,x:o.x,img,idleX:!still&&o.type==="npc"?Math.sin(now/900+o.x)*.45:0,idleY:!still&&o.type==="npc"?Math.sin(now/500+o.y)*.65:0});
   }
   const moving=G.walk.path.length>0;
   const walking=moving&&!G.dlg&&!G.sheet&&!G.lock&&!document.hidden;
@@ -345,7 +349,7 @@ function drawMap(){
   }
   sprites.push({y:pp.y/16+0.01, px:pp, img:charSprite(lead,st.dir,wf)});
   sprites.sort((a,b)=>a.y-b.y);
-  for(const s of sprites){ const x=s.px?s.px.x:s.x*16, y=s.px?s.px.y:s.y*16; g.fillStyle='rgba(6,17,28,.27)'; g.beginPath(); g.ellipse(x+8-cam.x,y+13-cam.y,6,2,0,0,Math.PI*2); g.fill(); g.save();if(s.img.bossBase){g.drawImage(s.img,x-8-cam.x,y-30-cam.y,32,48);}else if(s.img.artScale){g.shadowColor='#071522b0';g.shadowBlur=ratio;g.shadowOffsetY=.5;g.drawImage(s.img.mapImage||s.img,x-2-cam.x,y-14-cam.y,20,30);}else g.drawImage(s.img,x-cam.x,y-8-cam.y,16,24);g.restore(); }
+  for(const s of sprites){ const x=(s.px?s.px.x:s.x*16)+(s.idleX||0), y=(s.px?s.px.y:s.y*16)+(s.idleY||0); g.fillStyle='rgba(6,17,28,.27)'; g.beginPath(); g.ellipse(x+8-cam.x,y+13-cam.y,6,2,0,0,Math.PI*2); g.fill(); g.save();if(s.img.bossBase){g.drawImage(s.img,x-8-cam.x,y-30-cam.y,32,48);}else if(s.img.artScale){g.shadowColor='#071522b0';g.shadowBlur=ratio;g.shadowOffsetY=.5;g.drawImage(s.img.mapImage||s.img,x-2-cam.x,y-14-cam.y,20,30);}else g.drawImage(s.img,x-cam.x,y-8-cam.y,16,24);g.restore(); }
   if(moving){ const d=G.walk.path[G.walk.path.length-1]; const bl=Math.floor(now/250)%2; g.strokeStyle=bl?PAL.cream:PAL.gold; g.strokeRect(d.x*16-cam.x+3.5,d.y*16-cam.y+3.5,9,9); }
 }
 function startLoop(){
@@ -366,7 +370,7 @@ function startLoop(){
     }
     if(G.mapLoopToken!==token)return;
     if(!G.sheet&&!G.dlg&&!G.lock){
-      const drawKey=[G.st.mapId,G.st.pos.x,G.st.pos.y,G.st.dir,w.prog,w.path.length,G.fol?.x,G.fol?.y,Math.floor(ts/320)].join('|');
+      const drawKey=[G.st.mapId,G.st.pos.x,G.st.pos.y,G.st.dir,w.prog,w.path.length,G.fol?.x,G.fol?.y,reducedMotion()?0:Math.floor(ts/160)].join('|');
       if(drawKey!==G.mapDrawKey){drawMap();G.mapDrawKey=drawKey;}
     }
     G.raf=requestAnimationFrame(loop);
@@ -443,6 +447,7 @@ function interact(o){
     case "rest": return openSheet("rest");
     case "inn": return openSheet("inn",{label:o.label});
     case "petroom": return openSheet("pets",{room:o.id});
+    case "petshop": return openSheet("petShopHome",{pet:petData(st).favorite,shop:o.id});
     case "board": return openSheet("party");
     case "shelf": return openSheet("record");
     case "bench": return say([["もえ",st.moeRank>=1?"ここから見る夕焼け、配信の最後に話したくなるね。":"夕焼けがきれい。……旅に出る前に、この景色を覚えておきたいな。"],[st.profile.name,"また帰ってこよう。"]]);
@@ -531,7 +536,7 @@ function partyCard(m,i,run){
   return `<button class="pcard ${sel?"on":""} ${ko?"ko":""} ${isLow(m.hp,m.maxHP)?"low":""} ${m.acted?"done":""}" data-a="pickActor" data-i="${i}" ${ko||m.acted||run.state!=="input"?"aria-disabled=\"true\"":""}>
     <canvas class="party-portrait" data-char="${m.cid}" width="128" height="160" aria-hidden="true"></canvas><span class="pline"><b>${sel?"▶":""}${esc(m.name)}</b><span class="pjob">${esc(JOBS[m.job].name)} 熟練度${m.R}</span></span><span class="pbadges">${badges.map(t=>`<span class="pst">${t}</span>`).join("")}</span>
     <span class="bar"><i style="width:${pct}%"></i></span>
-    <span class="pstat">体力<b>${m.hp}</b>/${m.maxHP} MP<b>${m.c}</b></span>
+    <span class="pstat">体力<b>${m.hp}</b>/${m.maxHP} MP<b>${m.c}</b>/${battleMPCap(m)}</span>
   </button>`;
 }
 function cueText(run){

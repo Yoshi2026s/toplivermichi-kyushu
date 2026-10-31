@@ -19,7 +19,7 @@ jobs:
       - run: npm test
   mobile:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -46,6 +46,9 @@ jobs:
         env:
           MOBILE_BROWSER: chromium
       - run: node scripts/test-list-search-ui.mjs
+        env:
+          MOBILE_BROWSER: chromium
+      - run: node scripts/test-mobile-facilities-ui.mjs
         env:
           MOBILE_BROWSER: chromium
       - run: node scripts/test-pet-complete-ui.mjs
@@ -86,6 +89,8 @@ jobs:
         with:
           name: mobile-emulation
           path: |
+            .task/mobile-facilities/*.png
+            .task/mobile-facilities/report.json
             .task/pet-rarity/*.png
             .task/pet-rarity/report.json
             .task/pet-next/*.png

@@ -281,8 +281,8 @@ for(const m of Object.values(MAPS)) for(const o of m.objects){
 // 案内板を撤去。区域IDと保存形式は維持する。
 for(const m of Object.values(MAPS))m.objects=m.objects.filter(o=>o.type!=='sign'&&!(o.type==='landmark'&&o.label.includes('案内板')));
 
-// 全街の中央広場に、歩いて利用できる控え室・ペットショップを設ける。
-for(const [id,m] of Object.entries(MAPS)){if(m.kind!=='town')continue;const [cx,cy]=m.safeAnchor;let spot=null;
- for(let radius=1;radius<=5&&!spot;radius++)for(let y=cy-radius;y<=cy+radius&&!spot;y++)for(let x=cx-radius;x<=cx+radius;x++){if(x<1||y<1||x>=m.w-1||y>=m.h-1||Math.max(Math.abs(x-cx),Math.abs(y-cy))!==radius||!['.',',','w','='].includes(m.tiles[y][x])||m.objects.some(o=>o.x===x&&o.y===y)||x===cx&&y===cy)continue;spot=[x,y];break;}
- if(!spot)throw Error('控え室を置けません: '+id);m.objects.push({id:id+'_petroom',type:'petroom',label:'ペットの控え室・ペットショップ',x:spot[0],y:spot[1]});
+
+// 既存の空き区画を利用し、購入する店と飼育する控え所を分離する。
+for(const [id,m]of Object.entries(MAPS)){if(m.kind!=='town')continue;m.objects=m.objects.filter(o=>o.type!=='petroom'&&o.type!=='petshop');
+ for(const [type,district,label]of [['petshop','market','ペットショップ（お迎え・用品）'],['petroom','residential','ペットの控え所（お世話・同行）']]){const b=m.buildings.find(b=>b.district===district&&!b.service);if(!b)throw Error('ペット施設の区画不足: '+id+'/'+type);b.service=type;b.objectId=id+'_'+type;m.tiles[b.door[1]][b.door[0]]=',';m.objects.push({id:b.objectId,type,label,x:b.door[0],y:b.door[1],site:'building'});}
 }

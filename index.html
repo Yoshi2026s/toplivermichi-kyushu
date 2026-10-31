@@ -943,6 +943,18 @@ body.in-battle:not(.no-dock){--dockH:80px}.in-battle .dock .stick{width:72px;hei
 .pet-bond{display:block;font-size:14px}.pet-bond progress{display:block;width:100%;height:10px;accent-color:#d5bd7a}.pet-needs label{display:flex;flex-direction:column;justify-content:space-between;gap:4px}.pet-identity .small{margin:4px 0;line-height:1.5}
 .pet-care-nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin:8px 0}.pet-care-nav .btn{min-width:0;min-height:48px;padding:4px;font-size:13px}.pet-growth-gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0}.pet-growth-gallery figure{margin:0;padding:8px;border:1px solid #78919f;border-radius:12px;text-align:center;background:#163045}.pet-growth-gallery .pet-portrait{display:block;width:80px;max-width:100%;margin:auto}.pet-growth-gallery figcaption{font-size:13px;margin-top:4px}.pet-growth-locked{display:grid!important;place-items:center;height:80px!important;font-size:32px;color:#b6c7d3}.pet-shop-pets>summary{min-height:48px;display:flex;align-items:center;cursor:pointer;font-size:15px}.pet-enemy-state{font-size:12px;line-height:1.3;color:#bde7cf}.pet-care-nav button:focus-visible,[id^="pet-care-"]:focus-visible{outline:2px solid #edce87;outline-offset:3px}
 .pet-rarity-2{border-color:#c0d9e5}.pet-rarity-3{border-color:#f0cb72}.pet-rarity-4{border-color:#c2a1ed;background:linear-gradient(135deg,#392d54,#1b3045)}.pet-rarity-5{border:2px solid #ffe5a0;background:linear-gradient(135deg,#4a3b28,#1b3045);box-shadow:inset 0 0 0 2px #a78a5538}.pet-rarity-info{font-size:14px;color:#eed69d;overflow-wrap:anywhere}
+
+.btn,.nav-goal .btn,.btn.nav-destination,.btn.dexrow{text-align:center;justify-content:center;align-items:center;align-content:center;border-color:#bda66d;box-shadow:inset 0 0 0 1px #fff1ba3d,inset 0 0 10px #fff0b00d,0 2px 4px #06152688;user-select:none;-webkit-tap-highlight-color:transparent}
+.btn>span,.btn>b{text-align:center}.nav-destination{align-items:center}.btn:active,.dock-back.pressed{filter:brightness(1.18);box-shadow:inset 0 0 0 2px #ffe4a1,0 0 8px #dab46c77}.btn:focus-visible,.stick-confirm:focus-visible{outline:3px solid #f5d78b;outline-offset:3px}
+.sheet,.panel,.qcard,.xhead,.pstrip,.mapwrap{border-color:#c9b373;box-shadow:inset 0 0 0 2px #f4dc9a38,0 0 0 1px #725e35,0 5px 16px #06132166}.sheet-head{border-bottom:1px solid #d4bc7d88}.input{border-color:#a9b9bd;box-shadow:inset 0 1px 4px #071a2966}
+.dock .stick{width:100px;height:100px}.dock .stick-confirm{width:64px;height:64px;min-width:64px;min-height:64px;border:3px solid #fff0c9;touch-action:none;font-size:18px}.dock .dock-back{min-width:64px;min-height:72px;font-size:18px;touch-action:none;white-space:nowrap}
+.nav-quick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:8px 0}.nav-quick .btn{min-height:48px;padding:5px;font-size:14px}.nav-recent>summary{min-height:48px;display:flex;align-items:center;cursor:pointer}.nav-goal progress{width:100%;height:10px;accent-color:#dfbf72}.pet-party{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px!important}.pet-party>span:first-child{grid-column:1/-1}.pet-party>span{font-size:12px;min-width:0}
+#minimap{width:clamp(104px,29vw,136px);border:2px solid #f0d698;box-shadow:0 0 0 1px #6a552d,inset 0 0 0 1px #fff0bd88,0 3px 8px #07182799;image-rendering:auto}
+@media(max-width:350px),(max-height:550px){.dock .stick{width:84px;height:84px}.dock .stick-confirm{width:56px;height:56px;min-width:56px;min-height:56px;font-size:16px}.dock .dock-back{min-width:56px;min-height:64px;font-size:16px}}
+.pmline b,.pstrip b,.pline b,.speaker{letter-spacing:normal;font-variant-numeric:tabular-nums}
+body:not(.no-dock){--dockH:88px}body.in-explore:not(.no-dock){--dockH:116px}body.in-battle:not(.no-dock){--dockH:88px}body.in-result:not(.no-dock){--dockH:80px}body:not(.in-explore) .dock .stick{width:80px;height:80px}.dock .stick .knob,body.in-battle .dock .stick .knob,body.in-result .dock .stick .knob{width:64px;height:64px;margin:-32px 0 0 -32px;border:0;background:transparent}.dock .stick-confirm{background:radial-gradient(circle at 35% 25%,#c97166,#a74752);box-shadow:0 2px 4px #05111a99}.dock .dock-back,body.in-battle .dock-back{min-width:64px;min-height:72px}
+@media(max-width:350px),(max-height:550px){body.in-explore:not(.no-dock){--dockH:108px}.dock .stick .knob,body.in-battle .dock .stick .knob,body.in-result .dock .stick .knob{width:56px;height:56px;margin:-28px 0 0 -28px}.dock .dock-back,body.in-battle .dock-back{min-width:56px;min-height:64px}}
+@media(orientation:portrait) and (max-height:550px){body.in-result{padding-top:6px}body.in-result #screen{padding-top:0}.result{gap:1px}}
 </style>
 <main id="screen" aria-live="off"></main>
 <div id="dock" class="dock" aria-label="ジョイコントローラー">
@@ -2214,10 +2226,10 @@ for(const m of Object.values(MAPS)) for(const o of m.objects){
 // 案内板を撤去。区域IDと保存形式は維持する。
 for(const m of Object.values(MAPS))m.objects=m.objects.filter(o=>o.type!=='sign'&&!(o.type==='landmark'&&o.label.includes('案内板')));
 
-// 全街の中央広場に、歩いて利用できる控え室・ペットショップを設ける。
-for(const [id,m] of Object.entries(MAPS)){if(m.kind!=='town')continue;const [cx,cy]=m.safeAnchor;let spot=null;
- for(let radius=1;radius<=5&&!spot;radius++)for(let y=cy-radius;y<=cy+radius&&!spot;y++)for(let x=cx-radius;x<=cx+radius;x++){if(x<1||y<1||x>=m.w-1||y>=m.h-1||Math.max(Math.abs(x-cx),Math.abs(y-cy))!==radius||!['.',',','w','='].includes(m.tiles[y][x])||m.objects.some(o=>o.x===x&&o.y===y)||x===cx&&y===cy)continue;spot=[x,y];break;}
- if(!spot)throw Error('控え室を置けません: '+id);m.objects.push({id:id+'_petroom',type:'petroom',label:'ペットの控え室・ペットショップ',x:spot[0],y:spot[1]});
+
+// 既存の空き区画を利用し、購入する店と飼育する控え所を分離する。
+for(const [id,m]of Object.entries(MAPS)){if(m.kind!=='town')continue;m.objects=m.objects.filter(o=>o.type!=='petroom'&&o.type!=='petshop');
+ for(const [type,district,label]of [['petshop','market','ペットショップ（お迎え・用品）'],['petroom','residential','ペットの控え所（お世話・同行）']]){const b=m.buildings.find(b=>b.district===district&&!b.service);if(!b)throw Error('ペット施設の区画不足: '+id+'/'+type);b.service=type;b.objectId=id+'_'+type;m.tiles[b.door[1]][b.door[0]]=',';m.objects.push({id:b.objectId,type,label,x:b.door[0],y:b.door[1],site:'building'});}
 }
 
 /* 能力・職業特性・職歴装備。旧セーブの数値と所持品は移行時に保持する。 */
@@ -2365,7 +2377,7 @@ const PET_BADGES={B071:"ペットと共闘",B072:"小さな癒やし",B073:"頼�
 const PET_EFFECT_TEXT={hp:'傷ついた味方1人のHPを回復',mp:'味方1人のMPを回復',attack:'味方全員の攻撃を1ターン強化',ward:'味方全員に防護',cheer:'エールを回復',slow:'敵1体の行動を1回止める',defense:'味方全員の防御を1ターン強化',speed:'味方全員のすばやさを強化し、このターンの回避率UP',weaken:'敵1体の攻撃をこのターン低下',confuse:'敵1体を混乱させ、次の行動を自分への攻撃にする',sleep:'敵1体を眠らせ、次の行動を1回止める'};
 for(const [id,kind] of Object.entries({'PT02-T':'confuse','PT03-S':'speed','PT04-T':'defense','PT05-T':'weaken','PT07-T':'speed','PT09-T':'confuse','PT11-T':'weaken','PT12-S':'defense','PT14-T':'speed','PT16-T':'weaken','PT17-T':'sleep','PT18-S':'defense','PT19-T':'speed','PT20-T':'sleep','PT21-T':'defense','PT22-T':'confuse'}))PET_SKILLS[id].kind=kind;
 PET_SKILLS['PT08-T'].name='狐火の声援';
-const PET_ACTIVITIES={seek:{name:'宝さがし遊び',text:'鼻や目を使って、お気に入りの宝物を探そう。',gains:{bond:3,mood:5}},rhythm:{name:'リズム遊び',text:'手拍子に合わせて、一緒にステップ。',gains:{bond:3,mood:5}},cuddle:{name:'くつろぎ時間',text:'控え室でそっと寄り添い、ひと休み。',gains:{bond:2,clean:3,mood:4}}};
+const PET_ACTIVITIES={seek:{name:'宝さがし遊び',text:'鼻や目を使って、お気に入りの宝物を探そう。',gains:{bond:3,mood:5}},rhythm:{name:'リズム遊び',text:'手拍子に合わせて、一緒にステップ。',gains:{bond:3,mood:5}},cuddle:{name:'くつろぎ時間',text:'控え所でそっと寄り添い、ひと休み。',gains:{bond:2,clean:3,mood:4}}};
 
 function petRarityFrame(id){const spec=PET_SPECIES[id]||PET_SPECIES.PT01,r=spec.rarity,color=PET_RARITY_RULES[r].color;let html='<circle cx="48" cy="48" r="44" fill="#18374a" stroke="'+color+'" stroke-width="'+(r>=3?3:2)+'"/>';
  if(r>=2)html+='<circle cx="48" cy="48" r="40" fill="none" stroke="'+color+'" stroke-opacity=".55" stroke-width="1" stroke-dasharray="'+(r===5?'1 3':'4 4')+'"/>';
@@ -2524,14 +2536,14 @@ function bossReward(bossId){
 const Vof = L => 1+Math.floor((L-1)/20);
 const Kof = R => R>=10?3:R>=6?2:R>=3?1:0;
 const clone = o => JSON.parse(JSON.stringify(o));
-const charName = (st,cid) => cid==="hero" ? st.profile.name : cid==="moe" ? (st.heroine?.name||CHARS.moe.name) : CHARS[cid].name;
+const charName = (st,cid) => halfWidthName(cid==="hero" ? st.profile.name : cid==="moe" ? (st.heroine?.name||CHARS.moe.name) : CHARS[cid].name);
 
 /* ---- 新規開始（第06D・16節） ---- */
 function newGame(name, gender, options={}){
   const st = {
     schemaVersion:SCHEMA_VERSION, gameVersion:GAME_VERSION, saveGeneration:0,
     mapLayoutVersion:typeof MAP_LAYOUT_VERSION==="undefined"?0:MAP_LAYOUT_VERSION,
-    profile:{name, gender}, day:1, growthVersion:1, legacyGrowth:{level:1,jobs:{}}, mapId:"KY01", pos:{x:MAPS.KY01.safeAnchor[0],y:MAPS.KY01.safeAnchor[1]}, dir:0,
+    profile:{name:normalizeName(name), gender}, day:1, growthVersion:1, legacyGrowth:{level:1,jobs:{}}, mapId:"KY01", pos:{x:MAPS.KY01.safeAnchor[0],y:MAPS.KY01.safeAnchor[1]}, dir:0,
     visitedMaps:["KY01"], visitedHubs:["KY01"], xp:0,
     roster:["hero","moe"], party:["hero","moe"], vitals:null,
     jobs:{}, jp:{}, equip:{}, owned:{CW01:8, CA01:8}, pendingGifts:[], favorite:{},
@@ -3152,9 +3164,10 @@ function equipmentChangeFits(st,cid,slot,id){ return equipmentSetFits(st,cid,{..
 const NAME_MAX = 12;
 const HW_KANA = "｡｢｣､･ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ";
 const FW_KANA = "。「」、・ヲァィゥェォャュョッーアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワン";
+function halfWidthName(raw){return String(raw??"" ).replace(/[Ａ-Ｚａ-ｚ０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0));}
 function normalizeName(raw){
   let s = raw.replace(/^[ 　]+|[ 　]+$/g,"");
-  s = s.replace(/[A-Za-z0-9]/g, ch=>String.fromCharCode(ch.charCodeAt(0)+0xFEE0));
+  s = halfWidthName(s);
   let out="";
   for(let i=0;i<s.length;i++){
     const ch=s[i], k=HW_KANA.indexOf(ch);
@@ -3178,12 +3191,12 @@ function nameCharOk(g){
   if(c>=0x3041&&c<=0x3096) return true;
   if(c>=0x30A1&&c<=0x30FA) return true;
   if("々〆〇ーゝゞヽヾ".includes(g)) return true;
-  if((c>=0xFF21&&c<=0xFF3A)||(c>=0xFF41&&c<=0xFF5A)||(c>=0xFF10&&c<=0xFF19)) return true;
+  if((c>=65&&c<=90)||(c>=97&&c<=122)||(c>=48&&c<=57)) return true;
   try{ return /^\p{Script=Han}$/u.test(g); }catch(e){ return (c>=0x4E00&&c<=0x9FFF)||(c>=0x3400&&c<=0x4DBF)||(c>=0x20000&&c<=0x2FFFF)||(c>=0xF900&&c<=0xFAFF); }
 }
 function validateName(raw){
   const s=normalizeName(raw); const gs=graphemes(s); const errors=[];
-  gs.forEach((g,i)=>{ if(!nameCharOk(g)) errors.push(`${i+1}文字目「${/\s/.test(g)?"空白":g}」は使えません（使える文字：ひらがな・カタカナ・漢字・全角英数字）。`); });
+  gs.forEach((g,i)=>{ if(!nameCharOk(g)) errors.push(`${i+1}文字目「${/\s/.test(g)?"空白":g}」は使えません（使える文字：ひらがな・カタカナ・漢字・半角英数字）。`); });
   if(gs.length===0) errors.push("名前を入力してください。");
   if(gs.length>NAME_MAX) errors.push(`${gs.length}文字です。${NAME_MAX}文字以内に直してください。`);
   return { value:s, count:gs.length, errors, ok:errors.length===0 };
@@ -4419,6 +4432,10 @@ const WORLD_ART=(()=>{
    g.fillStyle='#f3ddb2';g.fillRect(x,y+2.82*t,w,.52*t);
    for(let i=0;i<b.w*3;i++){g.fillStyle=i%2?'#fff0c7':'#c15466';g.fillRect(x+i*t/3,y+2.82*t,t/3,.55*t);g.beginPath();g.arc(x+(i+.5)*t/3,y+3.37*t,t/6,0,Math.PI);g.fill();}
    for(const side of [-1,1]){const xx=cx+side*1.5*t;g.fillStyle='#735240';g.fillRect(xx-.4*t,y+4.15*t,.8*t,.65*t);g.strokeStyle='#e2bf83';g.strokeRect(xx-.4*t,y+4.15*t,.8*t,.65*t);for(let i=0;i<3;i++){g.fillStyle=['#66c1b1','#debd65','#d57b8a'][i];g.fillRect(xx+(-.3+i*.23)*t,y+3.97*t,.15*t,.22*t);}}
+  }else if(b.service==='petshop'||b.service==='petroom'){
+   const shop=b.service==='petshop';g.fillStyle=shop?'#8b528c':'#477c6b';g.fillRect(x,y+2.8*t,w,.6*t);g.strokeStyle='#eed49c';g.strokeRect(x,y+2.8*t,w,.6*t);g.fillStyle='#f6e2b1';
+   for(const [dx,dy,rr]of [[0,.25,.23],[-.3,-.1,.12],[0,-.28,.12],[.3,-.1,.12]]){g.beginPath();g.arc(cx+dx*t,y+(3.6+dy)*t,rr*t,0,Math.PI*2);g.fill();}
+   if(!shop){g.fillStyle='#7cc0ae';g.fillRect(cx-1.5*t,y+4.2*t,.8*t,.3*t);g.fillStyle='#f0d398';g.fillRect(cx+.8*t,y+4.15*t,.6*t,.4*t);}
   }else if(b.service==='inn'){
    g.fillStyle='#5b5557';g.fillRect(x+w*.76,y+.2*t,.48*t,1.4*t);g.fillStyle='#ddd1b7';g.fillRect(x+w*.73,y+.16*t,.54*t,.16*t);
    g.fillStyle='#314a79';g.fillRect(cx-.8*t,y+2.9*t,1.6*t,.6*t);g.fillStyle='#ffe5a0';g.beginPath();g.arc(cx,y+3.17*t,.23*t,0,Math.PI*2);g.fill();g.fillStyle='#314a79';g.beginPath();g.arc(cx+.12*t,y+3.08*t,.2*t,0,Math.PI*2);g.fill();
@@ -4540,7 +4557,7 @@ const WORLD_ART=(()=>{
    serviceFacade(g,b,tile);
    g.fillStyle='#dfcba7';g.fillRect(cx-tile*.5,dy,tile,tile);g.fillStyle=b.service?'#233b43':'#70523c';g.fillRect(cx-tile*.29,dy+tile*.1,tile*.58,tile*.85);g.strokeStyle='#a4895a';g.lineWidth=ratio*.6;g.strokeRect(cx-tile*.29,dy+tile*.1,tile*.58,tile*.85);
    if(!b.service){g.fillStyle='#dfc98b';g.beginPath();g.arc(cx+tile*.17,dy+tile*.59,ratio*.7,0,Math.PI*2);g.fill();}
-   if(b.service){const label=({shop:'わくわく道具店',inn:'ほっと宿屋',jobcenter:'おしごと広場',door:'ようこそ！'})[b.service],tw=Math.max(tile*1.4,label.length*tile*.34);g.fillStyle=b.service==='shop'?'#b84b60':'#286b70';g.fillRect(cx-tw/2-2,dy-tile*1.72-2,tw+4,tile*.62);g.strokeStyle='#e0bf80';g.lineWidth=ratio*.4;g.strokeRect(cx-tw/2,dy-tile*1.72,tw,tile*.52);g.fillStyle='#fff0c8';g.font='800 '+tile*.32+'px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(label,cx,dy-tile*1.45);}
+   if(b.service){const label=({shop:'わくわく道具店',inn:'ほっと宿屋',jobcenter:'おしごと広場',door:'ようこそ！',petshop:'ペットのお店',petroom:'ペットの控え所'})[b.service],tw=Math.max(tile*1.4,label.length*tile*.34);g.fillStyle=b.service==='shop'?'#b84b60':'#286b70';g.fillRect(cx-tw/2-2,dy-tile*1.72-2,tw+4,tile*.62);g.strokeStyle='#e0bf80';g.lineWidth=ratio*.4;g.strokeRect(cx-tw/2,dy-tile*1.72,tw,tile*.52);g.fillStyle='#fff0c8';g.font='800 '+tile*.32+'px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(label,cx,dy-tile*1.45);}
   }
   // Broad, static daylight and soft cloud shadows add depth without per-frame work.
   const glow=g.createLinearGradient(0,0,c.width,c.height);glow.addColorStop(0,'#fff1c31f');glow.addColorStop(.5,'#fff9e500');glow.addColorStop(1,'#0a344827');g.fillStyle=glow;g.fillRect(0,0,c.width,c.height);
@@ -5092,7 +5109,7 @@ function migratePets(st){
   for(const [id,p] of Object.entries(ps.owned)){
     if(!petSpecies(id)||!p||typeof p!=="object")continue;
     const divisor=PET_RARITY_RULES[PET_SPECIES[id].rarity].growth;p.growthRemainder=Number.isSafeInteger(p.growthRemainder)&&p.growthRemainder>=0&&p.growthRemainder<divisor?p.growthRemainder:0;
-    p.id=id;p.name=typeof p.name==="string"&&p.name.trim()?Array.from(p.name.trim()).slice(0,12).join(""):PET_SPECIES[id].name;
+    p.id=id;p.name=typeof p.name==="string"&&p.name.trim()?Array.from(halfWidthName(p.name.trim())).slice(0,12).join(""):PET_SPECIES[id].name;
     for(const k of ["bond","fullness","mood","clean"])p[k]=petBound(p[k]??(k==="bond"?0:50));
     if(!["heal","support"].includes(p.policy))p.policy="heal";
     if(!PET_SPECIES[id].skills.includes(p.preferredSkill))p.preferredSkill=null;
@@ -5611,7 +5628,7 @@ function renderNew(){
   }
   return `<section class="win">
     <h2 class="label">主人公の設定</h2>
-    <label for="nameInput" class="field-label">名前（全角1～${NAME_MAX}文字）</label>
+    <label for="nameInput" class="field-label">名前（1～${NAME_MAX}文字・英数字は半角）</label>
     <input id="nameInput" class="input" autocomplete="off" enterkeyhint="done" value="${esc(n.name)}" aria-describedby="nameHelp">
     <div id="nameHelp" class="small" aria-live="polite"></div>
     <fieldset class="gender"><legend class="field-label">性別（ゲーム内の主人公設定）</legend>
@@ -5642,7 +5659,7 @@ function defensePower(s,L){ return Vof(L)*s.armorD; }
 function partyStrip(){
   const st=G.st;
   return `<div class="pstrip" aria-label="パーティーの状態"><span class="pstop"><span>レベル${levelOf(st.xp,st)}・${st.gold.toLocaleString()}ゴールド・物語 ${MOE_RANKS[st.moeRank]}</span></span>${st.party.map(cid=>{ const L=levelOf(st.xp,st), s=charStats(st,cid,L), v=vitalOf(cid);
-    return `<span class="pmini ${v.hp<=0?"ko":""} ${isLow(v.hp,s.maxHP)?"low":""}"><span class="pmline"><b>${esc(charName(st,cid))}</b><span class="small">体力${v.hp}/${s.maxHP} MP${v.c}${v.hp<=0?"・戦闘不能":isLow(v.hp,s.maxHP)?"・体力わずか":""}</span></span><span class="bar"><i style="width:${Math.round(100*v.hp/s.maxHP)}%"></i></span></span>`; }).join("")}</div>`;
+    return `<span class="pmini ${v.hp<=0?"ko":""} ${isLow(v.hp,s.maxHP)?"low":""}"><span class="pmline"><b>${esc(charName(st,cid))}</b><span class="small">体力${v.hp}/${s.maxHP} MP${v.c}/${s.startC}${v.hp<=0?"・戦闘不能":isLow(v.hp,s.maxHP)?"・体力わずか":""}</span></span><span class="bar"><i style="width:${Math.round(100*v.hp/s.maxHP)}%"></i></span></span>`; }).join("")}</div>`;
 }
 function renderStatus(){
   const st=G.st; const L=levelOf(st.xp,st);
@@ -5691,7 +5708,7 @@ function renderExplore(){
       <div class="xsave small" aria-live="polite"><span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（閲覧のみ）":""}</div>
     </header>
     <div class="mapwrap" data-map-kind="${esc(m.kind)}"><aside id="navRoute" class="map-route" aria-label="移動先" hidden></aside><canvas id="map" aria-label="${esc(m.name)}の地図。地面をタップすると移動します。"></canvas>
-      <canvas id="minimap" aria-label="全体ミニマップ。白丸は現在地、白枠は表示範囲。城門は砦、家は街、ベッドは宿屋、瓶は道具屋、書類は職業窓口、肉球はペットの控え室・ショップ"></canvas>
+      <canvas id="minimap" aria-label="全体ミニマップ。白丸は現在地、白枠は表示範囲。城門は砦、家は街、ベッドは宿屋、瓶は道具屋、書類は職業窓口、肉球はペット施設。道＝道具、ペ＝ペット店、控＝控え所、宿＝宿屋、職＝職業、砦＝ボス、街＝出口"></canvas>
       ${exit?`<button class="btn map-exit" data-a="guideTo" data-v="${exit.id}" data-map="${esc(st.mapId)}">${m.kind==="town"?"街外へ":"街へ戻る"}</button>`:""}
     </div>
     ${partyStrip()}
@@ -5735,26 +5752,29 @@ function bossBaseSprite(){
  g.fillStyle='#df8555';for(const x of [14,47]){g.fillRect(x,61,3,10);g.beginPath();g.moveTo(x-2,61);g.lineTo(x+2,50);g.lineTo(x+6,61);g.fill();}
  g.fillStyle='#ada4a3';g.fillRect(18,86,28,3);g.fillRect(14,90,36,3);c.bossBase=true;bossBaseImage=c;return c;
 }
-function mapFacilityKind(o){return o.type==='boss'?'fort':o.fieldExit||o.fieldRoute||o.type==='station'?'town':['inn','shop','jobcenter','petroom'].includes(o.type)?o.type:null;}
+function mapFacilityKind(o){return o.type==='boss'?'fort':o.fieldExit||o.fieldRoute||o.type==='station'?'town':['inn','shop','jobcenter','petroom','petshop'].includes(o.type)?o.type:null;}
 function drawFacilitySymbol(g,kind,x,y,size){
  g.save();g.translate(x,y);g.scale(size/12,size/12);g.lineWidth=1.4;g.lineJoin='round';g.strokeStyle='#fff2cb';g.fillStyle=kind==='fort'?'#733b4b':kind==='inn'?'#345888':kind==='shop'?'#a14360':'#246c64';g.fillRect(-6,-6,12,12);
  g.fillStyle='#fff2cb';
  if(kind==='fort'){g.fillRect(-4,-1,8,5);for(const xx of [-4,-1,2])g.fillRect(xx,-4,2,4);g.fillStyle='#733b4b';g.fillRect(-1,1,2,3);}
  else if(kind==='inn'){g.fillRect(-4,0,8,3);g.fillRect(-4,-2,2,2);g.fillRect(-4,3,1,2);g.fillRect(3,3,1,2);}
  else if(kind==='shop'){g.fillRect(-3,-1,6,5);g.fillRect(-1.5,-4,3,3);g.strokeRect(-3,-1,6,5);}
- else if(kind==='petroom'){g.beginPath();g.arc(0,2,2.4,0,Math.PI*2);g.fill();for(const [x,y]of [[-3,-2],[0,-4],[3,-2]]){g.beginPath();g.arc(x,y,1.2,0,Math.PI*2);g.fill();}}
+ else if(kind==='petroom'||kind==='petshop'){g.beginPath();g.arc(0,2,2.4,0,Math.PI*2);g.fill();for(const [x,y]of [[-3,-2],[0,-4],[3,-2]]){g.beginPath();g.arc(x,y,1.2,0,Math.PI*2);g.fill();}}
  else if(kind==='jobcenter'){g.fillRect(-4,-3,8,7);g.fillStyle='#246c64';for(let y=-1;y<4;y+=2)g.fillRect(-2,y,4,1);}
  else{g.beginPath();g.moveTo(-5,0);g.lineTo(0,-5);g.lineTo(5,0);g.closePath();g.fill();g.fillRect(-3,0,6,5);}
  g.restore();
 }
+function miniMapFacilityLabel(o,kind){return ({shop:'道',petshop:'ペ',petroom:'控',inn:'宿',jobcenter:'職',boss:'砦',station:'駅'})[o.type]||(kind==='town'?'街':kind==='fort'?'砦':'');}
+function drawMiniMapLabel(g,o,kind,x,y,w,h){const text=miniMapFacilityLabel(o,kind);if(!text)return;const font=w/11,xx=Math.max(font*.6,Math.min(w-font*.6,x)),yy=Math.max(font,Math.min(h-font*.2,y+font*1.2));g.save();g.font='700 '+font+'px "Quest Gothic",sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle='#12283ee8';g.fillRect(xx-font*.6,yy-font*.55,font*1.2,font*1.1);g.fillStyle='#fff1bd';g.fillText(text,xx,yy);g.restore();}
 function drawMiniMap(m,cam){
  const cv=document.getElementById('minimap');if(!cv)return;
  const g=cv.getContext('2d'),u=6;cv.width=m.w*u;cv.height=m.h*u;
  for(let y=0;y<m.h;y++)for(let x=0;x<m.w;x++){const t=m.tiles[y][x];g.fillStyle=t==='~'?'#487f9b':t==='T'?'#294f40':',w='.includes(t)?'#dfc88d':t==='#'||t==='c'?'#88665c':'#739366';g.fillRect(x*u,y*u,u,u);}
  g.strokeStyle='#ffffffb0';g.lineWidth=2;g.strokeRect(cam.x/16*u,cam.y/16*u,G.vw*u,G.vh*u);
- for(const o of m.objects){const kind=mapFacilityKind(o);if(kind)drawFacilitySymbol(g,kind,(o.x+.5)*u,(o.y+.5)*u,Math.max(16,m.w*.075*u));}
+ for(const o of m.objects){const kind=mapFacilityKind(o);if(kind){drawFacilitySymbol(g,kind,(o.x+.5)*u,(o.y+.5)*u,Math.max(16,m.w*.075*u));drawMiniMapLabel(g,o,kind,(o.x+.5)*u,(o.y+.5)*u,cv.width,cv.height);}}
  g.fillStyle='#fff';g.strokeStyle='#142d44';g.lineWidth=2;g.beginPath();g.arc((G.st.pos.x+.5)*u,(G.st.pos.y+.5)*u,5,0,Math.PI*2);g.fill();g.stroke();
 }
+function drawMapAmbient(g,m,cam,now,still,vw,vh){if(still)return;g.save();g.lineWidth=.55;const phase=now/700;for(let y=Math.max(0,Math.floor(cam.y/16));y<Math.min(m.h,Math.ceil((cam.y+vh)/16));y++)for(let x=Math.max(0,Math.floor(cam.x/16));x<Math.min(m.w,Math.ceil((cam.x+vw)/16));x++){const tile=m.tiles[y][x],xx=x*16-cam.x,yy=y*16-cam.y;if(tile==='~'||m.combatDomain==='sea'&&'ES'.includes(tile)){g.strokeStyle='#c4edf05c';const offset=Math.sin(phase+x*.7+y)*2;g.beginPath();g.moveTo(xx+2,yy+6+offset);g.quadraticCurveTo(xx+8,yy+3+offset,xx+14,yy+6+offset);g.stroke();}else if(['.','f','T'].includes(tile)&&(x+y)%3===0){const sway=Math.sin(phase+x+y)*1.7;g.strokeStyle='#8cbe6870';g.beginPath();g.moveTo(xx+5,yy+13);g.quadraticCurveTo(xx+4+sway,yy+9,xx+5+sway,yy+6);g.moveTo(xx+8,yy+13);g.lineTo(xx+8+sway,yy+8);g.stroke();}}g.restore();}
 function drawMap(){
   const cv=G.cv; if(!cv||!cv.isConnected) return; const g=cv.getContext("2d"); g.imageSmoothingEnabled=true; g.imageSmoothingQuality="high";
   const st=G.st, m=MAPS[st.mapId]; const cam=camera(); drawMiniMap(m,cam); const now=performance.now();
@@ -5764,6 +5784,7 @@ function drawMap(){
   const layer=ART.mapLayer(st.mapId,0);
   const sx=Math.max(0,cam.x), sy=Math.max(0,cam.y), w=Math.min(vw,layer.width/(layer.artScale||1)-sx), h=Math.min(vh,layer.height/(layer.artScale||1)-sy);
   const lr=layer.artScale||1;g.drawImage(layer,sx*lr,sy*lr,w*lr,h*lr,sx-cam.x,sy-cam.y,w,h);
+  drawMapAmbient(g,m,cam,now,still,vw,vh);
   const sprites=[];
   for(const o of m.objects){
     let img;
@@ -5772,8 +5793,8 @@ function drawMap(){
     else if(o.type==="inn"){ sprites.push({y:o.y-0.1,img:ART.object("inn",f),x:o.x}); img=ART.person("innkeeper",PAL.slate,PAL.navy,0,f2*2); }
     else if(o.type==="box") img=ART.object(st.boxes[o.box]?"boxOpen":"box",f);
     else if(o.type==="boss"){ if(st.bossDefeated[o.boss]) continue; img=bossBaseSprite(); }
-    else img=ART.object(o.fieldExit||o.fieldRoute?"gate":o.type==="jobcenter"?"board":o.type,f);
-    sprites.push({y:o.y,x:o.x,img});
+    else img=ART.object(o.fieldExit||o.fieldRoute?"gate":o.type==="jobcenter"?"board":o.type==="petshop"?"petroom":o.type,f);
+    sprites.push({y:o.y,x:o.x,img,idleX:!still&&o.type==="npc"?Math.sin(now/900+o.x)*.45:0,idleY:!still&&o.type==="npc"?Math.sin(now/500+o.y)*.65:0});
   }
   const moving=G.walk.path.length>0;
   const walking=moving&&!G.dlg&&!G.sheet&&!G.lock&&!document.hidden;
@@ -5790,7 +5811,7 @@ function drawMap(){
   }
   sprites.push({y:pp.y/16+0.01, px:pp, img:charSprite(lead,st.dir,wf)});
   sprites.sort((a,b)=>a.y-b.y);
-  for(const s of sprites){ const x=s.px?s.px.x:s.x*16, y=s.px?s.px.y:s.y*16; g.fillStyle='rgba(6,17,28,.27)'; g.beginPath(); g.ellipse(x+8-cam.x,y+13-cam.y,6,2,0,0,Math.PI*2); g.fill(); g.save();if(s.img.bossBase){g.drawImage(s.img,x-8-cam.x,y-30-cam.y,32,48);}else if(s.img.artScale){g.shadowColor='#071522b0';g.shadowBlur=ratio;g.shadowOffsetY=.5;g.drawImage(s.img.mapImage||s.img,x-2-cam.x,y-14-cam.y,20,30);}else g.drawImage(s.img,x-cam.x,y-8-cam.y,16,24);g.restore(); }
+  for(const s of sprites){ const x=(s.px?s.px.x:s.x*16)+(s.idleX||0), y=(s.px?s.px.y:s.y*16)+(s.idleY||0); g.fillStyle='rgba(6,17,28,.27)'; g.beginPath(); g.ellipse(x+8-cam.x,y+13-cam.y,6,2,0,0,Math.PI*2); g.fill(); g.save();if(s.img.bossBase){g.drawImage(s.img,x-8-cam.x,y-30-cam.y,32,48);}else if(s.img.artScale){g.shadowColor='#071522b0';g.shadowBlur=ratio;g.shadowOffsetY=.5;g.drawImage(s.img.mapImage||s.img,x-2-cam.x,y-14-cam.y,20,30);}else g.drawImage(s.img,x-cam.x,y-8-cam.y,16,24);g.restore(); }
   if(moving){ const d=G.walk.path[G.walk.path.length-1]; const bl=Math.floor(now/250)%2; g.strokeStyle=bl?PAL.cream:PAL.gold; g.strokeRect(d.x*16-cam.x+3.5,d.y*16-cam.y+3.5,9,9); }
 }
 function startLoop(){
@@ -5811,7 +5832,7 @@ function startLoop(){
     }
     if(G.mapLoopToken!==token)return;
     if(!G.sheet&&!G.dlg&&!G.lock){
-      const drawKey=[G.st.mapId,G.st.pos.x,G.st.pos.y,G.st.dir,w.prog,w.path.length,G.fol?.x,G.fol?.y,Math.floor(ts/320)].join('|');
+      const drawKey=[G.st.mapId,G.st.pos.x,G.st.pos.y,G.st.dir,w.prog,w.path.length,G.fol?.x,G.fol?.y,reducedMotion()?0:Math.floor(ts/160)].join('|');
       if(drawKey!==G.mapDrawKey){drawMap();G.mapDrawKey=drawKey;}
     }
     G.raf=requestAnimationFrame(loop);
@@ -5888,6 +5909,7 @@ function interact(o){
     case "rest": return openSheet("rest");
     case "inn": return openSheet("inn",{label:o.label});
     case "petroom": return openSheet("pets",{room:o.id});
+    case "petshop": return openSheet("petShopHome",{pet:petData(st).favorite,shop:o.id});
     case "board": return openSheet("party");
     case "shelf": return openSheet("record");
     case "bench": return say([["もえ",st.moeRank>=1?"ここから見る夕焼け、配信の最後に話したくなるね。":"夕焼けがきれい。……旅に出る前に、この景色を覚えておきたいな。"],[st.profile.name,"また帰ってこよう。"]]);
@@ -5976,7 +5998,7 @@ function partyCard(m,i,run){
   return `<button class="pcard ${sel?"on":""} ${ko?"ko":""} ${isLow(m.hp,m.maxHP)?"low":""} ${m.acted?"done":""}" data-a="pickActor" data-i="${i}" ${ko||m.acted||run.state!=="input"?"aria-disabled=\"true\"":""}>
     <canvas class="party-portrait" data-char="${m.cid}" width="128" height="160" aria-hidden="true"></canvas><span class="pline"><b>${sel?"▶":""}${esc(m.name)}</b><span class="pjob">${esc(JOBS[m.job].name)} 熟練度${m.R}</span></span><span class="pbadges">${badges.map(t=>`<span class="pst">${t}</span>`).join("")}</span>
     <span class="bar"><i style="width:${pct}%"></i></span>
-    <span class="pstat">体力<b>${m.hp}</b>/${m.maxHP} MP<b>${m.c}</b></span>
+    <span class="pstat">体力<b>${m.hp}</b>/${m.maxHP} MP<b>${m.c}</b>/${battleMPCap(m)}</span>
   </button>`;
 }
 function cueText(run){
@@ -7139,8 +7161,10 @@ Object.assign(ACT,{
 /* ペット画面。固有キーでコントローラー選択を保持し、実行時にも在庫・日次・保存先を再検査する。 */
 function petUiToken(st){return checksum(JSON.stringify([st.saveGeneration,st.day,st.mapId,st.party,st.vitals,st.petState,st.bag,st.itemVault,st.gold,st.tickets]));}
 function petUiAttrs(action,value,extra=""){return `data-a="${action}" data-v="${esc(value)}" data-token="${petUiToken(G.st)}" ${extra}`;}
-function petRoomNearby(){return !!G.st&&MAPS[G.st.mapId]?.kind==="town"&&MAPS[G.st.mapId].objects.some(o=>o.type==="petroom"&&Math.max(Math.abs(o.x-G.st.pos.x),Math.abs(o.y-G.st.pos.y))<=1);}
-function petUiCanEdit(){return !!G.st&&!G.readOnly&&!G.petSaving&&!G.vaultSaving&&!G.shopSaving&&(G.sheet==="petTravel"||petRoomNearby())&&G.screen==="explore"&&!G.st.run&&!G.dlg&&!G.walk.path.length&&["pets","petCare","petWalk","petTravel","petShop","petAdopt"].includes(G.sheet)&&(typeof document==="undefined"||!document.hidden);}
+function petFacilityNearby(type){return !!G.st&&MAPS[G.st.mapId]?.kind==="town"&&MAPS[G.st.mapId].objects.some(o=>o.type===type&&Math.max(Math.abs(o.x-G.st.pos.x),Math.abs(o.y-G.st.pos.y))<=1);}
+function petRoomNearby(){return petFacilityNearby("petroom");}
+function petShopNearby(){return petFacilityNearby("petshop");}
+function petUiCanEdit(){return !!G.st&&!G.readOnly&&!G.petSaving&&!G.vaultSaving&&!G.shopSaving&&(["petShop","petAdopt"].includes(G.sheet)?petShopNearby():G.sheet==="petTravel"?petRoomNearby()||(!isSafe()&&petData(G.st).companions.includes(petData(G.st).favorite)):petRoomNearby())&&G.screen==="explore"&&!G.st.run&&!G.dlg&&!G.walk.path.length&&["pets","petCare","petWalk","petTravel","petShop","petAdopt"].includes(G.sheet)&&(typeof document==="undefined"||!document.hidden);}
 function petUiDisabled(reason=""){return reason||!petUiCanEdit()?"disabled":"";}
 function petUiGains(gains={},growth){const labels={bond:"なつき度",fullness:"満腹",mood:"ごきげん",clean:"清潔"};return Object.entries(gains).filter(([k,n])=>n>0).map(([k,n])=>`${labels[k]}＋${n}`).concat(growth?.progress&&gains.bond===0?["なつき度の次の＋1へ進行"]:[]).join("・");}
 function petCurrentId(){const ps=petData(G.st);return petOwned(G.st,G.sheetData.pet)?G.sheetData.pet:ps?.favorite||Object.keys(ps?.owned||{})[0];}
@@ -7161,12 +7185,12 @@ async function petUiMutation(el,action){
 function petCardHtml(st,id,button=true){
   const p=petOwned(st,id),s=PET_SPECIES[id];if(!p)return "";
   const stage=petStage(p),ps=petData(st),follow=ps.companions.includes(id),favorite=ps.favorite===id;
-  return `<div class="qcard pet-rarity-${s.rarity}"><div class="who pet-identity"><span class="pet-portrait" style="display:inline-block;width:64px;flex:none">${petSpriteSvg(id,stage)}</span><div><b>${esc(p.name)}</b><p class="small">${esc(s.name)}・${"★".repeat(s.rarity)}・成長${stage}/10${button?`<br>なつき度${p.bond}/100`:""}${follow?"・戦闘同行":""}${favorite?"・お気に入り":""}</p></div></div>${button?`<button class="btn" data-a="petView" data-v="${id}" data-k="care" id="pet-card-${id}">今日のお世話</button>`:""}</div>`;
+  return `<div class="qcard pet-rarity-${s.rarity}"><div class="who pet-identity"><span class="pet-portrait" style="display:inline-block;width:64px;flex:none">${petSpriteSvg(id,stage)}</span><div><b>${esc(halfWidthName(p.name))}</b><p class="small">${esc(s.name)}・${"★".repeat(s.rarity)}・成長${stage}/10${button?`<br>なつき度${p.bond}/100`:""}${follow?"・戦闘同行":""}${favorite?"・お気に入り":""}</p></div></div>${button?`<button class="btn" data-a="petView" data-v="${id}" data-k="${petRoomNearby()?"care":"status"}" id="pet-card-${id}">${petRoomNearby()?"お世話・同行を選ぶ":"状態・技を見る"}</button>${petRoomNearby()?`<button class="btn" data-a="petView" data-v="${id}" data-k="status">状態・技を見る</button>`:""}`:""}</div>`;
 }
 function renderPetList(){
   const st=G.st,ps=petData(st);if(!ps)return '<p>ペットの記録を準備しています。いったん街へ戻って開き直してください。</p>';
   const filter=G.sheetData.filter||"all",ids=Object.keys(ps.owned).filter(id=>PET_SPECIES[id]).filter(id=>filter==="all"||filter==="following"&&ps.companions.includes(id)||filter==="care"&&Object.keys(PET_CARE_TYPES).some(k=>ps.owned[id].daily[k]!==st.day));
-  return `${petRoomBanner()}<p>家族 ${Object.keys(ps.owned).filter(id=>PET_SPECIES[id]).length}/22種類・戦闘同行 ${ps.companions.length}/2匹</p><p class="small">旅はお気に入り、戦闘は同行2匹が担当。お世話・お買物は街の控え室で。</p><div class="pet-menu"><button class="btn" data-a="petView" data-k="adopt" data-v="${ps.favorite}" id="pet-adoption">家族を迎える</button><button class="btn" data-a="petView" data-k="travel" data-v="${ps.favorite}" id="pet-travel">旅のお手伝い</button><button class="btn" data-a="petView" data-k="shop" data-v="${ps.favorite}" id="pet-supplies">用品を買う</button></div><div class="pet-filters">${[["all","みんな"],["following","戦闘同行"],["care","お世話が残る"]].map(([k,n])=>`<button class="btn opt ${filter===k?"on":""}" data-a="petFilter" data-v="${k}" aria-pressed="${filter===k}" id="pet-filter-${k}">${n}</button>`).join("")}</div>${ids.map(id=>petCardHtml(st,id)).join("")||'<p class="small">当てはまる家族はいません。</p><button class="btn" data-a="petFilter" data-v="all">みんなを見る</button>'}`;
+  return `${petRoomBanner()}<p>家族 ${Object.keys(ps.owned).filter(id=>PET_SPECIES[id]).length}/22種類・戦闘同行 ${ps.companions.length}/2匹</p><p class="small">旅はお気に入り、戦闘は同行2匹が担当。お世話・同行選択は控え所、購入は商店街のペットショップ。</p><div class="pet-menu"><button class="btn" data-a="petView" data-k="adopt" data-v="${ps.favorite}" id="pet-adoption">家族を迎える</button><button class="btn" data-a="petView" data-k="travel" data-v="${ps.favorite}" id="pet-travel">旅のお手伝い</button><button class="btn" data-a="petView" data-k="shop" data-v="${ps.favorite}" id="pet-supplies">用品を買う</button></div><div class="pet-filters">${[["all","みんな"],["following","戦闘同行"],["care","お世話が残る"]].map(([k,n])=>`<button class="btn opt ${filter===k?"on":""}" data-a="petFilter" data-v="${k}" aria-pressed="${filter===k}" id="pet-filter-${k}">${n}</button>`).join("")}</div>${ids.map(id=>petCardHtml(st,id)).join("")||'<p class="small">当てはまる家族はいません。</p><button class="btn" data-a="petFilter" data-v="all">みんなを見る</button>'}`;
 }
 function renderPetCare(){
   const st=G.st,id=petCurrentId(),p=petOwned(st,id),s=PET_SPECIES[id];if(!p)return '<p>ペット一覧から選んでください。</p>';
@@ -7190,12 +7214,12 @@ function renderPetShop(){
 function renderPetAdopt(){const st=G.st,safe=isSafe();return `${petRoomBanner()}<p>ペットショップで出会う22種類。高レアほどお迎えと用品は高価で、なつき度の成長はゆっくり。その分、技が強力です。最初のしばいぬは家族です。所持チケット${st.tickets}枚。</p><div class="stack">${Object.entries(PET_SPECIES).map(([id,s])=>{const offer=petAdoptPreview(st,id);return `<div class="qcard"><div class="who"><span class="pet-portrait" style="width:48px;flex:none">${petSpriteSvg(id,1)}</span><span><b>${esc(s.name)}</b> ${"★".repeat(s.rarity)}<br><span class="small">本編${s.unlockCount}件・お迎え${s.adoptionTickets}チケット<br>なつき度の成長：${PET_RARITY_RULES[s.rarity].growthText}</span></span></div><p class="small">${offer.ok?"この子と旅を始められます。":esc(offer.reason)}</p><button class="btn" ${petUiAttrs("petAdopt",id,`id="pet-adopt-${id}"`)} ${petUiDisabled(!safe||!offer.ok?"街で条件を確認してください":"")}>家族に迎える</button></div>`;}).join("")}</div><button class="btn" data-a="petView" data-k="list" data-v="${petData(st)?.favorite}">みんなへ戻る</button>`;}
 function petPartyHtml(st,run){
   const ps=petData(st),ids=run?.pets?.map(p=>p.id)||ps?.companions||[];if(!ids.length)return "";
-  return `<span class="pet-party" style="display:flex;flex-wrap:wrap;gap:4px;max-width:100%;grid-column:1/-1"><span class="small">同行ペット：</span>${ids.map(id=>{const p=run?.pets?.find(p=>p.id===id)||petOwned(st,id);return p?`<span class="small" style="display:inline-flex;align-items:center;gap:3px;max-width:100%;overflow-wrap:anywhere"><span class="pet-portrait" style="width:28px;display:inline-block;flex:none">${petSpriteSvg(id,p.stage||petStage(p))}</span>${esc(p.name)}・成長${p.stage||petStage(p)}</span>`:"";}).join("")}</span>`;
+  return `<span class="pet-party" data-pet-info style="display:flex;flex-wrap:wrap;gap:4px;max-width:100%;grid-column:1/-1"><span class="small">同行ペット：</span>${ids.map(id=>{const p=run?.pets?.find(p=>p.id===id)||petOwned(st,id);return p?`<span class="small" style="display:inline-flex;align-items:center;gap:3px;max-width:100%;overflow-wrap:anywhere"><span class="pet-portrait" style="width:28px;display:inline-block;flex:none">${petSpriteSvg(id,p.stage||petStage(p))}</span>${esc(p.name)}・★${PET_SPECIES[id].rarity}・成長${p.stage||petStage(p)}</span>`:"";}).join("")}</span>`;
 }
 const petOriginalRenderSheet=renderSheet;
-renderSheet=function(){const screens={pets:["ペット・みんなのお世話",renderPetList],petCare:["今日のお世話",renderPetCare],petWalk:["おさんぽ",renderPetWalk],petTravel:["旅のお手伝い",renderPetTravel],petShop:["ペット用品店",renderPetShop],petAdopt:["新しい家族",renderPetAdopt]};const screen=screens[G.sheet];return screen?sheetWrap(screen[0],screen[1]()):petOriginalRenderSheet();};
+renderSheet=function(){const screens={pets:["所有ペット",renderPetList],petStatus:["ペットの状態・技",renderPetStatus],petShopHome:["ペットショップ",renderPetShopHome],petCare:["今日のお世話",renderPetCare],petWalk:["おさんぽ",renderPetWalk],petTravel:["旅のお手伝い",renderPetTravel],petShop:["ペット用品店",renderPetShop],petAdopt:["新しい家族",renderPetAdopt]};const screen=screens[G.sheet];return screen?sheetWrap(screen[0],screen[1]()):petOriginalRenderSheet();};
 const petOriginalPartyStrip=partyStrip;
-partyStrip=function(){const html=petOriginalPartyStrip();return html.replace(/<\/button>$/,petPartyHtml(G.st)+"</button>");};
+partyStrip=function(){const html=petOriginalPartyStrip();return html.replace(/<\/div>$/,petPartyHtml(G.st)+"</div>");};
 const petOriginalRenderBattle=renderBattle;
 renderBattle=function(){
   const html=petOriginalRenderBattle(),start=html.indexOf('<div class="party">');if(start<0)return html;
@@ -7206,12 +7230,12 @@ renderBattle=function(){
 const petOriginalMigrate=migrate;
 migrate=function(st){const result=petOriginalMigrate(st);migratePets(result);if(result.run){const missing=!Array.isArray(result.run.pets);preparePetRun(result,result.run);if(missing)result.run.petProcessedTurn=result.run.turn;}return result;};
 Object.assign(ACT,{
-  petView(el){const key=el.dataset.k||"care",map={list:"pets",care:"petCare",walk:"petWalk",travel:"petTravel",shop:"petShop",adopt:"petAdopt"};if(!Object.hasOwn(map,key)||G.screen!=="explore"||G.dlg||G.st.run||G.petSaving)return;const id=petOwned(G.st,el.dataset.v)?el.dataset.v:petData(G.st)?.favorite;if(!id)return;G.sheet=map[key];G.sheetData={pet:id};G.walk.path=[];render();},
+  petView(el){const key=el.dataset.k||"care",map={list:"pets",status:"petStatus",care:"petCare",walk:"petWalk",travel:"petTravel",shop:"petShop",adopt:"petAdopt"};if(!Object.hasOwn(map,key)||G.screen!=="explore"||G.dlg||G.st.run||G.petSaving)return;const id=petOwned(G.st,el.dataset.v)?el.dataset.v:petData(G.st)?.favorite;if(!id)return;G.walk.path=[];if(key==="list"){G.sheetHistory=(G.sheetHistory||[]).filter(v=>!["pets","petCare","petStatus","petShopHome","petShop","petAdopt","petWalk","petTravel"].includes(v.key));G.sheet="pets";G.sheetData={pet:id};render();}else openSheet(map[key],{pet:id});},
   petFilter(el){if(G.sheet!=="pets"||!["all","following","care"].includes(el.dataset.v))return;G.sheetData.filter=el.dataset.v;render();},
   petPage(el){const page=Number(el.dataset.v);if(G.sheet!=="petShop"||!Number.isInteger(page)||page<0||page>=Math.max(1,Math.ceil(petShopStock(petCurrentId()).length/4)))return;G.sheetData.page=page;render();},
   petSupplySelect(el){const draft=$("#petName-"+petCurrentId());if(draft)G.sheetData.nameDraft=draft.value;const id=petCurrentId(),it=PET_SUPPLIES[el.dataset.v];if(G.sheet!=="petCare"||!it||it.petSpecies!==id)return;G.sheetData.supplies={...G.sheetData.supplies,[it.petCare]:it.id};render();},
-  petDetails(el){const id=petCurrentId(),p=petOwned(G.st,id);if(G.sheet!=="petCare"||el.dataset.v!==id||!p)return;const input=$(`#petName-${id}`);if(input)G.sheetData.nameDraft=input.value;G.sheetData.details=!(G.sheetData.details??p.details);if(!G.readOnly&&!G.petSaving){p.details=G.sheetData.details;commit();}render();},
-  petWalkView(el){if(G.sheet!=="petCare"||!petOwned(G.st,el.dataset.v)||G.petSaving)return;G.sheet="petWalk";G.sheetData={pet:el.dataset.v};render();},
+  petDetails(el){const id=petCurrentId(),p=petOwned(G.st,id);if(G.sheet!=="petCare"||el.dataset.v!==id||!p)return;const input=$(`#petName-${id}`);if(input)G.sheetData.nameDraft=input.value;G.sheetData.details=!(G.sheetData.details??p.details);if(petUiCanEdit()){p.details=G.sheetData.details;commit();}render();},
+  petWalkView(el){if(G.sheet!=="petCare"||!petOwned(G.st,el.dataset.v)||G.petSaving)return;openSheet("petWalk",{pet:el.dataset.v});},
   petTravelPolicy(el){if(G.sheet!=="petTravel"||!Object.hasOwn(PET_TRAVEL_POLICIES,el.dataset.v)||G.petSaving)return;G.sheetData.policy=el.dataset.v;render();},
   petVaultOpen(el){if(G.sheet!=="petCare"||!isSafe()||!petOwned(G.st,el.dataset.v)||G.petSaving)return;G.petReturn=el.dataset.v;openSheet("itemVault",{mode:"withdraw",filter:"all",query:PET_SPECIES[el.dataset.v].name,petReturn:el.dataset.v});},
   petCareDo(el){const [id,action]=String(el.dataset.v).split(":");if(G.sheet!=="petCare"||id!==petCurrentId()||!isSafe())return toast("街で選び直してください。");if(["feed","play","groom","rest"].includes(action)&&el.dataset.item!==petSelectedSupply(G.st,id,action))return toast("用品の選択が変わりました。選び直してください。");return petUiMutation(el,st=>carePet(st,id,action,el.dataset.item));},
@@ -7221,18 +7245,22 @@ Object.assign(ACT,{
   petCelebration(el){const [id,n]=String(el.dataset.v).split(":");if(G.sheet!=="petCare"||id!==petCurrentId())return;return petUiMutation(el,st=>{const result=claimPetCelebration(st,id,Number(n));return {...result,log:result.ok?`${ITEMS[result.item].name}×${result.quantity}を${result.where}へ受け取りました。`:undefined};});},
   petWalkDo(el){const [id,place]=String(el.dataset.v).split(":");if(G.sheet!=="petWalk"||id!==petCurrentId()||!isSafe())return;return petUiMutation(el,st=>{const result=walkPet(st,id,place);return {...result,log:result.ok?`${ITEMS[result.item].name}×1を${result.where}へ。${petUiGains(result.gains,result.growth)}`:undefined};});},
   petTravelDo(el){if(G.sheet!=="petTravel")return;const policy=el.dataset.v;if(policy!==(G.sheetData.policy||petData(G.st).travelPolicy))return;return petUiMutation(el,st=>{const result=petTravelHelp(st,policy);return {...result,log:result.ok?result.targets.filter(t=>t.hp||t.mp).map(t=>`${t.name} HP＋${t.hp}・MP＋${t.mp}`).join("／"):undefined};});},
-  petBuy(el){const it=PET_SUPPLIES[el.dataset.v],qty=Number(el.dataset.qty||1);if(![1,5].includes(qty))return;if(G.sheet!=="petShop"||!it||it.petSpecies!==petCurrentId()||!isSafe())return;return petUiMutation(el,st=>{if(st.gold<it.price*qty)return {ok:false,reason:"ゴールドが足りません。"};const result=petReceive(st,it.id,qty);if(!result.ok)return result;st.gold-=it.price*qty;return {...result,log:`${it.name}×${qty}を${result.where}へ。${it.price*qty}Gを支払いました。`,sound:"buy"};});},
+  petBuy(el){const it=PET_SUPPLIES[el.dataset.v],qty=Number(el.dataset.qty||1);if(![1,5].includes(qty))return;if(G.sheet!=="petShop"||!it||it.petSpecies!==petCurrentId()||!petShopNearby())return;return petUiMutation(el,st=>{if(st.gold<it.price*qty)return {ok:false,reason:"ゴールドが足りません。"};const result=petReceive(st,it.id,qty);if(!result.ok)return result;st.gold-=it.price*qty;return {...result,log:`${it.name}×${qty}を${result.where}へ。${it.price*qty}Gを支払いました。`,sound:"buy"};});},
   petShopPet(el){const id=el.dataset.v;if(G.sheet!=="petShop"||!petOwned(G.st,id))return;G.sheetData.pet=id;G.sheetData.page=0;render();},
   petCareSection(el){if(G.sheet!=="petCare")return;const ids={feeding:"pet-care-feeding",activities:"pet-care-activities",battle:"pet-care-battle",album:"pet-care-album"};if(!Object.hasOwn(ids,el.dataset.v))return;const target=document.getElementById(ids[el.dataset.v]),sheet=$(".sheet"),header=$(".sheet-head");if(!target||!sheet||!header)return;if(el.dataset.v==="album")target.open=true;target.focus({preventScroll:true});sheet.scrollBy({top:target.getBoundingClientRect().top-header.getBoundingClientRect().bottom-8,behavior:"auto"});},
   petSkillPolicy(el){const [id,key]=String(el.dataset.v).split(":");if(G.sheet!=="petCare"||id!==petCurrentId())return;const p=petOwned(G.st,id),skill=PET_SKILLS[key];if(key!=="auto"&&(!PET_SPECIES[id].skills.includes(key)||!skill||skill.stage>petStage(p)))return;return petUiMutation(el,st=>{petOwned(st,id).preferredSkill=key==="auto"?null:key;return {ok:true,log:"優先する技を保存しました。"};});},
   petActivity(el){const [id,key]=String(el.dataset.v).split(":");if(G.sheet!=="petCare"||id!==petCurrentId())return;return petUiMutation(el,st=>playPetActivity(st,id,key));},
-  petRoomGo(){if(!G.st||G.screen!=="explore"||G.st.run||G.dlg||G.petSaving||G.readOnly)return;const room=MAPS[G.st.mapId]?.objects.find(o=>o.type==="petroom");if(!room)return toast("街へ戻って控え室を訪ねてください。");G.sheet=null;G.sheetHistory=[];render();walkTo(room.x,room.y);},
+  petRoomGo(el){if(!G.st||G.screen!=="explore"||G.st.run||G.dlg||G.petSaving||G.readOnly)return;const type=el?.dataset?.place==="petshop"?"petshop":"petroom",room=MAPS[G.st.mapId]?.objects.find(o=>o.type===type);if(!room)return toast("街へ戻って施設を訪ねてください。");G.sheet=null;G.sheetHistory=[];render();walkTo(room.x,room.y);},
   petShopFilter(el){if(G.sheet!=="petShop"||!["all","feed","play","groom","rest"].includes(el.dataset.v))return;G.sheetData.category=el.dataset.v;G.sheetData.page=0;render();},
-  petAdopt(el){if(G.sheet!=="petAdopt"||!isSafe())return;return petUiMutation(el,st=>adoptPet(st,el.dataset.v));},
+  petAdopt(el){if(G.sheet!=="petAdopt"||!petShopNearby())return;return petUiMutation(el,st=>adoptPet(st,el.dataset.v));},
   petRename(el){const id=el.dataset.v;if(G.sheet!=="petCare"||id!==petCurrentId())return;const input=$(`#petName-${id}`),name=input?.value?.normalize("NFKC").trim();if(!name||Array.from(name).length>12||/[\u0000-\u001f<>]/.test(name))return toast("名前は1～12文字で入力してください。");return petUiMutation(el,st=>{petOwned(st,id).name=name;delete G.sheetData.nameDraft;return {ok:true,log:"ペットの名前を保存しました。"};});}
 });
 
-function petRoomBanner(){return petRoomNearby()?'<p class="pet-room-banner">🐾 街の控え室・ペットショップ</p>':'<div class="pet-room-banner"><p>お世話・交流・買物は街の控え室で。</p><button class="btn" data-a="petRoomGo" '+(G.readOnly||MAPS[G.st.mapId]?.kind!=='town'?'disabled':'')+'>控え室へ歩く</button></div>';}
+
+function petRoomBanner(){const shop=['petShopHome','petShop','petAdopt'].includes(G.sheet),name=shop?'商店街のペットショップ':'ペットの控え所';return '<div class="pet-room-banner"><p>'+name+'：購入はショップ、お世話・同行選択は控え所で。</p><div class="pet-menu">'+[['petroom','控え所へ歩く'],['petshop','ペットショップへ歩く']].map(([type,label])=>'<button class="btn" data-a="petRoomGo" data-place="'+type+'" '+(G.readOnly||MAPS[G.st.mapId]?.kind!=='town'||petFacilityNearby(type)?'disabled':'')+'>'+label+'</button>').join('')+'</div></div>';}
+
+function renderPetStatus(){const st=G.st,id=petCurrentId(),p=petOwned(st,id);if(!p)return '<p>所有ペットを選んでください。</p>';const stage=petStage(p),skills=PET_SPECIES[id].skills.map(k=>PET_SKILLS[k]);return petCardHtml(st,id,false)+petMoodHtml(p)+'<p>'+((petData(st).companions||[]).includes(id)?'戦闘に同行中':'控え所で待機中')+'</p>'+[['習得している技',s=>s.stage<=stage],['これから覚えられる技',s=>s.stage>stage]].map(([title,filter])=>'<h3 class="label">'+title+'</h3><ul class="list">'+(skills.filter(filter).map(skill=>'<li><b>'+esc(skill.name)+'</b>（成長'+skill.stage+'）<p class="small">'+esc(petSkillEffectText(skill,{...p,stage:Math.max(stage,skill.stage)}))+'</p></li>').join('')||'<li>ありません</li>')+'</ul>').join('')+petRoomBanner();}
+
 function petShopStock(id){const category=G.sheetData.category||'all';return Object.values(PET_SUPPLIES).filter(it=>it.petSpecies===id&&(category==='all'||it.petCare===category));}
 function petMoodHtml(p){const stage=petStage(p),next=PET_GROWTH_THRESHOLDS[stage],rarity=PET_SPECIES[p.id].rarity;return '<p class="pet-rarity-info">★'+rarity+'・なつき度の成長：'+PET_RARITY_RULES[rarity].growthText+'</p>'+((p.growthRemainder||0)>0&&p.bond<100?'<p class="small">次のなつき度＋1へ、少しずつ進んでいます。</p>':'')+ '<label class="pet-bond">なつき度 '+p.bond+'/100<progress max="100" value="'+p.bond+'" aria-label="なつき度"></progress></label><p class="small">'+(next===undefined?'成長10・ずっと一緒！':'次の成長まであと'+(next-p.bond))+'</p>'+ '<div class="pet-needs">'+[['fullness','満腹'],['mood','ごきげん'],['clean','清潔']].map(([k,n])=>'<label>'+n+' '+p[k]+'/100<progress max="100" value="'+p[k]+'" aria-label="'+n+'"></progress></label>').join('')+'</div><p class="small">'+esc(p.mood>=80?'しっぽを揺らして、あなたを待っている。':p.fullness<30?'ごはんの時間を楽しみにしている。':p.clean<30?'お手入れをすると喜びそう。':'そばでのんびりくつろいでいる。')+'</p>';}
 function petActivityHtml(id){return '<h3 class="label" id="pet-care-activities" tabindex="-1">一緒に遊ぼう</h3><p class="small">用品不要・3つの中から1日1回。お世話とは別に楽しめます。</p><div class="pet-menu">'+Object.entries(PET_ACTIVITIES).map(([key,a])=>{const o=petActivityPreview(G.st,id,key);return '<button class="btn" '+petUiAttrs('petActivity',id+':'+key)+' '+petUiDisabled(!o.ok?o.reason:'')+'>'+a.name+'<span class="small">'+a.text+'<br>'+(o.ok?petUiGains(o.gains):o.reason)+'</span></button>';}).join('')+'</div>';}
@@ -7244,6 +7272,8 @@ function petPreferredSkillHtml(id){const p=petOwned(G.st,id),skills=PET_SPECIES[
 
 function petCareNavHtml(){return '<nav class="pet-care-nav" aria-label="お世話の項目へ">'+[['feeding','お世話'],['activities','遊ぶ'],['battle','同行・技'],['album','アルバム']].map(([k,n])=>'<button class="btn" data-a="petCareSection" data-v="'+k+'">'+n+'</button>').join('')+'</nav>';}
 function petShopPetHtml(){const ps=petData(G.st),id=petCurrentId();return '<details class="pet-shop-pets"><summary>用品の相手：'+esc(petOwned(G.st,id).name)+'</summary><div class="pet-menu">'+Object.keys(ps.owned).filter(k=>petSpecies(k)).map(k=>'<button class="btn" data-a="petShopPet" data-v="'+k+'" aria-pressed="'+(k===id)+'">'+esc(ps.owned[k].name)+'<span class="small">'+esc(PET_SPECIES[k].name)+'</span></button>').join('')+'</div></details>';}
+
+function renderPetShopHome(){const id=petCurrentId();return petRoomBanner()+'<p>新しい家族のお迎えと、ペットごとのごはん・おもちゃ・手入れ用品を購入できます。</p><div class="pet-menu"><button class="btn" data-a="petView" data-k="adopt" data-v="'+id+'" id="pet-adoption">新たなペットを迎える</button><button class="btn" data-a="petView" data-k="shop" data-v="'+id+'" id="pet-supplies">ペット用品を選ぶ</button></div>'; }
 
 /* 航海の画面・操作。既存の街間移動と通常図鑑は保持する。 */
 const oceanBaseWalkable=walkable,oceanBaseZoneAt=zoneAt,oceanBaseInteract=interact,oceanBaseBgm=exploreBgm,oceanBaseStartBattle=startBattle,oceanBaseSafe=isSafe,oceanBaseExplore=renderExplore;
@@ -7420,7 +7450,7 @@ const SYSTEM_HELP={
   job:{name:"職業とハローワーク",text:"各街のハローワークで職業ごとの3段階イベントに参加します。完了した職業へ転職できます。熟練度と習得済みの技能は維持されます。新しい職業に合わない専用装備は外れます。街外の実技課題は10ターン以内の勝利を目指します。"},
   stats:{name:"能力・会心・回避",text:"体力、ちから、身の守り、すばやさ、魅力の5能力があります。職業特性と装備が能力や行動に反映されます。会心は敵防御を無視し1.5倍。敵の痛恨は防御・防護を無視しますがガードは有効です。具体的な能力は状態画面で比較できます。"},
   skills:{name:"追加技能と必殺技",text:"レベルと職業熟練度を満たすと追加技能を習得します。継承枠へ装備すると他の職業でも使えます。再使用までの残りターンと消費MPを確認してください。人物固有の必殺技は必要なエールを蓄えて使います。"},
-  pets:{name:"ペットのお世話と成長",text:"22種類のペットは★1〜★5。高レアほどお迎え・用品が高価で、なつき度はゆっくり育つ分、技が強力です。育成の端数も保存され、すでに育った段階は下がりません。10段階に成長し、段階1・3・5・8で4つの技を習得します。最大2匹が戦闘で毎ターン最初に行動します。回復・攻撃・防御・すばやさ強化・敵の攻撃低下・混乱・睡眠など、種類と成長で支援内容が変わります。街の控え室・ペットショップで交流・用品購入・家族のお迎えができます。ごはん・遊ぶ・お手入れ・休憩・練習・なでるは別々の日次記録です。用品不要の交流遊びは3種類から1日1回。なつき度20・50・80のお祝いは空きがある時に受け取れます。"},
+  pets:{name:"ペットのお世話と成長",text:"22種類のペットは★1〜★5。高レアほどお迎え・用品が高価で、なつき度はゆっくり育つ分、技が強力です。育成の端数も保存され、すでに育った段階は下がりません。10段階に成長し、段階1・3・5・8で4つの技を習得します。最大2匹が戦闘で毎ターン最初に行動します。回復・攻撃・防御・すばやさ強化・敵の攻撃低下・混乱・睡眠など、種類と成長で支援内容が変わります。商店街のペットショップでお迎え・用品購入、控え所でお世話・同行選択ができます。ペットメニューは状態・習得済みと習得予定の技を確認できます。ごはん・遊ぶ・お手入れ・休憩・練習・なでるは別々の日次記録です。用品不要の交流遊びは3種類から1日1回。なつき度20・50・80のお祝いは空きがある時に受け取れます。"},
   petTravel:{name:"おさんぽと旅のお手伝い",text:"ひだまりの庭・にぎやかな広場・小川のほとりから行き先を選びます。全ペットで1日1回。用品の保管先と実際の増加量を確認して出発します。旅のお手伝いはバランス・HP・MP重視から選び、生存者だけを回復します。翌日になると日次回数が戻ります。"},
   sea:{name:"航海と海洋図鑑",text:"8地方の安全な港から指定された航路へ出航します。海上や海辺では敵に遭遇します。65海域ごとに魚・クラゲ・カニ・ウミガメ・海竜の5系統10段階があり、計3250項目を図鑑で確認できます。未指定の海面は航行できません。"},
   seaEvents:{name:"救助・調査・漂着宝箱",text:"各海域で漂流者救助80ゴールド、海洋敵3体討伐後の調査報告60チケット、救助後の漂着宝箱120ゴールドを各1回受け取れます。"},
@@ -7477,6 +7507,9 @@ ACT.returnToMap=function(){
   if(systemOperationPending()||G.screen!=="explore"||!G.st||G.st.run||G.dlg||!G.sheet)return;
   G.sheet=null;G.sheetData={};G.sheetHistory=[];G.cursorSig=null;render();
 };
+
+function normalizeStoredActorNames(st){if(!st)return st;if(st.profile)st.profile.name=halfWidthName(st.profile.name);if(st.heroine)st.heroine.name=halfWidthName(st.heroine.name);for(const p of Object.values(st.petState?.owned||{}))if(p&&typeof p==='object'&&typeof p.name==='string')p.name=halfWidthName(p.name);for(const m of [...(st.run?.party||[]),...(st.run?.pets||[])])if(typeof m.name==='string')m.name=halfWidthName(m.name);if(st.run?.log)st.run.log=st.run.log.map(x=>typeof x==='string'?halfWidthName(x):x);return st;}
+const mobileNamesMigrate=migrate;migrate=function(st){return normalizeStoredActorNames(mobileNamesMigrate(st));};
 
 /* 店・装備・街の会話を補完。超レア交換品6点は本版の新規制作。 */
 const MANAGEMENT_PAGE_SIZE=6;
@@ -7606,7 +7639,7 @@ const NAV_UI={state:null,serial:0,guide:{filter:'priority',query:'',page:0},ques
 const NAV_GUIDE_FILTERS=[['priority','おすすめ'],['all','近い順'],['facility','施設'],['people','住人'],['treasure','宝箱'],['exit','街・出口'],['boss','ボス']];
 const NAV_QUEST_FILTERS=[['local','今いる街'],['active','受注中'],['available','受注可能'],['main','本編'],['complete','完了'],['all','すべて']];
 function navigationView(key=G.sheet){
- if(NAV_UI.state!==G.st){NAV_UI.state=G.st;NAV_UI.guide={filter:'priority',query:'',page:0};NAV_UI.quests={filter:'local',query:'',page:0};NAV_UI.serial++;}
+ if(NAV_UI.state!==G.st){NAV_UI.state=G.st;NAV_UI.guide={filter:'priority',query:'',page:0};NAV_UI.quests={filter:'local',query:'',page:0};NAV_UI.serial++;NAV_UI.recent=[];}
  return NAV_UI[key==='quests'?'quests':'guide'];
 }
 function navigationWords(value){return String(value||'').normalize('NFKC').toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);}
@@ -7621,6 +7654,7 @@ function navigationDistances(m,pos=G.st.pos){
  return distances;
 }
 function navigationDistance(m,o,distances){
+ if(!o.walk&&Math.max(Math.abs(o.x-G.st.pos.x),Math.abs(o.y-G.st.pos.y))<=1)return 0;
  if(o.walk)return distances.get(o.y*m.w+o.x)??Infinity;
  return Math.min(...[[0,1],[0,-1],[-1,0],[1,0]].map(([dx,dy])=>o.x+dx<0||o.y+dy<0||o.x+dx>=m.w||o.y+dy>=m.h?Infinity:distances.get((o.y+dy)*m.w+o.x+dx)??Infinity));
 }
@@ -7632,6 +7666,7 @@ function navigationRows(m=MAPS[G.st.mapId]){
   if(o.type==='npc'){status=st.talked[o.npc]?'会話済み':'まだ話していません';rank=st.talked[o.npc]?35:10;}
   if(o.type==='box'){status=st.boxes[o.box]?'開封済み':'未開封・条件は現地で確認';rank=st.boxes[o.box]?50:12;}
   if(o.type==='inn'){const cost=(INN_PRICE[m.hub]||10)*st.roster.length;status=(low?'回復をおすすめ・':'')+`宿泊${cost}G`+(st.gold<cost?`（あと${cost-st.gold}G）`:'');rank=low?0:18;}if(o.type==='rest'){status='翌朝まで休む';rank=25;}
+  if(o.type==='petshop'){status='ペットのお迎え・餌・用品の購入';rank=14;}if(o.type==='petroom'){status='所有ペットのお世話・戦闘同行の変更';rank=14;}
   if(o.type==='shop'){status='道具・装備を補充';rank=15;}
   if(o.type==='boss'){const q=Object.entries(QUESTS).find(([,q])=>q.boss===o.boss);status=st.bossDefeated[o.boss]?'討伐済み':q&&st.quests[q[0]]==='bossReady'?'挑戦できます':'依頼の進行が必要';rank=status==='挑戦できます'?0:45;}
   if(o.fieldExit){status=m.kind==='town'?'街外の探索へ':'安全な街へ';rank=st.activeQuest&&m.kind==='town'?1:16;}
@@ -7647,10 +7682,10 @@ function navigationRecommendedQuest(){const st=G.st;if(st.activeQuest&&QUESTS[st
 function navigationQuestShortcut(token){const id=navigationRecommendedQuest();if(!id)return '';const target=navigationQuestTarget(id);return `<div class="nav-goal"><b>次の依頼：${esc(QUESTS[id].name)}</b>${target?`<button class="btn" data-a="navQuestGo" data-v="${id}" data-map="${esc(G.st.mapId)}" data-nav-token="${token}" ${G.readOnly?'disabled':''}>${esc(target.label)}へ（${target.steps}歩）</button>`:'<button class="btn" data-a="openSheet" data-k="quests">依頼を確認・受注する</button>'}</div>`;}
 function renderNavigationGuide(){
  const m=MAPS[G.st.mapId],d=navigationView('guide');NAV_UI.serial++;const token=NAV_UI.serial;
- const rows=navigationRows(m).filter(r=>(['priority','all'].includes(d.filter)||r.category===d.filter)&&navigationMatches(r.o.label+' '+r.status+' '+(({shop:'道具屋 道具店 装備',inn:'宿屋 宿 回復',jobcenter:'職業 転職 ハローワーク',rest:'休憩 日付 翌朝',npc:'住人',box:'宝箱',boss:'ボス 砦',station:'駅 新幹線'})[r.o.type]||'')+' '+(r.category==='exit'?'出口 街':'')+' '+m.name,d.query));
+ const rows=navigationRows(m).filter(r=>(['priority','all'].includes(d.filter)||r.category===d.filter)&&navigationMatches(r.o.label+' '+r.status+' '+(({shop:'道具屋 道具店 装備',inn:'宿屋 宿 回復',jobcenter:'職業 転職 ハローワーク',petshop:'ペットショップ ペット 餌 用品 お迎え',petroom:'ペット 控え所 お世話 育成 同行',rest:'休憩 日付 翌朝',npc:'住人',box:'宝箱',boss:'ボス 砦',station:'駅 新幹線'})[r.o.type]||'')+' '+(r.category==='exit'?'出口 街':'')+' '+m.name,d.query));
  rows.sort((a,b)=>Number.isFinite(b.steps)-Number.isFinite(a.steps)||(d.filter==='priority'?a.rank-b.rank:0)||a.steps-b.steps||a.o.label.localeCompare(b.o.label,'ja'));
  const page=navigationPage('guide',rows);
- return `<p class="small">${esc(m.name)}・徒歩で案内${m.kind==='field'?'（遭遇あり）':''}</p>${navigationPlanControls()}${navigationToolbar('guide',NAV_GUIDE_FILTERS)}${navigationQuestShortcut(token)}${page.html}<div class="nav-results">${page.rows.map(({o,steps,status})=>`<button class="btn nav-destination" data-a="guideTo" data-v="${esc(o.id)}" data-map="${esc(G.st.mapId)}" data-nav-token="${token}" ${!Number.isFinite(steps)||G.readOnly?'disabled':''}><b>${esc(o.label)}</b><span>${Number.isFinite(steps)?steps?`${steps}歩`:'すぐ近く':'歩ける経路なし'}${status?'・'+esc(status):''}</span></button>`).join('')||'<p>見つかりません。</p><button class="btn" data-a="navReset">検索条件をリセット</button>'}</div><div class="nav-shortcuts"><button class="btn" data-a="openSheet" data-k="quests">やること</button><button class="btn" data-a="openSheet" data-k="jobcenter">ハローワーク</button><button class="btn" data-a="openSheet" data-k="ocean">航海・海上イベント</button>${m.kind==='field'&&!m.combatDomain?'<button class="btn" data-a="openSheet" data-k="training">街外の実技チャレンジ</button>':''}</div>`;
+ return `<p class="small">${esc(m.name)}・徒歩で案内${m.kind==='field'?'（遭遇あり）':''}</p>${navigationPlanControls()}${navigationToolbar('guide',NAV_GUIDE_FILTERS)}${navigationQuickFacilities()}${navigationRecentHtml(token)}${navigationQuestShortcut(token)}${page.html}<div class="nav-results">${page.rows.map(({o,steps,status})=>`<button class="btn nav-destination" data-a="guideTo" data-v="${esc(o.id)}" data-map="${esc(G.st.mapId)}" data-nav-token="${token}" ${!Number.isFinite(steps)||G.readOnly?'disabled':''}><b>${esc(o.label)}</b><span>${Number.isFinite(steps)?steps?`${steps}歩`:'すぐ近く':'歩ける経路なし'}${status?'・'+esc(status):''}</span></button>`).join('')||'<p>見つかりません。</p><button class="btn" data-a="navReset">検索条件をリセット</button>'}</div><div class="nav-shortcuts"><button class="btn" data-a="openSheet" data-k="quests">やること</button><button class="btn" data-a="openSheet" data-k="jobcenter">ハローワーク</button><button class="btn" data-a="openSheet" data-k="ocean">航海・海上イベント</button>${m.kind==='field'&&!m.combatDomain?'<button class="btn" data-a="openSheet" data-k="training">街外の実技チャレンジ</button>':''}</div>`;
 }
 function navigationQuestTarget(id){
  const st=G.st,q=QUESTS[id],m=MAPS[st.mapId];if(!q||['locked','complete'].includes(st.quests[id]))return null;
@@ -7674,7 +7709,7 @@ function renderNavigationQuests(){
  const st=G.st,d=navigationView('quests'),hub=curHub(),labels={locked:'未解放',available:'受注可能',active:'受注中',bossReady:'ボスに挑戦',complete:'完了'};NAV_UI.serial++;const token=NAV_UI.serial;
  let rows=Object.entries(QUESTS).filter(([id,q])=>{const status=st.quests[id]||'locked';return (d.filter==='all'||d.filter==='local'&&(q.hub===hub||id===st.activeQuest)||d.filter==='active'&&id===st.activeQuest||d.filter==='available'&&status==='available'||d.filter==='main'&&q.main||d.filter==='complete'&&status==='complete')&&navigationMatches(`${id} ${q.name} ${q.goal} ${HUBS[q.hub].name} ${q.main?"本編":"任意"} ${labels[status]}`,d.query);});
  const rank=id=>id===st.activeQuest?-1:({bossReady:0,active:1,available:2,locked:3,complete:4})[st.quests[id]||'locked'];rows.sort((a,b)=>rank(a[0])-rank(b[0])||(a[1].hub===hub?-1:0)-(b[1].hub===hub?-1:0));const page=navigationPage('quests',rows);
- return `<p class="small">本編 ${Object.entries(QUESTS).filter(([id,q])=>q.main&&st.quests[id]==='complete').length}/${Object.values(QUESTS).filter(q=>q.main).length}件完了・受注は1件ずつ</p>${navigationToolbar('quests',NAV_QUEST_FILTERS)}${page.html}${page.rows.map(([id,q])=>{const status=st.quests[id]||'locked',target=navigationQuestTarget(id),canAccept=status==='available'&&!G.readOnly&&!st.activeQuest&&q.hub===hub&&isSafe();return `<article class="qcard nav-quest ${status}"><div class="srow"><b>${esc(q.name)}</b><span class="tag">${labels[status]}</span></div><p class="small">${esc(HUBS[q.hub].name)}・${q.main?'本編':'任意'}${['active','bossReady'].includes(status)?`・${status==='bossReady'?'討伐達成':'残り'+Math.max(0,q.kills-(st.qprog[id]||0))+'体'}`:''}</p>${status==='available'?`<button class="btn primary" data-a="acceptQuest" data-v="${id}" ${canAccept?'':'disabled'}>受注する</button>${canAccept?'':`<p class="small">${G.readOnly?'閲覧中のため受注・変更はできません。':st.activeQuest?'ほかの依頼を受注中です。':esc(HUBS[q.hub].name)+'の街で受注できます。'}</p>`}`:''}${target?`<button class="btn" data-a="navQuestGo" data-v="${id}" data-map="${esc(st.mapId)}" data-nav-token="${token}" ${G.readOnly?'disabled':''}>案内：${esc(target.label)}（${target.steps}歩）</button>`:''}<details><summary>依頼の詳細</summary><p>${esc(q.goal)}</p>${['active','bossReady','complete'].includes(status)?`<p class="small">討伐 ${Math.min(st.qprog[id]||0,q.kills)}/${q.kills}</p>`:''}${status==='locked'?`<p class="small">${q.requires?'先に「'+esc(QUESTS[q.requires]?.name||q.requires)+'」を完了してください。':'前の依頼や街の会話を進めると解放されます。'}</p>`:''}${id===st.activeQuest?`<button class="btn" data-a="navAbandon" data-v="${id}" ${G.readOnly?"disabled":""}>依頼を放棄する…</button>`:''}</details></article>`;}).join('')||'<p>条件に合う依頼はありません。</p><button class="btn" data-a="navReset">検索条件をリセット</button>'}`;
+ return `<p class="small">本編 ${Object.entries(QUESTS).filter(([id,q])=>q.main&&st.quests[id]==='complete').length}/${Object.values(QUESTS).filter(q=>q.main).length}件完了・受注は1件ずつ</p>${navigationActiveQuestPanel(token)}${navigationToolbar('quests',NAV_QUEST_FILTERS)}${page.html}${page.rows.map(([id,q])=>{const status=st.quests[id]||'locked',target=navigationQuestTarget(id),canAccept=status==='available'&&!G.readOnly&&!st.activeQuest&&q.hub===hub&&isSafe();return `<article class="qcard nav-quest ${status}"><div class="srow"><b>${esc(q.name)}</b><span class="tag">${labels[status]}</span></div><p class="small">${esc(HUBS[q.hub].name)}・${q.main?'本編':'任意'}${['active','bossReady'].includes(status)?`・${status==='bossReady'?'討伐達成':'残り'+Math.max(0,q.kills-(st.qprog[id]||0))+'体'}`:''}</p>${status==='available'?`<button class="btn primary" data-a="acceptQuest" data-v="${id}" ${canAccept?'':'disabled'}>受注する</button>${canAccept?'':`<p class="small">${G.readOnly?'閲覧中のため受注・変更はできません。':st.activeQuest?'ほかの依頼を受注中です。':esc(HUBS[q.hub].name)+'の街で受注できます。'}</p>`}`:''}${target&&id!==st.activeQuest?`<button class="btn" data-a="navQuestGo" data-v="${id}" data-map="${esc(st.mapId)}" data-nav-token="${token}" ${G.readOnly?'disabled':''}>案内：${esc(target.label)}（${target.steps}歩）</button>`:''}<details><summary>依頼の詳細</summary><p>${esc(q.goal)}</p>${['active','bossReady','complete'].includes(status)?`<p class="small">討伐 ${Math.min(st.qprog[id]||0,q.kills)}/${q.kills}</p>`:''}${status==='locked'?`<p class="small">${q.requires?'先に「'+esc(QUESTS[q.requires]?.name||q.requires)+'」を完了してください。':'前の依頼や街の会話を進めると解放されます。'}</p>`:''}${id===st.activeQuest?`<button class="btn" data-a="navAbandon" data-v="${id}" ${G.readOnly?"disabled":""}>依頼を放棄する…</button>`:''}</details></article>`;}).join('')||'<p>条件に合う依頼はありません。</p><button class="btn" data-a="navReset">検索条件をリセット</button>'}`;
 }
 function updateNavigationHud(){
  if(G.readOnly&&navigationValidPlan()){G.walkPlan.paused=true;G.walk.path=[];G.walk.pending=null;}
@@ -7690,7 +7725,7 @@ function updateControlHints(){
  else if(G.screen==='explore'&&!G.sheet){const p=navigationValidPlan();a=p&&(p.paused||!G.walk.path.length)?'再開':G.walk.path.length?'停止':nearbyObjects().length?'調べる':'案内';b=p&&!p.paused?'停止':'戻る';}
  else if(G.screen==='battle'&&!G.sheet){a=G.auto?'決定':document.querySelector('.cmd [data-a="confirmAct"]:not([disabled])')?'確定':'選ぶ';b=G.auto?'中断':!G.cmd?.type?'休止':'戻る';}
  else if(G.screen==='result'&&!G.sheet)a='MAPへ';
- back.disabled=!!(G.dlg&&(G.dlg.i||0)===0&&(G.dlg.after||G.dlg.sceneId));confirm.textContent=a;confirm.setAttribute('aria-label',a);back.textContent=b;back.setAttribute('aria-label',b);
+ back.disabled=!!(G.dlg&&(G.dlg.i||0)===0&&(G.dlg.after||G.dlg.sceneId));confirm.textContent='決定';confirm.setAttribute('aria-label','決定：'+a);confirm.title=a;back.textContent='戻る';back.setAttribute('aria-label','戻る：'+b);back.title=b;
 }
 function manualTravelOverride(){if(!G.walkPlan)return;G.walkPlan=null;G.walk.path=G.walk.path.slice(0,1);G.walk.pending=null;updateNavigationHud();updateControlHints();}
 function navigationReleaseOnContextChange(){const next={state:G.st,screen:G.screen,sheet:G.sheet,dialog:G.dlg,run:G.st?.run,readonly:G.readOnly},old=NAV_UI.inputContext;if(old?.state===G.st&&['guide','quests'].includes(old.sheet)&&next.sheet!==old.sheet)navigationCaptureDraft(old.sheet);if(old&&Object.keys(next).some(k=>next[k]!==old[k])&&typeof PAD!=='undefined')PAD.release?.();NAV_UI.inputContext=next;}
@@ -7713,7 +7748,7 @@ Object.assign(ACT,{
  navReset(){if(!['guide','quests'].includes(G.sheet))return;const d=navigationView();d.filter='all';d.query='';d.page=0;G.cursorSig=null;render();document.querySelector('#navSearchInput')?.focus?.({preventScroll:true});},
  navClear(){if(!['guide','quests'].includes(G.sheet))return;const d=navigationView();d.query='';d.page=0;G.cursorSig=null;render();document.querySelector('#navSearchInput')?.focus?.({preventScroll:true});},
  navPage(el){if(!['guide','quests'].includes(G.sheet))return;const page=Number(el.dataset.v);if(!Number.isInteger(page)||page<0||page>1000)return;if(!navigationCaptureDraft())navigationView().page=page;render();},
- guideTo(el){if(!G.st||G.screen!=='explore'||G.dlg||G.st.run||G.readOnly||G.sheet&&G.sheet!=='guide'||el.dataset.navToken&&G.sheet!=='guide'||el.dataset.map&&el.dataset.map!==G.st.mapId||el.dataset.navToken&&el.dataset.navToken!==String(NAV_UI.serial))return;const m=MAPS[G.st.mapId],o=m.objects.find(o=>o.id===el.dataset.v);if(!o)return;const distance=navigationDistance(m,o,navigationDistances(m));if(!Number.isFinite(distance))return toast('歩ける経路がありません。');NAV_UI.serial++;G.sheet=null;G.sheetHistory=[];G.cursorSig=null;render();if(o.walk&&o.x===G.st.pos.x&&o.y===G.st.pos.y)interact(o);else walkTo(o.x,o.y);if(navigationValidPlan())G.walkPlan.label=o.label;updateNavigationHud();updateControlHints();},
+ guideTo(el){if(!G.st||G.screen!=='explore'||G.dlg||G.st.run||G.readOnly||G.sheet&&G.sheet!=='guide'||el.dataset.navToken&&G.sheet!=='guide'||el.dataset.map&&el.dataset.map!==G.st.mapId||el.dataset.navToken&&el.dataset.navToken!==String(NAV_UI.serial))return;const m=MAPS[G.st.mapId],o=m.objects.find(o=>o.id===el.dataset.v);if(!o)return;const distance=navigationDistance(m,o,navigationDistances(m));if(!Number.isFinite(distance))return toast('歩ける経路がありません。');navigationRemember(o);NAV_UI.serial++;G.sheet=null;G.sheetHistory=[];G.cursorSig=null;render();if(o.walk&&o.x===G.st.pos.x&&o.y===G.st.pos.y)interact(o);else walkTo(o.x,o.y);if(navigationValidPlan())G.walkPlan.label=o.label;updateNavigationHud();updateControlHints();},
  navQuestGo(el){if(!['quests','guide'].includes(G.sheet)||G.screen!=='explore'||G.st?.run||G.dlg||G.readOnly||el.dataset.map!==G.st.mapId||el.dataset.navToken!==String(NAV_UI.serial))return;const target=navigationQuestTarget(el.dataset.v);if(!target)return toast('依頼の状態が変わりました。');NAV_UI.serial++;G.sheet=null;G.sheetHistory=[];G.cursorSig=null;render();walkTo(target.x,target.y);if(navigationValidPlan())G.walkPlan.label=target.label;updateNavigationHud();updateControlHints();},
  travelPause(el){const p=navigationValidPlan();if(el?.dataset?.v&&String(p?.version)!==el.dataset.v)return;if(G.screen!=='explore'||G.st.run||G.dlg||G.readOnly||!p)return;p.paused=true;G.walk.path=G.walk.path.slice(0,1);G.walk.pending=null;updateNavigationHud();updateControlHints();},
  travelResume(el){const p=navigationValidPlan();if(G.screen!=='explore'||G.st.run||G.dlg||G.readOnly||!p||String(p.version)!==el.dataset.v)return;const label=p.label;G.sheet=null;G.sheetHistory=[];G.cursorSig=null;render();walkTo(p.x,p.y);if(navigationValidPlan())G.walkPlan.label=label;updateNavigationHud();updateControlHints();},
@@ -7722,6 +7757,14 @@ Object.assign(ACT,{
  navAbandonDo(el){if(G.sheet!=='navAbandon'||G.readOnly||G.st?.run||G.dlg||el.dataset.v!==G.st.activeQuest||el.dataset.v!==G.sheetData.id||el.dataset.navToken!==String(G.sheetData.token))return;closeSheet();if(G.sheet==='quests')navigationBaseAbandon(el);}
 });
 document.addEventListener('submit',e=>{if(e.target?.matches?.('[data-nav-search]')){e.preventDefault();ACT.navSearch();}});
+
+const NAV_QUICK={shop:['道具','道具','facility'],inn:['宿','宿','facility'],petshop:['ペット店','ペットショップ','facility'],petroom:['控え所','控え所','facility'],exit:['街・出口','','exit'],boss:['砦','砦','boss']};
+function navigationQuickFacilities(){return '<div class="nav-quick" role="group" aria-label="施設へすぐ案内">'+Object.entries(NAV_QUICK).map(([k,[name]])=>'<button class="btn" data-a="navQuick" data-v="'+k+'">'+name+'</button>').join('')+'</div>';}
+function navigationRemember(o){NAV_UI.recent=[{map:G.st.mapId,id:o.id},...(NAV_UI.recent||[]).filter(v=>v.map!==G.st.mapId||v.id!==o.id)].slice(0,6);}
+function navigationRecentHtml(token){const m=MAPS[G.st.mapId],rows=(NAV_UI.recent||[]).filter(v=>v.map===G.st.mapId).map(v=>m.objects.find(o=>o.id===v.id)).filter(Boolean).slice(0,3);return rows.length?'<details class="nav-recent"><summary>最近の行先</summary><div class="stack">'+rows.map(o=>'<button class="btn" data-a="navRecentGo" data-v="'+esc(o.id)+'" data-map="'+esc(G.st.mapId)+'" data-nav-token="'+token+'" '+(G.readOnly?'disabled':'')+'>'+esc(o.label)+'</button>').join('')+'</div></details>':'';}
+function navigationActiveQuestPanel(token){const st=G.st,id=st.activeQuest,q=QUESTS[id];if(!q)return '<p class="nav-goal">今いる街の受注可能な依頼から、次の旅を選べます。</p>';const target=navigationQuestTarget(id),count=Math.min(q.kills,st.qprog[id]||0);return '<section class="nav-goal" aria-label="受注中の目標"><b>'+esc(q.name)+'</b><span>討伐 '+count+'/'+q.kills+(st.quests[id]==='bossReady'?'・砦へ挑戦できます':'')+'</span><progress max="'+q.kills+'" value="'+count+'" aria-label="討伐の進捗"></progress>'+(target?'<button class="btn" data-a="navQuestGo" data-v="'+esc(id)+'" data-map="'+esc(st.mapId)+'" data-nav-token="'+token+'" '+(G.readOnly?'disabled':'')+'>次の目標へ：'+esc(target.label)+'（'+target.steps+'歩）</button>':'<span>現在地で依頼を確認してください。</span>')+'</section>';}
+ACT.navQuick=function(el){if(G.sheet!=='guide'||!Object.hasOwn(NAV_QUICK,el.dataset.v))return;const [,query,filter]=NAV_QUICK[el.dataset.v],d=navigationView('guide');d.query=query;d.filter=filter;d.page=0;G.cursorSig=null;render();document.querySelector('[data-a="navQuick"][data-v="'+el.dataset.v+'"]')?.focus?.({preventScroll:true});};
+ACT.navRecentGo=function(el){if(G.sheet!=='guide'||!(NAV_UI.recent||[]).some(v=>v.map===G.st.mapId&&v.id===el.dataset.v))return;return ACT.guideTo(el);};
 
 /* 画面が変わった後の古い操作は実行しない。進行・保存形式・戦闘計算は変更しない。 */
 const ACTION_SCREEN_BUTTONS=new Set(['dlgNext','dlgBack','dlgSkip']);
@@ -7816,13 +7859,15 @@ installAuxPaging('petPage',['petShop']);
 
 installAuxPaging('oceanDexPage',['oceanDex','dex'],'page');
 
-for(const name of ['petShopFilter','petRoomGo']){const base=ACT[name];ACTION_SCREEN_BUTTONS.add(name);ACT[name]=function(el){if(!G.st||G.dlg||!currentActionButton(el)||G.petSaving)return;if(name==='petShopFilter'&&G.sheet!=='petShop')return;if(name==='petRoomGo'&&!['pets','petCare','petShop','petAdopt'].includes(G.sheet))return;const result=base(el);if(name==='petShopFilter')document.querySelector('[data-a="petShopFilter"][data-v="'+G.sheetData.category+'"]')?.focus?.({preventScroll:true});return result;};}
+for(const name of ['petShopFilter','petRoomGo']){const base=ACT[name];ACTION_SCREEN_BUTTONS.add(name);ACT[name]=function(el){if(!G.st||G.dlg||!currentActionButton(el)||G.petSaving)return;if(name==='petShopFilter'&&G.sheet!=='petShop')return;if(name==='petRoomGo'&&!['pets','petStatus','petCare','petShopHome','petShop','petAdopt'].includes(G.sheet))return;const result=base(el);if(name==='petShopFilter')document.querySelector('[data-a="petShopFilter"][data-v="'+G.sheetData.category+'"]')?.focus?.({preventScroll:true});return result;};}
 
 for(const name of ['petSupplySelect','petShopPet','petCareSection']){const base=ACT[name];ACTION_SCREEN_BUTTONS.add(name);ACT[name]=function(el){const sheet=name==='petShopPet'?'petShop':'petCare';if(!G.st||G.sheet!==sheet||G.dlg||systemOperationPending()||!currentActionButton(el))return;const result=base(el);if(name==='petShopPet')document.querySelector('.pet-shop-pets>summary')?.focus?.({preventScroll:true});if(name==='petSupplySelect'){const item=PET_SUPPLIES[el.dataset.v];if(item?.petSpecies===petCurrentId()){const details=document.querySelector('.pet-supply-picker[data-care="'+item.petCare+'"]');if(details){details.open=true;const button=details.querySelector('[data-v="'+item.id+'"]');button?.focus?.({preventScroll:true});button?.scrollIntoView?.({block:'nearest'});}}}return result;};}
 
+for(const name of ['navQuick','navRecentGo']){const base=ACT[name];ACTION_SCREEN_BUTTONS.add(name);ACT[name]=function(el){if(!G.st||G.sheet!=='guide'||G.dlg||systemOperationPending()||!currentActionButton(el))return;return base(el);};}
+
 /* すべての画面から同じ禁止状態を使う。保存中の別操作と、古いボタンの直接呼出しも拒否する。 */
 const READ_ONLY_ACTIONS=new Set([
-  "searchReset","helpReset","navReset","navFilter","navSearch","navClear","navPage","openSheet","closeSheet","returnToMap","openHelp","dlgNext","dlgBack","dlgSkip","toTitle","dexNav","partyView","shopTab","shopItem","shopQty","vaultOpen","vaultBack",
+  "searchReset","helpReset","navQuick","navReset","navFilter","navSearch","navClear","navPage","openSheet","closeSheet","returnToMap","openHelp","dlgNext","dlgBack","dlgSkip","toTitle","dexNav","partyView","shopTab","shopItem","shopQty","vaultOpen","vaultBack",
   "shareCopy","shareNative","replayStory","replay","battleLogLine","battleLogBack","battleLogPage","battleLogExpand","battleChallengeFilter","badgeFilter",
   "itemVaultOpen","itemVaultMode","itemVaultFilter","itemVaultSearch","itemVaultPage","itemVaultSelect","itemVaultQty","itemVaultEdit","itemVaultBack",
   "petShopFilter","petShopPet","petCareSection","petView","petFilter","petPage","petSupplySelect","petDetails","petWalkView","petTravelPolicy","petVaultOpen",
@@ -7845,7 +7890,7 @@ const PAD = (()=>{
   const VEC=[[0,1],[0,-1],[-1,0],[1,0]];
   const isMoveMode=()=> G.screen==="explore" && !G.sheet && !G.dlg && G.st && !G.readOnly;
 
-  let cancelStick=()=>{};
+  let cancelStick=()=>{},cancelBack=()=>{};
   /* ---- 画面上のスティック ---- */
   function mount(){
     const dock=document.getElementById("dock"); if(!dock || dock.dataset.ready) return; dock.dataset.ready="1";
@@ -7857,7 +7902,8 @@ const PAD = (()=>{
       if(d>R){ dx=dx/d*R; dy=dy/d*R; }
       knob.style.transform=`translate(${dx}px,${dy}px)`;
       const mag=Math.hypot(dx,dy)/R;
-      if(d>=6)centerTap=false;
+      if(centerTap&&d<12){stickDir=null;setDir(null,"stick");return;}
+      if(d>=12)centerTap=false;
       // Small start zone, smaller release zone, and an angular margin prevent thumb jitter.
       const dead=stickDir==null?0.18:0.10;
       let next=mag<dead?null:Math.abs(dx)>Math.abs(dy)?(dx<0?2:3):(dy<0?1:0);
@@ -7868,13 +7914,20 @@ const PAD = (()=>{
       }
       stickDir=next; setDir(next, "stick");
     };
-    base.addEventListener("pointerdown",e=>{ if(pid!==null)return; if(e.button!=null&&e.button!==0)return; pid=e.pointerId;pressEpoch=G.controlEpoch; const r=base.getBoundingClientRect(); const central=!!e.target.closest(".stick-confirm"); origin=central?{x:e.clientX,y:e.clientY}:{x:r.left+r.width/2,y:r.top+r.height/2}; stickDir=null; centerTap=!!e.target.closest(".stick-confirm"); base.setPointerCapture(pid); base.classList.add("on"); SND.sfx("step"); upd(e); e.preventDefault(); });
+    base.addEventListener("pointerdown",e=>{ if(pid!==null)return; if(e.button!=null&&e.button!==0)return;if(dock.querySelector(".stick-confirm").disabled)return;cancelBack(); pid=e.pointerId;pressEpoch=G.controlEpoch; const r=base.getBoundingClientRect(); const central=!!e.target.closest(".stick-confirm"); origin=central?{x:e.clientX,y:e.clientY}:{x:r.left+r.width/2,y:r.top+r.height/2}; stickDir=null; centerTap=!!e.target.closest(".stick-confirm"); base.setPointerCapture(pid); base.classList.add("on"); SND.sfx("step"); upd(e); e.preventDefault(); });
     base.addEventListener("pointermove",e=>{ if(e.pointerId===pid) upd(e); });
     const end=e=>{ if(e.pointerId!==pid) return; const confirm=e.type==="pointerup"&&centerTap&&pressEpoch===G.controlEpoch; pid=null; centerTap=false; origin=null; stickDir=null; base.classList.remove("on"); knob.style.transform=""; setDir(null,"stick"); if(confirm)pressA(); };
     cancelStick=()=>{pid=null;centerTap=false;origin=null;stickDir=null;};
     base.addEventListener("pointerup",end); base.addEventListener("pointercancel",end); base.addEventListener("lostpointercapture",end);
     dock.querySelector(".stick-confirm").addEventListener("click",e=>{if(e.detail===0)pressA();});
-    dock.querySelector("[data-pad=back]").addEventListener("click",()=>pressB());
+
+    const back=dock.querySelector('[data-pad=back]');let backPid=null,backOrigin=null,backEpoch=null;
+    cancelBack=()=>{backPid=null;backOrigin=null;back.classList?.remove('pressed');};
+    back.addEventListener('pointerdown',e=>{if(back.disabled||backPid!==null||e.button!=null&&e.button!==0)return;cancelStick();setDir(null,'stick');knob.style.transform='';base.classList.remove('on');backPid=e.pointerId;backOrigin={x:e.clientX,y:e.clientY};backEpoch=G.controlEpoch;back.setPointerCapture?.(backPid);back.classList?.add('pressed');e.preventDefault();});
+    back.addEventListener('pointermove',e=>{if(e.pointerId===backPid&&Math.hypot(e.clientX-backOrigin.x,e.clientY-backOrigin.y)>20)cancelBack();});
+    back.addEventListener('pointerup',e=>{if(e.pointerId!==backPid)return;const valid=!back.disabled&&backEpoch===G.controlEpoch;cancelBack();if(valid)pressB();});
+    for(const name of ['pointercancel','lostpointercapture'])back.addEventListener(name,cancelBack);
+    back.addEventListener('click',e=>{if(e.detail===0&&!back.disabled)pressB();});
     requestAnimationFrame(tick);
   }
   const sources={};
@@ -7965,6 +8018,7 @@ const PAD = (()=>{
   }
   function pressB(){
     if(G.dlg){if(G.dlg.i>0)ACT.dlgBack();else if(!G.dlg.after&&!G.dlg.sceneId)ACT.dlgSkip();else SND.sfx('cancel');return;}
+    if(G.sheet==='petCare'&&G.sheetData?.details&&typeof petCurrentId==='function'&&typeof ACT.petDetails==='function'){ACT.petDetails({dataset:{v:petCurrentId()}});return;}
     if(G.sheet==='battleSkills'&&G.sheetData?.skill&&typeof ACT.expandedSkillBack==='function'){ACT.expandedSkillBack();if(!G.sheetData?.skill)return;}
     if(G.sheet){const back=document.querySelector('.overlay [data-a=closeSheet]')||document.querySelector('.overlay .sheet-head [data-a=oceanBack]');if(back)back.click();return;}
     if(G.screen==='result'){ACT.resultDone();return;}
@@ -8027,7 +8081,7 @@ const PAD = (()=>{
   document.addEventListener("keyup",e=>{ if(KEYS[e.key]!=null && sources.key===KEYS[e.key]) setDir(null,"key"); });
   // 別タブや別アプリへ移った間に取り逃したキー解放を残さない。
   function releaseInput(){
-    if(typeof cancelStick==="function")cancelStick();
+    if(typeof cancelStick==="function")cancelStick();if(typeof cancelBack==="function")cancelBack();
     for(const src of ["key","gamepad","stick"]) sources[src]=null;
     setDir(null,"key"); prevBtn={};gamepadRearm=true;
     if(G.walkPlan)G.walkPlan.paused=true;

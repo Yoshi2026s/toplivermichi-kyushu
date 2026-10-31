@@ -14,7 +14,7 @@ const ui=read('src/ui.js'),loopCode=ui.slice(ui.indexOf('function startLoop(){')
 for(const speed of ['normal','fast']){
  const queue=[],G={st:{settings:{moveSpeed:speed},pos:{x:0,y:0}},screen:'explore',walk:{path:[{x:1,y:0}],prog:0},frame:0};
  const doc={hidden:false};let draws=0;
- const start=runInNewContext(loopCode+'\nstartLoop',{G,document:doc,drawMap(){draws++;},arrive(){},requestAnimationFrame:fn=>{queue.push(fn);return queue.length;},cancelAnimationFrame(){}});
+ const start=runInNewContext(ui.match(/function reducedMotion\(\)\{[\s\S]*?\n\}/)[0]+'\n'+loopCode+'\nstartLoop',{G,window:{matchMedia:()=>({matches:false})},document:doc,drawMap(){draws++;},arrive(){},requestAnimationFrame:fn=>{queue.push(fn);return queue.length;},cancelAnimationFrame(){}});
  start();queue.shift()(100);assert(Math.abs(G.walkDistance-16*16/(speed==='fast'?110:160))<1e-9);
  for(const key of ['sheet','dlg','lock']){G[key]=true;const distance=G.walkDistance;queue.shift()(116);assert.equal(G.walkDistance,distance,key+' freezes gait distance');G[key]=null;}
  const distance=G.walkDistance;doc.hidden=true;queue.shift()(132);assert.equal(G.walkDistance,distance,'background freezes gait');assert.equal(queue.length,0);
@@ -23,7 +23,7 @@ const drawCode=ui.slice(ui.indexOf('function drawMap(){'),ui.indexOf('function s
 for(const state of ['walking','idle','reduced','menu','initial-follower']){
  const draws=[],calls=[],g={save(){},restore(){},setTransform(){},fillRect(){},drawImage(...args){draws.push(args);},beginPath(){},ellipse(){},fill(){},strokeRect(){}};
  const stopped=state==='idle',G={cv:{isConnected:true,getContext:()=>g},st:{mapId:'test',pos:{x:state==='initial-follower'?0:1,y:0},party:['hero','moe'],dir:3},fol:{x:0,y:0},vw:2,vh:2,walkDistance:4,walk:{path:stopped?[]:[{x:2,y:0}],prog:.5},sheet:state==='menu'?'menu':null};
- runInNewContext(drawCode+'\ndrawMap();',{G,drawMiniMap(){},document:{hidden:false},performance:{now:()=>100},MAPS:{test:{objects:[]}},PAL:{ink:'#000'},ART:{mapLayer:()=>({width:32,height:32})},camera:()=>({x:0,y:0}),playerPixel:()=>({x:16,y:0}),SOFT_ART:gait,reducedMotion:()=>state==='reduced',charSprite:(id,dir,frame)=>{calls.push({id,frame});return {artScale:4};}});
+ runInNewContext(ui.slice(ui.indexOf('function drawMapAmbient('),ui.indexOf('function drawMap(){'))+drawCode+'\ndrawMap();',{G,drawMiniMap(){},document:{hidden:false},performance:{now:()=>100},MAPS:{test:{objects:[],w:2,h:2,tiles:[['\u002c','\u002c'],['\u002c','\u002c']]}},PAL:{ink:'#000'},ART:{mapLayer:()=>({width:32,height:32})},camera:()=>({x:0,y:0}),playerPixel:()=>({x:16,y:0}),SOFT_ART:gait,reducedMotion:()=>state==='reduced',charSprite:(id,dir,frame)=>{calls.push({id,frame});return {artScale:4};}});
  assert(draws.filter(a=>a[0].artScale).every(a=>a[3]===20&&a[4]===30),'party uses readable size with original foot anchor');
  assert.equal(calls.find(c=>c.id==='hero').frame,['walking','initial-follower'].includes(state)?2:0,state+' leader');
  assert.equal(calls.find(c=>c.id==='moe').frame,state==='walking'?6:0,state+' follower');

@@ -2,7 +2,7 @@
 const petBound=n=>Math.max(0,Math.min(100,Number.isFinite(Number(n))?Math.floor(Number(n)):0));
 const petSpecies=id=>typeof id==="string"&&Object.hasOwn(PET_SPECIES,id)?PET_SPECIES[id]:null;
 function petStage(p){return PET_GROWTH_THRESHOLDS.filter(n=>n<=petBound(p?.bond)).length;}
-function petDefault(id){return {id,name:PET_SPECIES[id].name,bond:0,fullness:50,mood:50,clean:50,policy:"heal",daily:{},celebrations:[],details:false,memories:[]};}
+function petDefault(id){return {id,name:PET_SPECIES[id].name,bond:0,fullness:50,mood:50,clean:50,policy:"heal",daily:{},celebrations:[],details:false,memories:[],preferredSkill:null};}
 function petData(st){return st.petState&&st.petState.version===1?st.petState:null;}
 function migratePets(st){
   if(!st||typeof st!=="object")return st;
@@ -27,6 +27,7 @@ function migratePets(st){
     p.id=id;p.name=typeof p.name==="string"&&p.name.trim()?Array.from(p.name.trim()).slice(0,12).join(""):PET_SPECIES[id].name;
     for(const k of ["bond","fullness","mood","clean"])p[k]=petBound(p[k]??(k==="bond"?0:50));
     if(!["heal","support"].includes(p.policy))p.policy="heal";
+    if(!PET_SPECIES[id].skills.includes(p.preferredSkill))p.preferredSkill=null;
     if(!p.daily||typeof p.daily!=="object"||Array.isArray(p.daily))p.daily={};
     if(!Array.isArray(p.celebrations))p.celebrations=[];
     if(!Array.isArray(p.memories))p.memories=[];p.memories=[...new Set(p.memories.filter(v=>[1,3,5,8,10].includes(v)))];
@@ -106,7 +107,7 @@ function preparePetRun(st,run){
   if(!run)return run;
   if(Array.isArray(run.pets)){const ids=new Set();run.pets=run.pets.filter(p=>p&&petSpecies(p.id)&&!ids.has(p.id)&&ids.add(p.id)).slice(0,2).map(p=>({...p,stage:Math.max(1,Math.min(10,Number(p.stage)||1)),rarity:PET_SPECIES[p.id].rarity,policy:p.policy==="support"?"support":"heal"}));return run;}
   if(st)for(const m of run.party){const stats=charStats(st,m.cid,run.L);if(!Number.isFinite(m.maxMP))m.maxMP=stats.startC;}
-  const ps=petData(st);run.pets=(ps?.companions||[]).map(id=>{const p=petOwned(st,id);return p?{id,name:p.name,bond:p.bond,stage:petStage(p),policy:p.policy,rarity:PET_SPECIES[id].rarity}:null;}).filter(Boolean).slice(0,2);
+  const ps=petData(st);run.pets=(ps?.companions||[]).map(id=>{const p=petOwned(st,id);return p?{id,name:p.name,bond:p.bond,stage:petStage(p),policy:p.policy,preferredSkill:p.preferredSkill,rarity:PET_SPECIES[id].rarity}:null;}).filter(Boolean).slice(0,2);
   run.petHistory={actions:0,species:[],healedHP:false,healedMP:false,support:false,targets:[],boostedHit:false,stopped:false};
   return run;
 }
@@ -120,7 +121,7 @@ function petTurnStart(st,run){
     if(run.state!=="input"||!members().length||!run.enemies.some(e=>e.hp>0))break;
     const spec=PET_SPECIES[pet.id];if(!spec)continue;
     const learned=spec.skills.map(id=>PET_SKILLS[id]).filter(s=>s.stage<=pet.stage);
-    const ordered=learned.sort((a,b)=>Number(b.family===(pet.policy==="support"?"support":"heal"))-Number(a.family===(pet.policy==="support"?"support":"heal"))||b.stage-a.stage);
+    const ordered=learned.sort((a,b)=>Number(b.id===pet.preferredSkill)-Number(a.id===pet.preferredSkill)||Number(b.family===(pet.policy==="support"?"support":"heal"))-Number(a.family===(pet.policy==="support"?"support":"heal"))||b.stage-a.stage);
     let done=false;
     for(const skill of ordered){
       const targets=members(),scale=pet.stage+pet.rarity;let target=null,amount=0,message="";

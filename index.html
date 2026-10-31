@@ -6913,7 +6913,7 @@ window.addEventListener("resize",()=>{ if(G.screen==="explore"){ G.walk.path=[];
 async function boot(){
   await Promise.all([SOFT_ART.loaded,WORLD_ART.loaded]);
   acquireLock(); PAD.mount(); SND.play("title");
-  try{ const s=await loadSave(); G.hasSave=!!s; }catch(e){}
+  try{ const s=await loadSave(); G.hasSave=!!s; if(s?.state?.settings&&typeof SND.setVolumes==="function"){const v=s.state.settings;SND.setVolumes(Number.isFinite(v.musicVolume)?v.musicVolume:1,Number.isFinite(v.effectVolume)?v.effectVolume:1);} }catch(e){}
   const hot=window.claude&&window.claude.hot;
   if(hot&&hot.snapshot) hot.snapshot(()=>({st:G.st, screen:G.screen}));
   const data = hot&&hot.data;

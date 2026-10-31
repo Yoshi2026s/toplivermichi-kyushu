@@ -40,7 +40,7 @@ for(const n of order){
     const area=m.zones[zone];assert(areas[area]?.list.length===50,`${area} enemy list missing`);
     const point=m.tiles.flatMap((row,y)=>row.map((tile,x)=>tile===String(zone)?[x,y]:null)).find(Boolean);
     assert(point&&reachable(m,m.safeAnchor,point),`${area} unreachable`);
-    assert(m.objects.some(o=>o.type==='sign'&&o.area===area),`${area} sign missing in field`);
+    assert(m.objects.every(o=>o.type!=='sign'),`${area} removed sign must not remain`);
   }
 }
 const locked={quests:{M08:'locked'}},open={quests:{M08:'complete'}};

@@ -184,7 +184,7 @@ const WORLD_ART=(()=>{
    regionalBuilding(g,m,b,tile,index);
    g.fillStyle='#dfcba7';g.fillRect(cx-tile*.5,dy,tile,tile);g.fillStyle=b.service?'#233b43':'#70523c';g.fillRect(cx-tile*.29,dy+tile*.1,tile*.58,tile*.85);g.strokeStyle='#a4895a';g.lineWidth=ratio*.6;g.strokeRect(cx-tile*.29,dy+tile*.1,tile*.58,tile*.85);
    if(!b.service){g.fillStyle='#dfc98b';g.beginPath();g.arc(cx+tile*.17,dy+tile*.59,ratio*.7,0,Math.PI*2);g.fill();}
-   if(b.service){const label=({shop:'道具店',inn:'宿屋',jobcenter:'職業窓口',door:'入口'})[b.service],tw=Math.max(tile*1.4,label.length*tile*.34);g.fillStyle='#142d3ee8';g.fillRect(cx-tw/2,dy-tile*1.72,tw,tile*.52);g.strokeStyle='#e0bf80';g.lineWidth=ratio*.4;g.strokeRect(cx-tw/2,dy-tile*1.72,tw,tile*.52);g.fillStyle='#fff0c8';g.font='600 '+tile*.32+'px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(label,cx,dy-tile*1.45);}
+   if(b.service){const label=({shop:'わくわく道具店',inn:'ほっと宿屋',jobcenter:'おしごと広場',door:'ようこそ！'})[b.service],tw=Math.max(tile*1.4,label.length*tile*.34);g.fillStyle=b.service==='shop'?'#b84b60':'#286b70';g.fillRect(cx-tw/2-2,dy-tile*1.72-2,tw+4,tile*.62);g.strokeStyle='#e0bf80';g.lineWidth=ratio*.4;g.strokeRect(cx-tw/2,dy-tile*1.72,tw,tile*.52);g.fillStyle='#fff0c8';g.font='800 '+tile*.32+'px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(label,cx,dy-tile*1.45);}
   }
   // Broad, static daylight and soft cloud shadows add depth without per-frame work.
   const glow=g.createLinearGradient(0,0,c.width,c.height);glow.addColorStop(0,'#fff1c31f');glow.addColorStop(.5,'#fff9e500');glow.addColorStop(1,'#0a344827');g.fillStyle=glow;g.fillRect(0,0,c.width,c.height);

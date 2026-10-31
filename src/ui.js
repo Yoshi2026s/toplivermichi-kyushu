@@ -69,7 +69,14 @@ function curHub(){ return hubOf(G.st.mapId); }
 function tileAt(m,x,y){ return (m.tiles[y]&&m.tiles[y][x])||"T"; }
 function objAt(m,x,y){ return m.objects.find(o=>o.x===x&&o.y===y); }
 function walkable(m,x,y){ const o=objAt(m,x,y); if(o) return !!o.walk; return ".,123w=".includes(tileAt(m,x,y)); }
-function zoneAt(m,x,y){ if(m.kind!=="field") return null; const o=objAt(m,x,y); if(o&&o.walk) return null; return m.zones[tileAt(m,x,y)]||null; }
+const fieldZoneCache=new WeakMap();
+function zoneAt(m,x,y){ if(m.kind!=="field") return null; const o=objAt(m,x,y); if(o&&o.walk) return null; const direct=m.zones[tileAt(m,x,y)];if(direct)return direct;
+ if(m.combatDomain==='sea'||!walkable(m,x,y))return null;
+ let cache=fieldZoneCache.get(m);if(!cache){cache={cells:new Map(),seeds:[]};for(let yy=0;yy<m.h;yy++)for(let xx=0;xx<m.w;xx++){const area=m.zones[m.tiles[yy][xx]];if(area)cache.seeds.push({x:xx,y:yy,area});}fieldZoneCache.set(m,cache);}
+ const key=y*m.w+x;if(cache.cells.has(key))return cache.cells.get(key);
+ let best=null,distance=Infinity;for(const seed of cache.seeds){const d=Math.abs(x-seed.x)+Math.abs(y-seed.y);if(d<distance){best=seed.area;distance=d;}}
+ cache.cells.set(key,best);return best; }
+function encounterDenominator(m,x,y){const base=m.encounterRate||24;return m.combatDomain!=='sea'&&',w='.includes(tileAt(m,x,y))?Math.round(base*1.17):base;}
 function isSafe(){ return MAPS[G.st.mapId].kind!=="field"; }
 function busyReason(){ const st=G.st; if(st.run) return "戦闘中です。"; return null; }
 function objective(){
@@ -98,8 +105,8 @@ function render(){
   else if(s==="battle") html=renderBattle();
   else if(s==="result") html=renderResult();
   root.innerHTML = html + renderSheet() + renderDialog() + `<div id="toast" class="toast" role="status" hidden></div>`;
-  if(s==="explore") mountCanvas();
   document.body.classList.toggle("in-battle", s==="battle"); document.body.classList.toggle("in-explore", s==="explore");
+  if(s==="explore") mountCanvas();
   if(s==="battle"){ drawEnemies(); startBattleTimer(); }
   if(s==="new") mountNew();
   if(s==="title")SOFT_ART.title($("#titleArt"));
@@ -232,14 +239,11 @@ function renderExplore(){
       <div class="xsave small" aria-live="polite">保存：<span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（閲覧のみ）":""}</div>
     </header>
     <div class="mapwrap" data-map-kind="${esc(m.kind)}"><canvas id="map" aria-label="${esc(m.name)}の地図。地面をタップすると移動します。"></canvas>
+      <canvas id="minimap" aria-label="全体ミニマップ。白丸は現在地、白枠は表示範囲"></canvas>
       ${exit?`<button class="btn map-exit" data-a="guideTo" data-v="${exit.id}">${m.kind==="town"?"街外へ":"街へ戻る"}</button>`:""}
     </div>
     ${partyStrip()}
-    <nav class="menu-grid explore-actions" aria-label="MAP操作">
-      <button class="btn" data-a="openSheet" data-k="quests">やる事</button>
-      <button class="btn" data-a="openSheet" data-k="guide">オート移動</button>
-      <button class="btn primary" data-a="openSheet" data-k="menu">メニュー</button>
-    </nav>
+
   </section>`;
 }
 function nearbyObjects(){ const st=G.st, m=MAPS[st.mapId]; return m.objects.filter(o=>Math.max(Math.abs(o.x-st.pos.x),Math.abs(o.y-st.pos.y))<=1 && o.type!=="tower"); }
@@ -267,9 +271,29 @@ function playerPixel(){
   if(w.path.length){ const n=w.path[0]; x+= (n.x-st.pos.x)*16*w.prog; y+=(n.y-st.pos.y)*16*w.prog; }
   return {x:x, y:y};
 }
+let bossBaseImage=null;
+function bossBaseSprite(){
+ if(bossBaseImage)return bossBaseImage;
+ const c=document.createElement('canvas');c.width=64;c.height=96;const g=c.getContext('2d');
+ g.fillStyle='#242733';g.fillRect(7,27,50,59);g.fillStyle='#4e5060';g.fillRect(3,19,15,67);g.fillRect(46,19,15,67);
+ g.fillStyle='#28232e';for(const x of [3,46]){g.beginPath();g.moveTo(x-2,20);g.lineTo(x+7.5,3);g.lineTo(x+17,20);g.fill();}
+ g.fillStyle='#22232d';g.fillRect(16,20,32,8);for(let x=17;x<48;x+=9)g.fillRect(x,14,5,7);
+ g.fillStyle='#ac4153';g.fillRect(10,29,7,21);g.fillRect(47,29,7,21);g.fillStyle='#e6c082';g.fillRect(10,29,7,3);g.fillRect(47,29,7,3);
+ g.fillStyle='#c18d77';g.beginPath();g.arc(32,64,12,Math.PI,0);g.lineTo(44,86);g.lineTo(20,86);g.fill();g.fillStyle='#130f20';g.beginPath();g.arc(32,65,9,Math.PI,0);g.lineTo(41,86);g.lineTo(23,86);g.fill();
+ g.fillStyle='#df8555';for(const x of [14,47]){g.fillRect(x,61,3,10);g.beginPath();g.moveTo(x-2,61);g.lineTo(x+2,50);g.lineTo(x+6,61);g.fill();}
+ g.fillStyle='#ada4a3';g.fillRect(18,86,28,3);g.fillRect(14,90,36,3);c.bossBase=true;bossBaseImage=c;return c;
+}
+function drawMiniMap(m,cam){
+ const cv=document.getElementById('minimap');if(!cv)return;
+ const g=cv.getContext('2d'),u=2;cv.width=m.w*u;cv.height=m.h*u;
+ for(let y=0;y<m.h;y++)for(let x=0;x<m.w;x++){const t=m.tiles[y][x];g.fillStyle=t==='~'?'#487f9b':t==='T'?'#294f40':',w='.includes(t)?'#dfc88d':t==='#'||t==='c'?'#88665c':'#739366';g.fillRect(x*u,y*u,u,u);}
+ for(const o of m.objects){g.fillStyle=o.type==='boss'?'#f66c68':o.fieldExit||o.fieldRoute?'#ffe8a7':'#e1e9df';g.fillRect(o.x*u,o.y*u,2,2);}
+ g.strokeStyle='#ffffffb0';g.lineWidth=.7;g.strokeRect(cam.x/16*u,cam.y/16*u,G.vw*u,G.vh*u);
+ g.fillStyle='#fff';g.beginPath();g.arc((G.st.pos.x+.5)*u,(G.st.pos.y+.5)*u,2.2,0,Math.PI*2);g.fill();
+}
 function drawMap(){
   const cv=G.cv; if(!cv||!cv.isConnected) return; const g=cv.getContext("2d"); g.imageSmoothingEnabled=true; g.imageSmoothingQuality="high";
-  const st=G.st, m=MAPS[st.mapId]; const cam=camera(); const now=performance.now();
+  const st=G.st, m=MAPS[st.mapId]; const cam=camera(); drawMiniMap(m,cam); const now=performance.now();
   const still=reducedMotion(); const f=still?0:Math.floor(now/320)%4, f2=still?0:Math.floor(now/600)%2;
   const ratio=G.mapRenderScale||1,vw=G.vw*16,vh=G.vh*16;g.setTransform(ratio,0,0,ratio,0,0);
   g.fillStyle=PAL.ink; g.fillRect(0,0,vw,vh);
@@ -283,7 +307,7 @@ function drawMap(){
     else if(o.type==="shop"){ const n=NPCS[o.npc]; sprites.push({y:o.y-0.1,img:ART.object("shop",0),x:o.x}); img=ART.person(o.npc,n.sprite[1],n.sprite[0],0,f2*2); }
     else if(o.type==="inn"){ sprites.push({y:o.y-0.1,img:ART.object("inn",f),x:o.x}); img=ART.person("innkeeper",PAL.slate,PAL.navy,0,f2*2); }
     else if(o.type==="box") img=ART.object(st.boxes[o.box]?"boxOpen":"box",f);
-    else if(o.type==="boss"){ if(st.bossDefeated[o.boss]) continue; img=ART.object("boss",f); }
+    else if(o.type==="boss"){ if(st.bossDefeated[o.boss]) continue; img=bossBaseSprite(); }
     else img=ART.object(o.fieldExit||o.fieldRoute?"gate":o.type==="jobcenter"?"board":o.type,f);
     sprites.push({y:o.y,x:o.x,img});
   }
@@ -302,7 +326,7 @@ function drawMap(){
   }
   sprites.push({y:pp.y/16+0.01, px:pp, img:charSprite(lead,st.dir,wf)});
   sprites.sort((a,b)=>a.y-b.y);
-  for(const s of sprites){ const x=s.px?s.px.x:s.x*16, y=s.px?s.px.y:s.y*16; g.fillStyle='rgba(6,17,28,.27)'; g.beginPath(); g.ellipse(x+8-cam.x,y+13-cam.y,6,2,0,0,Math.PI*2); g.fill(); g.save();if(s.img.artScale){g.shadowColor='#071522b0';g.shadowBlur=ratio;g.shadowOffsetY=.5;g.drawImage(s.img.mapImage||s.img,x-2-cam.x,y-14-cam.y,20,30);}else g.drawImage(s.img,x-cam.x,y-8-cam.y,16,24);g.restore(); }
+  for(const s of sprites){ const x=s.px?s.px.x:s.x*16, y=s.px?s.px.y:s.y*16; g.fillStyle='rgba(6,17,28,.27)'; g.beginPath(); g.ellipse(x+8-cam.x,y+13-cam.y,6,2,0,0,Math.PI*2); g.fill(); g.save();if(s.img.bossBase){g.drawImage(s.img,x-8-cam.x,y-30-cam.y,32,48);}else if(s.img.artScale){g.shadowColor='#071522b0';g.shadowBlur=ratio;g.shadowOffsetY=.5;g.drawImage(s.img.mapImage||s.img,x-2-cam.x,y-14-cam.y,20,30);}else g.drawImage(s.img,x-cam.x,y-8-cam.y,16,24);g.restore(); }
   if(moving){ const d=G.walk.path[G.walk.path.length-1]; const bl=Math.floor(now/250)%2; g.strokeStyle=bl?PAL.cream:PAL.gold; g.strokeRect(d.x*16-cam.x+3.5,d.y*16-cam.y+3.5,9,9); }
 }
 function startLoop(){
@@ -356,9 +380,9 @@ function arrive(){
   const st=G.st, m=MAPS[st.mapId]; const zone=zoneAt(m,st.pos.x,st.pos.y);
   if(SND.current!==(m.kind==="field"?"field":"fukuoka")) exploreBgm();
   if(m.kind==="field" && zone){
-    // 第07A・23G節：危険タイル到着ごとに1/24の独立抽選（戦えるメンバーがいない時は抽選しない）
+    // 草地1/24、街道1/28。安全MAPと出入口では抽選しない。
     const canFight = st.party.some(c=>vitalOf(c).hp>0);
-    if(canFight && randInt(m.encounterRate||24)===0){
+    if(canFight && randInt(encounterDenominator(m,st.pos.x,st.pos.y))===0){
       const rolls={count:randInt(2), picks:[randInt(10000),randInt(10000)]};
       G.walk.path=[]; G.walk.pending=null;
       startBattle(createFieldRun(st,zone,rolls)); return;

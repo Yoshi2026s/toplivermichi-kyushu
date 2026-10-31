@@ -277,3 +277,6 @@ for(const m of Object.values(MAPS)) for(const o of m.objects){
     if(entrance){o.tx=entrance.x;o.ty=entrance.y+1;}else [o.tx,o.ty]=MAPS[o.to].safeAnchor;
   }
 }
+
+// 案内板を撤去。区域IDと保存形式は維持する。
+for(const m of Object.values(MAPS))m.objects=m.objects.filter(o=>o.type!=='sign'&&!(o.type==='landmark'&&o.label.includes('案内板')));

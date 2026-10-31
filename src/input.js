@@ -65,7 +65,7 @@ const PAD = (()=>{
   }
 
   /* ---- カーソル（▶）の移動：今見えている一番手前の画面の中だけで動く ---- */
-  function scope(){ const d=document.querySelector(".dlg-ov"); if(d) return d; const s=document.querySelector(".overlay"); if(s) return s; return document.getElementById("screen"); }
+  function scope(){ const d=document.querySelector(".dlg-ov"); if(d) return d; const s=document.querySelector(".overlay"); if(s) return s; return G.screen==="explore"&&document.body?document.body:document.getElementById("screen"); }
   function focusables(sc){
     return [...sc.querySelectorAll("button,input,textarea,select,summary,a[href],[data-a]")].filter(el=>{
       if(el.disabled||el.getAttribute("aria-disabled")==="true") return false;

@@ -1,0 +1,167 @@
+[
+  {
+    "round": 1,
+    "label": "settings-copy-and-control-help",
+    "checkedAt": "2026-10-31T14:27:33.096Z",
+    "checks": [
+      {
+        "command": "scripts/check-mobile-copy.mjs",
+        "passed": true,
+        "output": "Settings explains actual control positions; long help is folded and restore remains available\n"
+      },
+      {
+        "command": "scripts/check-merged-instructions.mjs",
+        "passed": true,
+        "output": "Merged instructions: URL sharing, fallback/cancel/read-only, reduced motion, 12px minimum passed\nLow HP: 30% boundary, healthy and KO labels passed\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 2,
+    "label": "compact-sheet-headers",
+    "checkedAt": "2026-10-31T14:29:55.140Z",
+    "checks": [
+      {
+        "command": "scripts/test-mobile-copy.mjs",
+        "passed": true,
+        "output": "PASS mobile copy standard\nPASS mobile copy small\nPASS mobile copy landscape\nPASS mobile copy short\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 3,
+    "label": "map-header-copy",
+    "checkedAt": "2026-10-31T14:29:26.007Z",
+    "checks": [
+      {
+        "command": "scripts/check-mobile-copy.mjs",
+        "passed": true,
+        "output": "Settings explains actual control positions; long help is folded and restore remains available\nMAP header removes repeated labels while retaining the complete save warning\n"
+      },
+      {
+        "command": "scripts/check-save.mjs",
+        "passed": true,
+        "output": "Save replacement stays newest across restore, title restore and reload. Save recovery: generation choice, corrupt checksum, malformed JSON, invalid state, local fallback, visit migration, restore rollback OK\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 4,
+    "label": "concise-travel-guide",
+    "checkedAt": "2026-10-31T14:30:10.357Z",
+    "checks": [
+      {
+        "command": "scripts/check-mobile-copy.mjs",
+        "passed": true,
+        "output": "Settings explains actual control positions; long help is folded and restore remains available\nMAP header removes repeated labels while retaining the complete save warning\nTravel copy is concise and encounter warning is shown where relevant\n"
+      },
+      {
+        "command": "scripts/check-navigation.mjs",
+        "passed": true,
+        "output": "Navigation: 51 town/field pairs, pure reachable distances, facility search, escaped queries, stale actions, pause/resume, manual override, quest destinations, battle interruption, safe abandonment and read-only guards passed\nSearch: compound region/type query, preserved draft, accessible result count and reset path passed\nRecommended quest: explicit acceptance and direct next-destination shortcut passed\nMovement: invalid destinations preserve the current plan and own-tile tap cancels safely\nRead-only UI: acceptance and abandonment are visibly disabled and settings/view actions remain pure\nMap edges: off-map approach cells do not create phantom shortcuts\nStale controls: closed guide rows, unrelated sheets and previous-route stop buttons are rejected\nArrival: opening the destination completes the route instead of leaving a stale resume action\nSearch accuracy: healing excludes date-only rest and missing type aliases stay empty\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 5,
+    "label": "quest-card-information-order",
+    "checkedAt": "2026-10-31T14:30:37.439Z",
+    "checks": [
+      {
+        "command": "scripts/check-mobile-copy.mjs",
+        "passed": true,
+        "output": "Settings explains actual control positions; long help is folded and restore remains available\nMAP header removes repeated labels while retaining the complete save warning\nTravel copy is concise and encounter warning is shown where relevant\nQuest cards show remaining goal; full kill counts remain in details\n"
+      },
+      {
+        "command": "scripts/check-navigation.mjs",
+        "passed": true,
+        "output": "Navigation: 51 town/field pairs, pure reachable distances, facility search, escaped queries, stale actions, pause/resume, manual override, quest destinations, battle interruption, safe abandonment and read-only guards passed\nSearch: compound region/type query, preserved draft, accessible result count and reset path passed\nRecommended quest: explicit acceptance and direct next-destination shortcut passed\nMovement: invalid destinations preserve the current plan and own-tile tap cancels safely\nRead-only UI: acceptance and abandonment are visibly disabled and settings/view actions remain pure\nMap edges: off-map approach cells do not create phantom shortcuts\nStale controls: closed guide rows, unrelated sheets and previous-route stop buttons are rejected\nArrival: opening the destination completes the route instead of leaving a stale resume action\nSearch accuracy: healing excludes date-only rest and missing type aliases stay empty\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 6,
+    "label": "specific-battle-prompts",
+    "checkedAt": "2026-10-31T14:31:04.039Z",
+    "checks": [
+      {
+        "command": "scripts/check-mobile-copy.mjs",
+        "passed": true,
+        "output": "Settings explains actual control positions; long help is folded and restore remains available\nMAP header removes repeated labels while retaining the complete save warning\nTravel copy is concise and encounter warning is shown where relevant\nQuest cards show remaining goal; full kill counts remain in details\nBattle prompts identify the missing selection without repetitive generic wording\n"
+      },
+      {
+        "command": "scripts/check-control-actions.mjs",
+        "passed": true,
+        "output": "Control actions: back unwinds target/item/action, idle opens pause, ready action confirms, dialogue goes back, held movement releases\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 7,
+    "label": "result-summary-density",
+    "checkedAt": "2026-10-31T14:32:01.913Z",
+    "checks": [
+      {
+        "command": "scripts/check-mobile-copy.mjs",
+        "passed": true,
+        "output": "Settings explains actual control positions; long help is folded and restore remains available\nMAP header removes repeated labels while retaining the complete save warning\nTravel copy is concise and encounter warning is shown where relevant\nQuest cards show remaining goal; full kill counts remain in details\nBattle prompts identify the missing selection without repetitive generic wording\nResult summary suppresses zero counts without hiding missing or incomplete history\n"
+      },
+      {
+        "command": "scripts/test-result-overview.mjs",
+        "passed": true,
+        "output": "PASS 40 result scenarios: summary fits, 48px one-click MAP return, low/KO and legacy history\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 8,
+    "label": "help-content-before-filters",
+    "checkedAt": "2026-10-31T14:37:01.986Z",
+    "checks": [
+      {
+        "command": "scripts/test-mobile-copy.mjs",
+        "passed": true,
+        "output": "PASS mobile copy standard\nPASS mobile copy small\nPASS mobile copy landscape\nPASS mobile copy short\nPASS mobile copy narrow\nPASS mobile copy keyboard\n"
+      },
+      {
+        "command": "scripts/test-review-actions-ui.mjs",
+        "passed": true,
+        "output": "PASS review actions standard\nPASS review actions small\nPASS review actions landscape\nPASS review actions short\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 9,
+    "label": "readable-list-metadata",
+    "checkedAt": "2026-10-31T14:37:29.345Z",
+    "checks": [
+      {
+        "command": "scripts/test-mobile-copy.mjs",
+        "passed": true,
+        "output": "PASS mobile copy standard\nPASS mobile copy small\nPASS mobile copy landscape\nPASS mobile copy short\nPASS mobile copy narrow\nPASS mobile copy keyboard\n"
+      }
+    ],
+    "passed": true
+  },
+  {
+    "round": 10,
+    "label": "narrow-phone-and-final-regression",
+    "checkedAt": "2026-10-31T14:44:15.529Z",
+    "checks": [
+      {
+        "command": "scripts/check-all.mjs",
+        "passed": true,
+        "output": "PASS check-action-safety.mjs\nPASS check-art-cache.mjs\nPASS check-audio-channels.mjs\nPASS check-audio-codec.mjs\nPASS check-audio-duck.mjs\nPASS check-auto-items.mjs\nPASS check-auto-ui-guards.mjs\nPASS check-badge-list.mjs\nPASS check-battle-audio-race.mjs\nPASS check-battle-fx.mjs\nPASS check-battle-log.mjs\nPASS check-character-art.mjs\nPASS check-clean-output.mjs\nPASS check-control-actions.mjs\nPASS check-expanded-battle.mjs\nPASS check-expressive-score.mjs\nPASS check-field-encounters.mjs\nPASS check-hd-art.mjs\nPASS check-illustrated-art.mjs\nPASS check-input-background.mjs\nPASS check-input-editing.mjs\nPASS check-input-modal.mjs\nPASS check-input-release.mjs\nPASS check-input-stick.mjs\nPASS check-integration.mjs\nPASS check-listeners.mjs\nPASS check-management.mjs\nPASS check-map-facilities.mjs\nPASS check-map-loop.mjs\nPASS check-merged-instructions.mjs\nPASS check-mobile-copy.mjs\nPASS check-national-story.mjs\nPASS check-national.mjs\nPASS check-nationwide.mjs\nPASS check-navigation.mjs\nPASS check-ocean.mjs\nPASS check-pets.mjs\nPASS check-regional-art.mjs\nPASS check-release.mjs\nPASS check-result-return.mjs\nPASS check-saga.mjs\nPASS check-save.mjs\nPASS check-selected-fixes.mjs\nPASS check-shop.mjs\nPASS check-split-maps.mjs\nPASS check-stream-actions.mjs\nPASS check-target.mjs\nPASS check-title-score.mjs\nPASS check-town-layout.mjs\nPASS check-travel-modes.mjs\nPASS check-vault.mjs\nPASS check-walk-animation.mjs\nPASS check-world-art.mjs\n53/53 regression programs passed; generated HTML syntax OK\n"
+      }
+    ],
+    "passed": true
+  }
+]

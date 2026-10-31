@@ -64,7 +64,7 @@ const petOriginalRenderBattle=renderBattle;
 renderBattle=function(){
   const html=petOriginalRenderBattle(),start=html.indexOf('<div class="party">');if(start<0)return html;
   const tags=/<\/?div\b[^>]*>/g;tags.lastIndex=start;let depth=0,tag;
-  while((tag=tags.exec(html))){if(tag[0].startsWith('</'))depth--;else depth++;if(depth===0)return html.slice(0,tag.index)+petPartyHtml(G.st,G.st.run)+petBattleStatusHtml(G.st.run)+html.slice(tag.index);}
+  while((tag=tags.exec(html))){if(tag[0].startsWith('</'))depth--;else depth++;if(depth===0){const merged=html.slice(0,tag.index)+petPartyHtml(G.st,G.st.run)+html.slice(tag.index);return merged.replace('<summary>戦闘記録・バッジ</summary>','<summary>戦闘記録・バッジ</summary>'+petBattleStatusHtml(G.st.run));}}
   return html;
 };
 const petOriginalMigrate=migrate;

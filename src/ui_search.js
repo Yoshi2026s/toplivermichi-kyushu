@@ -38,3 +38,5 @@ function installAuxPaging(name,sheets,key='v'){const base=ACT[name];ACTION_SCREE
 installAuxPaging('petPage',['petShop']);
 
 installAuxPaging('oceanDexPage',['oceanDex','dex'],'page');
+
+for(const name of ['petShopFilter','petRoomGo']){const base=ACT[name];ACTION_SCREEN_BUTTONS.add(name);ACT[name]=function(el){if(!G.st||G.dlg||!currentActionButton(el)||G.petSaving)return;if(name==='petShopFilter'&&G.sheet!=='petShop')return;if(name==='petRoomGo'&&!['pets','petCare','petShop','petAdopt'].includes(G.sheet))return;const result=base(el);if(name==='petShopFilter')document.querySelector('[data-a="petShopFilter"][data-v="'+G.sheetData.category+'"]')?.focus?.({preventScroll:true});return result;};}

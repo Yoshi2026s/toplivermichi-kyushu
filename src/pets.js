@@ -2,7 +2,7 @@
 const petBound=n=>Math.max(0,Math.min(100,Number.isFinite(Number(n))?Math.floor(Number(n)):0));
 const petSpecies=id=>typeof id==="string"&&Object.hasOwn(PET_SPECIES,id)?PET_SPECIES[id]:null;
 function petStage(p){return PET_GROWTH_THRESHOLDS.filter(n=>n<=petBound(p?.bond)).length;}
-function petDefault(id){return {id,name:PET_SPECIES[id].name,bond:0,fullness:50,mood:50,clean:50,policy:"heal",daily:{},celebrations:[],details:false};}
+function petDefault(id){return {id,name:PET_SPECIES[id].name,bond:0,fullness:50,mood:50,clean:50,policy:"heal",daily:{},celebrations:[],details:false,memories:[],preferredSkill:null};}
 function petData(st){return st.petState&&st.petState.version===1?st.petState:null;}
 function migratePets(st){
   if(!st||typeof st!=="object")return st;
@@ -20,14 +20,17 @@ function migratePets(st){
     }
   }
   const ps=st.petState;
+  if(!Array.isArray(ps.journal))ps.journal=[];ps.journal=ps.journal.filter(e=>e&&Number.isSafeInteger(e.day)&&typeof e.text==="string").slice(-30);
   if(!ps.owned||typeof ps.owned!=="object"||Array.isArray(ps.owned))ps.owned={};
   for(const [id,p] of Object.entries(ps.owned)){
     if(!petSpecies(id)||!p||typeof p!=="object")continue;
     p.id=id;p.name=typeof p.name==="string"&&p.name.trim()?Array.from(p.name.trim()).slice(0,12).join(""):PET_SPECIES[id].name;
     for(const k of ["bond","fullness","mood","clean"])p[k]=petBound(p[k]??(k==="bond"?0:50));
     if(!["heal","support"].includes(p.policy))p.policy="heal";
+    if(!PET_SPECIES[id].skills.includes(p.preferredSkill))p.preferredSkill=null;
     if(!p.daily||typeof p.daily!=="object"||Array.isArray(p.daily))p.daily={};
     if(!Array.isArray(p.celebrations))p.celebrations=[];
+    if(!Array.isArray(p.memories))p.memories=[];p.memories=[...new Set(p.memories.filter(v=>[1,3,5,8,10].includes(v)))];
   }
   if(!Object.keys(ps.owned).some(id=>petSpecies(id)))ps.owned.PT01=petDefault("PT01");
   if(!Array.isArray(ps.companions))ps.companions=[];
@@ -64,7 +67,7 @@ function petCarePreview(st,id,action,supplyId){
   if(!Object.values(gains).some(n=>n>0))return {ok:false,reason:"今は効果がありません。用品も今日の回数も消費しません。",gains};
   return {ok:true,gains,item:item?.id||null,consumes:!!item};
 }
-function carePet(st,id,action,supplyId){const offer=petCarePreview(st,id,action,supplyId);if(!offer.ok)return offer;const p=petOwned(st,id),before=petStage(p);for(const [k,n] of Object.entries(offer.gains))p[k]+=n;if(offer.item)bagRemove(st.bag,offer.item,1);p.daily[action]=st.day;return {...offer,ok:true,stage:petStage(p),sound:petStage(p)>before?"petgrow":"pet"};}
+function carePet(st,id,action,supplyId){const offer=petCarePreview(st,id,action,supplyId);if(!offer.ok)return offer;const p=petOwned(st,id),before=petStage(p);for(const [k,n] of Object.entries(offer.gains))p[k]+=n;if(offer.item)bagRemove(st.bag,offer.item,1);p.daily[action]=st.day;petRemember(st,id,PET_CARE_TYPES[action]+"をした");return {...offer,ok:true,stage:petStage(p),sound:petStage(p)>before?"petgrow":"pet"};}
 function petReceivePreview(st,id,n=1){
   if(!ITEMS[id]||!Number.isSafeInteger(n)||n<1)return {ok:false,reason:"用品を確認してください。"};
   const bagged=Math.min(n,bagRoom(st.bag,id)),vaulted=n-bagged;
@@ -86,7 +89,7 @@ function petWalkPreview(st,id,place){
   const item=`${id}-${where.care}-${where.tier}`,gains={bond:Math.min(2,100-p.bond),mood:Math.min(4,100-p.mood)};
   return {...petReceivePreview(st,item,1),item,quantity:1,gains};
 }
-function walkPet(st,id,place){const offer=petWalkPreview(st,id,place);if(!offer.ok)return offer;const received=petReceive(st,offer.item,1);if(!received.ok)return received;const p=petOwned(st,id);p.bond+=offer.gains.bond;p.mood+=offer.gains.mood;st.petState.walkDay=st.day;return {...offer,...received,sound:"pet"};}
+function walkPet(st,id,place){const offer=petWalkPreview(st,id,place);if(!offer.ok)return offer;const received=petReceive(st,offer.item,1);if(!received.ok)return received;const p=petOwned(st,id);p.bond+=offer.gains.bond;p.mood+=offer.gains.mood;st.petState.walkDay=st.day;petRemember(st,id,"おさんぽに行った");return {...offer,...received,sound:"pet"};}
 function petTravelPreview(st,policy){
   const ps=petData(st),p=ps&&petOwned(st,ps.favorite),rule=Object.hasOwn(PET_TRAVEL_POLICIES,policy)?PET_TRAVEL_POLICIES[policy]:null;
   if(!p||!rule)return {ok:false,reason:"お気に入りのペットと回復方針を選んでください。",targets:[]};
@@ -99,11 +102,12 @@ function petTravelPreview(st,policy){
   if(!targets.some(t=>t.hp>0||t.mp>0))return {ok:false,reason:policy==="mp"?"生存メンバーのMPは十分です。HPを回復する場合は『バランス』か『HP重視』を選んでください。":policy==="hp"?"生存メンバーのHPは十分です。MPを回復する場合は『バランス』か『MP重視』を選んでください。":"生存メンバーのHP・MPは十分です。回復不要のため今日の回数は消費しません。",targets,hpRate,mpRate};
   return {ok:true,targets,hpRate,mpRate};
 }
-function petTravelHelp(st,policy){const offer=petTravelPreview(st,policy);if(!offer.ok)return offer;ensureVitals(st);for(const t of offer.targets){st.vitals[t.cid].hp+=t.hp;st.vitals[t.cid].c+=t.mp;}st.petState.travelDay=st.day;st.petState.travelPolicy=policy;return offer;}
+function petTravelHelp(st,policy){const offer=petTravelPreview(st,policy);if(!offer.ok)return offer;ensureVitals(st);for(const t of offer.targets){st.vitals[t.cid].hp+=t.hp;st.vitals[t.cid].c+=t.mp;}st.petState.travelDay=st.day;st.petState.travelPolicy=policy;petRemember(st,st.petState.favorite,"旅のお手伝いをした");return offer;}
 function preparePetRun(st,run){
-  if(!run||Array.isArray(run.pets))return run;
+  if(!run)return run;
+  if(Array.isArray(run.pets)){const ids=new Set();run.pets=run.pets.filter(p=>p&&petSpecies(p.id)&&!ids.has(p.id)&&ids.add(p.id)).slice(0,2).map(p=>({...p,stage:Math.max(1,Math.min(10,Number(p.stage)||1)),rarity:PET_SPECIES[p.id].rarity,policy:p.policy==="support"?"support":"heal"}));return run;}
   if(st)for(const m of run.party){const stats=charStats(st,m.cid,run.L);if(!Number.isFinite(m.maxMP))m.maxMP=stats.startC;}
-  const ps=petData(st);run.pets=(ps?.companions||[]).map(id=>{const p=petOwned(st,id);return p?{id,name:p.name,bond:p.bond,stage:petStage(p),policy:p.policy,rarity:PET_SPECIES[id].rarity}:null;}).filter(Boolean).slice(0,2);
+  const ps=petData(st);run.pets=(ps?.companions||[]).map(id=>{const p=petOwned(st,id);return p?{id,name:p.name,bond:p.bond,stage:petStage(p),policy:p.policy,preferredSkill:p.preferredSkill,rarity:PET_SPECIES[id].rarity}:null;}).filter(Boolean).slice(0,2);
   run.petHistory={actions:0,species:[],healedHP:false,healedMP:false,support:false,targets:[],boostedHit:false,stopped:false};
   return run;
 }
@@ -111,13 +115,13 @@ function petTurnStart(st,run){
   if(!run||run.state!=="input"||!Number.isInteger(run.turn)||run.turn<1||run.petProcessedTurn===run.turn)return [];
   if(!Array.isArray(run.pets))preparePetRun(st,run);
   run.petProcessedTurn=run.turn;run.petHistory=run.petHistory||{actions:0,species:[],healedHP:false,healedMP:false,support:false,targets:[],boostedHit:false,stopped:false};
-  const history=run.petHistory,logs=[];
+  const history=run.petHistory,logs=[];run.petTurnActions=[];
   const members=()=>run.party.filter(m=>m.hp>0);
   for(const pet of run.pets){
     if(run.state!=="input"||!members().length||!run.enemies.some(e=>e.hp>0))break;
     const spec=PET_SPECIES[pet.id];if(!spec)continue;
     const learned=spec.skills.map(id=>PET_SKILLS[id]).filter(s=>s.stage<=pet.stage);
-    const ordered=learned.sort((a,b)=>Number(b.family===(pet.policy==="support"?"support":"heal"))-Number(a.family===(pet.policy==="support"?"support":"heal"))||b.stage-a.stage);
+    const ordered=learned.sort((a,b)=>Number(b.id===pet.preferredSkill)-Number(a.id===pet.preferredSkill)||Number(b.family===(pet.policy==="support"?"support":"heal"))-Number(a.family===(pet.policy==="support"?"support":"heal"))||b.stage-a.stage);
     let done=false;
     for(const skill of ordered){
       const targets=members(),scale=pet.stage+pet.rarity;let target=null,amount=0,message="";
@@ -135,10 +139,12 @@ function petTurnStart(st,run){
       }else if(skill.kind==="cheer"){
         amount=Math.min(100-run.A,2+Math.floor(scale/2));if(amount>0){run.A+=amount;history.support=true;message=`エール＋${amount}`;}
       }else if(skill.kind==="slow"){
-        const enemy=run.enemies.find(e=>e.hp>0&&!(e.petStunTurns>0)&&(!e.petStunUntil||run.turn>=e.petStunUntil));
-        if(enemy){enemy.petStunTurns=1;enemy.petStunUntil=run.turn+3;amount=1;history.support=true;message=`${enemy.display}の次の行動を1回止める`;} 
+        const enemy=run.enemies.find(e=>e.hp>0&&!e.petSleep&&!e.petConfuse&&run.turn>=(e.petControlReady||0)&&!(e.petStunTurns>0)&&(!e.petStunUntil||run.turn>=e.petStunUntil));
+        if(enemy){enemy.petStunTurns=1;enemy.petControlReady=run.turn+3;enemy.petStunUntil=run.turn+3;amount=1;history.support=true;message=`${enemy.display}の次の行動を1回止める`;}
       }
+      if(!amount&&["defense","speed","weaken","confuse","sleep"].includes(skill.kind)){const result=petSupportEffect(run,pet,skill);amount=result.amount;message=result.message;}
       if(amount>0){
+        run.petTurnActions.push({id:pet.id,name:pet.name,skill:skill.name,effect:message,turn:run.turn});
         history.actions++;if(!history.species.includes(pet.id))history.species.push(pet.id);
         if(target&&!history.targets.includes(target.cid))history.targets.push(target.cid);
         logs.push(`${pet.name}の「${skill.name}」！ ${message}。`);done=true;break;
@@ -162,7 +168,7 @@ function petBadgeApplicable(run,id){
   if(id==="B074")return pets.length>=2;if(id==="B076")return has("mp");
   if(id==="B077")return heal&&run.party.some(m=>m.cid==="hero");
   if(id==="B078")return heal&&run.party.some(m=>m.cid==="moe");
-  if(id==="B079")return has("attack");if(id==="B080")return has("slow");return false;
+  if(id==="B079")return has("attack");if(id==="B080")return ["slow","sleep","confuse"].some(has);return false;
 }
 function petSpriteSvg(id,stage=1){
  if(typeof SOFT_ART!=="undefined")return SOFT_ART.petSvg(id,stage);
@@ -181,3 +187,11 @@ function petSpriteSvg(id,stage=1){
 // 新規開始への導入。旧セーブ移行は UI 側の migrate ラッパーから実施する。
 const petBaseNewGame=newGame;
 newGame=function(...args){return migratePets(petBaseNewGame(...args));};
+
+function petRemember(st,id,text){const ps=petData(st),p=petOwned(st,id);if(!ps||!p)return;const stage=petStage(p);p.memories=p.memories||[];for(const n of [1,3,5,8,10])if(stage>=n&&!p.memories.includes(n))p.memories.push(n);ps.journal=[...(ps.journal||[]),{day:st.day,id,text:p.name+'と'+text}].slice(-30);}
+function petActivityPreview(st,id,key){const p=petOwned(st,id),rule=Object.hasOwn(PET_ACTIVITIES,key)?PET_ACTIVITIES[key]:null;if(!p||!rule)return {ok:false,reason:'遊びを選び直してください。'};if(p.daily.activity===st.day)return {ok:false,reason:'今日は一緒に遊びました。明日また遊ぼう。'};const gains=Object.fromEntries(Object.entries(rule.gains).map(([k,n])=>[k,Math.min(n,100-p[k])]));return {ok:Object.values(gains).some(n=>n>0),gains,reason:'今は十分に満たされています。'};}
+function playPetActivity(st,id,key){const offer=petActivityPreview(st,id,key);if(!offer.ok)return offer;const p=petOwned(st,id);for(const [k,n]of Object.entries(offer.gains))p[k]+=n;p.daily.activity=st.day;petRemember(st,id,PET_ACTIVITIES[key].name);return {...offer,sound:'pet',log:p.name+'はうれしそうに寄り添った。'};}
+function petSupportEffect(run,pet,skill){const kind=skill.kind,targets=run.party.filter(m=>m.hp>0),power=2+Math.ceil((pet.stage+pet.rarity)/3);let amount=0,message='';
+ if(kind==='defense'||kind==='speed'){const key=kind==='defense'?'petDefenseBonus':'petSpeedBonus',n=kind==='defense'?power:.12;const eligible=targets.filter(t=>!(t[key]>0));if(eligible.length){for(const t of eligible)t[key]=n;amount=n;message=kind==='defense'?'味方全員の防御＋'+power+'（このターン）':'味方全員のすばやさUP・回避率＋12%（このターン）';}}
+ else{const enemy=run.enemies.find(e=>e.hp>0&&!e.petSleep&&!e.petConfuse&&!e.petStunTurns&&!(e.petWeaken>0)&&run.turn>=(e.petControlReady||0));if(enemy){amount=1;if(kind==='weaken'){enemy.petWeaken=.25;message=enemy.display+'の攻撃を25%下げる（このターン）';}else{enemy[kind==='sleep'?'petSleep':'petConfuse']=1;enemy.petControlReady=run.turn+3;message=enemy.display+(kind==='sleep'?'は眠りについた（次の行動を1回停止）':'は混乱した（次の行動は自分を攻撃）');}}}
+ if(amount>0)run.petHistory.support=true;return {amount,message};}

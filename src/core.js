@@ -199,6 +199,7 @@ function enemyAction(run, e){
     const cueMult = (step.heavy && run.cue && run.cue.ready) ? 0.8 : 1;
     power = step.t==="c" ? 0 : Math.ceil(step.p * e.atkMult * cueMult);
   }
+  if(e.petWeaken>0)power=Math.ceil(power*(1-e.petWeaken));
   const res = { type: step.t, power, heavy: !!step.heavy };
   if(step.t==="s") res.target = pickTarget(run, run.turn-1+e.slot);
   return res;
@@ -483,6 +484,7 @@ function actLabel(run,a,act){
 function enemyPhase(run,visual=[]){
   const log=[];
   for(const e of run.enemies.filter(x=>x.hp>0).sort((x,y)=>x.slot-y.slot)){
+    if(e.petSleep>0||e.petConfuse>0){if(e.petSleep>0){e.petSleep=0;log.push(e.display+"は眠っていて動けない。");}else{e.petConfuse=0;const n=Math.min(e.hp,Math.max(1,Math.ceil(e.maxHP*.08)));e.hp-=n;visual.push({side:"enemy",slot:e.slot,kind:"hit",amount:n});log.push(e.display+"は混乱して自分に"+n+"ダメージ。");}if(run.petHistory)run.petHistory.stopped=true;continue;}
     if(e.petStunTurns>0){e.petStunTurns--;if(run.petHistory)run.petHistory.stopped=true;log.push(`${e.display}は足止めされて動けない。`);continue;}
     const act = enemyAction(run,e);
     if(act.type==="c"){ visual.push({side:"enemy",slot:e.slot,kind:"charge",counter:true,attr:e.attr}); log.push(`${e.display}は力をためている。`); continue; }
@@ -490,12 +492,13 @@ function enemyPhase(run,visual=[]){
     const targets = act.type==="a" ? alive(run) : [run.party[act.target]].filter(Boolean);
     for(const t of targets){
       let critical=false;
-      if(run.expanded&&!run.simulation){
-        if(battleRandom(run)<(t.evasionRate??0.02)){visual.push({side:"party",slot:t.pos,kind:"miss",counter:true,source:e.slot,attr:e.attr});run.actionFlags.evaded=true;log.push(`${t.name}は${e.display}の攻撃をかわした！`);continue;}
-        critical=battleRandom(run)<(e.criticalRate??0.03);
+      if((run.expanded||t.petSpeedBonus>0)&&!run.simulation){
+        if(battleRandom(run)<(t.petSpeedBonus>0?Math.min(.5,(t.evasionRate??0.02)+t.petSpeedBonus):(t.evasionRate??0.02))){visual.push({side:"party",slot:t.pos,kind:"miss",counter:true,source:e.slot,attr:e.attr});run.actionFlags.evaded=true;log.push(`${t.name}は${e.display}の攻撃をかわした！`);continue;}
+        critical=!!run.expanded&&battleRandom(run)<(e.criticalRate??0.03);
       }
       let inc=critical?Math.ceil(act.power*1.5):Math.max(0,act.power-run.V*(t.armorD+t.ward)-(run.expanded?Math.floor((t.defense||0)/6):0));
       if(!critical&&run.expanded) inc=Math.ceil(inc*(1-(t.trait?.reduction||0)));
+      inc=Math.max(0,inc-run.V*(t.petDefenseBonus||0));
       if(t.guard) inc = Math.ceil(inc/2);
       if(critical){run.actionFlags.enemyCritical=true;log.push(`${e.display}の痛恨の一撃！`);}
       if(run.actionHistoryComplete===true && run.actionFlags){
@@ -513,9 +516,11 @@ function enemyPhase(run,visual=[]){
     }
     if(alive(run).length===0){ run.state="lost"; log.push("全員が戦闘不能になった……"); return log; }
   }
+  if(!run.enemies.some(e=>e.hp>0)){run.state="won";log.push("敵をすべて鎮めた！");return log;}
   if(run.cue&&run.enemies.some(e=>e.boss&&e.cycle[(run.turn-1)%e.cycle.length].heavy)){ run.cue.bits=[]; run.cue.ready=false; }
   if(run.turnLimit&&run.turn>=run.turnLimit){run.state="lost";log.push(`制限${run.turnLimit}ターンに達した。実技を中断した。`);return log;}
-  for(const m of run.party){ m.guard=false; m.ward=0; m.acted=false; m.petAttackBonus=0; }
+  for(const m of run.party){ m.guard=false; m.ward=0; m.acted=false; m.petAttackBonus=0;m.petDefenseBonus=0;m.petSpeedBonus=0; }
+  for(const e of run.enemies)e.petWeaken=0;
   run.turn++; run.chain={stage:0,members:[]};
   startTurnCue(run);
   if(typeof petTurnStart==="function") petTurnStart(null,run);

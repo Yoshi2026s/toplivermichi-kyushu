@@ -50,3 +50,8 @@ for(let i=0;i<PET_ROWS.length;i++){
 const PET_WALK_PLACES={garden:{name:"ひだまりの庭",care:"feed",tier:1},plaza:{name:"にぎやかな広場",care:"play",tier:1},brook:{name:"小川のほとり",care:"groom",tier:1}};
 const PET_TRAVEL_POLICIES={balanced:{name:"バランス",hp:1,mp:1},hp:{name:"HP重視",hp:2,mp:0},mp:{name:"MP重視",hp:0,mp:2}};
 const PET_BADGES={B071:"ペットと共闘",B072:"小さな癒やし",B073:"頼れる補助役",B074:"二匹の力",B075:"ずっとそばに",B076:"ペットのMP補給",B077:"主人公を応援",B078:"もえを応援",B079:"息の合った攻撃",B080:"敵を足止め"};
+
+const PET_EFFECT_TEXT={hp:'傷ついた味方1人のHPを回復',mp:'味方1人のMPを回復',attack:'味方全員の攻撃を1ターン強化',ward:'味方全員に防護',cheer:'エールを回復',slow:'敵1体の行動を1回止める',defense:'味方全員の防御を1ターン強化',speed:'味方全員のすばやさを強化し、このターンの回避率＋12%',weaken:'敵1体の攻撃をこのターン25%低下',confuse:'敵1体を混乱させ、次の行動を自分への攻撃にする',sleep:'敵1体を眠らせ、次の行動を1回止める'};
+for(const [id,kind] of Object.entries({'PT02-T':'confuse','PT03-S':'speed','PT04-T':'defense','PT05-T':'weaken','PT07-T':'speed','PT09-T':'confuse','PT11-T':'weaken','PT12-S':'defense','PT14-T':'speed','PT16-T':'weaken','PT17-T':'sleep','PT18-S':'defense','PT19-T':'speed','PT20-T':'sleep','PT21-T':'defense','PT22-T':'confuse'}))PET_SKILLS[id].kind=kind;
+PET_SKILLS['PT08-T'].name='狐火の声援';
+const PET_ACTIVITIES={seek:{name:'宝さがし遊び',text:'鼻や目を使って、お気に入りの宝物を探そう。',gains:{bond:3,mood:5}},rhythm:{name:'リズム遊び',text:'手拍子に合わせて、一緒にステップ。',gains:{bond:3,mood:5}},cuddle:{name:'くつろぎ時間',text:'控え室でそっと寄り添い、ひと休み。',gains:{bond:2,clean:3,mood:4}}};

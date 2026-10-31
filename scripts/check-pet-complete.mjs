@@ -38,3 +38,17 @@ cases.push(['preferred-skill-and-effective-fallback',async()=>{const st=make();s
 const chosen=process.argv[2]?cases.filter((_,i)=>i+1===Number(process.argv[2])):cases;
 for(const [label,check] of chosen){await check();console.log('PASS pet '+label);}
 assert(chosen.length>0);
+
+// Defense must not turn an otherwise damaging hit into permanent immunity.
+for(const V of [1,5,20,100])for(const armor of [0,1]){
+ const r=run();r.V=V;r.simulation=true;r.enemies=r.enemies.slice(0,1);r.enemies[0].cycle=[{t:'a',p:500}];
+ for(const m of r.party){m.hp=m.maxHP=10000;m.armorD=armor;m.ward=0;m.defense=12;m.petDefenseBonus=10;}
+ g.enemyPhase(r);for(const m of r.party){assert(m.hp<10000,'pet defense must not erase incoming damage');assert.equal(m.petDefenseBonus,0,'temporary defense expires');}
+}
+for(const [type,allowed,blocked] of [['petroom','care','shop'],['petshop','shop','care']]){
+ const st=make();ui(st);const o=g.MAPS[st.mapId].objects.find(o=>o.type===type);st.pos={x:o.x,y:o.y+1};g.G.sheet='pets';
+ const html=g.renderPetList();assert.equal(html.includes('id="pet-supplies"'),type==='petshop');assert.equal(html.includes('id="pet-adoption"'),type==='petshop');
+ const old=g.G.sheet;g.ACT.petView({dataset:{k:blocked,v:'PT01'}});assert.equal(g.G.sheet,old,'blocked facility navigation');
+ g.ACT.petView({dataset:{k:allowed,v:'PT01'}});assert.equal(g.G.sheet,allowed==='care'?'petCare':'petShop');
+}
+console.log('PASS defense unit scaling, expiration and facility-specific navigation');

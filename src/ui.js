@@ -371,12 +371,15 @@ function startLoop(){
     if(G.screen!=="explore"||document.hidden){ G.raf=0; return; }
     const dt = G.lastTs? Math.min(250, ts-G.lastTs) : 16; G.lastTs=ts; G.frame++;
     const w=G.walk;
-    if(w.path.length && !G.dlg && !G.sheet && !G.lock){
+    const state=G.st,map=state.mapId,path=w.path;let remaining=dt/STEP;
+    while(remaining>0&&w.path.length&&!G.dlg&&!G.sheet&&!G.lock){
       const n=w.path[0]; const dx=n.x-G.st.pos.x, dy=n.y-G.st.pos.y; G.st.dir = dy>0?0:dy<0?1:dx<0?2:3;
-      const advance=Math.min(1-w.prog,dt/STEP);
+      const advance=Math.min(1-w.prog,remaining);remaining-=advance;
       G.walkDistance=((G.walkDistance||0)+advance*16)%32000;
       w.prog+=advance;
-      if(w.prog>=1){ w.prog=0; w.path.shift(); G.fol={...G.st.pos}; G.st.pos={x:n.x,y:n.y}; arrive(); }
+      if(w.prog>=1){w.prog=0;w.path.shift();G.fol={...G.st.pos};G.st.pos={x:n.x,y:n.y};arrive();}
+      // Arrival may enter a battle, open a menu, change maps or replace the route.
+      if(G.mapLoopToken!==token||G.st!==state||G.st.mapId!==map||G.walk!==w||w.path!==path||G.screen!=="explore"||document.hidden)break;
     }
     if(G.mapLoopToken!==token)return;
     if(!G.sheet&&!G.dlg&&!G.lock){
@@ -1587,7 +1590,6 @@ document.addEventListener("click",e=>{
   if(G.oceanSaving||G.characterSaving||G.featureSaving||(G.petSaving&&!el.dataset.a.startsWith("pet")))return;
   if(G.readOnly && !(typeof READ_ONLY_ACTIONS!=="undefined"?READ_ONLY_ACTIONS.has(el.dataset.a):["replayStory","shareCopy","shareNative","openSheet","closeSheet","dlgNext","dlgBack","dlgSkip","toTitle","dexNav","partyView","shopTab","shopItem","vaultOpen","vaultBack"].includes(el.dataset.a))) return toast("別のタブで遊んでいるため、このタブは閲覧のみです。");
   f(el);
-  if(el.dataset.a==="openSheet") drawMiniSprites();
 });
 document.addEventListener("visibilitychange",()=>{ if(document.hidden){ G.walk.path=G.walk.path.slice(0,1); SND.suspend(); } else { SND.resume(); if(G.screen==="explore") startLoop(); } });
 window.addEventListener("resize",()=>{ if(G.screen==="explore"){clearTimeout(G.rsz);G.rsz=setTimeout(()=>{if(G.screen==="explore")mountCanvas();},120);} });

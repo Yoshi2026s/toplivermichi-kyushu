@@ -21,7 +21,7 @@ function installListPaging(kind,name){const base=ACT[name];ACTION_SCREEN_BUTTONS
 installListPaging('vault','itemVaultPage');
 installListPaging('job','jobcenterPage');
 const listSearchJobView=ACT.jobcenterView;
-ACT.jobcenterView=function(el){if(!listSearchContext('job',el)||!['events','change'].includes(el.dataset.v))return;listSearchDraft('job');const {query,cid}=G.sheetData,result=listSearchJobView(el);G.sheetData.query=query;G.sheetData.cid=cid;render();return result;};
+ACT.jobcenterView=function(el){if(!listSearchContext('job',el)||!['events','change'].includes(el.dataset.v))return;listSearchDraft('job');return listSearchJobView(el);};
 ACTION_SCREEN_BUTTONS.add('jobcenterView');
 installListPaging('gear','managementGearPage');
 installListPaging('shop','managementShopPage');

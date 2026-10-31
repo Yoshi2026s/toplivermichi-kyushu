@@ -498,7 +498,9 @@ function enemyPhase(run,visual=[]){
       }
       let inc=critical?Math.ceil(act.power*1.5):Math.max(0,act.power-run.V*(t.armorD+t.ward)-(run.expanded?Math.floor((t.defense||0)/6):0));
       if(!critical&&run.expanded) inc=Math.ceil(inc*(1-(t.trait?.reduction||0)));
-      inc=Math.max(0,inc-run.V*(t.petDefenseBonus||0));
+      // Defense bonus shares character-defense units; V is reserved for wards.
+      const petDefense=Math.max(0,Math.floor(((t.defense||0)+(t.petDefenseBonus||0))/6)-Math.floor((t.defense||0)/6));
+      inc=Math.max(inc>0?1:0,inc-petDefense);
       if(t.guard) inc = Math.ceil(inc/2);
       if(critical){run.actionFlags.enemyCritical=true;log.push(`${e.display}の痛恨の一撃！`);}
       if(run.actionHistoryComplete===true && run.actionFlags){

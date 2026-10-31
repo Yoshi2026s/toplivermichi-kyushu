@@ -348,6 +348,7 @@ function drawMap(){
     sprites.push({y:fy/16, px:{x:fx,y:fy}, img:charSprite(second,fd,fw)});
   }
   sprites.push({y:pp.y/16+0.01, px:pp, img:charSprite(lead,st.dir,wf)});
+  if(typeof petMapFollowers==='function'&&!G.oceanDrawing)petMapFollowers(st,pp,wf,sprites);
   sprites.sort((a,b)=>a.y-b.y);
   for(const s of sprites){ const x=(s.px?s.px.x:s.x*16)+(s.idleX||0), y=(s.px?s.px.y:s.y*16)+(s.idleY||0); g.fillStyle='rgba(6,17,28,.27)'; g.beginPath(); g.ellipse(x+8-cam.x,y+13-cam.y,6,2,0,0,Math.PI*2); g.fill(); g.save();if(s.img.bossBase){g.drawImage(s.img,x-8-cam.x,y-30-cam.y,32,48);}else if(s.img.artScale){g.shadowColor='#071522b0';g.shadowBlur=ratio;g.shadowOffsetY=.5;g.drawImage(s.img.mapImage||s.img,x-2-cam.x,y-14-cam.y,20,30);}else g.drawImage(s.img,x-cam.x,y-8-cam.y,16,24);g.restore(); }
   if(moving){ const d=G.walk.path[G.walk.path.length-1]; const bl=Math.floor(now/250)%2; g.strokeStyle=bl?PAL.cream:PAL.gold; g.strokeRect(d.x*16-cam.x+3.5,d.y*16-cam.y+3.5,9,9); }

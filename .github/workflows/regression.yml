@@ -51,6 +51,9 @@ jobs:
       - run: node scripts/test-mobile-facilities-ui.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-pet-battle-fix-ui.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - run: node scripts/test-pet-complete-ui.mjs
         env:
           MOBILE_BROWSER: chromium

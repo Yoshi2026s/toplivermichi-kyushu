@@ -134,8 +134,8 @@ function statusBar(){
 /* ---- タイトル ---- */
 function refreshTitleMusic(){
  const button=document.querySelector('[data-a="titleMusic"]');if(!button)return;
- const playing=SND.on&&SND.current==='title'&&SND.volumes.music>0;
- button.dataset.play=playing?'false':'true';button.setAttribute('aria-pressed',String(playing));button.setAttribute('aria-label',playing?'タイトルBGMを消音':'タイトルBGMを再生');button.textContent=playing?'♪ BGM再生中・消音':'♪ タイトルBGMを再生';
+ const playing=SND.playing&&SND.current==='title'&&SND.volumes.music>0;
+ button.dataset.play=playing?'false':'true';button.setAttribute('aria-pressed',String(playing));button.setAttribute('aria-label',playing?'タイトルBGMを消音':'タイトルBGMを再生');button.textContent=playing?'♪ BGM再生中・消音':SND.volumes.music===0?'♪ BGM音量0':SND.on?'♪ 最初のタッチで再生':'♪ 音をON';
 }
 function renderTitle(){
   return `<section class="title-screen">
@@ -1563,6 +1563,7 @@ async function boot(){
   if(hot&&hot.snapshot) hot.snapshot(()=>({st:G.st, screen:G.screen}));
   const data = hot&&hot.data;
   if(data&&data.st){ G.st=migrate(data.st); G.screen=["new","stream"].includes(data.screen)?"explore":data.screen; G.hasSave=true; }
+  if(G.screen==="title"&&soundIsOn()&&SND.volumes.music>0){SND.setOn(true);SND.play("title");}
   render();
 }
 

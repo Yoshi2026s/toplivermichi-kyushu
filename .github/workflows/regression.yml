@@ -45,6 +45,9 @@ jobs:
       - run: node scripts/test-title.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-title-autoplay.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - run: node scripts/test-title-music.mjs
         env:
           MOBILE_BROWSER: chromium

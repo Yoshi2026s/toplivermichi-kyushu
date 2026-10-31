@@ -902,6 +902,7 @@ body.in-result:not(.no-dock){--dockH:64px}.in-result .dock .stick{width:60px;hei
 @media(orientation:landscape) and (max-height:550px){.result{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)}.result .rmems.many .rmh{display:flex;flex-wrap:wrap;gap:2px 6px}.result .rmems.many .rmh b{font-size:13px}.result .rmems.many .rmh .small{display:inline}.result .rmems.many .gauge .bar{display:none}.result .rmems.many .rvitals{font-size:12px}.result .rmems.many .gauge{font-size:12px}.result .rmems.many .rmem{gap:0;padding:3px 5px}}
 @media(orientation:portrait) and (max-height:550px){.result .rmems.many .gauge .bar{display:none}.result .rmems.many .gauge{gap:2px}.result .rmems.many .rmem{gap:0}}
 @media(orientation:portrait) and (max-height:550px){.result .rbanner h2{font-size:22px;line-height:1.2}}
+.result .rmems.many .rmh .small,.result .rmems.many .gauge .bar,.result .rmems.many .gauge .good{display:none}.result .rmems.many .rmem{gap:0}.result .rmems.many .rvitals,.result .rmems.many .gauge{font-size:12px}.result .rmems.many .rmh b{font-size:14px;line-height:1.25}
 </style>
 <main id="screen" aria-live="off"></main>
 <div id="dock" class="dock" aria-label="ジョイコントローラー">
@@ -6121,7 +6122,7 @@ function renderResult(){
     return `<div class="rmem ${low||down?"low":""}">
       <div class="rmh"><b>${esc(charName(st,x.cid))}</b><span class="small">${esc(JOBS[s.job].name)}</span></div>
       <div class="rvitals"><span class="${down||low?"warn":""}">体力 <b>${v.hp}/${s.maxHP}</b>${down?" 戦闘不能":low?" 要回復":""}</span><span>MP <b>${v.c}/${s.startC}</b></span></div>
-      <div class="gauge"><span>熟練度${R}${j.R1>j.R0?`（${j.R0}→${j.R1}）`:""}</span><span class="bar jp"><i style="width:${pct(jp-jpA,jpB-jpA)}%"></i></span><b>＋${j.gain}</b>${up&&x.maxAfter>x.maxBefore?`<span class="good">最大HP＋${x.maxAfter-x.maxBefore}</span>`:""}</div>
+      <div class="gauge"><span>熟練度${R}${j.R1>j.R0?" ↑":""}</span><span class="bar jp"><i style="width:${pct(jp-jpA,jpB-jpA)}%"></i></span><b>＋${j.gain}</b>${up&&x.maxAfter>x.maxBefore?`<span class="good">最大HP＋${x.maxAfter-x.maxBefore}</span>`:""}</div>
     </div>`; }).join("");
   const items=[...(r.items||[]).map(x=>`<li class="ritem"><span class="rst">${"★".repeat(ITEMS[x.id].stars)}</span>${esc(ITEMS[x.id].name)} ×${x.n}<span class="small">（${esc(x.why)}）</span></li>`),
     ...(r.itemsVaulted||[]).map(x=>`<li class="ritem">${esc(ITEMS[x.id].name)} ×${x.n} はアイテム金庫へ</li>`),
@@ -6135,7 +6136,7 @@ function renderResult(){
   });
   const anyLow=st.roster.some(c=>{const v=vitalOf(c),s=charStats(st,c,L); return v.hp<=0||isLow(v.hp,s.maxHP);});
   return `<section class="result" aria-labelledby="rtitle">
-    <div class="rbanner ${r.kind==="boss"?"boss":""}"><h2 id="rtitle">${title}</h2><p>${sub}</p></div>
+    <div class="rbanner ${r.kind==="boss"?"boss":""}"><h2 id="rtitle">${title}</h2><p>${r.turns?`${r.turns}ターン`:""}${foes.length?`・敵${foes.length}体`:""}</p></div>
     <div class="rgrid">${card("経験値",`＋${formatResult(r.xp)}`)}${card("ゴールド",`＋${formatResult(r.gold)}`,"gold")}${r.tickets?card("チケット",`＋${formatResult(r.tickets)}`):card("所持金",`${formatResult(st.gold)}G`)}</div>
     <div class="gauge rxp"><span>${up?`Lv${r.levelBefore}→${L}`: `レベル${L}`}</span><span class="bar xp"><i style="width:${pct(xpNow,xpSpan)}%"></i></span><b>${L<levelLimit(st)?`次まで${Math.max(0,xpSpan-xpNow).toLocaleString()}`:"最大"}</b></div>
     ${r.quest?`<div class="rquest done">依頼「${esc(QUESTS[r.quest].name)}」完了！</div>`:r.kills&&r.killQuest?`<div class="rquest">依頼の討伐 ${r.killNow}/${r.killNeed}</div>`:""}
@@ -6143,7 +6144,7 @@ function renderResult(){
     ${anyLow?`<p class="rwarning warn" role="status">体力わずか・戦闘不能の仲間がいます。MAPで回復を。</p>`:""}
     <p class="rsummary">入手 ${items.length+gifts.length}件・新バッジ ${(r.newBadges||[]).length}件・道具使用 ${usedItems.length}回${r.itemsUsedKnown===true?"":"（記録不完全）"}</p>
     <div class="rfoot"><button class="btn primary wide" data-a="resultDone">MAPへ戻る</button></div>
-    <details class="rbox result-details"><summary>報酬・成長・戦闘の詳細</summary><p>経験値＋${r.xp.toLocaleString()}・ゴールド＋${r.gold.toLocaleString()}・所持金${st.gold.toLocaleString()}G${r.tickets?`・チケット＋${r.tickets.toLocaleString()}`:""}</p>
+    <details class="rbox result-details"><summary>報酬・成長・戦闘の詳細</summary><p>${sub}</p><ul class="rlist">${resultMembers.map(x=>{const j=(r.jp||[]).find(y=>y.cid===x.cid)||{gain:0};return `<li>${esc(charName(st,x.cid))}・${esc(JOBS[charStats(st,x.cid,L).job].name)}：熟練度${j.R0??"不明"}→${j.R1??"不明"}（＋${j.gain}）・最大体力${x.maxBefore}→${x.maxAfter}</li>`;}).join("")}</ul><p>経験値＋${r.xp.toLocaleString()}・ゴールド＋${r.gold.toLocaleString()}・所持金${st.gold.toLocaleString()}G${r.tickets?`・チケット＋${r.tickets.toLocaleString()}`:""}</p>
       ${up?`<p class="good">レベルアップ！ ${r.levelBefore} → ${r.levelAfter}</p>`:""}
       ${items.length||gifts.length?`<h3 class="label">手に入れたもの</h3><ul class="rlist">${[...items,...gifts].join("")}</ul>`:""}
       ${renderUsedItemHistory(r,usedItems)}

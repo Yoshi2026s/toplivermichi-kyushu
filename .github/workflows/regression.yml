@@ -39,11 +39,16 @@ jobs:
       - run: node scripts/test-title.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-world-backgrounds.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: mobile-emulation
           path: |
+            .task/world-qa/*.png
+            .task/world-qa/report.json
             .task/title-qa/*.png
             .task/title-qa/report.json
             .task/illustrated-*.png

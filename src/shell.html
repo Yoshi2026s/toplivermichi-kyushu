@@ -559,6 +559,13 @@ p{margin:0 0 8px;overflow-wrap:anywhere}.kv{grid-template-columns:minmax(88px,.8
 .reduce-motion .title-visual *{animation:none!important}.reduce-motion .title-sparkles{display:none}
 @media(prefers-reduced-motion:reduce){.title-visual *{animation:none!important}.title-sparkles{display:none}}
 @media(max-height:600px){#titleArt{height:clamp(190px,48vh,260px)}.title-screen{gap:10px}.title-caption{top:19px}.title-caption .logo .main{font-size:clamp(30px,10vw,44px)}}
+/* Painted stages leave text panels dark and preserve compact commands on short screens. */
+.battle .enemies{background-position:center 43%;border:1px solid #bba47a;border-radius:10px;box-shadow:inset 0 0 16px #09283b40}
+.battle .enemies .stagebg{display:none}
+.battle .ecard,.battle .ecard.isboss{background:#091724a8;box-shadow:inset 0 0 0 1px #c7b58622}
+.battle .ename,.battle .estat{background:#091724df}
+.mapwrap{background:linear-gradient(135deg,#b8cbaa,#526c65);border-color:#d7c38d;box-shadow:inset 0 0 18px #102b3b55,0 0 0 1px #d1c29b33}
+@media(min-height:760px){.battle .enemies{min-height:150px;padding-top:50px;align-content:end}}
 </style>
 <main id="screen" aria-live="off"></main>
 <div id="dock" class="dock" aria-label="ジョイコントローラー">

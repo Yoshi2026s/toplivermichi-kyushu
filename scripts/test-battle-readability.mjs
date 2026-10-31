@@ -5,7 +5,7 @@ import {chromium,browserOptions,mobileOptions,serveGame} from './mobile-runtime.
 await mkdir(resolve('.task'),{recursive:true});const layouts=[];
 const server=process.env.GAME_TEST_URL?{url:process.env.GAME_TEST_URL,close:async()=>{}}:await serveGame(),browser=await chromium.launch(browserOptions());
 try{for(const device of ['standard','small','landscape','short']){
- const context=await browser.newContext(mobileOptions(device)),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(server.url);await page.waitForFunction(()=>typeof G!=='undefined');
+ const context=await browser.newContext(mobileOptions(device)),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(server.url);await page.locator('[data-a="newGame"]').waitFor();
  await page.evaluate(()=>{G.st=newGame('長い名前の旅人','男性');G.st.settings.sound=false;G.st.run=createFieldRun(G.st,Object.keys(AREAS)[0],{count:1,picks:[0,0]});G.st.run.party[0].hp=3;G.screen='battle';G.cmd={};render();});
  await page.waitForTimeout(900);
  const targets=await page.locator('.cmdgrid .btn,.stick-confirm,.dock-back').evaluateAll(elements=>elements.map(e=>{const r=e.getBoundingClientRect();return {label:e.textContent,width:r.width,height:r.height};}));for(const t of targets)assert(t.width>=48&&t.height>=48,'48px primary touch target '+JSON.stringify(t));

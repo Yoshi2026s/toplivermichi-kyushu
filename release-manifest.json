@@ -2,15 +2,15 @@
   "version": "5.34",
   "schemaVersion": 5,
   "buildDate": "2026-10-31",
-  "sourceFileCount": 30,
+  "sourceFileCount": 31,
   "files": {
     "index.html": {
-      "bytes": 4831778,
-      "sha256": "524b5a11e9cd0c7015e36805da5aecc29f39c88ac57a0bc047245d98ac8be697"
+      "bytes": 6957032,
+      "sha256": "b38ae5cccf5b8548a6fab2a06d7a7b6d19e6f049acfe44ac26fb27c2aadc179d"
     },
     "README.md": {
-      "bytes": 4799,
-      "sha256": "c50a5d531ca88b5afdd43c0a24f648c9f7c397b383af2186881d2c14f5673a95"
+      "bytes": 5017,
+      "sha256": "0fd3b13afa00850f225efee5d9e55e928d77292a0454aa2bb1780fdabf138181"
     },
     "VERSION.txt": {
       "bytes": 156,
@@ -26,6 +26,10 @@
     }
   },
   "assets": {
+    "assets/illustrated/world-materials.webp": {
+      "bytes": 564936,
+      "sha256": "57d8d36150dc77c7e6887b4612021bdf48198835f2e8ba1f1d2ebbdf9a666025"
+    },
     "assets/illustrated/title-dawn.webp": {
       "bytes": 359264,
       "sha256": "00fb9bc3ad30b9ca3f07949bb54f9988eca744afd0d020fef9f813c4b425e02c"
@@ -54,21 +58,21 @@
       "bytes": 169072,
       "sha256": "c420a2f0761850f3fa32df686a17e2627886b1995db78ddcceac71f12eb314eb"
     },
-    "assets/semireal/battle-coast.webp": {
-      "bytes": 141880,
-      "sha256": "3915831f0342c6b5b04742891189324e361b742edae57070efb84f74a3726af6"
+    "assets/illustrated/battle-coast-dawn.webp": {
+      "bytes": 298776,
+      "sha256": "f58f383961643378766a019e0184f16a18bc553e9b9b5071128a87ade3543cc1"
     },
-    "assets/semireal/battle-forest.webp": {
-      "bytes": 140798,
-      "sha256": "1ea83608d99b3457645a7420f340aadcbb01f49080ebfc8ae1f5e9c50f6ad4de"
+    "assets/illustrated/battle-forest-dawn.webp": {
+      "bytes": 465960,
+      "sha256": "4c9c61034775bf6b9c321c1e36534a161e8a93f14933d55bc967e147cc54f68b"
     },
-    "assets/semireal/battle-mountain.webp": {
-      "bytes": 134078,
-      "sha256": "a1d17a4fb8ae7f9d233f156a6bf36ce623a522209c92986be1d9c82587467267"
+    "assets/illustrated/battle-mountain-dawn.webp": {
+      "bytes": 363720,
+      "sha256": "dd349720245df7b158fa82949ef838bb6f43ccd3d317b2f35ee84005df0cb8d8"
     },
-    "assets/semireal/battle-plain.webp": {
-      "bytes": 130762,
-      "sha256": "bad1af589b2fe622686f23efc050c72ad8b9527acbf37a2594702f5213923d88"
+    "assets/illustrated/battle-plain-dawn.webp": {
+      "bytes": 443810,
+      "sha256": "889641984da5666187432a0f3ed5f3e8703e6ef727a245afbc5dac410837d2d5"
     },
     "assets/fonts/quest-mincho-800.woff2": {
       "bytes": 295932,

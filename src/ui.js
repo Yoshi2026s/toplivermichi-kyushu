@@ -127,7 +127,7 @@ function statusBar(){
     <div class="srow"><span class="place">${esc(m.name)}</span><span>${st.day}日目</span></div>
     <div class="goal">${esc(objective())}</div>
     <div class="srow small"><span>レベル${levelOf(st.xp,st)}・${st.gold.toLocaleString()}ゴールド・チケット${st.tickets.toLocaleString()}</span><span>${esc(charName(st,"moe"))} ${MOE_RANKS[st.moeRank]}</span></div>
-    <div class="small" aria-live="polite">保存：<span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（別のタブで操作中のため閲覧のみ）":""}</div>
+    <div class="small" aria-live="polite"><span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（別のタブで操作中のため閲覧のみ）":""}</div>
   </header>`;
 }
 
@@ -229,7 +229,7 @@ function charSprite(cid,dir,frame){ if(cid==="hero") return heroSprite(dir,frame
 /* ---- 探索 ---- */
 function renderCurrentLocation(){
   const st=G.st,m=MAPS[st.mapId],zone=zoneAt(m,st.pos.x,st.pos.y),ar=zone?AREAS[zone]:null,near=nearbyObjects();
-  return `<div class="here">${ar?`<span class="tag danger">遭遇エリア</span> ${esc(ar.name)}（推奨レベル${ar.q}）`:`<span class="tag ${m.kind==="field"?"danger":"safe"}">${m.kind==="field"?"街外の道":"安全な街・室内"}</span>`}${near.length?`<span class="small">／近く：${near.map(o=>esc(o.label)).join("・")}</span>`:""}</div>`;
+  return `<div class="here">${ar?`<span class="tag danger">遭遇エリア</span> ${esc(ar.name)}（推奨レベル${ar.q}）`:`<span class="tag ${m.kind==="field"?"danger":"safe"}">${m.kind==="field"?"街外の道":"安全"}</span>`}${near.length?`<span class="small">／近く：${near.map(o=>esc(o.label)).join("・")}</span>`:""}</div>`;
 }
 function renderMainMenu(){
   return `<nav class="menu-grid main-menu" aria-label="冒険メニュー">
@@ -243,7 +243,7 @@ function renderExplore(){
       <div class="srow"><span class="place">${esc(m.name)}</span><span>${st.day}日目</span></div>
       ${renderCurrentLocation()}
       <div class="goal">${esc(objective())}</div>
-      <div class="xsave small" aria-live="polite">保存：<span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（閲覧のみ）":""}</div>
+      <div class="xsave small" aria-live="polite"><span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（閲覧のみ）":""}</div>
     </header>
     <div class="mapwrap" data-map-kind="${esc(m.kind)}"><aside id="navRoute" class="map-route" aria-label="移動先" hidden></aside><canvas id="map" aria-label="${esc(m.name)}の地図。地面をタップすると移動します。"></canvas>
       <canvas id="minimap" aria-label="全体ミニマップ。白丸は現在地、白枠は表示範囲。城門は砦、家は街、ベッドは宿屋、瓶は道具屋、書類は職業窓口"></canvas>
@@ -456,7 +456,7 @@ function talkNpc(id){
     if(n.rep) lines.push(["",`${n.name}と話した。応援者帳に記録された（親密度1）。`]); }
   else if(n.after && ((id==="akari"&&st.quests.S01==="complete")||(id==="sota"&&st.quests.S02==="complete"))) lines=n.after(p);
   else lines=n.normal(p);
-  if(n.questId){ const q=QUESTS[n.questId]; lines=st.quests[n.questId]==="complete"?[[n.name,NATIONWIDE_STORIES[q.hub].resolution]]:[...lines,["",`やる事「${q.name}」で街外の調査を受けられます。`]]; }
+  if(n.questId){ const q=QUESTS[n.questId]; lines=st.quests[n.questId]==="complete"?[[n.name,NATIONWIDE_STORIES[q.hub].resolution]]:[...lines,["",`やること「${q.name}」で街外の調査を受けられます。`]]; }
   commit(); say(lines);
 }
 function openBox(o){
@@ -633,8 +633,8 @@ function renderCommand(run){
   let prev = info?`<span class="pinfo">${esc(info)}</span>`:"";
   let ok=false;
   if(act){ const p=planAction(run,c.actor,act); ok=p.ok; prev = (info?`<span class="pinfo">${esc(info)}</span>`:"") + (p.ok? previewText(run,a,p) : `<span class="warn">${esc(p.reason)}</span>`); }
-  else if(c.type) prev += `<span class="hint">対象・台詞を選んでください</span>`;
-  else prev = `<span class="hint">${esc(a.name)}の行動を選んでください（未行動${al.length}人）</span>`;
+  else if(c.type){const hint=c.type==='item'&&!c.item?'道具を選択':c.type==='comment'||c.type==='skill'&&skillNeeds(a.job)==='line'?'台詞を選択':c.type==='skill'&&skillNeeds(a.job)==='mode'&&!c.mode?'技の使い方を選択':c.type==='other'?'使う技を選択':'対象を選択';prev+=`<span class="hint">${hint}</span>`;}
+  else prev = `<span class="hint">${esc(a.name)}：行動を選択（未行動${al.length}人）</span>`;
   return `<div class="win cmd">
     <div class="cmdgrid">${entries.map(([k,n])=>`<button class="btn ${c.type===k?"on":""}" data-a="cmdType" data-v="${k}" aria-pressed="${c.type===k}">${c.type===k?"▶":""}${esc(n).replace("コメント","<wbr>コメント").replace("コール","<wbr>コール")}</button>`).join("")}</div>
     ${sub?`<div class="chips">${sub}</div>`:""}
@@ -787,6 +787,7 @@ function renderResult(){
   });
   const anyLow=st.roster.some(c=>{const v=vitalOf(c),s=charStats(st,c,L); return v.hp<=0||isLow(v.hp,s.maxHP);});
   const receivedCount=(r.items||[]).length+(r.itemsVaulted||[]).length+(r.itemsKept||[]).length+gifts.length,unreceivedCount=(r.itemsLost||[]).length;
+  const summary=[receivedCount?`入手 ${receivedCount}件`:'',unreceivedCount?`受取不可 ${unreceivedCount}件`:'',(r.newBadges||[]).length?`新バッジ ${r.newBadges.length}件`:'',usedItems.length?`道具使用 ${usedItems.length}回${r.itemsUsedKnown===true?'':'（記録不完全）'}`:r.itemsUsedKnown===true?'道具未使用':'道具履歴なし'].filter(Boolean).join('・');
   return `<section class="result" aria-labelledby="rtitle">
     <div class="rbanner ${r.kind==="boss"?"boss":""}"><h2 id="rtitle">${title}</h2><p>${r.turns?`${r.turns}ターン`:""}${foes.length?`・敵${foes.length}体`:""}</p></div>
     <div class="rgrid">${card("経験値",`＋${formatResult(r.xp)}`)}${card("ゴールド",`＋${formatResult(r.gold)}`,"gold")}${r.tickets?card("チケット",`＋${formatResult(r.tickets)}`):card("所持金",`${formatResult(st.gold)}G`)}</div>
@@ -794,7 +795,7 @@ function renderResult(){
     ${r.quest?`<div class="rquest done">依頼「${esc(QUESTS[r.quest].name)}」完了！</div>`:r.kills&&r.killQuest?`<div class="rquest">依頼の討伐 ${r.killNow}/${r.killNeed}</div>`:""}
     <div class="rmems ${resultMembers.length>2?"many":""}" aria-label="仲間の戦闘後の状態">${mem}</div>
     ${anyLow?`<p class="rwarning warn" role="status">体力わずか・戦闘不能の仲間がいます。MAPで回復を。</p>`:""}
-    <p class="rsummary ${unreceivedCount?'warn':''}">入手 ${receivedCount}件${unreceivedCount?`・受取不可 ${unreceivedCount}件`:''}・新バッジ ${(r.newBadges||[]).length}件・道具使用 ${usedItems.length}回${r.itemsUsedKnown===true?"":"（記録不完全）"}</p>
+    <p class="rsummary ${unreceivedCount?'warn':''}">${summary}</p>
     <div class="rfoot"><button class="btn primary wide" data-a="resultDone">MAPへ戻る</button></div>
     <details class="rbox result-details"><summary>報酬・成長・戦闘の詳細</summary><p>${sub}</p><ul class="rlist">${resultMembers.map(x=>{const j=(r.jp||[]).find(y=>y.cid===x.cid)||{gain:0};return `<li>${esc(charName(st,x.cid))}・${esc(JOBS[charStats(st,x.cid,L).job].name)}：熟練度${j.R0??"不明"}→${j.R1??"不明"}（＋${j.gain}）・最大体力${x.maxBefore}→${x.maxAfter}</li>`;}).join("")}</ul><p>経験値＋${r.xp.toLocaleString()}・ゴールド＋${r.gold.toLocaleString()}・所持金${st.gold.toLocaleString()}G${r.tickets?`・チケット＋${r.tickets.toLocaleString()}`:""}</p>
       ${up?`<p class="good">レベルアップ！ ${r.levelBefore} → ${r.levelAfter}</p>`:""}
@@ -831,7 +832,7 @@ function resultDone(){
 /* ---- シート（メニュー） ---- */
 function openSheet(k,data={}){ if(G.vaultSaving||G.shopSaving||G.petSaving||G.characterSaving||G.featureSaving) return; G.sheet=k; G.sheetData=data; G.walk.path=[]; render(); const el=$(".sheet"); if(el) el.scrollTop=0; }
 function closeSheet(){ if(G.vaultSaving||G.shopSaving||G.petSaving||G.characterSaving||G.featureSaving) return; G.sheet=null; render(); }
-function sheetWrap(title, body){ return `<div class="overlay" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="win sheet ${['guide','quests'].includes(G.sheet)?'navigation-sheet':''}"><div class="sheet-head"><h2 class="label">${esc(title)}</h2><div class="sheet-actions"><button class="btn" data-a="closeSheet" ${G.vaultSaving||G.shopSaving?"disabled":""}>戻る</button>${G.screen==="explore"&&G.st&&!G.st.run?`<button class="btn" data-a="returnToMap">MAPへ戻る</button>`:""}</div></div>${body}</div></div>`; }
+function sheetWrap(title, body){ return `<div class="overlay" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="win sheet ${['guide','quests'].includes(G.sheet)?'navigation-sheet':G.sheet==='help'?'help-sheet':''}"><div class="sheet-head"><h2 class="label">${esc(title)}</h2><div class="sheet-actions"><button class="btn" data-a="closeSheet" ${G.vaultSaving||G.shopSaving?"disabled":""}>戻る</button>${G.screen==="explore"&&G.st&&!G.st.run?`<button class="btn" data-a="returnToMap" aria-label="MAPへ戻る">MAPへ</button>`:""}</div></div>${body}</div></div>`; }
 function renderSheet(){
   const k=G.sheet; if(!k) return ""; const st=G.st; const d=G.sheetData;
   switch(k){
@@ -841,7 +842,7 @@ function renderSheet(){
     case "settings": return sheetWrap("設定と保存", renderSettings());
     case "nearby": { const near=nearbyObjects(); return sheetWrap("近くを調べる", near.length? `<div class="stack">${near.map(o=>`<button class="btn" data-a="interactId" data-v="${o.id}">${esc(o.label)}</button>`).join("")}</div>` : `<p>近くに調べられるものはありません。オート移動から目的地を選べます。</p>`); }
     case "guide": { const m=MAPS[st.mapId]; return sheetWrap("オート移動", `<p class="small">選ぶと、その場所まで実際に歩きます（途中の遭遇エリアでは抽選があります）。</p><div class="stack">${m.objects.filter(o=>o.type!=="tower").map(o=>{ const a=o.area?AREAS[o.area]:null; return `<button class="btn" data-a="guideTo" data-v="${o.id}">${esc(o.label)}${a?`（推奨レベル${a.q}）`:""}</button>`; }).join("")}</div>`); }
-    case "quests": return sheetWrap("やる事", renderQuests());
+    case "quests": return sheetWrap("やること", renderQuests());
     case "map": return sheetWrap("全国の旅の地図", renderWorld());
     case "travel": return sheetWrap("街外の道", "<p>街間の徒歩移動は街外MAPの道を進みます。街の出口から出発してください。</p>");
     case "rail": return sheetWrap("新幹線駅",renderRail());
@@ -887,12 +888,11 @@ function renderSettings(){
   return `<h3 class="label">難易度</h3><p class="small">敵の体力・攻撃力と戦闘開始時のエールだけが変わります。報酬・地域の強さ・物語は共通。戦闘開始時に固定されます。</p>
     <div class="row3">${Object.entries(DIFFICULTY).map(([k,v])=>`<button class="btn ${s.difficulty===k?"on":""}" data-a="setOpt" data-k="difficulty" data-v="${k}" ${busy?"disabled":""}>${s.difficulty===k?"▶ ":""}${v.name}</button>`).join("")}</div>
     <h3 class="label">音と演出</h3>
-    <div class="stack"><button class="btn ${soundIsOn()?"on":""}" data-a="toggleSound">${soundIsOn()?"▶ BGM・効果音：ON（タップで消音）":"BGM・効果音：OFF（タップで音あり）"}</button>
+    <div class="stack"><button class="btn ${soundIsOn()?"on":""}" data-a="toggleSound" aria-pressed="${soundIsOn()}">${soundIsOn()?"BGM・効果音：ON":"BGM・効果音：OFF"}</button>
     <button class="btn ${s.reduceMotion?"on":""}" data-a="setOpt" data-k="reduceMotion" data-v="${!s.reduceMotion}">${s.reduceMotion?"▶ 演出を減らす：ON":"演出を減らす：OFF"}</button>
-    <button class="btn ${s.dock!==false?"on":""}" data-a="setOpt" data-k="dock" data-v="${s.dock===false}">${s.dock!==false?"▶ ジョイコントローラーを表示：ON":"ジョイコントローラーを表示：OFF（タップ操作のみ）"}</button></div>
-    <h3 class="label">ジョイコントローラーの配置</h3>
-    <p class="small">操作：左の戻るボタン／右のスティック中央で決定</p>
-    <p class="small">ジョイコントローラー：探索ではスティックで歩き、決定で近くを調べます。メニュー・戦闘・会話ではスティックでカーソル（▶）を動かし、決定で選び、戻るで閉じます。Bluetoothのゲームコントローラー（Joy-Conなど）にも対応しています。</p>
+    <button class="btn ${s.dock!==false?"on":""}" data-a="setOpt" data-k="dock" data-v="${s.dock===false}" aria-pressed="${s.dock!==false}">操作パッド：${s.dock!==false?"表示":"非表示"}</button></div>
+    <details class="control-help"><summary>操作の説明</summary><p>戻るはスティックの右側。中央で決定します。</p>
+    <p>探索はドラッグで移動、中央で調べる・停止・再開。メニューや戦闘は項目を選んで決定。会話は中央で次の台詞、戻るで前の台詞を表示します。対応するゲームコントローラーも使えます。</p></details>
     ${st?`<h3 class="label">保存</h3><p class="small">行動を確定するたびに、この端末のブラウザ内へ自動保存しています。状態：${esc(G.saveStatus)}</p>
     <p class="small">端末の変更やブラウザのデータ削除の前に、下の「バックアップを表示」で文字列をコピーし、メモ帳などへ保管してください。</p>
     <div class="stack"><button class="btn" data-a="showBackup">バックアップを表示</button></div>

@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {root,chromium,browserOptions,mobileOptions,serveGame} from './mobile-runtime.mjs';
+const app=process.env.GAME_TEST_URL?{url:process.env.GAME_TEST_URL,close:async()=>{}}:await serveGame(),out=resolve(root,'.task/mobile-copy');await mkdir(out,{recursive:true});const browser=await chromium.launch(browserOptions()),report=[];
+try{for(const device of process.env.UI_DEVICE?[process.env.UI_DEVICE]:['standard','small','landscape','short','narrow','keyboard']){
+ const options=device==='narrow'?{...mobileOptions('small'),viewport:{width:320,height:640}}:device==='keyboard'?{...mobileOptions('small'),viewport:{width:360,height:440}}:mobileOptions(device);
+ const context=await browser.newContext(options),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ try{
+  await page.goto(app.url,{waitUntil:'domcontentloaded',timeout:120000});await page.locator('[data-a="newGame"]').waitFor();await page.evaluate(()=>{SND.setOn(false);G.st=newGame('スマホ表示確認','男性');ensureVitals(G.st);G.st.settings.sound=false;G.st.settings.reduceMotion=true;G.st.settings.listenerComments=false;G.screen='explore';G.dlg=null;G.sheet='guide';G.sheetData={};render();});
+  for(const sheet of ['guide','quests','settings','help']){
+   await page.evaluate(sheet=>{G.sheet=sheet;G.sheetData={};render();},sheet);
+   const bounds=await page.evaluate(()=>{const r=document.querySelector('.sheet-head').getBoundingClientRect();return {width:innerWidth,scroll:document.documentElement.scrollWidth,header:r.height,buttons:[...document.querySelectorAll('.sheet-actions button')].map(e=>{const b=e.getBoundingClientRect();return {w:b.width,h:b.height,left:b.left,right:b.right};})};});assert(bounds.scroll<=bounds.width+1,device+' '+sheet+' no horizontal overflow');assert(bounds.header<=66,device+' '+sheet+' compact header '+bounds.header);for(const b of bounds.buttons){assert(b.w>=48&&b.h>=48);assert(b.left>=0&&b.right<=bounds.width+1);}
+   await page.screenshot({path:resolve(out,device+'-'+sheet+'.png')});
+   if(sheet==='guide')assert((await page.locator('.nav-destination span').first().evaluate(e=>parseFloat(getComputedStyle(e).fontSize)))>=14,'travel details are readable');if(sheet==='quests')assert((await page.locator('.nav-quest .small').first().evaluate(e=>parseFloat(getComputedStyle(e).fontSize)))>=14,'quest metadata is readable');
+   if(sheet==='help'){assert.equal(await page.locator('.help-categories[open]').count(),0);assert((await page.locator('.help-categories>summary').boundingBox()).height>=48);const heading=await page.locator('.sheet .qcard h3').first().boundingBox(),panel=await page.locator('.sheet').boundingBox();assert(heading.y+heading.height<=panel.y+panel.height,'first help heading is visible without scrolling');}
+  }
+  await page.evaluate(()=>{G.sheet='settings';G.sheetData={};render();});assert.equal(await page.locator('.control-help[open]').count(),0);await page.locator('.control-help>summary').tap();assert((await page.locator('.control-help').textContent()).includes('戻るはスティックの右側'));assert((await page.locator('#restoreIn').count())===1);
+  await page.evaluate(()=>{G.sheet=null;render();});const dock=await page.evaluate(()=>({width:innerWidth,height:innerHeight,scroll:document.documentElement.scrollWidth,mapHeight:document.querySelector('.mapwrap').getBoundingClientRect().height,controls:[...document.querySelectorAll('.dock-actions button,.dock-back,.stick-confirm')].map(e=>{const r=e.getBoundingClientRect();return {w:r.width,h:r.height,left:r.left,right:r.right,bottom:r.bottom,overflow:e.scrollWidth-e.clientWidth};})}));assert(dock.scroll<=dock.width+1);assert(dock.mapHeight>=80,'map remains usable');for(const c of dock.controls){assert(c.w>=48&&c.h>=48);assert(c.left>=0&&c.right<=dock.width+1&&c.bottom<=dock.height+1);assert(c.overflow<=1,'dock label must fit without horizontal clipping '+JSON.stringify(c));}await page.screenshot({path:resolve(out,device+'-map.png')});
+  assert.deepEqual(errors,[]);report.push({device,passed:true});console.log('PASS mobile copy '+device);
+ }catch(e){await page.screenshot({path:resolve(out,device+'-failure.png'),fullPage:true}).catch(()=>{});throw e;}finally{await context.close();}
+}}finally{await browser.close();await app.close();await writeFile(resolve(out,'report.json'),JSON.stringify({url:app.url,physicalDevice:false,controlledFixtures:true,report},null,2));}

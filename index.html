@@ -335,6 +335,7 @@ body.reduce-motion .battle-fx-layer{display:none}
 .navigation-sheet .nav-search{margin-top:8px}
 @media(orientation:landscape) and (max-height:600px) and (min-width:600px){.navigation-sheet .sheet-head{flex-wrap:nowrap;align-items:center;gap:8px;padding:4px 0}.navigation-sheet .sheet-head .label{flex:1;flex-basis:auto}.navigation-sheet .sheet-actions{width:auto;flex:none}.navigation-sheet .sheet-actions .btn{padding:4px 9px}.navigation-sheet .nav-filters{grid-template-columns:repeat(4,minmax(0,1fr));margin:5px 0}.navigation-sheet .nav-goal{margin:5px 0}.navigation-sheet .nav-search{margin-top:4px}}
 .help-search{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:5px;margin:8px 0}.help-search label{grid-column:1/-1}.help-search input{min-width:0;width:100%;box-sizing:border-box}.help-search .btn{min-width:48px;min-height:48px;padding:4px 8px}
+
 </style>
 <style>
 /* 縦1列・幅上限480。濃紺の文字窓と生成りの二重枠（第21F・21K節）。単一の夜色テーマで統一 */
@@ -884,7 +885,7 @@ p{margin:0 0 8px;overflow-wrap:anywhere}.kv{grid-template-columns:minmax(88px,.8
 .mapwrap{background:linear-gradient(135deg,#b8cbaa,#526c65);border-color:#d7c38d;box-shadow:inset 0 0 18px #102b3b55,0 0 0 1px #d1c29b33}
 @media(min-height:760px){.battle .enemies{min-height:150px;padding-top:50px;align-content:end}}
 .mapwrap[data-map-kind="town"]{background:linear-gradient(135deg,#777763,#3e535b);border-color:#e0c58f}.mapwrap[data-map-kind="field"]{background:linear-gradient(135deg,#436550,#1a3843);border-color:#83ab8e}
-/* 2列メニューとスティック左の戻る操作 */
+/* 2列メニューと右側の戻る操作 */
 body.in-explore:not(.no-dock){--dockH:116px}
 .dock{gap:8px;padding-left:10px;padding-right:10px}.dock-center{flex:1;min-width:0;order:1}.dock-actions{width:100%}.dock-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.dock-actions .btn{min-height:48px;padding:4px;font-size:13px;white-space:nowrap}.dock-back{order:2;min-width:48px;width:48px;padding:3px;font-size:14px}.dock .stick{order:3;width:86px;height:86px}
 body:not(.in-explore) .dock-actions{display:none}
@@ -923,11 +924,18 @@ body.in-battle:not(.no-dock){--dockH:80px}.in-battle .dock .stick{width:72px;hei
 .nav-goal{display:grid;gap:5px;padding:8px;border-left:3px solid #e1c47a;background:#243e4d;margin:8px 0;font-size:14px}.nav-goal .btn{min-height:48px;text-align:left;white-space:normal;font-size:14px}
 @media(max-height:600px){.explore{height:calc(100dvh - 12px - var(--dockH) - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow:hidden}.explore .mapwrap{flex:1 1 0;min-height:0;height:auto}}
 @media(orientation:landscape) and (max-height:600px){.explore{display:grid;grid-template-columns:minmax(170px,.8fr) minmax(0,1.2fr);grid-template-rows:auto minmax(0,1fr);gap:5px}.explore .xhead{grid-column:1;grid-row:1;min-width:0;padding:4px 6px}.explore .pstrip{grid-column:1;grid-row:2;align-self:start;min-width:0;padding:4px 6px}.explore .mapwrap{grid-column:2;grid-row:1/3}.explore .xhead .place{font-size:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.explore .xhead .here{font-size:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.explore .xhead .goal{-webkit-line-clamp:1;font-size:12px}.explore .pmini .small{font-size:12px}.explore .pmline b{font-size:13px}.explore .pstop{font-size:12px}.map-route{left:4px;right:4px;padding:3px;gap:3px}}
+.sheet-head{flex-wrap:nowrap;align-items:center;gap:8px}.sheet-head .label{flex:1;flex-basis:auto;min-width:0;font-size:17px}.sheet-actions{width:auto;flex:none;gap:5px}.sheet-actions .btn{padding:4px 8px;min-width:48px;min-height:48px}.control-help>summary{min-height:48px;align-content:center;cursor:pointer}
+.help-categories{margin:8px 0}.help-categories>summary{min-height:48px;align-content:center;font-size:15px;cursor:pointer}
+.nav-destination{min-height:68px}.nav-destination b{font-size:16px}.nav-destination span{font-size:14px;line-height:1.4;color:#e4e9e4}.nav-quest .small{font-size:14px;line-height:1.5}.nav-quest .tag,.nav-pages,.nav-filters .btn{font-size:14px}
+@media(max-height:550px){.help-search label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.help-search,.help-categories{margin:4px 0}}
+.help-categories~.qcard .label{margin:0}
+.dock-actions .btn{font-size:13px}@media(max-width:350px){.dock .stick{width:72px;height:72px}.dock{gap:5px;padding-left:6px;padding-right:6px}}
+@media(max-height:550px){.help-sheet{gap:4px}.help-sheet .sheet-head{padding:4px 0}.help-search,.help-categories{margin:0}}
 </style>
 <main id="screen" aria-live="off"></main>
 <div id="dock" class="dock" aria-label="ジョイコントローラー">
   <div class="dock-center"><nav class="dock-actions" aria-label="冒険メニュー">
-<button class="btn" data-a="openSheet" data-k="quests">やる事リスト</button><button class="btn" data-a="openSheet" data-k="guide">オート移動</button><button class="btn" data-a="openSheet" data-k="menu">メニュー</button><button class="btn" data-a="openSheet" data-k="settings">設定・保存</button>
+<button class="btn" data-a="openSheet" data-k="quests">やること</button><button class="btn" data-a="openSheet" data-k="guide">オート移動</button><button class="btn" data-a="openSheet" data-k="menu">メニュー</button><button class="btn" data-a="openSheet" data-k="settings">設定・保存</button>
 </nav></div>
   <div class="stick" role="application" aria-label="移動スティック。ドラッグで移動、中央は場面に応じて決定・停止・再開"><div class="ring"></div><div class="knob"><button class="stick-confirm" aria-label="決定">決定</button></div></div>
   <button class="btn dock-back" data-pad="back" aria-label="戻る">戻る</button>
@@ -1360,13 +1368,13 @@ const FUTURE_HUBS = [["KY09","別府市","大分"],["KY10","大分市","大分"]
 /* ===== 住民と会話 ===== */
 const NPCS = {
   asoGuide:{name:"阿蘇市の案内人", hub:"KY08", sprite:[PAL.sand,PAL.sea],
-    first:p=>[["案内人",`${p}さん、阿蘇市へようこそ。草地の道から稜線の広場まで歩けます。`],["案内人","風の中で返事が散っています。やる事でM08を受け、街で調べてください。"]],
+    first:p=>[["案内人",`${p}さん、阿蘇市へようこそ。草地の道から稜線の広場まで歩けます。`],["案内人","風の中で返事が散っています。やることでM08を受け、街で調べてください。"]],
     normal:p=>[["案内人","草地の道・風の通り・稜線の広場を探索できます。宿屋と休憩所もどうぞ。"]]},
   kumamotoGuide:{name:"熊本市の案内人", hub:"KY07", sprite:[PAL.sand,PAL.ink],
-    first:p=>[["案内人",`${p}さん、熊本市へようこそ。川辺の小径から石垣の広場まで歩けます。`],["案内人","石垣の奥に声が残っています。やる事でM07を受け、街で調べてください。"]],
+    first:p=>[["案内人",`${p}さん、熊本市へようこそ。川辺の小径から石垣の広場まで歩けます。`],["案内人","石垣の奥に声が残っています。やることでM07を受け、街で調べてください。"]],
     normal:p=>[["案内人","川辺の小径・街路の通り・石垣の広場を探索できます。宿屋と休憩所もどうぞ。"]]},
   nagasakiGuide:{name:"長崎市の案内人", hub:"KY06", sprite:[PAL.sea,PAL.sand],
-    first:p=>[["案内人",`${p}さん、長崎市へようこそ。港の小径から丘の眺めまで探索できます。`],["案内人","丘の上で返事が重なっています。やる事でM06を受け、港と坂道から調べてください。"]],
+    first:p=>[["案内人",`${p}さん、長崎市へようこそ。港の小径から丘の眺めまで探索できます。`],["案内人","丘の上で返事が重なっています。やることでM06を受け、港と坂道から調べてください。"]],
     normal:p=>[["案内人","港の小径・坂道の路地・丘の眺めを歩けます。佐世保市へは西の門から戻れます。"]]},
   akari:{name:"灯里", hub:"KY01", rep:true, sprite:[PAL.coral,PAL.ink],
     first:p=>[["灯里",`${p}、おかえり！ 交流会の準備、手伝いに来てくれたんだね。`],["灯里","この広場、昔から皆の待ち合わせ場所でしょ。今日はもえさんの配信を見に来た人も多いよ。"],["灯里","実は、広場の紹介文を一緒に考えてくれる人を探してたんだ。手が空いたら声をかけて。"]],
@@ -1389,13 +1397,13 @@ const NPCS = {
     first:p=>[["美鈴","遊歩道の足元灯、点いたり消えたりしてるの。乱れのせいかしら。"]],
     normal:p=>[["美鈴","係留ロープの結び目って、きれいな形をしてるのよ。"]] },
   saseboGuide:{name:"佐世保市の案内人", hub:"KY05", sprite:[PAL.sand,PAL.sea],
-    first:p=>[["案内人",`${p}さん、佐世保市へようこそ。港沿いの道から展望広場まで探索できます。`],["案内人","展望広場の声が風に散っています。やる事でM05を受け、港沿いと坂道から調べてください。"]],
+    first:p=>[["案内人",`${p}さん、佐世保市へようこそ。港沿いの道から展望広場まで探索できます。`],["案内人","展望広場の声が風に散っています。やることでM05を受け、港沿いと坂道から調べてください。"]],
     normal:p=>[["案内人","港沿いの道・坂の通り・展望広場には乱れが残っています。佐賀市へは西の門から戻れます。"]]},
   sagaCityGuide:{name:"佐賀市の案内人", hub:"KY04", sprite:[PAL.sand,PAL.coral],
-    first:p=>[["案内人",`${p}さん、佐賀市へようこそ。唐津での配信を聞きました。`],["案内人","街灯の広場で声が重なっています。やる事でM04を受け、川沿いと駅前から調べてください。"]],
+    first:p=>[["案内人",`${p}さん、佐賀市へようこそ。唐津での配信を聞きました。`],["案内人","街灯の広場で声が重なっています。やることでM04を受け、川沿いと駅前から調べてください。"]],
     normal:p=>[["案内人","唐津へは西の門から戻れます。街灯の広場へ向かう前に宿屋で整えてください。"]]},
   karatsuGuide:{name:"唐津の案内人", hub:"KY03", sprite:[PAL.sand,PAL.sea],
-    first:p=>[["案内人",`${p}さん、唐津へようこそ。海辺を歩いて、この街の声を聞いてみてください。`],["案内人","見晴らし台の返事が乱れています。やる事でM03を受け、海辺の探索区域を調べてください。"]],
+    first:p=>[["案内人",`${p}さん、唐津へようこそ。海辺を歩いて、この街の声を聞いてみてください。`],["案内人","見晴らし台の返事が乱れています。やることでM03を受け、海辺の探索区域を調べてください。"]],
     normal:p=>[["案内人","北九州へは西の門から戻れます。見晴らし台へ行く前に宿屋で整えてください。"]] },
   moe:{name:"もえ", sprite:[PAL.cream,PAL.violet]}
 };
@@ -1415,7 +1423,7 @@ const SCENES = {
     ["","そのとき、交流会の仮想演出装置が乱れた。呼びかけと紹介の声が重なり、ノイズ体が生まれていく。"],
     ["もえ","声の順番が、ばらばらになってる……。私も一緒に行く。待ってるだけなんて、できないよ。"],
     ["","もえが仲間に加わった（職業：ライバー）。旅を続けると、各地で新しい仲間に出会えます。"],
-    ["","やる事から「M01 故郷からの第一声」を受けて、通常敵を倒し、放送塔の丘のコメラモスへ挑もう。"]
+    ["","やることから「M01 故郷からの第一声」を受けて、通常敵を倒し、放送塔の丘のコメラモスへ挑もう。"]
   ]},
   RANK_D1:{title:"もえのランク D1", lines:p=>[
     ["","放送塔の前。重なっていた声がほどけ、交流会の音が戻ってきた。"],
@@ -1424,7 +1432,7 @@ const SCENES = {
     ["","その後の配信で、もえの新しい挑戦に応援が届いた。もえのシナリオ到達ランクがD1になった。"],
     ["もえ","この声、次の街にも届けたい。"],
     [p,"じゃあ北九州へ行こう。九州エール便の始まりだ。"],
-    ["","北九州市への道は、広場の東から続いている。やる事の「M02 港の声リレー」を受けよう。"]
+    ["","北九州市への道は、広場の東から続いている。やることの「M02 港の声リレー」を受けよう。"]
   ]},
   M02_BOSS:{title:"灯台の段丘", lines:p=>[
     ["","灯台の光が穏やかになった。港の反響が静まり、街の声が元に戻る。"],
@@ -1850,7 +1858,7 @@ for(let index=0;index<NATIONWIDE_ORDER.length;index++){
   BOSSES[bossId]={name:bossName,q,areaId:`${hub}-A3`,cue,hub,cycle:nationwideBossCycle(q,index),
     lore:premise,counter:{guard:"ため中に2人がガードする。",comment:"ため中に2人が応援コメントを送る。",damage:"ため中に2人が攻撃する。"}[cue]};
   NPCS[npcId]={name:npc,hub,rep:true,questId,sprite:[[PAL.brown,PAL.violet,PAL.mist,PAL.ink][index%4],[PAL.aqua,PAL.coral,PAL.gold,PAL.leaf][index%4]],
-    first:p=>[[npc,`${p}さん、私は${role}の${npc}。${HUBS[hub].name}へようこそ。`],[npc,premise],["もえ","大切にしているものを、まず聞かせてもらおう。"],[npc,`${approach} やる事の${questId}で、力を貸してほしい。`]],
+    first:p=>[[npc,`${p}さん、私は${role}の${npc}。${HUBS[hub].name}へようこそ。`],[npc,premise],["もえ","大切にしているものを、まず聞かせてもらおう。"],[npc,`${approach} やることの${questId}で、力を貸してほしい。`]],
     normal:p=>[[npc,premise],[npc,`${approach} 街は安全だよ。宿で支度をして、出口から街外へ向かって。`]],
     after:p=>[[npc,resolution],["もえ",`${p}、ここで聞いた返事も忘れずにいこう。`]]};
   SCENES[introScene]={title:`${pref.name}　${title}`,lines:p=>[
@@ -5502,7 +5510,7 @@ function statusBar(){
     <div class="srow"><span class="place">${esc(m.name)}</span><span>${st.day}日目</span></div>
     <div class="goal">${esc(objective())}</div>
     <div class="srow small"><span>レベル${levelOf(st.xp,st)}・${st.gold.toLocaleString()}ゴールド・チケット${st.tickets.toLocaleString()}</span><span>${esc(charName(st,"moe"))} ${MOE_RANKS[st.moeRank]}</span></div>
-    <div class="small" aria-live="polite">保存：<span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（別のタブで操作中のため閲覧のみ）":""}</div>
+    <div class="small" aria-live="polite"><span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（別のタブで操作中のため閲覧のみ）":""}</div>
   </header>`;
 }
 
@@ -5604,7 +5612,7 @@ function charSprite(cid,dir,frame){ if(cid==="hero") return heroSprite(dir,frame
 /* ---- 探索 ---- */
 function renderCurrentLocation(){
   const st=G.st,m=MAPS[st.mapId],zone=zoneAt(m,st.pos.x,st.pos.y),ar=zone?AREAS[zone]:null,near=nearbyObjects();
-  return `<div class="here">${ar?`<span class="tag danger">遭遇エリア</span> ${esc(ar.name)}（推奨レベル${ar.q}）`:`<span class="tag ${m.kind==="field"?"danger":"safe"}">${m.kind==="field"?"街外の道":"安全な街・室内"}</span>`}${near.length?`<span class="small">／近く：${near.map(o=>esc(o.label)).join("・")}</span>`:""}</div>`;
+  return `<div class="here">${ar?`<span class="tag danger">遭遇エリア</span> ${esc(ar.name)}（推奨レベル${ar.q}）`:`<span class="tag ${m.kind==="field"?"danger":"safe"}">${m.kind==="field"?"街外の道":"安全"}</span>`}${near.length?`<span class="small">／近く：${near.map(o=>esc(o.label)).join("・")}</span>`:""}</div>`;
 }
 function renderMainMenu(){
   return `<nav class="menu-grid main-menu" aria-label="冒険メニュー">
@@ -5618,7 +5626,7 @@ function renderExplore(){
       <div class="srow"><span class="place">${esc(m.name)}</span><span>${st.day}日目</span></div>
       ${renderCurrentLocation()}
       <div class="goal">${esc(objective())}</div>
-      <div class="xsave small" aria-live="polite">保存：<span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（閲覧のみ）":""}</div>
+      <div class="xsave small" aria-live="polite"><span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（閲覧のみ）":""}</div>
     </header>
     <div class="mapwrap" data-map-kind="${esc(m.kind)}"><aside id="navRoute" class="map-route" aria-label="移動先" hidden></aside><canvas id="map" aria-label="${esc(m.name)}の地図。地面をタップすると移動します。"></canvas>
       <canvas id="minimap" aria-label="全体ミニマップ。白丸は現在地、白枠は表示範囲。城門は砦、家は街、ベッドは宿屋、瓶は道具屋、書類は職業窓口"></canvas>
@@ -5831,7 +5839,7 @@ function talkNpc(id){
     if(n.rep) lines.push(["",`${n.name}と話した。応援者帳に記録された（親密度1）。`]); }
   else if(n.after && ((id==="akari"&&st.quests.S01==="complete")||(id==="sota"&&st.quests.S02==="complete"))) lines=n.after(p);
   else lines=n.normal(p);
-  if(n.questId){ const q=QUESTS[n.questId]; lines=st.quests[n.questId]==="complete"?[[n.name,NATIONWIDE_STORIES[q.hub].resolution]]:[...lines,["",`やる事「${q.name}」で街外の調査を受けられます。`]]; }
+  if(n.questId){ const q=QUESTS[n.questId]; lines=st.quests[n.questId]==="complete"?[[n.name,NATIONWIDE_STORIES[q.hub].resolution]]:[...lines,["",`やること「${q.name}」で街外の調査を受けられます。`]]; }
   commit(); say(lines);
 }
 function openBox(o){
@@ -6008,8 +6016,8 @@ function renderCommand(run){
   let prev = info?`<span class="pinfo">${esc(info)}</span>`:"";
   let ok=false;
   if(act){ const p=planAction(run,c.actor,act); ok=p.ok; prev = (info?`<span class="pinfo">${esc(info)}</span>`:"") + (p.ok? previewText(run,a,p) : `<span class="warn">${esc(p.reason)}</span>`); }
-  else if(c.type) prev += `<span class="hint">対象・台詞を選んでください</span>`;
-  else prev = `<span class="hint">${esc(a.name)}の行動を選んでください（未行動${al.length}人）</span>`;
+  else if(c.type){const hint=c.type==='item'&&!c.item?'道具を選択':c.type==='comment'||c.type==='skill'&&skillNeeds(a.job)==='line'?'台詞を選択':c.type==='skill'&&skillNeeds(a.job)==='mode'&&!c.mode?'技の使い方を選択':c.type==='other'?'使う技を選択':'対象を選択';prev+=`<span class="hint">${hint}</span>`;}
+  else prev = `<span class="hint">${esc(a.name)}：行動を選択（未行動${al.length}人）</span>`;
   return `<div class="win cmd">
     <div class="cmdgrid">${entries.map(([k,n])=>`<button class="btn ${c.type===k?"on":""}" data-a="cmdType" data-v="${k}" aria-pressed="${c.type===k}">${c.type===k?"▶":""}${esc(n).replace("コメント","<wbr>コメント").replace("コール","<wbr>コール")}</button>`).join("")}</div>
     ${sub?`<div class="chips">${sub}</div>`:""}
@@ -6162,6 +6170,7 @@ function renderResult(){
   });
   const anyLow=st.roster.some(c=>{const v=vitalOf(c),s=charStats(st,c,L); return v.hp<=0||isLow(v.hp,s.maxHP);});
   const receivedCount=(r.items||[]).length+(r.itemsVaulted||[]).length+(r.itemsKept||[]).length+gifts.length,unreceivedCount=(r.itemsLost||[]).length;
+  const summary=[receivedCount?`入手 ${receivedCount}件`:'',unreceivedCount?`受取不可 ${unreceivedCount}件`:'',(r.newBadges||[]).length?`新バッジ ${r.newBadges.length}件`:'',usedItems.length?`道具使用 ${usedItems.length}回${r.itemsUsedKnown===true?'':'（記録不完全）'}`:r.itemsUsedKnown===true?'道具未使用':'道具履歴なし'].filter(Boolean).join('・');
   return `<section class="result" aria-labelledby="rtitle">
     <div class="rbanner ${r.kind==="boss"?"boss":""}"><h2 id="rtitle">${title}</h2><p>${r.turns?`${r.turns}ターン`:""}${foes.length?`・敵${foes.length}体`:""}</p></div>
     <div class="rgrid">${card("経験値",`＋${formatResult(r.xp)}`)}${card("ゴールド",`＋${formatResult(r.gold)}`,"gold")}${r.tickets?card("チケット",`＋${formatResult(r.tickets)}`):card("所持金",`${formatResult(st.gold)}G`)}</div>
@@ -6169,7 +6178,7 @@ function renderResult(){
     ${r.quest?`<div class="rquest done">依頼「${esc(QUESTS[r.quest].name)}」完了！</div>`:r.kills&&r.killQuest?`<div class="rquest">依頼の討伐 ${r.killNow}/${r.killNeed}</div>`:""}
     <div class="rmems ${resultMembers.length>2?"many":""}" aria-label="仲間の戦闘後の状態">${mem}</div>
     ${anyLow?`<p class="rwarning warn" role="status">体力わずか・戦闘不能の仲間がいます。MAPで回復を。</p>`:""}
-    <p class="rsummary ${unreceivedCount?'warn':''}">入手 ${receivedCount}件${unreceivedCount?`・受取不可 ${unreceivedCount}件`:''}・新バッジ ${(r.newBadges||[]).length}件・道具使用 ${usedItems.length}回${r.itemsUsedKnown===true?"":"（記録不完全）"}</p>
+    <p class="rsummary ${unreceivedCount?'warn':''}">${summary}</p>
     <div class="rfoot"><button class="btn primary wide" data-a="resultDone">MAPへ戻る</button></div>
     <details class="rbox result-details"><summary>報酬・成長・戦闘の詳細</summary><p>${sub}</p><ul class="rlist">${resultMembers.map(x=>{const j=(r.jp||[]).find(y=>y.cid===x.cid)||{gain:0};return `<li>${esc(charName(st,x.cid))}・${esc(JOBS[charStats(st,x.cid,L).job].name)}：熟練度${j.R0??"不明"}→${j.R1??"不明"}（＋${j.gain}）・最大体力${x.maxBefore}→${x.maxAfter}</li>`;}).join("")}</ul><p>経験値＋${r.xp.toLocaleString()}・ゴールド＋${r.gold.toLocaleString()}・所持金${st.gold.toLocaleString()}G${r.tickets?`・チケット＋${r.tickets.toLocaleString()}`:""}</p>
       ${up?`<p class="good">レベルアップ！ ${r.levelBefore} → ${r.levelAfter}</p>`:""}
@@ -6206,7 +6215,7 @@ function resultDone(){
 /* ---- シート（メニュー） ---- */
 function openSheet(k,data={}){ if(G.vaultSaving||G.shopSaving||G.petSaving||G.characterSaving||G.featureSaving) return; G.sheet=k; G.sheetData=data; G.walk.path=[]; render(); const el=$(".sheet"); if(el) el.scrollTop=0; }
 function closeSheet(){ if(G.vaultSaving||G.shopSaving||G.petSaving||G.characterSaving||G.featureSaving) return; G.sheet=null; render(); }
-function sheetWrap(title, body){ return `<div class="overlay" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="win sheet ${['guide','quests'].includes(G.sheet)?'navigation-sheet':''}"><div class="sheet-head"><h2 class="label">${esc(title)}</h2><div class="sheet-actions"><button class="btn" data-a="closeSheet" ${G.vaultSaving||G.shopSaving?"disabled":""}>戻る</button>${G.screen==="explore"&&G.st&&!G.st.run?`<button class="btn" data-a="returnToMap">MAPへ戻る</button>`:""}</div></div>${body}</div></div>`; }
+function sheetWrap(title, body){ return `<div class="overlay" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="win sheet ${['guide','quests'].includes(G.sheet)?'navigation-sheet':G.sheet==='help'?'help-sheet':''}"><div class="sheet-head"><h2 class="label">${esc(title)}</h2><div class="sheet-actions"><button class="btn" data-a="closeSheet" ${G.vaultSaving||G.shopSaving?"disabled":""}>戻る</button>${G.screen==="explore"&&G.st&&!G.st.run?`<button class="btn" data-a="returnToMap" aria-label="MAPへ戻る">MAPへ</button>`:""}</div></div>${body}</div></div>`; }
 function renderSheet(){
   const k=G.sheet; if(!k) return ""; const st=G.st; const d=G.sheetData;
   switch(k){
@@ -6216,7 +6225,7 @@ function renderSheet(){
     case "settings": return sheetWrap("設定と保存", renderSettings());
     case "nearby": { const near=nearbyObjects(); return sheetWrap("近くを調べる", near.length? `<div class="stack">${near.map(o=>`<button class="btn" data-a="interactId" data-v="${o.id}">${esc(o.label)}</button>`).join("")}</div>` : `<p>近くに調べられるものはありません。オート移動から目的地を選べます。</p>`); }
     case "guide": { const m=MAPS[st.mapId]; return sheetWrap("オート移動", `<p class="small">選ぶと、その場所まで実際に歩きます（途中の遭遇エリアでは抽選があります）。</p><div class="stack">${m.objects.filter(o=>o.type!=="tower").map(o=>{ const a=o.area?AREAS[o.area]:null; return `<button class="btn" data-a="guideTo" data-v="${o.id}">${esc(o.label)}${a?`（推奨レベル${a.q}）`:""}</button>`; }).join("")}</div>`); }
-    case "quests": return sheetWrap("やる事", renderQuests());
+    case "quests": return sheetWrap("やること", renderQuests());
     case "map": return sheetWrap("全国の旅の地図", renderWorld());
     case "travel": return sheetWrap("街外の道", "<p>街間の徒歩移動は街外MAPの道を進みます。街の出口から出発してください。</p>");
     case "rail": return sheetWrap("新幹線駅",renderRail());
@@ -6262,12 +6271,11 @@ function renderSettings(){
   return `<h3 class="label">難易度</h3><p class="small">敵の体力・攻撃力と戦闘開始時のエールだけが変わります。報酬・地域の強さ・物語は共通。戦闘開始時に固定されます。</p>
     <div class="row3">${Object.entries(DIFFICULTY).map(([k,v])=>`<button class="btn ${s.difficulty===k?"on":""}" data-a="setOpt" data-k="difficulty" data-v="${k}" ${busy?"disabled":""}>${s.difficulty===k?"▶ ":""}${v.name}</button>`).join("")}</div>
     <h3 class="label">音と演出</h3>
-    <div class="stack"><button class="btn ${soundIsOn()?"on":""}" data-a="toggleSound">${soundIsOn()?"▶ BGM・効果音：ON（タップで消音）":"BGM・効果音：OFF（タップで音あり）"}</button>
+    <div class="stack"><button class="btn ${soundIsOn()?"on":""}" data-a="toggleSound" aria-pressed="${soundIsOn()}">${soundIsOn()?"BGM・効果音：ON":"BGM・効果音：OFF"}</button>
     <button class="btn ${s.reduceMotion?"on":""}" data-a="setOpt" data-k="reduceMotion" data-v="${!s.reduceMotion}">${s.reduceMotion?"▶ 演出を減らす：ON":"演出を減らす：OFF"}</button>
-    <button class="btn ${s.dock!==false?"on":""}" data-a="setOpt" data-k="dock" data-v="${s.dock===false}">${s.dock!==false?"▶ ジョイコントローラーを表示：ON":"ジョイコントローラーを表示：OFF（タップ操作のみ）"}</button></div>
-    <h3 class="label">ジョイコントローラーの配置</h3>
-    <p class="small">操作：左の戻るボタン／右のスティック中央で決定</p>
-    <p class="small">ジョイコントローラー：探索ではスティックで歩き、決定で近くを調べます。メニュー・戦闘・会話ではスティックでカーソル（▶）を動かし、決定で選び、戻るで閉じます。Bluetoothのゲームコントローラー（Joy-Conなど）にも対応しています。</p>
+    <button class="btn ${s.dock!==false?"on":""}" data-a="setOpt" data-k="dock" data-v="${s.dock===false}" aria-pressed="${s.dock!==false}">操作パッド：${s.dock!==false?"表示":"非表示"}</button></div>
+    <details class="control-help"><summary>操作の説明</summary><p>戻るはスティックの右側。中央で決定します。</p>
+    <p>探索はドラッグで移動、中央で調べる・停止・再開。メニューや戦闘は項目を選んで決定。会話は中央で次の台詞、戻るで前の台詞を表示します。対応するゲームコントローラーも使えます。</p></details>
     ${st?`<h3 class="label">保存</h3><p class="small">行動を確定するたびに、この端末のブラウザ内へ自動保存しています。状態：${esc(G.saveStatus)}</p>
     <p class="small">端末の変更やブラウザのデータ削除の前に、下の「バックアップを表示」で文字列をコピーし、メモ帳などへ保管してください。</p>
     <div class="stack"><button class="btn" data-a="showBackup">バックアップを表示</button></div>
@@ -7338,7 +7346,7 @@ function helpResultEntries(d){const category=Object.hasOwn(SYSTEM_HELP,d.categor
 function renderSystemHelp(){
  const d=G.sheetData,category=Object.hasOwn(SYSTEM_HELP,d.category)?d.category:'all',entries=helpResultEntries(d),pages=Math.max(1,Math.ceil(entries.length/4)),page=Math.max(0,Math.min(pages-1,Number.isInteger(d.page)?d.page:0));d.page=page;
  return `<form class="help-search" data-help-search><label for="helpSearch" class="field-label">解説を検索</label><input id="helpSearch" class="input" maxlength="100" value="${esc(d.query||'')}"><button type="submit" class="btn">検索</button><button type="button" class="btn" data-a="helpReset">解除</button></form>
- <div class="opts" role="group" aria-label="解説の分野">${[['all','すべて'],...Object.entries(SYSTEM_HELP).map(([id,h])=>[id,h.name])].map(([id,name])=>`<button class="btn opt" data-a="helpFilter" data-v="${id}" aria-pressed="${category===id}">${esc(name)}</button>`).join('')}</div>
+ <details class="help-categories"><summary>分野：${category==='all'?'すべて':esc(SYSTEM_HELP[category].name)}</summary><div class="opts" role="group" aria-label="解説の分野">${[['all','すべて'],...Object.entries(SYSTEM_HELP).map(([id,h])=>[id,h.name])].map(([id,name])=>`<button class="btn opt" data-a="helpFilter" data-v="${id}" aria-pressed="${category===id}">${esc(name)}</button>`).join('')}</div></details>
  ${entries.length?entries.slice(page*4,page*4+4).map(([,h])=>`<section class="qcard"><h3 class="label">${h.name}</h3><p>${h.text}</p></section>`).join(''):'<p>見つかりません。解除で検索条件をリセットできます。</p>'}
  <div class="row3"><button class="btn" data-a="helpPage" data-v="${page-1}" ${page===0?'disabled':''}>前へ</button><span role="status" aria-live="polite">${entries.length}件・${page+1}／${pages}</span><button class="btn" data-a="helpPage" data-v="${page+1}" ${page+1>=pages?'disabled':''}>次へ</button></div>`;
 }
@@ -7493,7 +7501,7 @@ Object.assign(ACT,{
   managementShopFilter(el){if(G.sheet!=="shop"||G.shopSaving||!Object.hasOwn(MANAGEMENT_SHOP_FILTERS,el.dataset.v))return;G.sheetData.filter=el.dataset.v;G.sheetData.page=0;render();},
   managementShopPage(el){if(G.sheet!=="shop"||G.shopSaving)return;const page=Number(el.dataset.v),pages=Math.max(1,Math.ceil(managementShopEntries(G.st,G.sheetData).length/6));if(!Number.isInteger(page)||page<0||page>=pages)return;G.sheetData.page=page;render();},
   managementShopQty(el){if(G.sheet!=="shop"||G.shopSaving)return;const offer=shopOffer(G.st,{...G.sheetData,qty:G.sheetData.qty||1});if(!offer)return;const max=offer.tab==="sell"?offer.max:offer.unit>0?Math.min(offer.max,Math.floor(G.st.gold/offer.unit)):offer.max,qty=el.dataset.v==="max"?max:Number(el.dataset.v);if(!Number.isSafeInteger(qty)||qty<1||qty>max)return;G.sheetData.qty=qty;render();},
-  managementShopTalk(el){if(G.sheet!=="shop"||!SHOPS[G.sheetData.shop]||!["advice","prepare","town"].includes(el.dataset.v)||G.petSaving||G.shopSaving)return;const name=NPCS[G.sheetData.npc]?.name||"店員",city=HUBS[curHub()].name,lines={advice:["道具の用途と、持っている数から選んでください。効果がない回復では使わないので、いざという時の分も残せます。","非売品や交換専用の装備は、売る一覧にも理由を表示しています。"],prepare:["街外へ出る前にHPとMP、回復品を確かめましょう。ペット用品は育成で使うため、戦闘道具とは別です。","金庫は全街共通です。袋が満杯の時は、受取先の案内を確認してください。"],town:[`${city}の店で、旅人が次の街の話をしてくれます。今度はあなたの話も聞かせてください。`,Object.entries(QUESTS).some(([id,q])=>q.main&&q.hub===curHub()&&G.st.quests[id]==="complete")?"街の声をつないでくれてありがとう。帰り道でも立ち寄ってください。":"街外で困っている人の依頼は、街のやる事で受けられます。"]};say(lines[el.dataset.v].map(text=>[name,text]));},
+  managementShopTalk(el){if(G.sheet!=="shop"||!SHOPS[G.sheetData.shop]||!["advice","prepare","town"].includes(el.dataset.v)||G.petSaving||G.shopSaving)return;const name=NPCS[G.sheetData.npc]?.name||"店員",city=HUBS[curHub()].name,lines={advice:["道具の用途と、持っている数から選んでください。効果がない回復では使わないので、いざという時の分も残せます。","非売品や交換専用の装備は、売る一覧にも理由を表示しています。"],prepare:["街外へ出る前にHPとMP、回復品を確かめましょう。ペット用品は育成で使うため、戦闘道具とは別です。","金庫は全街共通です。袋が満杯の時は、受取先の案内を確認してください。"],town:[`${city}の店で、旅人が次の街の話をしてくれます。今度はあなたの話も聞かせてください。`,Object.entries(QUESTS).some(([id,q])=>q.main&&q.hub===curHub()&&G.st.quests[id]==="complete")?"街の声をつないでくれてありがとう。帰り道でも立ち寄ってください。":"街外で困っている人の依頼は、街のやることで受けられます。"]};say(lines[el.dataset.v].map(text=>[name,text]));},
   managementEquipPreview(el){if(G.sheet!=="party"||!G.st.roster.includes(el.dataset.c))return;const plan=managementGearPlan(G.st,el.dataset.c,el.dataset.s,el.dataset.v||null,el.dataset.from||null);if(!plan.ok)return toast(plan.reason);openSheet("gearPreview",{cid:plan.cid,slot:plan.slot,item:plan.id,from:plan.from});},
   managementEquipConfirm(el){if(G.sheet!=="gearPreview"||el.dataset.plan!==managementEquipPlanToken(G.st,G.sheetData))return;const d={...G.sheetData};return managementMutation(el,st=>{const plan=managementGearPlan(st,d.cid,d.slot,d.item,d.from);if(!plan.ok)return plan;st.equip=plan.equipment;ensureVitals(st);return {ok:true,message:"比較した装備へ変更しました。",after:()=>{G.sheet="party";G.sheetData={cid:d.cid,view:""};G.sheetHistory=[];}};},{sound:"ok"});},
   managementExchangeDo(el){if(G.sheet!=="pointExchange"||!nearbyObjects().some(o=>o.type==="shop"))return;return managementMutation(el,st=>{const offer=managementExchangePreview(st,el.dataset.v);if(!offer.ok)return offer;st.tickets-=offer.cost;st.owned[el.dataset.v]=(st.owned[el.dataset.v]||0)+1;return {ok:true,message:`${EQUIP[el.dataset.v].name}を受け取りました。`};},{sound:"buy"});},
@@ -7543,18 +7551,18 @@ function navigationRows(m=MAPS[G.st.mapId]){
   return {o,category,steps,status,rank};
  });
 }
-function navigationToolbar(key,filters){const d=navigationView(key);return `<form class="nav-search" data-nav-search><label class="sr-only" for="navSearchInput">${key==='guide'?'行先':'依頼'}を検索</label><input class="input" id="navSearchInput" maxlength="64" autocomplete="off" value="${esc(d.query)}" placeholder="名前・種類・地域を検索"><button type="submit" class="btn">検索</button><button type="button" class="btn" data-a="navClear">解除</button></form><div class="nav-filters" role="group" aria-label="絞り込み">${filters.map(([id,label])=>`<button class="btn" data-a="navFilter" data-v="${id}" aria-pressed="${d.filter===id}">${label}</button>`).join('')}</div>`;}
+function navigationToolbar(key,filters){const d=navigationView(key);return `<form class="nav-search" data-nav-search><label class="sr-only" for="navSearchInput">${key==='guide'?'行先':'依頼'}を検索</label><input class="input" id="navSearchInput" maxlength="64" autocomplete="off" value="${esc(d.query)}" placeholder="${key==='guide'?'名前・施設を検索':'依頼を検索'}"><button type="submit" class="btn">検索</button><button type="button" class="btn" data-a="navClear">解除</button></form><div class="nav-filters" role="group" aria-label="絞り込み">${filters.map(([id,label])=>`<button class="btn" data-a="navFilter" data-v="${id}" aria-pressed="${d.filter===id}">${label}</button>`).join('')}</div>`;}
 function navigationPage(key,rows){const d=navigationView(key),pages=Math.max(1,Math.ceil(rows.length/6));d.page=Math.max(0,Math.min(pages-1,d.page));return {rows:rows.slice(d.page*6,d.page*6+6),html:`<div class="nav-pages"><button class="btn" data-a="navPage" data-v="${d.page-1}" ${d.page?'':'disabled'}>前へ</button><span role="status" aria-live="polite">${rows.length}件・${d.page+1}／${pages}</span><button class="btn" data-a="navPage" data-v="${d.page+1}" ${d.page+1<pages?'':'disabled'}>次へ</button></div>`};}
 function navigationValidPlan(){const p=G.walkPlan;return p&&p.state===G.st&&p.map===G.st?.mapId?p:null;}
 function navigationPlanControls(){const p=navigationValidPlan();if(!p)return '';const paused=p.paused||!G.walk.path.length;return `<div class="nav-plan"><b>${paused?'一時停止':'移動中'}：${esc(p.label||'選んだ地点')}</b><div class="srow"><button class="btn" data-a="${paused?'travelResume':'travelPause'}" data-v="${p.version}" ${G.readOnly?"disabled":""}>${paused?'再開':'一時停止'}</button><button class="btn" data-a="travelCancel" data-v="${p.version}">取り消す</button></div></div>`;}
 function navigationRecommendedQuest(){const st=G.st;if(st.activeQuest&&QUESTS[st.activeQuest])return st.activeQuest;return Object.keys(QUESTS).filter(id=>st.quests[id]==='available').sort((a,b)=>(QUESTS[b].hub===curHub()?1:0)-(QUESTS[a].hub===curHub()?1:0)||(QUESTS[b].main?1:0)-(QUESTS[a].main?1:0))[0]||null;}
-function navigationQuestShortcut(token){const id=navigationRecommendedQuest();if(!id)return '';const target=navigationQuestTarget(id);return `<div class="nav-goal"><b>次にすること：${esc(QUESTS[id].name)}</b>${target?`<button class="btn" data-a="navQuestGo" data-v="${id}" data-map="${esc(G.st.mapId)}" data-nav-token="${token}" ${G.readOnly?'disabled':''}>${esc(target.label)}へ（${target.steps}歩）</button>`:'<button class="btn" data-a="openSheet" data-k="quests">依頼を確認・受注する</button>'}</div>`;}
+function navigationQuestShortcut(token){const id=navigationRecommendedQuest();if(!id)return '';const target=navigationQuestTarget(id);return `<div class="nav-goal"><b>次の依頼：${esc(QUESTS[id].name)}</b>${target?`<button class="btn" data-a="navQuestGo" data-v="${id}" data-map="${esc(G.st.mapId)}" data-nav-token="${token}" ${G.readOnly?'disabled':''}>${esc(target.label)}へ（${target.steps}歩）</button>`:'<button class="btn" data-a="openSheet" data-k="quests">依頼を確認・受注する</button>'}</div>`;}
 function renderNavigationGuide(){
  const m=MAPS[G.st.mapId],d=navigationView('guide');NAV_UI.serial++;const token=NAV_UI.serial;
  const rows=navigationRows(m).filter(r=>(['priority','all'].includes(d.filter)||r.category===d.filter)&&navigationMatches(r.o.label+' '+r.status+' '+(({shop:'道具屋 道具店 装備',inn:'宿屋 宿 回復',jobcenter:'職業 転職 ハローワーク',rest:'休憩 日付 翌朝',npc:'住人',box:'宝箱',boss:'ボス 砦',station:'駅 新幹線'})[r.o.type]||'')+' '+(r.category==='exit'?'出口 街':'')+' '+m.name,d.query));
  rows.sort((a,b)=>Number.isFinite(b.steps)-Number.isFinite(a.steps)||(d.filter==='priority'?a.rank-b.rank:0)||a.steps-b.steps||a.o.label.localeCompare(b.o.label,'ja'));
  const page=navigationPage('guide',rows);
- return `<p class="small">${esc(m.name)}。実際に歩く距離で並びます。街外では敵と遭遇することがあります。</p>${navigationPlanControls()}${navigationToolbar('guide',NAV_GUIDE_FILTERS)}${navigationQuestShortcut(token)}${page.html}<div class="nav-results">${page.rows.map(({o,steps,status})=>`<button class="btn nav-destination" data-a="guideTo" data-v="${esc(o.id)}" data-map="${esc(G.st.mapId)}" data-nav-token="${token}" ${!Number.isFinite(steps)||G.readOnly?'disabled':''}><b>${esc(o.label)}</b><span>${Number.isFinite(steps)?steps?`${steps}歩`:'すぐ近く':'歩ける経路なし'}${status?'・'+esc(status):''}</span></button>`).join('')||'<p>見つかりません。</p><button class="btn" data-a="navReset">検索条件をリセット</button>'}</div><div class="nav-shortcuts"><button class="btn" data-a="openSheet" data-k="quests">やる事</button><button class="btn" data-a="openSheet" data-k="jobcenter">ハローワーク</button><button class="btn" data-a="openSheet" data-k="ocean">航海・海上イベント</button>${m.kind==='field'&&!m.combatDomain?'<button class="btn" data-a="openSheet" data-k="training">街外の実技チャレンジ</button>':''}</div>`;
+ return `<p class="small">${esc(m.name)}・徒歩で案内${m.kind==='field'?'（遭遇あり）':''}</p>${navigationPlanControls()}${navigationToolbar('guide',NAV_GUIDE_FILTERS)}${navigationQuestShortcut(token)}${page.html}<div class="nav-results">${page.rows.map(({o,steps,status})=>`<button class="btn nav-destination" data-a="guideTo" data-v="${esc(o.id)}" data-map="${esc(G.st.mapId)}" data-nav-token="${token}" ${!Number.isFinite(steps)||G.readOnly?'disabled':''}><b>${esc(o.label)}</b><span>${Number.isFinite(steps)?steps?`${steps}歩`:'すぐ近く':'歩ける経路なし'}${status?'・'+esc(status):''}</span></button>`).join('')||'<p>見つかりません。</p><button class="btn" data-a="navReset">検索条件をリセット</button>'}</div><div class="nav-shortcuts"><button class="btn" data-a="openSheet" data-k="quests">やること</button><button class="btn" data-a="openSheet" data-k="jobcenter">ハローワーク</button><button class="btn" data-a="openSheet" data-k="ocean">航海・海上イベント</button>${m.kind==='field'&&!m.combatDomain?'<button class="btn" data-a="openSheet" data-k="training">街外の実技チャレンジ</button>':''}</div>`;
 }
 function navigationQuestTarget(id){
  const st=G.st,q=QUESTS[id],m=MAPS[st.mapId];if(!q||['locked','complete'].includes(st.quests[id]))return null;
@@ -7578,7 +7586,7 @@ function renderNavigationQuests(){
  const st=G.st,d=navigationView('quests'),hub=curHub(),labels={locked:'未解放',available:'受注可能',active:'受注中',bossReady:'ボスに挑戦',complete:'完了'};NAV_UI.serial++;const token=NAV_UI.serial;
  let rows=Object.entries(QUESTS).filter(([id,q])=>{const status=st.quests[id]||'locked';return (d.filter==='all'||d.filter==='local'&&(q.hub===hub||id===st.activeQuest)||d.filter==='active'&&id===st.activeQuest||d.filter==='available'&&status==='available'||d.filter==='main'&&q.main||d.filter==='complete'&&status==='complete')&&navigationMatches(`${id} ${q.name} ${q.goal} ${HUBS[q.hub].name} ${q.main?"本編":"任意"} ${labels[status]}`,d.query);});
  const rank=id=>id===st.activeQuest?-1:({bossReady:0,active:1,available:2,locked:3,complete:4})[st.quests[id]||'locked'];rows.sort((a,b)=>rank(a[0])-rank(b[0])||(a[1].hub===hub?-1:0)-(b[1].hub===hub?-1:0));const page=navigationPage('quests',rows);
- return `<p class="small">本編 ${Object.entries(QUESTS).filter(([id,q])=>q.main&&st.quests[id]==='complete').length}/${Object.values(QUESTS).filter(q=>q.main).length}件完了。受注は同時に1件。案内は次の地点まで歩きます。</p>${navigationToolbar('quests',NAV_QUEST_FILTERS)}${page.html}${page.rows.map(([id,q])=>{const status=st.quests[id]||'locked',target=navigationQuestTarget(id),canAccept=status==='available'&&!G.readOnly&&!st.activeQuest&&q.hub===hub&&isSafe();return `<article class="qcard nav-quest ${status}"><div class="srow"><b>${esc(q.name)}</b><span class="tag">${labels[status]}</span></div><p class="small">${esc(HUBS[q.hub].name)}・${q.main?'本編':'任意'}${['active','bossReady','complete'].includes(status)?`・討伐 ${Math.min(st.qprog[id]||0,q.kills)}/${q.kills}（残り${Math.max(0,q.kills-(st.qprog[id]||0))}体）`:''}</p>${status==='available'?`<button class="btn primary" data-a="acceptQuest" data-v="${id}" ${canAccept?'':'disabled'}>受注する</button>${canAccept?'':`<p class="small">${G.readOnly?'閲覧中のため受注・変更はできません。':st.activeQuest?'ほかの依頼を受注中です。':esc(HUBS[q.hub].name)+'の街で受注できます。'}</p>`}`:''}${target?`<button class="btn" data-a="navQuestGo" data-v="${id}" data-map="${esc(st.mapId)}" data-nav-token="${token}" ${G.readOnly?'disabled':''}>次の目的地へ：${esc(target.label)}（${target.steps}歩）</button>`:''}<details><summary>依頼の内容・操作</summary><p>${esc(q.goal)}</p>${status==='locked'?`<p class="small">${q.requires?'先に「'+esc(QUESTS[q.requires]?.name||q.requires)+'」を完了してください。':'前の依頼や街の会話を進めると解放されます。'}</p>`:''}${id===st.activeQuest?`<button class="btn" data-a="navAbandon" data-v="${id}" ${G.readOnly?"disabled":""}>依頼を放棄する…</button>`:''}</details></article>`;}).join('')||'<p>条件に合う依頼はありません。</p><button class="btn" data-a="navReset">検索条件をリセット</button>'}`;
+ return `<p class="small">本編 ${Object.entries(QUESTS).filter(([id,q])=>q.main&&st.quests[id]==='complete').length}/${Object.values(QUESTS).filter(q=>q.main).length}件完了・受注は1件ずつ</p>${navigationToolbar('quests',NAV_QUEST_FILTERS)}${page.html}${page.rows.map(([id,q])=>{const status=st.quests[id]||'locked',target=navigationQuestTarget(id),canAccept=status==='available'&&!G.readOnly&&!st.activeQuest&&q.hub===hub&&isSafe();return `<article class="qcard nav-quest ${status}"><div class="srow"><b>${esc(q.name)}</b><span class="tag">${labels[status]}</span></div><p class="small">${esc(HUBS[q.hub].name)}・${q.main?'本編':'任意'}${['active','bossReady'].includes(status)?`・${status==='bossReady'?'討伐達成':'残り'+Math.max(0,q.kills-(st.qprog[id]||0))+'体'}`:''}</p>${status==='available'?`<button class="btn primary" data-a="acceptQuest" data-v="${id}" ${canAccept?'':'disabled'}>受注する</button>${canAccept?'':`<p class="small">${G.readOnly?'閲覧中のため受注・変更はできません。':st.activeQuest?'ほかの依頼を受注中です。':esc(HUBS[q.hub].name)+'の街で受注できます。'}</p>`}`:''}${target?`<button class="btn" data-a="navQuestGo" data-v="${id}" data-map="${esc(st.mapId)}" data-nav-token="${token}" ${G.readOnly?'disabled':''}>案内：${esc(target.label)}（${target.steps}歩）</button>`:''}<details><summary>依頼の詳細</summary><p>${esc(q.goal)}</p>${['active','bossReady','complete'].includes(status)?`<p class="small">討伐 ${Math.min(st.qprog[id]||0,q.kills)}/${q.kills}</p>`:''}${status==='locked'?`<p class="small">${q.requires?'先に「'+esc(QUESTS[q.requires]?.name||q.requires)+'」を完了してください。':'前の依頼や街の会話を進めると解放されます。'}</p>`:''}${id===st.activeQuest?`<button class="btn" data-a="navAbandon" data-v="${id}" ${G.readOnly?"disabled":""}>依頼を放棄する…</button>`:''}</details></article>`;}).join('')||'<p>条件に合う依頼はありません。</p><button class="btn" data-a="navReset">検索条件をリセット</button>'}`;
 }
 function updateNavigationHud(){
  if(G.readOnly&&navigationValidPlan()){G.walkPlan.paused=true;G.walk.path=[];G.walk.pending=null;}
@@ -7602,7 +7610,7 @@ const navigationBaseScene=playScene;
 playScene=function(id,after){const result=navigationBaseScene(id,after);if(G.dlg)G.dlg.sceneId=id;updateControlHints();return result;};
 const navigationBaseRender=render,navigationBaseSheet=renderSheet,navigationBaseWalk=walkTo,navigationBaseArrive=arrive,navigationBaseOpen=openSheet,navigationBaseClose=closeSheet;
 render=function(){navigationReleaseOnContextChange();if(G.walkPlan&&G.screen==='explore'&&!G.st?.run&&(G.walkPlan.state!==G.st||G.walkPlan.map!==G.st.mapId))G.walkPlan=null;G.controlEpoch=(G.controlEpoch||0)+1;const result=navigationBaseRender();if(G.sheet==='navAbandon'){const cancel=document.querySelector('[data-nav-cancel]');if(cancel){document.querySelectorAll('.kfocus').forEach(e=>e.classList.remove('kfocus'));cancel.classList.add('kfocus');cancel.focus({preventScroll:true});G.cursorSig=null;}}updateNavigationHud();updateControlHints();return result;};
-renderSheet=function(){if(G.sheet==='guide'&&G.st)return sheetWrap('オート移動',renderNavigationGuide());if(G.sheet==='quests'&&G.st)return sheetWrap('やる事',renderNavigationQuests());if(G.sheet==='navAbandon')return sheetWrap('依頼を放棄する',`<p>「${esc(QUESTS[G.sheetData.id]?.name||"この依頼")}」の討伐数${G.st.qprog[G.sheetData.id]||0}を0に戻します。受注費は戻りません。</p><button class="btn" data-nav-cancel data-a="closeSheet">続ける・戻る</button><button class="btn" data-a="navAbandonDo" data-v="${esc(G.sheetData.id)}" data-nav-token="${G.sheetData.token}" ${G.readOnly?"disabled":""}>放棄する</button>`);return navigationBaseSheet();};
+renderSheet=function(){if(G.sheet==='guide'&&G.st)return sheetWrap('オート移動',renderNavigationGuide());if(G.sheet==='quests'&&G.st)return sheetWrap('やること',renderNavigationQuests());if(G.sheet==='navAbandon')return sheetWrap('依頼を放棄する',`<p>「${esc(QUESTS[G.sheetData.id]?.name||"この依頼")}」の討伐数${G.st.qprog[G.sheetData.id]||0}を0に戻します。受注費は戻りません。</p><button class="btn" data-nav-cancel data-a="closeSheet">続ける・戻る</button><button class="btn" data-a="navAbandonDo" data-v="${esc(G.sheetData.id)}" data-nav-token="${G.sheetData.token}" ${G.readOnly?"disabled":""}>放棄する</button>`);return navigationBaseSheet();};
 closeSheet=function(){if(['guide','quests'].includes(G.sheet))navigationCaptureDraft();return navigationBaseClose();};
 openSheet=function(key,data){if(['guide','quests'].includes(G.sheet))navigationCaptureDraft();if(navigationValidPlan()&&G.walk.path.length)G.walkPlan.paused=true;return navigationBaseOpen(key,data);};
 walkTo=function(x,y,pending){
@@ -7669,7 +7677,7 @@ ACTION_SCREEN_BUTTONS.add('helpFilter');
 const actionSafetyHelpSearch=ACT.helpSearch,actionSafetyHelpFilter=ACT.helpFilter;
 function captureHelpDraft(){const input=document.querySelector('#helpSearch');if(!input)return false;const query=input.value.slice(0,100),changed=query!==(G.sheetData.query||'');G.sheetData.query=query;if(changed)G.sheetData.page=0;return changed;}
 ACT.helpSearch=function(){if(G.sheet!=='help')return;G.cursorSig=null;const result=actionSafetyHelpSearch();document.querySelector('#helpSearch')?.focus?.({preventScroll:true});return result;};
-ACT.helpFilter=function(el){if(G.sheet!=='help'||!currentActionButton(el)||el.dataset.v!=='all'&&!Object.hasOwn(SYSTEM_HELP,el.dataset.v))return;captureHelpDraft();G.cursorSig=null;const result=actionSafetyHelpFilter(el);document.querySelectorAll('[data-a="helpFilter"]').forEach(b=>{if(b.dataset.v===el.dataset.v)b.focus({preventScroll:true});});return result;};
+ACT.helpFilter=function(el){if(G.sheet!=='help'||!currentActionButton(el)||el.dataset.v!=='all'&&!Object.hasOwn(SYSTEM_HELP,el.dataset.v))return;captureHelpDraft();G.cursorSig=null;const result=actionSafetyHelpFilter(el);document.querySelector('.help-categories>summary')?.focus?.({preventScroll:true});return result;};
 document.addEventListener('submit',e=>{if(e.target?.matches?.('[data-help-search]')){e.preventDefault();ACT.helpSearch();}});
 for(const name of ['helpReset','helpPage'])ACTION_SCREEN_BUTTONS.add(name);
 ACT.helpReset=function(el){if(G.sheet!=='help'||!currentActionButton(el))return;G.sheetData={category:'all',query:'',page:0};G.helpQuery={...G.sheetData};G.cursorSig=null;render();document.querySelector('#helpSearch')?.focus?.({preventScroll:true});};

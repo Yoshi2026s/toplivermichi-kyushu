@@ -264,7 +264,7 @@ for(let index=0;index<NATIONWIDE_ORDER.length;index++){
   BOSSES[bossId]={name:bossName,q,areaId:`${hub}-A3`,cue,hub,cycle:nationwideBossCycle(q,index),
     lore:premise,counter:{guard:"ため中に2人がガードする。",comment:"ため中に2人が応援コメントを送る。",damage:"ため中に2人が攻撃する。"}[cue]};
   NPCS[npcId]={name:npc,hub,rep:true,questId,sprite:[[PAL.brown,PAL.violet,PAL.mist,PAL.ink][index%4],[PAL.aqua,PAL.coral,PAL.gold,PAL.leaf][index%4]],
-    first:p=>[[npc,`${p}さん、私は${role}の${npc}。${HUBS[hub].name}へようこそ。`],[npc,premise],["もえ","大切にしているものを、まず聞かせてもらおう。"],[npc,`${approach} やる事の${questId}で、力を貸してほしい。`]],
+    first:p=>[[npc,`${p}さん、私は${role}の${npc}。${HUBS[hub].name}へようこそ。`],[npc,premise],["もえ","大切にしているものを、まず聞かせてもらおう。"],[npc,`${approach} やることの${questId}で、力を貸してほしい。`]],
     normal:p=>[[npc,premise],[npc,`${approach} 街は安全だよ。宿で支度をして、出口から街外へ向かって。`]],
     after:p=>[[npc,resolution],["もえ",`${p}、ここで聞いた返事も忘れずにいこう。`]]};
   SCENES[introScene]={title:`${pref.name}　${title}`,lines:p=>[

@@ -541,6 +541,24 @@ p{margin:0 0 8px;overflow-wrap:anywhere}.kv{grid-template-columns:minmax(88px,.8
 @media(max-width:330px){.kv{grid-template-columns:minmax(70px,.8fr) minmax(0,1.3fr);gap:6px 8px}.main-menu .btn{font-size:14px}.sheet{padding:10px}.sname{font-size:17px}.battle .cmdgrid .btn{font-size:13px}}
 .status-member .sprite-md{width:44px;height:64px}.status-member .who{gap:10px}.status-vitals{display:grid;grid-template-columns:1fr 1fr;gap:12px}.status-vitals>div{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px;font-size:14px}.status-vitals b{font-size:16px;font-variant-numeric:tabular-nums}.status-vitals .bar{grid-column:1/-1;height:7px}.status-details>summary{font-size:15px;font-weight:650;min-height:48px;align-content:center;cursor:pointer}.status-details[open]>.kv{margin-top:6px}
 .rmems{grid-template-columns:1fr}.rmem{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 10px}.rmem .rmh,.rmem .gauge:nth-child(2),.rmem>p{grid-column:1/-1}.rmem .rmh b{font-size:16px;letter-spacing:0;overflow-wrap:anywhere}.rmem .gauge{grid-template-columns:auto minmax(10px,1fr) auto;gap:5px;font-size:14px}.rmem>p{font-size:14px;margin:0}
+/* Dawn overture title: static painted environment with lightweight compositor effects. */
+.title-visual{border:1px solid #e9c584;border-radius:18px;box-shadow:0 0 0 3px #94703d33,0 16px 44px #0008,0 0 32px #b2925130;background:#102343}
+#titleArt{height:clamp(300px,89vw,420px);background-size:cover;background-position:60% center;image-rendering:auto}
+.title-visual::after{background:linear-gradient(100deg,#07142670,transparent 70%),linear-gradient(0deg,#09193255,transparent 40%);z-index:1}
+.title-caption{top:26px;left:23px;right:12px}
+.title-caption .logo .main{font-size:clamp(34px,12.8vw,58px);line-height:1.15;letter-spacing:.035em;filter:drop-shadow(0 2px 0 #714422) drop-shadow(0 4px 1px #382315) drop-shadow(0 7px 8px #020c21);}
+.title-caption .logo .main>span{width:max-content;max-width:100%;color:#ffe4a0;background:linear-gradient(115deg,#b87830 0%,#f7ce7b 18%,#fff9df 34%,#e4a74b 49%,#fff2bf 57%,#d6983e 72%,#fff4c6 90%);background-size:220% 100%;background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:title-gilding 9s ease-in-out infinite}
+.title-caption .logo .sub{margin-top:14px;padding:5px 15px 5px 18px;color:#fff0c3;border:1px solid #e3bd78;background:linear-gradient(110deg,#142b47e6,#244660c9);box-shadow:0 0 14px #e4bc6745,inset 0 0 9px #f8d18520;letter-spacing:.4em}
+.title-aura{position:absolute;pointer-events:none;inset:0;z-index:1;opacity:.42;background:radial-gradient(ellipse at 90% 23%,#fff4be70,transparent 43%),linear-gradient(125deg,transparent 40%,#fff2bd20 50%,transparent 59%);animation:title-aura 12s ease-in-out infinite alternate}
+.title-sparkles{position:absolute;inset:0;pointer-events:none;z-index:3;overflow:hidden}.title-sparkles i{position:absolute;width:5px;height:5px;background:#fff7d4;box-shadow:0 0 9px 3px #ffe7a688;clip-path:polygon(50% 0,60% 40%,100% 50%,60% 60%,50% 100%,40% 60%,0 50%,40% 40%);animation:title-sparkle 6s ease-in-out infinite}
+.title-sparkles i:nth-child(1){left:8%;top:15%}.title-sparkles i:nth-child(2){left:49%;top:9%;animation-delay:-2s;width:9px;height:9px}.title-sparkles i:nth-child(3){left:31%;top:43%;animation-delay:-4s}.title-sparkles i:nth-child(4){left:76%;top:28%;animation-delay:-1s}.title-sparkles i:nth-child(5){left:87%;top:67%;animation-delay:-3s;width:8px;height:8px}.title-sparkles i:nth-child(6){left:59%;top:79%;animation-delay:-5s}
+.title-screen .menu .btn.primary{background:linear-gradient(115deg,#713e31,#ad6950 48%,#754230);border-color:#eac58b;box-shadow:inset 0 1px 0 #ffe9b866,0 3px 12px #0005}
+@keyframes title-gilding{0%,100%{background-position:100% 50%}50%{background-position:0 50%}}
+@keyframes title-aura{from{opacity:.25;transform:translateX(-2%)}to{opacity:.6;transform:translateX(2%)}}
+@keyframes title-sparkle{0%,100%{opacity:0;transform:translateY(5px) scale(.6)}45%,55%{opacity:.9;transform:translateY(-4px) scale(1.1)}}
+.reduce-motion .title-visual *{animation:none!important}.reduce-motion .title-sparkles{display:none}
+@media(prefers-reduced-motion:reduce){.title-visual *{animation:none!important}.title-sparkles{display:none}}
+@media(max-height:600px){#titleArt{height:clamp(190px,48vh,260px)}.title-screen{gap:10px}.title-caption{top:19px}.title-caption .logo .main{font-size:clamp(30px,10vw,44px)}}
 </style>
 <main id="screen" aria-live="off"></main>
 <div id="dock" class="dock" aria-label="ジョイコントローラー">

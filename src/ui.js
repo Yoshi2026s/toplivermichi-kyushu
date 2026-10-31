@@ -125,8 +125,8 @@ function statusBar(){
 /* ---- タイトル ---- */
 function renderTitle(){
   return `<section class="title-screen">
-    <div class="title-visual"><canvas id="titleArt" width="960" height="640" role="img" aria-label="星空の港町と2頭身の旅人たち"></canvas>
-    <div class="title-caption"><h1 class="logo" aria-label="ポコチャクエスト 全国編"><span class="main" aria-hidden="true"><span>ポコチャ</span><span>クエスト</span></span><span class="sub">全国編</span></h1></div></div>
+    <div class="title-visual"><canvas id="titleArt" width="960" height="640" role="img" aria-label="暁の雲海に浮かぶ城と、光へ続く天空の橋"></canvas>
+    <div class="title-aura" aria-hidden="true"></div><div class="title-sparkles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="title-caption"><h1 class="logo" aria-label="ポコチャクエスト 全国編"><span class="main" aria-hidden="true"><span>ポコチャ</span><span>クエスト</span></span><span class="sub">全国編</span></h1></div></div>
     <div class="menu">
       <button class="btn primary" data-a="newGame">はじめから</button>
       <button class="btn" data-a="continue" ${G.hasSave?"":"disabled"}>つづきから${G.hasSave?"":"（記録なし）"}</button>

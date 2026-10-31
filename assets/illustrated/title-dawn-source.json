@@ -1,0 +1,8 @@
+{
+  "created": "2026-10-31",
+  "method": "OpenAI built-in image generation",
+  "asset": "title-dawn.webp",
+  "dimensions": [1440, 960],
+  "description": "Original fantasy RPG title background: dawn cloud sea, floating ivory castle, crystal spires, ancient stone bridge, foreground flowers; dark upper-left space for separate accessible title typography; no text in the image.",
+  "conversion": "Generated 1536x1024 PNG resized to 1440x960 WebP quality 88 using @napi-rs/canvas"
+}

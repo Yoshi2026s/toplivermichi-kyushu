@@ -33,6 +33,9 @@ jobs:
       - run: node scripts/test-map-ui.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-smooth-runtime.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - run: node scripts/test-controls-navigation.mjs
         env:
           MOBILE_BROWSER: chromium
@@ -103,6 +106,8 @@ jobs:
             .task/mobile-facilities/report.json
             .task/mobile-usability/*.png
             .task/mobile-usability/audit.json
+            .task/smooth-runtime/*.png
+            .task/smooth-runtime/report.json
             .task/photo-layout/*.png
             .task/photo-layout/report.json
             .task/pet-rarity/*.png

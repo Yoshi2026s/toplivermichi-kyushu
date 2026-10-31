@@ -14,7 +14,7 @@ async function emitArtifact(name,content){
   }else await writeFile(resolve(root,name),bytes);
 }
 const assetFiles={};
-const files = ['data_enemies.js', 'data_saga_enemies.js', 'data_items.js', 'data_national.js', 'data.js', 'data_nationwide.js', 'data_nationwide_story.js', 'data_maps.js', 'data_character.js', 'data_pets.js', 'data_ocean.js', 'data_extras.js', 'core.js', 'art.js', 'art_detail.js', 'world_art.js', 'soft_art.js', 'battle_fx.js', 'audio.js', 'share.js', 'pets.js', 'ocean.js', 'listeners.js', 'ui.js', 'ui_character.js', 'ui_pets.js', 'ui_ocean.js', 'ui_systems.js', 'ui_management.js', 'ui_guards.js', 'input.js'];
+const files = ['data_enemies.js', 'data_saga_enemies.js', 'data_items.js', 'data_national.js', 'data.js', 'data_nationwide.js', 'data_nationwide_story.js', 'data_maps.js', 'data_character.js', 'data_pets.js', 'data_ocean.js', 'data_extras.js', 'core.js', 'art.js', 'art_detail.js', 'world_art.js', 'soft_art.js', 'battle_fx.js', 'audio_samples.js', 'audio.js', 'share.js', 'pets.js', 'ocean.js', 'listeners.js', 'ui.js', 'ui_character.js', 'ui_pets.js', 'ui_ocean.js', 'ui_systems.js', 'ui_management.js', 'ui_guards.js', 'input.js'];
 const embeddedArt = {};
 for (const [token,name] of [['__WORLD_MATERIALS_DATA_URI__','illustrated/world-materials'],['__TITLE_DAWN_DATA_URI__','illustrated/title-dawn'],['__SOFT_FRONT_DATA_URI__','illustrated/party-front'],['__SOFT_BACK_DATA_URI__','illustrated/party-back'],['__SOFT_SIDE_DATA_URI__','illustrated/party-side'],['__SOFT_NPC_DATA_URI__','illustrated/npc-front'],['__SOFT_PETS_DATA_URI__','illustrated/pets'],['__SOFT_ENEMIES_DATA_URI__','illustrated/enemies'],['__COAST_ART_DATA_URI__','illustrated/battle-coast-dawn'],['__FOREST_ART_DATA_URI__','illustrated/battle-forest-dawn'],['__MOUNTAIN_ART_DATA_URI__','illustrated/battle-mountain-dawn'],['__PLAIN_ART_DATA_URI__','illustrated/battle-plain-dawn']]) {
   const path='assets/'+name+'.webp',bytes=await readFile(resolve(root,path));
@@ -26,10 +26,16 @@ for(const [token,name]of [['__DISPLAY_FONT_DATA_URI__','quest-mincho-800'],['__B
  assetFiles[path]={bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};
  embeddedArt[token]='data:font/woff2;base64,'+bytes.toString('base64');
 }
+const bankBytes=await readFile(resolve(root,'assets/audio/orchestra-bank.json'));
+JSON.parse(bankBytes.toString('utf8'));
+assetFiles['assets/audio/orchestra-bank.json']={bytes:bankBytes.length,sha256:createHash('sha256').update(bankBytes).digest('hex')};
+embeddedArt['__ORCHESTRA_BANK_JSON__']=bankBytes.toString('utf8').trim();
 const embedArt = text => Object.entries(embeddedArt).reduce((out,[token,uri])=>out.replaceAll(token,uri),text);
 const shell = embedArt(await source('shell.html'));
 const fontLicenses=(await Promise.all(['OFL-Shippori-Mincho.txt','OFL-Noto-Sans-JP.txt'].map(name=>textFile('assets/fonts/'+name)))).join('\n\n');
 const licenseTemplate='<template id="font-licenses">'+fontLicenses.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')+'</template>\n';
+const audioLicense=await textFile('assets/audio/VSCO-CC0.txt');
+const audioCredits='<template id="audio-credits">Acoustic instrument recordings: VSCO 2 Community Edition, Versilian Studios. https://versilian-studios.com/vsco-community/\n'+audioLicense.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')+'</template>\n';
 const scripts = await Promise.all(files.map(source));
 const header = `<!doctype html><html lang="ja"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -39,7 +45,7 @@ const header = `<!doctype html><html lang="ja"><head><meta charset="utf-8">
 <script>window.TLR_PUBLIC=true;window.TLR_BUILD="2026-10-31";</script>
 </head><body>
 `;
-const output = header + licenseTemplate + shell.trimEnd() + '\n<script>\n' + scripts.map(s => embedArt(s.trimEnd())).join('\n\n') + '\n</script>\n</body></html>\n';
+const output = header + licenseTemplate + audioCredits + shell.trimEnd() + '\n<script>\n' + scripts.map(s => embedArt(s.trimEnd())).join('\n\n') + '\n</script>\n</body></html>\n';
 await emitArtifact('index.html', output);
 for(const name of ['README.md','VERSION.txt','GAME_SPEC.md'])await emitArtifact(name,await textFile(name));
 await emitArtifact('GAME_SPEC.txt', await textFile('GAME_SPEC.md'));
@@ -49,5 +55,5 @@ for(const name of ['index.html','README.md','VERSION.txt','GAME_SPEC.md','GAME_S
 }
 const version=(scripts[files.indexOf('data.js')].match(/const GAME_VERSION = "([^"]+)"/)||[])[1];
 await emitArtifact('release-manifest.json',JSON.stringify({version,schemaVersion:5,buildDate:'2026-10-31',sourceFileCount:files.length,files:releaseFiles,assets:assetFiles,validation:'docs/validation-5.34.json'},null,2)+'\n');
-console.log(`${checkOnly?"Verified":"Built"} index.html from ${files.length} source files and ${Object.keys(assetFiles).length} embedded graphics/font assets`);
+console.log(`${checkOnly?"Verified":"Built"} index.html from ${files.length} source files and ${Object.keys(assetFiles).length} embedded graphics/font/audio assets`);
 

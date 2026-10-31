@@ -39,6 +39,9 @@ jobs:
       - run: node scripts/test-title.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-music.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - run: node scripts/test-world-backgrounds.mjs
         env:
           MOBILE_BROWSER: chromium
@@ -47,6 +50,7 @@ jobs:
         with:
           name: mobile-emulation
           path: |
+            .task/music-qa/report.json
             .task/world-qa/*.png
             .task/world-qa/report.json
             .task/title-qa/*.png

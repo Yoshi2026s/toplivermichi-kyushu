@@ -5,7 +5,7 @@ let rendered=0,paused=0,confirmed=0,skipped=0;
 const noop=()=>{},G={screen:'battle',st:{run:{state:'input'}},cmd:{actor:0,type:'item',item:'I01',target:0},walk:{path:[]}},confirm={click(){confirmed++;}},chip={getAttribute:()=> 'true'};
 const screen={contains:()=>true,querySelector:()=>null,querySelectorAll:()=>[]};
 const document={hidden:false,activeElement:chip,addEventListener:noop,getElementById:()=>screen,querySelector:s=>s==='.cmd [data-a="confirmAct"]:not([disabled])'?confirm:null,querySelectorAll:()=>[]};
-const ACT={pauseBattle(){paused++;},dlgBack(){G.dlg.i--;},dlgSkip(){skipped++;G.dlg=null;}};
+const ACT={pauseBattle(){paused++;},dlgBack(){G.dlg.i--;},dlgSkip(){skipped++;G.dlg=null;},expandedSkillBack(){delete G.sheetData.skill;}};
 const pad=runInNewContext(readFileSync(new URL('../src/input.js',import.meta.url),'utf8')+';PAD',{G,ACT,document,window:{addEventListener:noop},render(){rendered++;},SND:{sfx:noop},boot:noop,performance:{now:()=>0},requestAnimationFrame:noop});
 pad.pressB();assert.equal(G.cmd.type,'item');assert.equal(G.cmd.item,'I01');assert.equal(G.cmd.target,undefined);
 pad.pressB();assert.equal(G.cmd.type,'item');assert.equal(G.cmd.item,undefined);
@@ -19,3 +19,4 @@ G.walkPlan={paused:false};G.walk={path:[{x:1,y:0}],prog:.4,pending:{}};pad.relea
 G.dlg=null;G.screen='battle';G.cmd={actor:0};let focusedClicks=0,staleClicks=0;
 const focusable=click=>({disabled:false,getAttribute:()=>null,closest:()=>null,getBoundingClientRect:()=>({width:80,height:48}),click});const stale=focusable(()=>staleClicks++),focused=focusable(()=>focusedClicks++);screen.querySelector=()=>stale;screen.querySelectorAll=()=>[stale,focused];document.activeElement=focused;pad.pressA();assert.equal(focusedClicks,1,'native focus wins over old joystick highlight');assert.equal(staleClicks,0);
 console.log('Control actions: back unwinds target/item/action, idle opens pause, ready action confirms, dialogue goes back, held movement releases');
+G.sheet='battleSkills';G.sheetData={skill:'selected'};pad.pressB();assert.equal(G.sheet,'battleSkills');assert.equal(G.sheetData.skill,undefined,'Back from skill details returns to its list');G.sheet=null;

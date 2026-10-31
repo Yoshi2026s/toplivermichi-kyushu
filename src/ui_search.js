@@ -3,9 +3,10 @@ const LIST_SEARCH={
  shop:{sheets:['shop'],input:'managementShopSearch',action:'managementShopSearch',label:'品物を検索',placeholder:'名前・効果',max:80},
  vault:{sheets:['itemVault'],input:'itemVaultSearch',action:'itemVaultSearch',label:'金庫の品物を検索',placeholder:'名前で検索',max:60},
  job:{sheets:['jobcenter','jobCenter'],input:'jobcenterSearch',action:'jobcenterSearch',label:'職業を検索',placeholder:'職業・役割',max:40},
- gear:{sheets:['gearManage'],input:'managementGearSearch',action:'managementGearSearch',label:'装備を検索',placeholder:'装備名',max:80}
+ gear:{sheets:['gearManage'],input:'managementGearSearch',action:'managementGearSearch',label:'装備を検索',placeholder:'装備名',max:80},
+ skill:{sheets:['battleSkills'],input:'expandedSkillSearch',action:'expandedSkillSearch',label:'追加技能を検索',placeholder:'技名・効果',max:50}
 };
-function listSearchBlocked(kind){return typeof systemOperationPending==='function'&&systemOperationPending()||kind==='vault'&&typeof canViewItemVault==='function'&&!canViewItemVault();}
+function listSearchBlocked(kind){return typeof systemOperationPending==='function'&&systemOperationPending()||kind==='vault'&&typeof canViewItemVault==='function'&&!canViewItemVault()||kind==='skill'&&(!G.st?.run||G.st.run.state!=='input'||G.sheetData.seq!==G.st.run.seq||G.sheetData.turn!==G.st.run.turn);}
 function listSearchForm(kind){const c=LIST_SEARCH[kind],disabled=listSearchBlocked(kind)?'disabled':'';return `<form class="compact-search" data-list-search="${kind}"><label class="sr-only" for="${c.input}">${c.label}</label><input id="${c.input}" class="input" type="search" enterkeyhint="search" autocomplete="off" maxlength="${c.max}" placeholder="${c.placeholder}" value="${esc(G.sheetData.query||'')}" ${disabled}><button type="submit" class="btn" ${disabled}>検索</button><button type="button" class="btn" data-a="searchReset" data-v="${kind}" ${disabled}>解除</button></form>`;}
 function listSearchContext(kind,el){return Object.hasOwn(LIST_SEARCH,kind)&&!!G.st&&LIST_SEARCH[kind].sheets.includes(G.sheet)&&!G.dlg&&!listSearchBlocked(kind)&&currentActionButton(el);}
 function listSearchFocus(kind){document.querySelector('#'+LIST_SEARCH[kind].input)?.focus?.({preventScroll:true});}
@@ -24,3 +25,16 @@ ACT.jobcenterView=function(el){if(!listSearchContext('job',el)||!['events','chan
 ACTION_SCREEN_BUTTONS.add('jobcenterView');
 installListPaging('gear','managementGearPage');
 installListPaging('shop','managementShopPage');
+installListPaging('skill','expandedSkillPage');
+const listSkillBack=ACT.expandedSkillBack;
+ACT.expandedSkillBack=function(el){if(!listSearchContext('skill',el))return;const selected=G.sheetData.skill;G.cursorSig=null;const result=listSkillBack(el);const button=[...document.querySelectorAll('[data-a="expandedSkillPick"]')].find(b=>b.dataset.v===selected);button?.focus?.({preventScroll:true});button?.scrollIntoView?.({block:'nearest'});return result;};
+ACTION_SCREEN_BUTTONS.add('expandedSkillBack');
+
+const listPetFilter=ACT.petFilter;
+ACT.petFilter=function(el){if(!G.st||G.sheet!=='pets'||G.dlg||!currentActionButton(el))return;G.cursorSig=null;const result=listPetFilter(el);document.querySelector('.pet-filters [data-v="'+G.sheetData.filter+'"]')?.focus?.({preventScroll:true});return result;};
+ACTION_SCREEN_BUTTONS.add('petFilter');
+
+function installAuxPaging(name,sheets,key='v'){const base=ACT[name];ACTION_SCREEN_BUTTONS.add(name);ACT[name]=function(el){if(!G.st||!sheets.includes(G.sheet)||G.dlg||!currentActionButton(el))return;const forward=Number(el.dataset[key])>(G.sheetData.page||0);G.cursorSig=null;const result=base(el);const buttons=[...document.querySelectorAll('[data-a="'+name+'"]')].filter(b=>!b.disabled),button=buttons.find(b=>(Number(b.dataset[key])>(G.sheetData.page||0))===forward)||buttons[0];button?.focus?.({preventScroll:true});button?.scrollIntoView?.({block:'nearest'});return result;};}
+installAuxPaging('petPage',['petShop']);
+
+installAuxPaging('oceanDexPage',['oceanDex','dex'],'page');

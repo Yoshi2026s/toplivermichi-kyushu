@@ -196,13 +196,13 @@ function attackPower(s,L){ return 10+2*L+Vof(L)*(s.wAtk+s.accAtk); }
 function defensePower(s,L){ return Vof(L)*s.armorD; }
 function partyStrip(){
   const st=G.st;
-  return `<div class="pstrip" aria-label="パーティーの状態"><span class="pstop"><span>レベル${levelOf(st.xp,st)}・${st.gold.toLocaleString()}ゴールド・${esc(charName(st,"moe"))} ${MOE_RANKS[st.moeRank]}</span></span>${st.party.map(cid=>{ const L=levelOf(st.xp,st), s=charStats(st,cid,L), v=vitalOf(cid);
+  return `<div class="pstrip" aria-label="パーティーの状態"><span class="pstop"><span>レベル${levelOf(st.xp,st)}・${st.gold.toLocaleString()}ゴールド・物語 ${MOE_RANKS[st.moeRank]}</span></span>${st.party.map(cid=>{ const L=levelOf(st.xp,st), s=charStats(st,cid,L), v=vitalOf(cid);
     return `<span class="pmini ${v.hp<=0?"ko":""} ${isLow(v.hp,s.maxHP)?"low":""}"><span class="pmline"><b>${esc(charName(st,cid))}</b><span class="small">体力${v.hp}/${s.maxHP} MP${v.c}${v.hp<=0?"・戦闘不能":isLow(v.hp,s.maxHP)?"・体力わずか":""}</span></span><span class="bar"><i style="width:${Math.round(100*v.hp/s.maxHP)}%"></i></span></span>`; }).join("")}</div>`;
 }
 function renderStatus(){
   const st=G.st; const L=levelOf(st.xp,st);
   const head=`<dl class="kv"><dt>共通レベル</dt><dd>${L}／上限${levelLimit(st)}</dd><dt>経験値</dt><dd>${st.xp.toLocaleString()}${L<levelLimit(st)?`<span class="stat-sub">次のレベルまで ${Math.max(0,xpFor(L+1)-st.xp).toLocaleString()}</span>`:"（現在の上限）"}</dd>
-    <dt>所持ゴールド</dt><dd>${st.gold.toLocaleString()}</dd><dt>シナリオランク</dt><dd>${MOE_RANKS[st.moeRank]}</dd></dl>
+    <dt>所持ゴールド</dt><dd>${st.gold.toLocaleString()}</dd><dt>物語ランク</dt><dd>${MOE_RANKS[st.moeRank]}</dd></dl>
 `;
   const cards=st.roster.map(cid=>{
     const s=charStats(st,cid,L), v=vitalOf(cid), e=st.equip[cid], jp=jpOf(st,cid,s.job), C=CHARS[cid];
@@ -1115,7 +1115,7 @@ function renderRecord(){
   const st=G.st; const L=levelOf(st.xp,st);
   const milestones=[["E1","新規開始"],["D1","M01完了"],["D2","M02完了"],["D3","M03完了"],["C1","M04完了"],["C2","M05完了"],["C3","M06完了"],["B1","M07完了"],["B2","M08完了"]];
   return `<dl class="kv"><dt>共通レベル</dt><dd>${L}（経験値 ${st.xp.toLocaleString()}${L<levelLimit(st)?`・次まで${Math.max(0,xpFor(L+1)-st.xp).toLocaleString()}`:"・最大"}）</dd>
-    <dt>ヒロインのシナリオ到達ランク</dt><dd>${MOE_RANKS[st.moeRank]}</dd><dt>旅</dt><dd>${st.day}日目</dd></dl>
+    <dt>物語の到達ランク</dt><dd>${MOE_RANKS[st.moeRank]}</dd><dt>旅</dt><dd>${st.day}日目</dd></dl>
     <p class="small">もえのランクは物語上の到達記録です。レベル・熟練度・実際の応援ポイントとは別に表示します。</p>
     <ul class="list">${milestones.map(([r,c],i)=>`<li>${i<=st.moeRank?"●":"○"} ${r}：${c}</li>`).join("")}<li>全国の依頼を進めてS6へ。全51本編依頼完了で全国編エンディング。</li></ul>
     ${G.screen==="explore"&&isSafe()?`<h3 class="label">ゴールド金庫</h3><p class="small">全街共通・手数料と利息なし。金庫の残高は買物や敗北時の減額に使われません。</p><button class="btn" data-a="vaultOpen">金庫を開く（${(st.vaultGold||0).toLocaleString()}G）</button>`:""}

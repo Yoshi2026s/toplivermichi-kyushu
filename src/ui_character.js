@@ -63,19 +63,21 @@ function expandedActionFromSheet(){
   if(d.target!=null)act.target=d.target;if(d.ally!=null)act.ally=d.ally;if(d.line)act.line=d.line;if(d.mode)act.mode=d.mode;
   return act;
 }
+function expandedSkillEntries(run,actor,query){const words=String(query||'').normalize('NFKC').toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);return availableBattleSkills(run,actor).filter(e=>words.every(w=>(e.name+' '+e.description).normalize('NFKC').toLocaleLowerCase().includes(w)));}
+function expandedSkillListDescription(entry){return entry.type==='extra'?entry.description.replace(/^Lv[^。]+で習得。/,''):entry.description;}
 function renderExpandedSkillSheet(){
   const run=G.st?.run,d=G.sheetData;if(!run||d.seq!==run.seq||d.turn!==run.turn)return '<p>戦闘状態が変わりました。一覧を閉じて選び直してください。</p>';
   const a=run.party[d.actor];if(!a||a.hp<=0||a.acted)return '<p>この仲間は今、行動できません。</p>';
-  const query=String(d.query||"").normalize("NFKC").toLowerCase(),list=availableBattleSkills(run,a).filter(e=>(e.name+e.description).normalize("NFKC").toLowerCase().includes(query)),selected=list.find(e=>e.id===d.skill);
+  const query=String(d.query||''),list=expandedSkillEntries(run,a,query),selected=list.find(e=>e.id===d.skill);
   if(!selected){
     const pages=Math.max(1,Math.ceil(list.length/5)),page=Math.min(Math.max(0,d.page||0),pages-1);
-    return `<p>${esc(a.name)}の技（MP${a.c}/${a.maxMP||10}・エール${run.A}）</p><input id="expandedSkillSearch" class="input" value="${esc(d.query||"")}" maxlength="50" aria-label="技名と効果の検索"><button class="btn" data-a="expandedSkillSearch">検索する</button><div class="stack">${list.slice(page*5,page*5+5).map(e=>{
+    return `<p>${esc(a.name)}の技（MP${a.c}/${a.maxMP||10}・エール${run.A}）</p>${listSearchForm('skill')}<div class="stack">${list.slice(page*5,page*5+5).map(e=>{
       const ready=a.cooldowns?.[e.type==="extra"?e.id:e.type==="inherit"?"inherit:"+e.job:"signature"]||0;
-      return `<button class="btn" data-a="expandedSkillPick" data-v="${e.id}">${esc(e.name)}${ready>run.turn?`（あと${ready-run.turn}ターン）`:e.type==="signature"&&a.signatureUsed?"（使用済み）":""}<br><span class="small">${esc(e.description)}</span></button>`;
+      return `<button class="btn" data-a="expandedSkillPick" data-v="${e.id}">${esc(e.name)}${ready>run.turn?`（再使用まで${ready-run.turn}ターン）`:e.type==="signature"&&a.signatureUsed?"（この戦闘で使用済み）":""}<br><span class="small">${esc(expandedSkillListDescription(e))}</span></button>`;
     }).join("")||"<p>該当する技がありません。</p>"}</div><div class="row3"><button class="btn" data-a="expandedSkillPage" data-v="${page-1}" ${page>0?"":"disabled"}>前へ</button><span>${page+1}/${pages}</span><button class="btn" data-a="expandedSkillPage" data-v="${page+1}" ${page+1<pages?"":"disabled"}>次へ</button></div>`;
   }
   let need=selected.type==="signature"?"none":selected.type==="inherit"?skillNeeds(selected.job):selected.need;
-  let targets="";const button=(key,value,label)=>`<button class="btn ${d[key]===value?"on":""}" data-a="expandedSkillTarget" data-k="${key}" data-v="${value}">${esc(label)}</button>`;
+  let targets="";const button=(key,value,label)=>`<button class="btn ${d[key]===value?"on":""}" aria-pressed="${d[key]===value}" data-a="expandedSkillTarget" data-k="${key}" data-v="${value}">${esc(label)}</button>`;
   const enemies=()=>run.enemies.filter(e=>e.hp>0).map(e=>button("target",e.slot,e.display)).join("");
   const allies=other=>run.party.filter(m=>m.hp>0&&(!other||m!==a)).map(m=>button("ally",m.pos,m.name)).join("");
   if(need==="enemy")targets=enemies();if(need==="ally")targets=allies(false);if(need==="allyOther")targets=allies(true);
@@ -85,7 +87,7 @@ function renderExpandedSkillSheet(){
     if(["hp","c"].includes(d.mode))targets+=allies(d.mode==="c");if(["safe","bold"].includes(d.mode))targets+=enemies();
   }
   const act=expandedActionFromSheet(),p=act&&planAction(run,a.pos,act);
-  return `<h3 class="label">${esc(selected.name)}</h3><p>${esc(selected.description)}</p><div class="stack">${targets}</div><p>${p?.ok?previewText(run,a,p):esc(p?.reason||"対象を選んでください。")}</p><button class="btn primary" data-a="expandedSkillConfirm" ${p?.ok&&!G.readOnly?"":"disabled"}>この技を確定</button><button class="btn" data-a="expandedSkillBack">技一覧へ戻る</button>`;
+  return `<h3 class="label">${esc(selected.name)}</h3><p>${esc(selected.description)}</p>${targets?`<div class="stack" role="group" aria-label="対象・使い方">${targets}</div>`:''}<p>${p?.ok?previewText(run,a,p):esc(p?.reason||"対象を選んでください。")}</p><button class="btn primary" data-a="expandedSkillConfirm" ${p?.ok&&!G.readOnly?"":"disabled"}>この技を確定</button><button class="btn" data-a="expandedSkillBack">技一覧へ戻る</button>`;
 }
 function renderTrainingSheet(){
   const can=G.screen==="explore"&&!G.st.run&&!G.dlg&&MAPS[G.st.mapId].kind==="field";

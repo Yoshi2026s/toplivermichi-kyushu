@@ -935,6 +935,9 @@ body.in-battle:not(.no-dock){--dockH:80px}.in-battle .dock .stick{width:72px;hei
 .vault-modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.vault-filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.vault-filters .btn{min-height:48px;font-size:14px;padding:5px;white-space:normal}
 .sheet{scroll-padding-top:80px;scroll-padding-bottom:8px}.sheet button,.sheet input,.sheet summary{scroll-margin-top:4px}
 .shop-categories>summary,.shop-chat>summary{min-height:48px;align-content:center;font-size:15px;cursor:pointer}.shop-categories .opts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.shop-categories .btn{min-height:48px;font-size:14px;padding:4px;white-space:normal}.sheet .dexrow .small{font-size:14px;line-height:1.5}.shop-chat{margin-top:8px}
+.pet-menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.pet-filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.pet-menu .btn,.pet-filters .btn{min-height:48px;font-size:14px;padding:5px;white-space:normal}
+.ocean-area-picker>summary{min-height:48px;display:flex;align-items:center;padding:8px;cursor:pointer}
+.pet-portrait>svg,.pet-portrait>img,.pet-portrait>span{display:block;width:100%;max-width:100%;height:auto}.pet-portrait{overflow:hidden}
 </style>
 <main id="screen" aria-live="off"></main>
 <div id="dock" class="dock" aria-label="ジョイコントローラー">
@@ -5583,13 +5586,13 @@ function attackPower(s,L){ return 10+2*L+Vof(L)*(s.wAtk+s.accAtk); }
 function defensePower(s,L){ return Vof(L)*s.armorD; }
 function partyStrip(){
   const st=G.st;
-  return `<div class="pstrip" aria-label="パーティーの状態"><span class="pstop"><span>レベル${levelOf(st.xp,st)}・${st.gold.toLocaleString()}ゴールド・${esc(charName(st,"moe"))} ${MOE_RANKS[st.moeRank]}</span></span>${st.party.map(cid=>{ const L=levelOf(st.xp,st), s=charStats(st,cid,L), v=vitalOf(cid);
+  return `<div class="pstrip" aria-label="パーティーの状態"><span class="pstop"><span>レベル${levelOf(st.xp,st)}・${st.gold.toLocaleString()}ゴールド・物語 ${MOE_RANKS[st.moeRank]}</span></span>${st.party.map(cid=>{ const L=levelOf(st.xp,st), s=charStats(st,cid,L), v=vitalOf(cid);
     return `<span class="pmini ${v.hp<=0?"ko":""} ${isLow(v.hp,s.maxHP)?"low":""}"><span class="pmline"><b>${esc(charName(st,cid))}</b><span class="small">体力${v.hp}/${s.maxHP} MP${v.c}${v.hp<=0?"・戦闘不能":isLow(v.hp,s.maxHP)?"・体力わずか":""}</span></span><span class="bar"><i style="width:${Math.round(100*v.hp/s.maxHP)}%"></i></span></span>`; }).join("")}</div>`;
 }
 function renderStatus(){
   const st=G.st; const L=levelOf(st.xp,st);
   const head=`<dl class="kv"><dt>共通レベル</dt><dd>${L}／上限${levelLimit(st)}</dd><dt>経験値</dt><dd>${st.xp.toLocaleString()}${L<levelLimit(st)?`<span class="stat-sub">次のレベルまで ${Math.max(0,xpFor(L+1)-st.xp).toLocaleString()}</span>`:"（現在の上限）"}</dd>
-    <dt>所持ゴールド</dt><dd>${st.gold.toLocaleString()}</dd><dt>シナリオランク</dt><dd>${MOE_RANKS[st.moeRank]}</dd></dl>
+    <dt>所持ゴールド</dt><dd>${st.gold.toLocaleString()}</dd><dt>物語ランク</dt><dd>${MOE_RANKS[st.moeRank]}</dd></dl>
 `;
   const cards=st.roster.map(cid=>{
     const s=charStats(st,cid,L), v=vitalOf(cid), e=st.equip[cid], jp=jpOf(st,cid,s.job), C=CHARS[cid];
@@ -6502,7 +6505,7 @@ function renderRecord(){
   const st=G.st; const L=levelOf(st.xp,st);
   const milestones=[["E1","新規開始"],["D1","M01完了"],["D2","M02完了"],["D3","M03完了"],["C1","M04完了"],["C2","M05完了"],["C3","M06完了"],["B1","M07完了"],["B2","M08完了"]];
   return `<dl class="kv"><dt>共通レベル</dt><dd>${L}（経験値 ${st.xp.toLocaleString()}${L<levelLimit(st)?`・次まで${Math.max(0,xpFor(L+1)-st.xp).toLocaleString()}`:"・最大"}）</dd>
-    <dt>ヒロインのシナリオ到達ランク</dt><dd>${MOE_RANKS[st.moeRank]}</dd><dt>旅</dt><dd>${st.day}日目</dd></dl>
+    <dt>物語の到達ランク</dt><dd>${MOE_RANKS[st.moeRank]}</dd><dt>旅</dt><dd>${st.day}日目</dd></dl>
     <p class="small">もえのランクは物語上の到達記録です。レベル・熟練度・実際の応援ポイントとは別に表示します。</p>
     <ul class="list">${milestones.map(([r,c],i)=>`<li>${i<=st.moeRank?"●":"○"} ${r}：${c}</li>`).join("")}<li>全国の依頼を進めてS6へ。全51本編依頼完了で全国編エンディング。</li></ul>
     ${G.screen==="explore"&&isSafe()?`<h3 class="label">ゴールド金庫</h3><p class="small">全街共通・手数料と利息なし。金庫の残高は買物や敗北時の減額に使われません。</p><button class="btn" data-a="vaultOpen">金庫を開く（${(st.vaultGold||0).toLocaleString()}G）</button>`:""}
@@ -7021,19 +7024,21 @@ function expandedActionFromSheet(){
   if(d.target!=null)act.target=d.target;if(d.ally!=null)act.ally=d.ally;if(d.line)act.line=d.line;if(d.mode)act.mode=d.mode;
   return act;
 }
+function expandedSkillEntries(run,actor,query){const words=String(query||'').normalize('NFKC').toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);return availableBattleSkills(run,actor).filter(e=>words.every(w=>(e.name+' '+e.description).normalize('NFKC').toLocaleLowerCase().includes(w)));}
+function expandedSkillListDescription(entry){return entry.type==='extra'?entry.description.replace(/^Lv[^。]+で習得。/,''):entry.description;}
 function renderExpandedSkillSheet(){
   const run=G.st?.run,d=G.sheetData;if(!run||d.seq!==run.seq||d.turn!==run.turn)return '<p>戦闘状態が変わりました。一覧を閉じて選び直してください。</p>';
   const a=run.party[d.actor];if(!a||a.hp<=0||a.acted)return '<p>この仲間は今、行動できません。</p>';
-  const query=String(d.query||"").normalize("NFKC").toLowerCase(),list=availableBattleSkills(run,a).filter(e=>(e.name+e.description).normalize("NFKC").toLowerCase().includes(query)),selected=list.find(e=>e.id===d.skill);
+  const query=String(d.query||''),list=expandedSkillEntries(run,a,query),selected=list.find(e=>e.id===d.skill);
   if(!selected){
     const pages=Math.max(1,Math.ceil(list.length/5)),page=Math.min(Math.max(0,d.page||0),pages-1);
-    return `<p>${esc(a.name)}の技（MP${a.c}/${a.maxMP||10}・エール${run.A}）</p><input id="expandedSkillSearch" class="input" value="${esc(d.query||"")}" maxlength="50" aria-label="技名と効果の検索"><button class="btn" data-a="expandedSkillSearch">検索する</button><div class="stack">${list.slice(page*5,page*5+5).map(e=>{
+    return `<p>${esc(a.name)}の技（MP${a.c}/${a.maxMP||10}・エール${run.A}）</p>${listSearchForm('skill')}<div class="stack">${list.slice(page*5,page*5+5).map(e=>{
       const ready=a.cooldowns?.[e.type==="extra"?e.id:e.type==="inherit"?"inherit:"+e.job:"signature"]||0;
-      return `<button class="btn" data-a="expandedSkillPick" data-v="${e.id}">${esc(e.name)}${ready>run.turn?`（あと${ready-run.turn}ターン）`:e.type==="signature"&&a.signatureUsed?"（使用済み）":""}<br><span class="small">${esc(e.description)}</span></button>`;
+      return `<button class="btn" data-a="expandedSkillPick" data-v="${e.id}">${esc(e.name)}${ready>run.turn?`（再使用まで${ready-run.turn}ターン）`:e.type==="signature"&&a.signatureUsed?"（この戦闘で使用済み）":""}<br><span class="small">${esc(expandedSkillListDescription(e))}</span></button>`;
     }).join("")||"<p>該当する技がありません。</p>"}</div><div class="row3"><button class="btn" data-a="expandedSkillPage" data-v="${page-1}" ${page>0?"":"disabled"}>前へ</button><span>${page+1}/${pages}</span><button class="btn" data-a="expandedSkillPage" data-v="${page+1}" ${page+1<pages?"":"disabled"}>次へ</button></div>`;
   }
   let need=selected.type==="signature"?"none":selected.type==="inherit"?skillNeeds(selected.job):selected.need;
-  let targets="";const button=(key,value,label)=>`<button class="btn ${d[key]===value?"on":""}" data-a="expandedSkillTarget" data-k="${key}" data-v="${value}">${esc(label)}</button>`;
+  let targets="";const button=(key,value,label)=>`<button class="btn ${d[key]===value?"on":""}" aria-pressed="${d[key]===value}" data-a="expandedSkillTarget" data-k="${key}" data-v="${value}">${esc(label)}</button>`;
   const enemies=()=>run.enemies.filter(e=>e.hp>0).map(e=>button("target",e.slot,e.display)).join("");
   const allies=other=>run.party.filter(m=>m.hp>0&&(!other||m!==a)).map(m=>button("ally",m.pos,m.name)).join("");
   if(need==="enemy")targets=enemies();if(need==="ally")targets=allies(false);if(need==="allyOther")targets=allies(true);
@@ -7043,7 +7048,7 @@ function renderExpandedSkillSheet(){
     if(["hp","c"].includes(d.mode))targets+=allies(d.mode==="c");if(["safe","bold"].includes(d.mode))targets+=enemies();
   }
   const act=expandedActionFromSheet(),p=act&&planAction(run,a.pos,act);
-  return `<h3 class="label">${esc(selected.name)}</h3><p>${esc(selected.description)}</p><div class="stack">${targets}</div><p>${p?.ok?previewText(run,a,p):esc(p?.reason||"対象を選んでください。")}</p><button class="btn primary" data-a="expandedSkillConfirm" ${p?.ok&&!G.readOnly?"":"disabled"}>この技を確定</button><button class="btn" data-a="expandedSkillBack">技一覧へ戻る</button>`;
+  return `<h3 class="label">${esc(selected.name)}</h3><p>${esc(selected.description)}</p>${targets?`<div class="stack" role="group" aria-label="対象・使い方">${targets}</div>`:''}<p>${p?.ok?previewText(run,a,p):esc(p?.reason||"対象を選んでください。")}</p><button class="btn primary" data-a="expandedSkillConfirm" ${p?.ok&&!G.readOnly?"":"disabled"}>この技を確定</button><button class="btn" data-a="expandedSkillBack">技一覧へ戻る</button>`;
 }
 function renderTrainingSheet(){
   const can=G.screen==="explore"&&!G.st.run&&!G.dlg&&MAPS[G.st.mapId].kind==="field";
@@ -7102,7 +7107,7 @@ function petCardHtml(st,id,button=true){
 function renderPetList(){
   const st=G.st,ps=petData(st);if(!ps)return '<p>ペットの記録を準備しています。いったん街へ戻って開き直してください。</p>';
   const filter=G.sheetData.filter||"all",ids=Object.keys(ps.owned).filter(id=>PET_SPECIES[id]).filter(id=>filter==="all"||filter==="following"&&ps.companions.includes(id)||filter==="care"&&Object.keys(PET_CARE_TYPES).some(k=>ps.owned[id].daily[k]!==st.day));
-  return `<p>家族 ${Object.keys(ps.owned).filter(id=>PET_SPECIES[id]).length}/22種類・戦闘同行 ${ps.companions.length}/2匹</p><p class="small">お気に入りは旅のお手伝い担当。戦闘に連れていく2匹とは別に選べます。</p><div class="stack"><button class="btn" data-a="petView" data-k="adopt" data-v="${ps.favorite}" id="pet-adoption">新しい家族と出会う</button><button class="btn" data-a="petView" data-k="travel" data-v="${ps.favorite}" id="pet-travel">旅のお手伝い（街外でも使えます）</button><button class="btn" data-a="petView" data-k="shop" data-v="${ps.favorite}" id="pet-supplies">用品を買う</button></div><div class="opts">${[["all","みんな"],["following","戦闘同行"],["care","今日のお世話が残る家族"]].map(([k,n])=>`<button class="btn opt ${filter===k?"on":""}" data-a="petFilter" data-v="${k}" aria-pressed="${filter===k}" id="pet-filter-${k}">${n}</button>`).join("")}</div>${ids.map(id=>petCardHtml(st,id)).join("")||'<p class="small">この分類に当てはまる家族はいません。『みんな』に切り替えてください。</p>'}`;
+  return `<p>家族 ${Object.keys(ps.owned).filter(id=>PET_SPECIES[id]).length}/22種類・戦闘同行 ${ps.companions.length}/2匹</p><p class="small">旅はお気に入り、戦闘は同行2匹が担当。</p><div class="pet-menu"><button class="btn" data-a="petView" data-k="adopt" data-v="${ps.favorite}" id="pet-adoption">家族を迎える</button><button class="btn" data-a="petView" data-k="travel" data-v="${ps.favorite}" id="pet-travel">旅のお手伝い</button><button class="btn" data-a="petView" data-k="shop" data-v="${ps.favorite}" id="pet-supplies">用品を買う</button></div><div class="pet-filters">${[["all","みんな"],["following","戦闘同行"],["care","お世話が残る"]].map(([k,n])=>`<button class="btn opt ${filter===k?"on":""}" data-a="petFilter" data-v="${k}" aria-pressed="${filter===k}" id="pet-filter-${k}">${n}</button>`).join("")}</div>${ids.map(id=>petCardHtml(st,id)).join("")||'<p class="small">当てはまる家族はいません。</p><button class="btn" data-a="petFilter" data-v="all">みんなを見る</button>'}`;
 }
 function renderPetCare(){
   const st=G.st,id=petCurrentId(),p=petOwned(st,id),s=PET_SPECIES[id];if(!p)return '<p>ペット一覧から選んでください。</p>';
@@ -7120,10 +7125,10 @@ function renderPetTravel(){
   return `<p>お気に入り：${p?esc(p.name):"未選択"}。街外でも使えます。全ペット共通でゲーム内1日1回。</p><div class="stack">${Object.entries(PET_TRAVEL_POLICIES).map(([key,rule])=>`<button class="btn ${key===policy?"on":""}" data-a="petTravelPolicy" data-v="${key}" id="pet-travel-policy-${key}" aria-pressed="${key===policy}">${rule.name}</button>`).join("")}</div>${offer.hpRate!==undefined?`<p class="small">HP${offer.hpRate}％・MP${offer.mpRate}％（切上げ、残り容量まで）</p>`:""}<ul class="list">${offer.targets.map(t=>`<li>${esc(t.name)}：${t.alive?`HP＋${t.hp}・MP＋${t.mp}`:"戦闘不能・蘇生できません"}</li>`).join("")}</ul>${offer.ok?"":`<p class="warn">${esc(offer.reason)}</p>`}<button class="btn primary" ${petUiAttrs("petTravelDo",policy,`id="pet-travel-do-${policy}"`)} ${petUiDisabled(!offer.ok?offer.reason:"")}>この方針でお手伝い</button><button class="btn" data-a="petView" data-k="list" data-v="${ps.favorite}">みんなへ戻る</button>`;
 }
 function renderPetShop(){
-  const st=G.st,id=petCurrentId(),page=Math.max(0,Math.min(2,Number(G.sheetData.page)||0)),all=Object.values(PET_SUPPLIES).filter(it=>it.petSpecies===id),list=all.slice(page*4,page*4+4),safe=isSafe();
-  return `<p>${esc(PET_SPECIES[id]?.name||"ペット")}の用品。所持${st.gold}G。街で購入できます。</p>${list.map(it=>{const offer=petReceivePreview(st,it.id,1),can=safe&&offer.ok&&st.gold>=it.price;return `<div class="qcard"><b>${esc(it.name)}</b><p class="small">${esc(it.text)}<br>価格${it.price}G・手持ち${bagCount(st.bag,it.id)}・金庫${bagCount(st.itemVault||[],it.id)}${offer.ok?`・受取先${offer.where}`:`・${esc(offer.reason)}`}</p><button class="btn" ${petUiAttrs("petBuy",it.id,`id="pet-buy-${it.id}"`)} ${petUiDisabled(!can?"購入条件を満たしません":"")}>1個買う（${it.price}G）</button></div>`;}).join("")}<div class="row3"><button class="btn" data-a="petPage" data-v="${page-1}" ${page>0?"":"disabled"}>前へ</button><span>${page+1}/3ページ</span><button class="btn" data-a="petPage" data-v="${page+1}" ${page<2?"":"disabled"}>次へ</button></div><button class="btn" data-a="petView" data-k="care" data-v="${id}">お世話へ戻る</button>`;
+  const st=G.st,id=petCurrentId(),all=Object.values(PET_SUPPLIES).filter(it=>it.petSpecies===id),pages=Math.max(1,Math.ceil(all.length/4)),page=Math.max(0,Math.min(pages-1,Number(G.sheetData.page)||0)),list=all.slice(page*4,page*4+4),safe=isSafe();
+  return `<p>${esc(PET_SPECIES[id]?.name||"ペット")}の用品。所持${st.gold}G。街で購入できます。</p>${list.map(it=>{const offer=petReceivePreview(st,it.id,1),can=safe&&offer.ok&&st.gold>=it.price;return `<div class="qcard"><b>${esc(it.name)}</b><p class="small">${esc(it.text)}<br>価格${it.price}G・手持ち${bagCount(st.bag,it.id)}・金庫${bagCount(st.itemVault||[],it.id)}${offer.ok?`・受取先${offer.where}`:`・${esc(offer.reason)}`}</p><button class="btn" ${petUiAttrs("petBuy",it.id,`id="pet-buy-${it.id}"`)} ${petUiDisabled(!can?"購入条件を満たしません":"")}>1個買う（${it.price}G）</button></div>`;}).join("")}<div class="row3"><button class="btn" data-a="petPage" data-v="${page-1}" ${page>0?"":"disabled"}>前へ</button><span role="status">${page+1}/${pages}ページ</span><button class="btn" data-a="petPage" data-v="${page+1}" ${page<pages-1?"":"disabled"}>次へ</button></div><button class="btn" data-a="petView" data-k="care" data-v="${id}">お世話へ戻る</button>`;
 }
-function renderPetAdopt(){const st=G.st,safe=isSafe();return `<p>旅の途中で出会う22種類。最初のしばいぬは家族です。所持チケット${st.tickets}枚。</p><div class="stack">${Object.entries(PET_SPECIES).map(([id,s])=>{const offer=petAdoptPreview(st,id);return `<div class="qcard"><div class="who"><span style="width:48px;flex:none">${petSpriteSvg(id,1)}</span><span><b>${esc(s.name)}</b> ${"★".repeat(s.rarity)}<br><span class="small">本編${s.unlockCount}件・チケット${s.adoptionTickets}枚</span></span></div><p class="small">${offer.ok?"この子と旅を始められます。":esc(offer.reason)}</p><button class="btn" ${petUiAttrs("petAdopt",id,`id="pet-adopt-${id}"`)} ${petUiDisabled(!safe||!offer.ok?"街で条件を確認してください":"")}>家族に迎える</button></div>`;}).join("")}</div><button class="btn" data-a="petView" data-k="list" data-v="${petData(st)?.favorite}">みんなへ戻る</button>`;}
+function renderPetAdopt(){const st=G.st,safe=isSafe();return `<p>旅の途中で出会う22種類。最初のしばいぬは家族です。所持チケット${st.tickets}枚。</p><div class="stack">${Object.entries(PET_SPECIES).map(([id,s])=>{const offer=petAdoptPreview(st,id);return `<div class="qcard"><div class="who"><span class="pet-portrait" style="width:48px;flex:none">${petSpriteSvg(id,1)}</span><span><b>${esc(s.name)}</b> ${"★".repeat(s.rarity)}<br><span class="small">本編${s.unlockCount}件・チケット${s.adoptionTickets}枚</span></span></div><p class="small">${offer.ok?"この子と旅を始められます。":esc(offer.reason)}</p><button class="btn" ${petUiAttrs("petAdopt",id,`id="pet-adopt-${id}"`)} ${petUiDisabled(!safe||!offer.ok?"街で条件を確認してください":"")}>家族に迎える</button></div>`;}).join("")}</div><button class="btn" data-a="petView" data-k="list" data-v="${petData(st)?.favorite}">みんなへ戻る</button>`;}
 function petPartyHtml(st,run){
   const ps=petData(st),ids=run?.pets?.map(p=>p.id)||ps?.companions||[];if(!ids.length)return "";
   return `<span class="pet-party" style="display:flex;flex-wrap:wrap;gap:4px;max-width:100%;grid-column:1/-1"><span class="small">同行ペット：</span>${ids.map(id=>{const p=run?.pets?.find(p=>p.id===id)||petOwned(st,id);return p?`<span class="small" style="display:inline-flex;align-items:center;gap:3px;max-width:100%;overflow-wrap:anywhere"><span style="width:28px;display:inline-block;flex:none">${petSpriteSvg(id,p.stage||petStage(p))}</span>${esc(p.name)}・成長${p.stage||petStage(p)}</span>`:"";}).join("")}</span>`;
@@ -7144,7 +7149,7 @@ migrate=function(st){const result=petOriginalMigrate(st);migratePets(result);if(
 Object.assign(ACT,{
   petView(el){const key=el.dataset.k||"care",map={list:"pets",care:"petCare",walk:"petWalk",travel:"petTravel",shop:"petShop",adopt:"petAdopt"};if(!Object.hasOwn(map,key)||G.screen!=="explore"||G.dlg||G.st.run||G.petSaving)return;const id=petOwned(G.st,el.dataset.v)?el.dataset.v:petData(G.st)?.favorite;if(!id)return;G.sheet=map[key];G.sheetData={pet:id};G.walk.path=[];render();},
   petFilter(el){if(G.sheet!=="pets"||!["all","following","care"].includes(el.dataset.v))return;G.sheetData.filter=el.dataset.v;render();},
-  petPage(el){const page=Number(el.dataset.v);if(G.sheet!=="petShop"||!Number.isInteger(page)||page<0||page>2)return;G.sheetData.page=page;render();},
+  petPage(el){const page=Number(el.dataset.v);if(G.sheet!=="petShop"||!Number.isInteger(page)||page<0||page>=Math.max(1,Math.ceil(Object.values(PET_SUPPLIES).filter(it=>it.petSpecies===petCurrentId()).length/4)))return;G.sheetData.page=page;render();},
   petSupplySelect(el){const id=petCurrentId(),it=PET_SUPPLIES[el.dataset.v];if(G.sheet!=="petCare"||!it||it.petSpecies!==id)return;G.sheetData.supplies={...G.sheetData.supplies,[it.petCare]:it.id};render();},
   petDetails(el){const id=petCurrentId(),p=petOwned(G.st,id);if(G.sheet!=="petCare"||el.dataset.v!==id||!p)return;const input=$(`#petName-${id}`);if(input)G.sheetData.nameDraft=input.value;G.sheetData.details=!(G.sheetData.details??p.details);if(!G.readOnly&&!G.petSaving){p.details=G.sheetData.details;commit();}render();},
   petWalkView(el){if(G.sheet!=="petCare"||!petOwned(G.st,el.dataset.v)||G.petSaving)return;G.sheet="petWalk";G.sheetData={pet:el.dataset.v};render();},
@@ -7215,7 +7220,7 @@ function oceanOverview(){
     ${pending&&G.sheetData.opState===st?`<div class="qcard"><b>${esc(eventLabels[pending.event])}を実行します</b><p class="small">報酬はこの海域で一度だけです。</p><button class="btn primary" data-a="oceanEventDo" data-area="${pending.area}" data-event="${pending.event}" data-token="${esc(pending.token)}" ${G.oceanSaving?"disabled":""}>確定する</button><button class="btn" data-a="oceanEventCancel" ${G.oceanSaving?"disabled":""}>やめる</button></div>`:eventCards}
     <button class="btn" data-a="oceanDexOpen" data-area="${id}">海洋モンスター図鑑（65海域・3,250項目）</button>
     ${atSea&&localMap.oceanRoute===a.routeId?`<button class="btn" data-a="oceanMoveArea" data-area="${id}" ${G.readOnly?"disabled":""}>${esc(a.name)}の海面へ歩く</button>`:""}
-    <details><summary>海域を選ぶ（65海域）</summary>${Object.values(OCEAN_ROUTES).map(v=>`<h3 class="label">${esc(OCEAN_THEMES.find(t=>t.id===v.theme).name)}</h3><div class="stack">${v.areas.map(k=>`<button class="btn ${k===id?"on":""}" data-a="oceanArea" data-area="${k}">${esc(OCEAN_AREAS[k].name)}・Lv${OCEAN_AREAS[k].q}</button>`).join("")}</div>`).join("")}</details>
+    <details class="ocean-area-picker"><summary>海域を選ぶ（65海域）</summary>${Object.values(OCEAN_ROUTES).map(v=>`<h3 class="label">${esc(OCEAN_THEMES.find(t=>t.id===v.theme).name)}</h3><div class="stack">${v.areas.map(k=>`<button class="btn ${k===id?"on":""}" data-a="oceanArea" data-area="${k}">${esc(OCEAN_AREAS[k].name)}・Lv${OCEAN_AREAS[k].q}</button>`).join("")}</div>`).join("")}</details>
     <h3 class="label">8地方の新航路</h3><div class="stack">${Object.values(OCEAN_ROUTES).map(v=>{
       const unlocked=oceanRouteAvailable(st,v.id),atPort=st.mapId===v.hub;
       return `<div class="qcard"><b>${esc(v.name)}</b><p class="small">${esc(HUBS[v.hub].name)}の港／${unlocked?"解放済み":`「${esc(QUESTS[v.quest].name)}」完了で解放`}。港1・指定海面27区画。</p><button class="btn" data-a="oceanDepart" data-route="${v.id}" ${unlocked&&atPort&&!G.readOnly?"":"disabled"}>港まで歩いて出発</button>${atPort?"":`<p class="small">${esc(HUBS[v.hub].name)}の街から出発します。</p>`}</div>`;
@@ -7223,12 +7228,12 @@ function oceanOverview(){
 }
 function oceanDexHtml(){
   const st=G.st,id=oceanDefaultArea(),a=OCEAN_AREAS[id],page=Math.max(0,Math.min(4,Number(G.sheetData.page)||0)),seen=Object.keys(st.seen||{}).filter(k=>k.startsWith("OCN-")).length;
-  return `<p>海洋図鑑 ${seen}/${OCEAN_ENEMY_COUNT}項目。各海域に5系統×10段階。姿は地方ごとの創作です。</p><h3 class="label">${esc(a.name)}（${esc(OCEAN_THEMES[a.region].name)}）</h3><p class="small">出現場所：航路E・海辺S。適正レベル${a.q}。港は安全です。</p>
-    <div class="row3"><button class="btn" data-a="oceanDexPage" data-page="${page-1}" ${page>0?"":"disabled"}>前の10件</button><span>${page+1}/5ページ</span><button class="btn" data-a="oceanDexPage" data-page="${page+1}" ${page<4?"":"disabled"}>次の10件</button></div>
+  return `<p>海洋図鑑 ${seen}/${OCEAN_ENEMY_COUNT}項目</p><h3 class="label">${esc(a.name)}（${esc(OCEAN_THEMES[a.region].name)}）</h3><p class="small">出現場所：航路・海辺。推奨レベル${a.q}。港は安全です。</p>
+    <div class="row3"><button class="btn" data-a="oceanDexPage" data-page="${page-1}" ${page>0?"":"disabled"}>前の10件</button><span role="status">${page+1}/5ページ</span><button class="btn" data-a="oceanDexPage" data-page="${page+1}" ${page<4?"":"disabled"}>次の10件</button></div>
     <div class="stack">${Array.from({length:10},(_,i)=>{
       const idx=page*10+i,e=oceanEnemyDef(id,idx),known=!!st.seen[e.id];
-      return `<div class="qcard"><canvas data-ocean-sprite="${id}|${idx}" width="64" height="64" style="width:64px;height:64px;image-rendering:pixelated" aria-hidden="true"></canvas><b>${known?"● 遭遇済み":"○ 未遭遇"} ${esc(e.name)}</b><p class="small">${esc(e.id)}／${e.species}系・${e.stage}/10段階／推奨${e.q}／討伐${st.killCount[e.id]||0}体</p><p class="small">${esc(e.trait)} ${esc(e.counter)}</p></div>`;
-    }).join("")}</div><details><summary>別の海域を選ぶ</summary><div class="stack">${Object.values(OCEAN_AREAS).map(v=>`<button class="btn" data-a="oceanDexArea" data-area="${v.id}">${esc(v.name)}</button>`).join("")}</div></details>`;
+      return `<div class="qcard"><canvas data-ocean-sprite="${id}|${idx}" width="64" height="64" style="width:64px;height:64px;image-rendering:pixelated" aria-hidden="true"></canvas><b>${known?"● 遭遇済み":"○ 未遭遇"} ${esc(e.name)}</b><p class="small">${esc(e.species)}系・成長${e.stage}/10・推奨レベル${e.q}・討伐${st.killCount[e.id]||0}体</p><p class="small">${esc(e.trait)} ${esc(e.counter)}</p></div>`;
+    }).join("")}</div><details class="ocean-area-picker"><summary>別の海域を選ぶ</summary><div class="stack">${Object.values(OCEAN_AREAS).map(v=>`<button class="btn" data-a="oceanDexArea" data-area="${v.id}">${esc(v.name)}</button>`).join("")}</div></details>`;
 }
 renderSheet=function(){
   if(G.sheet==="ocean")return oceanSheetWrap("航海・海上イベント",oceanOverview());
@@ -7697,9 +7702,10 @@ const LIST_SEARCH={
  shop:{sheets:['shop'],input:'managementShopSearch',action:'managementShopSearch',label:'品物を検索',placeholder:'名前・効果',max:80},
  vault:{sheets:['itemVault'],input:'itemVaultSearch',action:'itemVaultSearch',label:'金庫の品物を検索',placeholder:'名前で検索',max:60},
  job:{sheets:['jobcenter','jobCenter'],input:'jobcenterSearch',action:'jobcenterSearch',label:'職業を検索',placeholder:'職業・役割',max:40},
- gear:{sheets:['gearManage'],input:'managementGearSearch',action:'managementGearSearch',label:'装備を検索',placeholder:'装備名',max:80}
+ gear:{sheets:['gearManage'],input:'managementGearSearch',action:'managementGearSearch',label:'装備を検索',placeholder:'装備名',max:80},
+ skill:{sheets:['battleSkills'],input:'expandedSkillSearch',action:'expandedSkillSearch',label:'追加技能を検索',placeholder:'技名・効果',max:50}
 };
-function listSearchBlocked(kind){return typeof systemOperationPending==='function'&&systemOperationPending()||kind==='vault'&&typeof canViewItemVault==='function'&&!canViewItemVault();}
+function listSearchBlocked(kind){return typeof systemOperationPending==='function'&&systemOperationPending()||kind==='vault'&&typeof canViewItemVault==='function'&&!canViewItemVault()||kind==='skill'&&(!G.st?.run||G.st.run.state!=='input'||G.sheetData.seq!==G.st.run.seq||G.sheetData.turn!==G.st.run.turn);}
 function listSearchForm(kind){const c=LIST_SEARCH[kind],disabled=listSearchBlocked(kind)?'disabled':'';return `<form class="compact-search" data-list-search="${kind}"><label class="sr-only" for="${c.input}">${c.label}</label><input id="${c.input}" class="input" type="search" enterkeyhint="search" autocomplete="off" maxlength="${c.max}" placeholder="${c.placeholder}" value="${esc(G.sheetData.query||'')}" ${disabled}><button type="submit" class="btn" ${disabled}>検索</button><button type="button" class="btn" data-a="searchReset" data-v="${kind}" ${disabled}>解除</button></form>`;}
 function listSearchContext(kind,el){return Object.hasOwn(LIST_SEARCH,kind)&&!!G.st&&LIST_SEARCH[kind].sheets.includes(G.sheet)&&!G.dlg&&!listSearchBlocked(kind)&&currentActionButton(el);}
 function listSearchFocus(kind){document.querySelector('#'+LIST_SEARCH[kind].input)?.focus?.({preventScroll:true});}
@@ -7718,6 +7724,19 @@ ACT.jobcenterView=function(el){if(!listSearchContext('job',el)||!['events','chan
 ACTION_SCREEN_BUTTONS.add('jobcenterView');
 installListPaging('gear','managementGearPage');
 installListPaging('shop','managementShopPage');
+installListPaging('skill','expandedSkillPage');
+const listSkillBack=ACT.expandedSkillBack;
+ACT.expandedSkillBack=function(el){if(!listSearchContext('skill',el))return;const selected=G.sheetData.skill;G.cursorSig=null;const result=listSkillBack(el);const button=[...document.querySelectorAll('[data-a="expandedSkillPick"]')].find(b=>b.dataset.v===selected);button?.focus?.({preventScroll:true});button?.scrollIntoView?.({block:'nearest'});return result;};
+ACTION_SCREEN_BUTTONS.add('expandedSkillBack');
+
+const listPetFilter=ACT.petFilter;
+ACT.petFilter=function(el){if(!G.st||G.sheet!=='pets'||G.dlg||!currentActionButton(el))return;G.cursorSig=null;const result=listPetFilter(el);document.querySelector('.pet-filters [data-v="'+G.sheetData.filter+'"]')?.focus?.({preventScroll:true});return result;};
+ACTION_SCREEN_BUTTONS.add('petFilter');
+
+function installAuxPaging(name,sheets,key='v'){const base=ACT[name];ACTION_SCREEN_BUTTONS.add(name);ACT[name]=function(el){if(!G.st||!sheets.includes(G.sheet)||G.dlg||!currentActionButton(el))return;const forward=Number(el.dataset[key])>(G.sheetData.page||0);G.cursorSig=null;const result=base(el);const buttons=[...document.querySelectorAll('[data-a="'+name+'"]')].filter(b=>!b.disabled),button=buttons.find(b=>(Number(b.dataset[key])>(G.sheetData.page||0))===forward)||buttons[0];button?.focus?.({preventScroll:true});button?.scrollIntoView?.({block:'nearest'});return result;};}
+installAuxPaging('petPage',['petShop']);
+
+installAuxPaging('oceanDexPage',['oceanDex','dex'],'page');
 
 /* すべての画面から同じ禁止状態を使う。保存中の別操作と、古いボタンの直接呼出しも拒否する。 */
 const READ_ONLY_ACTIONS=new Set([
@@ -7864,6 +7883,7 @@ const PAD = (()=>{
   }
   function pressB(){
     if(G.dlg){if(G.dlg.i>0)ACT.dlgBack();else if(!G.dlg.after&&!G.dlg.sceneId)ACT.dlgSkip();else SND.sfx('cancel');return;}
+    if(G.sheet==='battleSkills'&&G.sheetData?.skill&&typeof ACT.expandedSkillBack==='function'){ACT.expandedSkillBack();if(!G.sheetData?.skill)return;}
     if(G.sheet){const back=document.querySelector('.overlay [data-a=closeSheet]')||document.querySelector('.overlay .sheet-head [data-a=oceanBack]');if(back)back.click();return;}
     if(G.screen==='result'){ACT.resultDone();return;}
     if(G.screen==='battle'&&G.auto){ACT.autoOff();return;}

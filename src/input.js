@@ -124,6 +124,7 @@ const PAD = (()=>{
   }
   function pressB(){
     if(G.dlg){if(G.dlg.i>0)ACT.dlgBack();else if(!G.dlg.after&&!G.dlg.sceneId)ACT.dlgSkip();else SND.sfx('cancel');return;}
+    if(G.sheet==='battleSkills'&&G.sheetData?.skill&&typeof ACT.expandedSkillBack==='function'){ACT.expandedSkillBack();if(!G.sheetData?.skill)return;}
     if(G.sheet){const back=document.querySelector('.overlay [data-a=closeSheet]')||document.querySelector('.overlay .sheet-head [data-a=oceanBack]');if(back)back.click();return;}
     if(G.screen==='result'){ACT.resultDone();return;}
     if(G.screen==='battle'&&G.auto){ACT.autoOff();return;}

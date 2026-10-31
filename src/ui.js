@@ -246,7 +246,7 @@ function renderExplore(){
       <div class="xsave small" aria-live="polite"><span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（閲覧のみ）":""}</div>
     </header>
     <div class="mapwrap" data-map-kind="${esc(m.kind)}"><aside id="navRoute" class="map-route" aria-label="移動先" hidden></aside><canvas id="map" aria-label="${esc(m.name)}の地図。地面をタップすると移動します。"></canvas>
-      <canvas id="minimap" aria-label="全体ミニマップ。白丸は現在地、白枠は表示範囲。城門は砦、家は街、ベッドは宿屋、瓶は道具屋、書類は職業窓口"></canvas>
+      <canvas id="minimap" aria-label="全体ミニマップ。白丸は現在地、白枠は表示範囲。城門は砦、家は街、ベッドは宿屋、瓶は道具屋、書類は職業窓口、肉球はペットの控え室・ショップ"></canvas>
       ${exit?`<button class="btn map-exit" data-a="guideTo" data-v="${exit.id}" data-map="${esc(st.mapId)}">${m.kind==="town"?"街外へ":"街へ戻る"}</button>`:""}
     </div>
     ${partyStrip()}
@@ -290,13 +290,14 @@ function bossBaseSprite(){
  g.fillStyle='#df8555';for(const x of [14,47]){g.fillRect(x,61,3,10);g.beginPath();g.moveTo(x-2,61);g.lineTo(x+2,50);g.lineTo(x+6,61);g.fill();}
  g.fillStyle='#ada4a3';g.fillRect(18,86,28,3);g.fillRect(14,90,36,3);c.bossBase=true;bossBaseImage=c;return c;
 }
-function mapFacilityKind(o){return o.type==='boss'?'fort':o.fieldExit||o.fieldRoute||o.type==='station'?'town':['inn','shop','jobcenter'].includes(o.type)?o.type:null;}
+function mapFacilityKind(o){return o.type==='boss'?'fort':o.fieldExit||o.fieldRoute||o.type==='station'?'town':['inn','shop','jobcenter','petroom'].includes(o.type)?o.type:null;}
 function drawFacilitySymbol(g,kind,x,y,size){
  g.save();g.translate(x,y);g.scale(size/12,size/12);g.lineWidth=1.4;g.lineJoin='round';g.strokeStyle='#fff2cb';g.fillStyle=kind==='fort'?'#733b4b':kind==='inn'?'#345888':kind==='shop'?'#a14360':'#246c64';g.fillRect(-6,-6,12,12);
  g.fillStyle='#fff2cb';
  if(kind==='fort'){g.fillRect(-4,-1,8,5);for(const xx of [-4,-1,2])g.fillRect(xx,-4,2,4);g.fillStyle='#733b4b';g.fillRect(-1,1,2,3);}
  else if(kind==='inn'){g.fillRect(-4,0,8,3);g.fillRect(-4,-2,2,2);g.fillRect(-4,3,1,2);g.fillRect(3,3,1,2);}
  else if(kind==='shop'){g.fillRect(-3,-1,6,5);g.fillRect(-1.5,-4,3,3);g.strokeRect(-3,-1,6,5);}
+ else if(kind==='petroom'){g.beginPath();g.arc(0,2,2.4,0,Math.PI*2);g.fill();for(const [x,y]of [[-3,-2],[0,-4],[3,-2]]){g.beginPath();g.arc(x,y,1.2,0,Math.PI*2);g.fill();}}
  else if(kind==='jobcenter'){g.fillRect(-4,-3,8,7);g.fillStyle='#246c64';for(let y=-1;y<4;y+=2)g.fillRect(-2,y,4,1);}
  else{g.beginPath();g.moveTo(-5,0);g.lineTo(0,-5);g.lineTo(5,0);g.closePath();g.fill();g.fillRect(-3,0,6,5);}
  g.restore();
@@ -441,6 +442,7 @@ function interact(o){
     case "boss": return bossPrompt(o.boss);
     case "rest": return openSheet("rest");
     case "inn": return openSheet("inn",{label:o.label});
+    case "petroom": return openSheet("pets",{room:o.id});
     case "board": return openSheet("party");
     case "shelf": return openSheet("record");
     case "bench": return say([["もえ",st.moeRank>=1?"ここから見る夕焼け、配信の最後に話したくなるね。":"夕焼けがきれい。……旅に出る前に、この景色を覚えておきたいな。"],[st.profile.name,"また帰ってこよう。"]]);

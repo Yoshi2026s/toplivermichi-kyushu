@@ -1,0 +1,162 @@
+[
+  {
+    "round": 1,
+    "label": "town-rooms-and-paths",
+    "checkedAt": "2026-10-31T16:29:43.987Z",
+    "command": "node scripts/check-pet-complete.mjs 1",
+    "passed": true,
+    "output": "PASS pet town-rooms-and-paths"
+  },
+  {
+    "round": 2,
+    "label": "room-only-interaction",
+    "checkedAt": "2026-10-31T16:29:44.248Z",
+    "command": "node scripts/check-pet-complete.mjs 2",
+    "passed": true,
+    "output": "PASS pet room-only-interaction"
+  },
+  {
+    "round": 3,
+    "label": "species-food-and-supplies",
+    "checkedAt": "2026-10-31T16:29:44.480Z",
+    "command": "node scripts/check-pet-complete.mjs 3",
+    "passed": true,
+    "output": "PASS pet species-food-and-supplies"
+  },
+  {
+    "round": 4,
+    "label": "five-item-purchase-and-double-tap",
+    "checkedAt": "2026-10-31T16:29:44.738Z",
+    "command": "node scripts/check-pet-complete.mjs 4",
+    "passed": true,
+    "output": "PASS pet five-item-purchase-and-double-tap"
+  },
+  {
+    "round": 5,
+    "label": "category-and-invalid-quantity",
+    "checkedAt": "2026-10-31T16:29:44.980Z",
+    "command": "node scripts/check-pet-complete.mjs 5",
+    "passed": true,
+    "output": "PASS pet category-and-invalid-quantity"
+  },
+  {
+    "round": 6,
+    "label": "six-independent-care-records",
+    "checkedAt": "2026-10-31T16:29:45.235Z",
+    "command": "node scripts/check-pet-complete.mjs 6",
+    "passed": true,
+    "output": "PASS pet six-independent-care-records"
+  },
+  {
+    "round": 7,
+    "label": "three-activities-one-daily-use",
+    "checkedAt": "2026-10-31T16:29:45.478Z",
+    "command": "node scripts/check-pet-complete.mjs 7",
+    "passed": true,
+    "output": "PASS pet three-activities-one-daily-use"
+  },
+  {
+    "round": 8,
+    "label": "no-effect-keeps-items-and-day",
+    "checkedAt": "2026-10-31T16:29:45.707Z",
+    "command": "node scripts/check-pet-complete.mjs 8",
+    "passed": true,
+    "output": "PASS pet no-effect-keeps-items-and-day"
+  },
+  {
+    "round": 9,
+    "label": "growth-album-and-bounded-journal",
+    "checkedAt": "2026-10-31T16:29:45.951Z",
+    "command": "node scripts/check-pet-complete.mjs 9",
+    "passed": true,
+    "output": "PASS pet growth-album-and-bounded-journal"
+  },
+  {
+    "round": 10,
+    "label": "legacy-and-restart-preservation",
+    "checkedAt": "2026-10-31T16:29:46.350Z",
+    "command": "node scripts/check-pet-complete.mjs 10",
+    "passed": true,
+    "output": "PASS pet legacy-and-restart-preservation"
+  },
+  {
+    "round": 11,
+    "label": "two-distinct-run-snapshots",
+    "checkedAt": "2026-10-31T16:29:46.584Z",
+    "command": "node scripts/check-pet-complete.mjs 11",
+    "passed": true,
+    "output": "PASS pet two-distinct-run-snapshots"
+  },
+  {
+    "round": 12,
+    "label": "healing-before-actions-no-revival",
+    "checkedAt": "2026-10-31T16:29:46.838Z",
+    "command": "node scripts/check-pet-complete.mjs 12",
+    "passed": true,
+    "output": "PASS pet healing-before-actions-no-revival"
+  },
+  {
+    "round": 13,
+    "label": "mp-cap-and-priority",
+    "checkedAt": "2026-10-31T16:29:47.071Z",
+    "command": "node scripts/check-pet-complete.mjs 13",
+    "passed": true,
+    "output": "PASS pet mp-cap-and-priority"
+  },
+  {
+    "round": 14,
+    "label": "species-support-and-turn-ledger",
+    "checkedAt": "2026-10-31T16:29:47.306Z",
+    "command": "node scripts/check-pet-complete.mjs 14",
+    "passed": true,
+    "output": "PASS pet species-support-and-turn-ledger"
+  },
+  {
+    "round": 15,
+    "label": "defense-reduces-real-damage",
+    "checkedAt": "2026-10-31T16:29:47.560Z",
+    "command": "node scripts/check-pet-complete.mjs 15",
+    "passed": true,
+    "output": "PASS pet defense-reduces-real-damage"
+  },
+  {
+    "round": 16,
+    "label": "speed-affects-real-evasion",
+    "checkedAt": "2026-10-31T16:29:47.821Z",
+    "command": "node scripts/check-pet-complete.mjs 16",
+    "passed": true,
+    "output": "PASS pet speed-affects-real-evasion"
+  },
+  {
+    "round": 17,
+    "label": "enemy-attack-down-expires",
+    "checkedAt": "2026-10-31T16:29:48.070Z",
+    "command": "node scripts/check-pet-complete.mjs 17",
+    "passed": true,
+    "output": "PASS pet enemy-attack-down-expires"
+  },
+  {
+    "round": 18,
+    "label": "sleep-one-action-and-resistance",
+    "checkedAt": "2026-10-31T16:29:48.304Z",
+    "command": "node scripts/check-pet-complete.mjs 18",
+    "passed": true,
+    "output": "PASS pet sleep-one-action-and-resistance"
+  },
+  {
+    "round": 19,
+    "label": "confusion-self-hit-and-victory",
+    "checkedAt": "2026-10-31T16:29:48.543Z",
+    "command": "node scripts/check-pet-complete.mjs 19",
+    "passed": true,
+    "output": "PASS pet confusion-self-hit-and-victory"
+  },
+  {
+    "round": 20,
+    "label": "failed-save-readonly-and-draft",
+    "checkedAt": "2026-10-31T16:29:48.794Z",
+    "command": "node scripts/check-pet-complete.mjs 20",
+    "passed": true,
+    "output": "PASS pet failed-save-readonly-and-draft"
+  }
+]

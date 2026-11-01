@@ -56,6 +56,8 @@ function encodeWorldSave(st){
  return saved;
 }
 function worldRestorePoint(saved,map,pos){return saved?.version===1&&saved.fallback?.map===map&&saved.fallback.x===pos.x&&saved.fallback.y===pos.y&&Number.isInteger(saved.x)&&Number.isInteger(saved.y)&&saved.x>=0&&saved.y>=0&&saved.x<WORLD.w&&saved.y<WORLD.h&&'.,123w='.includes(WORLD_TILES[saved.y][saved.x])?{x:saved.x,y:saved.y}:null;}
+// Compare positions in the same coordinate system when explaining save recovery.
+function restoreReferencePosition(st){const exact=worldRestorePoint(st.worldPosition,st.mapId,st.pos||{});if(exact)return exact;const r=WORLD.byField.get(st.mapId);return st.pos?{x:st.pos.x+(r?.x||0),y:st.pos.y+(r?.y||0)}:null;}
 const worldBaseMigrate=migrate;
 migrate=function(st){const point=worldRestorePoint(st.worldPosition,st.mapId,st.pos||{}),back=worldRestorePoint(st.run?.worldReturn,st.run?.returnPos?.map,st.run?.returnPos||{});if(Array.isArray(st.visitedMaps))st.visitedMaps=st.visitedMaps.filter(id=>id!==WORLD_ID);worldBaseMigrate(st);worldRefreshAccess(st,true);delete st.worldPosition;
  const r=WORLD.byField.get(st.mapId);if(point||r){st.pos=point||{x:st.pos.x+r.x,y:st.pos.y+r.y};st.mapId=WORLD_ID;const hub=worldRegionAt(st.pos).hub;if(WORLD.allowed.has(hub)&&!st.visitedHubs.includes(hub))st.visitedHubs.push(hub);}

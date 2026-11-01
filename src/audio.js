@@ -61,7 +61,7 @@ const SND = (()=>{
   function transposeSong(base,shift,bpm,style,swap=false){const bars=base.chords.split(' '),lead=base.lead.split('|').map(s=>s.trim()),alt=base.leadAlt.split('|').map(s=>s.trim());const order=swap?[1,0,2,3]:[0,1,2,3],reorder=a=>order.flatMap(i=>a.slice(i*8,i*8+8));const trans=s=>s.replace(/[A-G][#b]?\d/g,n=>noteName(midi(n)+shift));return {...base,bpm,style,chords:reorder(bars).map(c=>{const m=c.match(/^([A-G][#b]?)(.*)$/);return noteName(60+NOTE[m[1]]+shift).replace(/\d$/,'')+m[2];}).join(' '),lead:trans(reorder(lead).join(' | ')),leadAlt:trans(reorder(alt).join(' | '))};}
   for(const [id,shift,bpm,style,swap]of [['field_forest',-5,94,'soft',true],['field_mountain',2,112,'march',false],['field_coast',5,108,'town',true],['field_river',-2,100,'soft',true],['field_lake',0,86,'soft',false]])SONGS[id]=transposeSong(SONGS.field,shift,bpm,style,swap);
   for(const [id,shift,bpm]of [['town_coast',2,112],['town_forest',5,104],['town_mountain',-3,108]])SONGS[id]=transposeSong(SONGS.fukuoka,shift,bpm,'town',true);
-  SONGS.field_road={...transposeSong(SONGS.field,0,104,'soft',true),level:.86};
+  SONGS.field_road={...transposeSong(SONGS.field,0,104,'soft',true),level:.86,percussionLevel:.55,chime:.045};
   SONGS.field_harbor={...transposeSong(SONGS.fukuoka,0,88,'soft',true),level:.82,percussion:false,chime:.04};
   function sceneForMap(m){if(m?.musicScene&&Object.hasOwn(SONGS,m.musicScene))return m.musicScene;if(!m)return 'title';const terrain=m.terrain||'plain';if(m.kind==='field')return SONGS['field_'+terrain]?'field_'+terrain:'field';return ['coast','river','lake'].includes(terrain)?'town_coast':terrain==='forest'?'town_forest':terrain==='mountain'?'town_mountain':'fukuoka';}
   const STYLE = {
@@ -80,7 +80,7 @@ const SND = (()=>{
     const pat = p => p? p.split(" ") : [];
     const alt=[]; const alternate=(s.leadAlt||s.lead).replace(/\|/g," ").trim().split(/\s+/);
     alternate.forEach((t,i)=>{const n=midi(t);if(n!=null){let len=1;while(alternate[i+len]==="-")len++;alt.push({step:i,n,len});}});
-    return { level:s.level??1, percussion:s.percussion!==false, chime:s.chime??.065, bpm:s.bpm, steps:bars.length*8, bars, lead, alt, style:s.style, st, bass:pat(st.bass), arp:pat(st.arp), hat:pat(st.hat), kick:pat(st.kick), snare:pat(st.snare) };
+    return { level:s.level??1, percussion:s.percussion!==false, percussionLevel:s.percussionLevel??1, chime:s.chime??.065, bpm:s.bpm, steps:bars.length*8, bars, lead, alt, style:s.style, st, bass:pat(st.bass), arp:pat(st.arp), hat:pat(st.hat), kick:pat(st.kick), snare:pat(st.snare) };
   }
   /* 音の通り道：パート別バス → 音色EQ → コンプレッサー → 出力。リバーブとディレイは送りで混ぜる */
   let musicBus=null, sfxBus=null, revIn=null, dlyIn=null, dly=null, duckUntil=0, revOutput=null, delayOutput=null;
@@ -249,10 +249,10 @@ const SND = (()=>{
       const at=A.arp[k];if(at!==null){const n=60+root+ch.q[at%ch.q.length]+(k>=4&&A.final?12:0);voice(hz(n),t,sd*.8,A.quiet||S.style==='town'?'harp':A.combat?'spiccato':'harp',.105*A.level*pulse,{pan:k%2?.55:-.55,a:.003,sus:.3,r:.18,rev:.22});}
       // Countermelody enters only after the opening phrases; long notes leave room for the theme.
       if(bar>=4&&!A.quiet&&k===(bar%2?5:1)){const n=60+root+ch.q[(bar+1)%3];voice(hz(n),t,sd*(bar%2?2:3),'oboe',.11*A.level,{pan:-.35,a:.025,sus:.8,r:.2,rev:.18});}
-      if(S.percussion&&!A.quiet&&(k===0||A.combat&&k===4))voice(hz(36+root),t,sd*1.4,'timpani',.19*A.level,{a:.002,sus:.35,r:.2,rev:.18});
+      if(S.percussion&&!A.quiet&&(k===0||A.combat&&k===4))voice(hz(36+root),t,sd*1.4,'timpani',.19*A.level*S.percussionLevel,{a:.002,sus:.35,r:.2,rev:.18});
       if(S.percussion&&A.combat&&!A.quiet&&(k===2||k===6))noise(t,.12,.065*pulse,1800,{type:'bandpass',pan:.25,rev:.12});
-      if(S.percussion&&bar%8===7&&k>=6&&!A.quiet){voice(hz(36+root),t,sd*.45,'timpani',.10+(k-6)*.04,{a:.002,r:.12,rev:.15});voice(hz(36+root),t+sd*.5,sd*.4,'timpani',.09,{a:.002,r:.1});}
-      if(S.percussion&&k===0&&bar%8===0&&bar>0&&!A.quiet)noise(t,sd*3,.05,6200,{rev:.3});
+      if(S.percussion&&bar%8===7&&k>=6&&!A.quiet){voice(hz(36+root),t,sd*.45,'timpani',(.10+(k-6)*.04)*S.percussionLevel,{a:.002,r:.12,rev:.15});voice(hz(36+root),t+sd*.5,sd*.4,'timpani',.09*S.percussionLevel,{a:.002,r:.1});}
+      if(S.percussion&&k===0&&bar%8===0&&bar>0&&!A.quiet)noise(t,sd*3,.05*S.percussionLevel,6200,{rev:.3});
       if(S.style==='town'&&k===6&&bar%4===3||S.style==='soft'&&k===0&&bar%4===0)voice(hz(84+root),t,sd*1.7,'glock',S.chime,{pan:.3,a:.002,r:.35,rev:.3});
       nextT+=sd;step++;
     }

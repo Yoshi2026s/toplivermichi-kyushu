@@ -19,3 +19,5 @@ console.log('27 distinct scores, 32–48 bars, developed second cycles, contrast
 for(const [id,level]of [['field_road',.86],['field_harbor',.82]]){assert.equal(api.compile(api.SONGS[id]).level,level,'dedicated theme mix reaches the scheduler');assert.equal(api.sceneForMap({kind:'field',terrain:'plain',musicScene:id}),id);}assert.equal(api.sceneForMap({kind:'field',terrain:'plain',musicScene:'__proto__'}),'field');
 
 assert.equal(api.compile(api.SONGS.field_harbor).percussion,false);assert.equal(api.compile(api.SONGS.field_harbor).chime,.04);assert.equal(api.compile(api.SONGS.field_road).percussion,true);
+
+assert.equal(api.compile(api.SONGS.field_road).percussionLevel,.55);assert.equal(api.compile(api.SONGS.field_road).chime,.045);assert.equal(api.compile(api.SONGS.field).percussionLevel,1);

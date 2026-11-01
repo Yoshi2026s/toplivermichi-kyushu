@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
+const source=readFileSync(new URL('../src/audio.js',import.meta.url),'utf8');
+const block=source.slice(source.indexOf('  const JINGLES ='),source.indexOf('  function stopBgm'));
+const ac={currentTime:10},pending=new Map(),played=[];let serial=0;
+const snd=runInNewContext(`let on=true,cur=null;${block};({jingle,get timer(){return jingleT},mute(){on=false;clearTimeout(jingleT);jingleT=null;}})`,{ac,pageHidden:()=>false,stopBgm:()=>{},midi:()=>null,voice:()=>{},kick:()=>{},play:n=>played.push(n),setTimeout:(fn,ms)=>{pending.set(++serial,{fn,ms});return serial;},clearTimeout:id=>pending.delete(id)});
+snd.jingle('fanfare','victory');let first=pending.get(snd.timer);assert(first.ms>0);
+first.fn();assert.equal(played.length,0,'wall time alone must not end a paused jingle');assert.notEqual(snd.timer,1);
+ac.currentTime+=first.ms/1000-.1;pending.get(snd.timer).fn();assert.equal(played.length,0,'partial audio playback must finish first');
+ac.currentTime+=.2;pending.get(snd.timer).fn();assert.deepEqual(played,['victory']);assert.equal(snd.timer,null);
+snd.jingle('lose','field');const stale=pending.get(snd.timer).fn;snd.jingle('levelup','battle');const latest=snd.timer;stale();assert.equal(snd.timer,latest,'old callback cannot replace a newer jingle');
+const muted=pending.get(snd.timer).fn;snd.mute();ac.currentTime+=100;muted();assert.equal(snd.timer,null);assert.deepEqual(played,['victory'],'mute cancels pending return music');
+console.log('PASS jingle clock: paused/partial playback, completion, replacement and mute');

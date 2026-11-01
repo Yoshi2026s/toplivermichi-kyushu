@@ -93,6 +93,12 @@ jobs:
       - run: node scripts/test-title-music.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-title-focus.mjs
+        env:
+          MOBILE_BROWSER: chromium
+      - run: node scripts/test-jingle-pause.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - run: node scripts/test-sound-comfort.mjs
         env:
           MOBILE_BROWSER: chromium
@@ -160,6 +166,9 @@ jobs:
             .task/title-qa/report.json
             .task/title-music-qa/*.png
             .task/title-music-qa/report.json
+            .task/title-focus/*.png
+            .task/title-focus/report.json
+            .task/jingle-pause/report.json
             .task/illustrated-*.png
             .task/illustrated-ui-report.json
             .task/battle-initial-*.png

@@ -1,4 +1,13 @@
 /* 共通の設定・作成・解説・移動再開。追加画面は既存の保存・操作受付に統合する。 */
+function soundStatusText(){
+ if(!soundIsOn())return 'BGM・効果音はOFFです。';
+ const v=SND.volumes;
+ if(v.music===0&&v.effects===0)return 'BGM・効果音ともに消音です。音量を上げると再生できます。';
+ if(!SND.on)return '音声の開始・再開には、画面を操作してください。';
+ if(!SND.ready)return '音声は一時停止中です。画面の操作で再開を試みます。';
+ return v.music===0?'BGMは消音、効果音はONです。':v.effects===0?'効果音は消音、BGMはONです。':'BGM・効果音はONです。';
+}
+function refreshSoundStatus(){const el=document.querySelector('#soundState');if(el){const text=soundStatusText();if(el.textContent!==text)el.textContent=text;}}
 function applySoundSettings(settings={}){
   if(typeof SND.setVolumes==="function")SND.setVolumes(Number.isFinite(settings.musicVolume)?settings.musicVolume:1,Number.isFinite(settings.effectVolume)?settings.effectVolume:1);
   if(settings.sound===false&&SND.on)SND.setOn(false);else if(settings.sound!==false&&!SND.on)SND.setOn(true);
@@ -90,7 +99,7 @@ renderSettings=function(){
   if(!Number.isFinite(s.musicVolume))s.musicVolume=SND.volumes.music;
   if(!Number.isFinite(s.effectVolume))s.effectVolume=SND.volumes.effects;
  }
- const volumeControls=`<h3 class="label">音量を個別に調整</h3><p class="small">BGMだけ、効果音だけを消すこともできます。全体をOFFにすると、両方とも鳴りません。</p>${[["musicVolume","BGM"],["effectVolume","効果音"]].map(([key,label])=>`<fieldset class="sound-volume"><legend>${label}：${(s[key]??1)===0?'消音':Math.round((s[key]??1)*100)+'％'}</legend><div class="opts" role="group" aria-label="${label}の音量">${[0,.25,.5,.75,1].map(n=>`<button class="btn opt" data-a="soundVolume" data-k="${key}" data-v="${n}" aria-label="${label} ${n===0?'消音':n*100+'％'}" aria-pressed="${(s[key]??1)===n}">${n===0?'消音':n*100+'％'}</button>`).join("")}</div></fieldset>`).join("")}<button class="btn wide" data-a="soundPreview" ${!soundIsOn()||SND.volumes.effects===0?'disabled':''} aria-describedby="soundPreviewHint">効果音を試す</button><p class="small" id="soundPreviewHint">${!soundIsOn()?'試聴するには「BGM・効果音」をONにしてください。':SND.volumes.effects===0?'試聴するには効果音の音量を上げてください。':'現在の効果音の音量で、短い回復音を鳴らします。'}</p>`;
+ const volumeControls=`<p class="small sound-state" id="soundState" role="status" aria-live="polite" aria-atomic="true">${esc(soundStatusText())}</p><h3 class="label">音量を個別に調整</h3><p class="small">BGMだけ、効果音だけを消すこともできます。全体をOFFにすると、両方とも鳴りません。</p>${[["musicVolume","BGM"],["effectVolume","効果音"]].map(([key,label])=>`<fieldset class="sound-volume"><legend>${label}：${(s[key]??1)===0?'消音':Math.round((s[key]??1)*100)+'％'}</legend><div class="opts" role="group" aria-label="${label}の音量">${[0,.25,.5,.75,1].map(n=>`<button class="btn opt" data-a="soundVolume" data-k="${key}" data-v="${n}" aria-label="${label} ${n===0?'消音':n*100+'％'}" aria-pressed="${(s[key]??1)===n}">${n===0?'消音':n*100+'％'}</button>`).join("")}</div></fieldset>`).join("")}<button class="btn wide" data-a="soundPreview" ${!soundIsOn()||SND.volumes.effects===0?'disabled':''} aria-describedby="soundPreviewHint">効果音を試す</button><p class="small" id="soundPreviewHint">${!soundIsOn()?'試聴するには「BGM・効果音」をONにしてください。':SND.volumes.effects===0?'試聴するには効果音の音量を上げてください。':'現在の効果音の音量で、短い回復音を鳴らします。'}</p>`;
  // Keep audio controls beside the sound switch, ahead of save/restore fields.
  return base.replace('<details class="control-help">',volumeControls+'<details class="control-help">')+`<h3 class="label">移動と応援</h3><button class="btn" data-a="moveSpeed">移動速度：${s.moveSpeed==="fast"?"高速":"通常"}</button><button class="btn ${s.listenerComments===false?'':'on'}" data-a="listenerToggle" aria-pressed="${s.listenerComments!==false}">リスナーコメント：${s.listenerComments===false?"OFF":"ON"}</button>`;
 };
@@ -118,7 +127,7 @@ Object.assign(ACT,{
   helpFilter(el){if(G.sheet!=="help"||(el.dataset.v!=="all"&&!Object.hasOwn(SYSTEM_HELP,el.dataset.v)))return;G.sheetData.category=el.dataset.v;G.sheetData.page=0;G.helpQuery={...G.sheetData};render();},
   helpSearch(){if(G.sheet!=="help")return;G.sheetData.query=String($("#helpSearch")?.value||"").slice(0,100);G.sheetData.page=0;G.helpQuery={...G.sheetData};render();},
   helpPage(el){if(G.sheet!=="help")return;const p=Number(el.dataset.v);if(!Number.isInteger(p)||p<0||p>3)return;G.sheetData.page=p;G.helpQuery={...G.sheetData};render();},
-  soundPreview(){if(G.sheet!=="settings"||G.dlg||G.readOnly||!soundIsOn()||SND.volumes.effects===0)return;SND.sfx("heal");},
+  async soundPreview(){if(G.sheet!=="settings"||G.dlg||G.readOnly||!soundIsOn()||SND.volumes.effects===0)return;if(!await SND.prepareEffects()){refreshSoundStatus();return;}if(G.sheet!=="settings"||G.dlg||G.readOnly||!soundIsOn()||SND.volumes.effects===0)return;SND.sfx("heal");},
   soundVolume(el){
    if(G.screen!=="title"&&(!G.st||G.st.run)||G.sheet!=="settings"||G.readOnly||!["musicVolume","effectVolume"].includes(el.dataset.k))return;
    const n=Number(el.dataset.v);if(![0,.25,.5,.75,1].includes(n))return;

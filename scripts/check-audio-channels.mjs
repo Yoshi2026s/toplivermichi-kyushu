@@ -7,6 +7,8 @@ const param=(value=0)=>({value,setValueAtTime(v){this.value=v;},linearRampToValu
 let context;
 class FakeContext{
   constructor(){context=this;this.currentTime=0;this.sampleRate=8000;this.state='running';this.destination={};this.sources=[];this.gains=[];this.live=new Set();}
+  addEventListener(name,fn){(this.events||=new Map()).set(name,fn);}
+  transition(state){this.state=state;this.events?.get('statechange')?.();}
   node(){return {connect(){},disconnect(){this.disconnected=true;},frequency:param(),Q:param(),gain:param(1),detune:param(),pan:param(),delayTime:param(),playbackRate:param(1)};}
   createGain(){const n=this.node();this.gains.push(n);return n;}
   createDynamicsCompressor(){return {...this.node(),threshold:param(),knee:param(),ratio:param(),attack:param(),release:param()};}
@@ -39,6 +41,9 @@ sound.setOn(false);
 sound.setOn(true);sound.play('field');
 for(const delay of [.2,.35,1.8]){context.advance(context.currentTime+delay);const before=context.sources.length;for(const callback of [...callbacks])callback();assert(context.sources.slice(before).every(n=>n.started>=context.currentTime),'late scheduler must never burst old notes');assert(sound.sourceCount<=96);}
 assert(sound.metrics.lookahead>=.35);assert(sound.metrics.recoveries>0&&sound.metrics.skippedSteps>0,'long stalls resynchronize the music timeline');sound.setOn(false);
+
+sound.setOn(true);sound.play('field');const musicSources=sound.sourceCount;sound.sfx('rank');assert(sound.sourceCount>musicSources);context.transition('interrupted');assert.equal(sound.sourceCount,musicSources,'interruption clears effects while preserving the BGM clock');const pausedSources=context.sources.length;sound.sfx('rank');assert.equal(context.sources.length,pausedSources);context.transition('running');sound.sfx('rank');assert(sound.sourceCount>musicSources,'interruption clears the stale repeat lock');sound.setOn(false);
+
 context.state='suspended';
 context.resume=()=>Promise.reject(new Error('audio resume blocked'));
 sound.setOn(true);

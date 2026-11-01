@@ -995,7 +995,7 @@ body.in-battle .dock-back{min-height:64px}
   <button class="btn dock-back" data-pad="back" aria-label="戻る">戻る</button>
   <div class="dock-center"><nav class="dock-actions" aria-label="冒険メニュー">
 <button class="btn" data-a="openSheet" data-k="quests">やること</button><button class="btn" data-a="openSheet" data-k="guide">オート移動</button><button class="btn" data-a="openSheet" data-k="menu">メニュー</button><button class="btn" data-a="openSheet" data-k="settings">設定・保存</button>
-</nav><nav class="dock-battle-actions" aria-label="戦闘操作"><button class="btn" data-a="openHelp">解説</button><button class="btn" data-a="openSheet" data-k="battleLog">戦闘記録</button><button class="btn auto" data-a="battleDockAuto" aria-pressed="false">AUTO オート</button></nav></div>
+</nav><nav class="dock-battle-actions" aria-label="戦闘操作"><button class="btn" data-a="openHelp">解説</button><button class="btn" data-a="openSheet" data-k="battleLog">戦闘記録</button><button class="btn auto" data-a="battleDockAuto" aria-label="オート戦闘を開始" aria-pressed="false"><span>オート</span><span>開始</span></button></nav></div>
   <div class="stick" role="application" aria-label="移動スティック。ドラッグで移動、中央は場面に応じて決定・停止・再開"><div class="ring"></div><div class="knob"><button class="stick-confirm" aria-label="決定">決定</button></div></div>
 </div>
 <script>
@@ -5015,6 +5015,7 @@ const SND = (()=>{
     }
   }
   function play(name){
+    if(!Object.hasOwn(SONGS,name))return;
     if(jingleT){ clearTimeout(jingleT); jingleT=null; }
     if(cur===name && (timer||!on)) return;
     cur=name; stopBgm();
@@ -5030,6 +5031,7 @@ const SND = (()=>{
   };
   let jingleT=null;
   function jingle(name, next){
+    if(!Object.hasOwn(JINGLES,name))return;
     clearTimeout(jingleT);
     const J=JINGLES[name]; if(!J) return;
     stopBgm(); cur=next||null;
@@ -6273,7 +6275,7 @@ function confirmAct(forced){
   const killed = run.enemies.some(e=>e.hp<=0&&before.e[e.slot]>0);
   const atkSnd = act.type==="meter"?"meter": !dealt?null : act.type==="attack"?"slash" : run.enemies.filter(e=>e.hp<before.e[e.slot]).length>1?"allhit":"skillhit";
   SND.sfx(atkSnd || (r.log.some(l=>/体力＋|MP＋|防護/.test(l))?"heal":"ok"));
-  if(killed && run.state!=="won") setTimeout(()=>SND.sfx("defeat"),180);
+  if(killed && run.state!=="won") setTimeout(()=>{if(G.st===st&&st.run===run&&G.screen==="battle"&&run.state!=="won"&&!document.hidden)SND.sfx("defeat");},180);
   if(r.log.some(l=>l.startsWith("パチパチ"))) SND.sfx("clap");
   if(r.log.some(l=>l.startsWith("キラコメ"))) SND.sfx("kira");
   G.cmd={};
@@ -7830,7 +7832,7 @@ function updateNavigationHud(){
  const toggle=el.querySelector('[data-route-toggle]'),cancel=el.querySelector('[data-route-cancel]');toggle.dataset.a=paused?'travelResume':'travelPause';toggle.dataset.v=cancel.dataset.v=String(p.version);toggle.disabled=cancel.disabled=G.readOnly;toggle.textContent=paused?'再開':'停止';toggle.setAttribute('aria-label',`${toggle.textContent}：${name.textContent}`);cancel.setAttribute('aria-label',`目的地を取り消す：${name.textContent}`);
 }
 function updateControlHints(){
- const auto=document.querySelector('[data-a="battleDockAuto"]');if(auto){const label=G.auto?'停止':'オート';if(auto.dataset.label!==label){auto.dataset.label=label;auto.innerHTML='<span>AUTO</span><span>'+label+'</span>';}auto.setAttribute('aria-pressed',String(!!G.auto));auto.disabled=G.screen!=='battle'||!!G.sheet||!!G.dlg||!!G.readOnly||G.st?.run?.state!=='input';}
+ const auto=document.querySelector('[data-a="battleDockAuto"]');if(auto){const label=G.auto?'手動に戻す':'オート開始';if(auto.dataset.label!==label){auto.dataset.label=label;auto.innerHTML=G.auto?'<span>手動に</span><span>戻す</span>':'<span>オート</span><span>開始</span>';}auto.setAttribute('aria-label',G.auto?'オート戦闘を中断して手動に戻す':'オート戦闘を開始');auto.setAttribute('aria-pressed',String(!!G.auto));auto.disabled=G.screen!=='battle'||!!G.sheet||!!G.dlg||!!G.readOnly||G.st?.run?.state!=='input';}
  const confirm=document.querySelector('#dock .stick-confirm'),back=document.querySelector('#dock .dock-back');if(!confirm||!back)return;let a='決定',b='戻る';
  if(G.dlg){a=G.dlg.i<G.dlg.lines.length-1?'次へ':'閉じる';b=G.dlg.i>0?'前へ':G.dlg.after||G.dlg.sceneId?'戻る':'閉じる';}
  else if(G.screen==='explore'&&!G.sheet){const p=navigationValidPlan();a=p&&(p.paused||!G.walk.path.length)?'再開':G.walk.path.length?'停止':nearbyObjects().length?'調べる':'案内';b=p&&!p.paused?'停止':'戻る';}

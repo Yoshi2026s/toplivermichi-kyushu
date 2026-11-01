@@ -232,6 +232,7 @@ const SND = (()=>{
     }
   }
   function play(name){
+    if(!Object.hasOwn(SONGS,name))return;
     if(jingleT){ clearTimeout(jingleT); jingleT=null; }
     if(cur===name && (timer||!on)) return;
     cur=name; stopBgm();
@@ -247,6 +248,7 @@ const SND = (()=>{
   };
   let jingleT=null;
   function jingle(name, next){
+    if(!Object.hasOwn(JINGLES,name))return;
     clearTimeout(jingleT);
     const J=JINGLES[name]; if(!J) return;
     stopBgm(); cur=next||null;

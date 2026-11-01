@@ -4964,7 +4964,7 @@ const SND = (()=>{
   }
   function noise(t, dur, vol, hp, opt={}){
     if(activeSources.size>=96)return;
-    const s=ac.createBufferSource(); s.buffer=noiseBuf; s.playbackRate.value=opt.rate||1;
+    const s=ac.createBufferSource(); s.buffer=noiseBuf; s.loop=true; s.playbackRate.value=opt.rate||1;
     const f=ac.createBiquadFilter(); f.type=opt.type||"highpass"; f.frequency.value=hp; f.Q.value=opt.q??0.7;
     const g=ac.createGain(); g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(vol,t+Math.min(0.003,dur*0.2)); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
     const pan=ac.createStereoPanner?ac.createStereoPanner():null; if(pan) pan.pan.value=opt.pan||0;

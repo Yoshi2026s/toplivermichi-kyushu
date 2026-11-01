@@ -1358,7 +1358,7 @@ const ACT = {
     G.screen="explore"; exploreBgm(); render(); playScene("HS00");
   },
   async continue(){ const s=await loadSave(); if(!s) return toast("記録が見つかりません。"); const hadStream=!!s.state.stream||Object.values(s.state.quests||{}).includes("combatDone"),oldPos=typeof restoreReferencePosition==='function'?restoreReferencePosition(s.state):s.state.pos&&{x:s.state.pos.x,y:s.state.pos.y}; G.st=migrate(s.state); if(typeof applySoundSettings==="function")applySoundSettings(G.st.settings); G.walk={path:[],prog:0,pending:null};G.walkPlan=null;G.sheetHistory=[]; G.dlg=null; G.sheet=null; G.cmd={}; G.auto=false;clearTimeout(G.autoT); G.soundWant=null; setSave(s.fromPrev?"前の記録から復旧":s.storage==="local"?"保存済み":"保存済み"); if(G.st.settings.sound===false&&SND.on) SND.setOn(false); else if(G.st.settings.sound!==false&&!SND.on) SND.setOn(true);
-    if(G.st.run){ G.screen="battle"; SND.play(G.st.run.kind==="boss"?"boss":"battle"); } else { G.screen="explore"; exploreBgm(); }
+    if(G.st.run){ G.screen="battle"; SND.play(G.st.run.oceanArea?"seaBattle":G.st.run.kind==="boss"?"boss":"battle"); } else { G.screen="explore"; exploreBgm(); }
     render(); const notices=[]; if(s.fromPrev) notices.push("前の記録から再開しました。設定からバックアップを確認できます。"); if(hadStream&&!G.st.stream) notices.push("討伐済みの依頼を完了しました。報酬を受け取っています。"); if(!oldPos||oldPos.x!==G.st.pos.x||oldPos.y!==G.st.pos.y) notices.push("保存位置を現在の地形に合わせて拠点の安全地帯へ戻しました。"); if(notices.length) toast(notices.join(" ")); },
   toTitle(){ G.sheet=null; G.screen="title"; G.dlg=null; SND.play("title"); render(); },
   openSheet(el){ openSheet(el.dataset.k); }, closeSheet(){ closeSheet(); },
@@ -1476,7 +1476,7 @@ const ACT = {
       const oldPos=typeof restoreReferencePosition==='function'?restoreReferencePosition(o.state):o.state.pos&&{x:o.state.pos.x,y:o.state.pos.y},next=migrate(o.state),previous=G.st,previousStatus=G.saveStatus; await seedSaveGeneration(next,previous); G.st=next;
       let saved=false; try{ saved=await commit(); }catch(e){}
       if(!saved){ G.st=previous; setSave(previousStatus); return toast("記録を保存できませんでした。元の記録を維持しています。バックアップの文字列を保管してください。"); }
-      if(typeof applySoundSettings==="function")applySoundSettings(G.st.settings); G.auto=false; clearTimeout(G.autoT); G.walk={path:[],prog:0,pending:null};G.walkPlan=null;G.sheetHistory=[]; G.dlg=null; G.cmd={}; G.hasSave=true; G.sheet=null; G.screen=G.st.run?"battle":"explore"; render(); toast("記録を読み込みました。"+(!oldPos||oldPos.x!==next.pos.x||oldPos.y!==next.pos.y?" 保存位置を現在の地形に合わせて拠点の安全地帯へ戻しました。":"")); }
+      if(typeof applySoundSettings==="function")applySoundSettings(G.st.settings); G.auto=false; clearTimeout(G.autoT); G.walk={path:[],prog:0,pending:null};G.walkPlan=null;G.sheetHistory=[]; G.dlg=null; G.cmd={}; G.hasSave=true; G.sheet=null; G.screen=G.st.run?"battle":"explore";if(G.screen==="explore")exploreBgm();else SND.play(G.st.run.oceanArea?"seaBattle":G.st.run.kind==="boss"?"boss":"battle"); render(); toast("記録を読み込みました。"+(!oldPos||oldPos.x!==next.pos.x||oldPos.y!==next.pos.y?" 保存位置を現在の地形に合わせて拠点の安全地帯へ戻しました。":"")); }
     catch(e){ toast("読み込めませんでした。文字列が途中で切れていないか確認してください。"); } },
   partyView(el){ G.sheetData={cid:el.dataset.c||null, view:el.dataset.v||""}; render(); drawMiniSprites(); },
   partyUp(el){ if(!canEditParty()) return; const st=G.st,i=Number(el.dataset.v),c=el.dataset.c; if(!Number.isInteger(i)||i<1||i>=st.party.length||st.party[i]!==c) return toast("編成が変わりました。選び直してください。"); [st.party[i-1],st.party[i]]=[st.party[i],st.party[i-1]]; commit(); render(); },

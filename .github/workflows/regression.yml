@@ -36,6 +36,9 @@ jobs:
       - run: node scripts/test-world-save.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-world-walking-route.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - run: node scripts/test-world-route-cues.mjs
         env:
           MOBILE_BROWSER: chromium
@@ -201,6 +204,8 @@ jobs:
             .task/illustrated-*.png
             .task/illustrated-ui-report.json
             .task/battle-initial-*.png
+            .task/world-walking-route/*.png
+            .task/world-walking-route/report.json
             .task/world-route-cues/*.png
             .task/world-route-cues/report.json
             .task/world-polish/*.png

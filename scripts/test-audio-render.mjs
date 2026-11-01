@@ -23,12 +23,15 @@ try{
     return offline.resume();
    }));
    const buffer=await offline.startRendering();await Promise.all(waits);
-   const data=buffer.getChannelData(0);let peak=0,sum=0,muted=0,resumed=0,finite=true;
-   for(let i=0;i<data.length;i++){const v=data[i];finite&&=Number.isFinite(v);peak=Math.max(peak,Math.abs(v));sum+=v*v;if(i>rate*3.1&&i<rate*3.3)muted=Math.max(muted,Math.abs(v));if(i>rate*3.6&&i<rate*4.6)resumed+=v*v;}
-   const samples=Array.from(data,v=>Math.max(-32768,Math.min(32767,Math.round(v*32767))));
-   sound.setOn(false);return {scene,rate,peak,rms:Math.sqrt(sum/data.length),muted,resumedRms:Math.sqrt(resumed/rate),finite,sourcesAfterMute:sound.sourceCount,samples};
+   const channels=Array.from({length:buffer.numberOfChannels},(_,channel)=>{
+    const data=buffer.getChannelData(channel);let peak=0,sum=0,muted=0,resumed=0,finite=true;
+    for(let i=0;i<data.length;i++){const v=data[i];finite&&=Number.isFinite(v);peak=Math.max(peak,Math.abs(v));sum+=v*v;if(i>rate*3.1&&i<rate*3.3)muted=Math.max(muted,Math.abs(v));if(i>rate*3.6&&i<rate*4.6)resumed+=v*v;}
+    return {channel,peak,rms:Math.sqrt(sum/data.length),muted,resumedRms:Math.sqrt(resumed/rate),finite};
+   });
+   const samples=[];for(let i=0;i<buffer.length;i++)for(let channel=0;channel<buffer.numberOfChannels;channel++)samples.push(Math.max(-32768,Math.min(32767,Math.round(buffer.getChannelData(channel)[i]*32767))));
+   sound.setOn(false);return {scene,rate,channels,peak:Math.max(...channels.map(c=>c.peak)),rms:Math.sqrt(channels.reduce((n,c)=>n+c.rms*c.rms,0)/channels.length),muted:Math.max(...channels.map(c=>c.muted)),resumedRms:Math.min(...channels.map(c=>c.resumedRms)),finite:channels.every(c=>c.finite),sourcesAfterMute:sound.sourceCount,samples};
   },{source,scene});
-  assert(result.finite);assert(result.peak>0&&result.peak<1,'rendered score stays below full scale');assert(result.muted<1e-7,'music and wet returns become silent together');assert(result.resumedRms>.0001,'score resumes after zero volume');assert.equal(result.sourcesAfterMute,0);
-  const samples=result.samples;delete result.samples;const wav=Buffer.alloc(44+samples.length*2);wav.write('RIFF');wav.writeUInt32LE(wav.length-8,4);wav.write('WAVEfmt ',8);wav.writeUInt32LE(16,16);wav.writeUInt16LE(1,20);wav.writeUInt16LE(1,22);wav.writeUInt32LE(result.rate,24);wav.writeUInt32LE(result.rate*2,28);wav.writeUInt16LE(2,32);wav.writeUInt16LE(16,34);wav.write('data',36);wav.writeUInt32LE(samples.length*2,40);samples.forEach((n,i)=>wav.writeInt16LE(n,44+i*2));await writeFile(resolve(out,scene+'.wav'),wav);report.push(result);console.log('PASS offline audio render '+scene);
+  assert.equal(result.channels.length,2);assert(result.finite);assert(result.peak>0&&result.peak<1,'rendered score stays below full scale');assert(result.muted<1e-7,'music and wet returns become silent together');assert(result.resumedRms>.0001,'score resumes after zero volume');assert.equal(result.sourcesAfterMute,0);
+  const samples=result.samples;delete result.samples;const wav=Buffer.alloc(44+samples.length*2);wav.write('RIFF');wav.writeUInt32LE(wav.length-8,4);wav.write('WAVEfmt ',8);wav.writeUInt32LE(16,16);wav.writeUInt16LE(1,20);wav.writeUInt16LE(2,22);wav.writeUInt32LE(result.rate,24);wav.writeUInt32LE(result.rate*4,28);wav.writeUInt16LE(4,32);wav.writeUInt16LE(16,34);wav.write('data',36);wav.writeUInt32LE(samples.length*2,40);samples.forEach((n,i)=>wav.writeInt16LE(n,44+i*2));await writeFile(resolve(out,scene+'.wav'),wav);report.push(result);console.log('PASS offline audio render '+scene);
  }
 }finally{await browser.close();await app.close();await writeFile(resolve(out,'report.json'),JSON.stringify({physicalDevice:false,auditoryReview:false,renderedSeconds:5,report},null,2));}

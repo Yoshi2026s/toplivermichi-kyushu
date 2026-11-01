@@ -755,7 +755,7 @@ function confirmAct(forced){
   const killed = run.enemies.some(e=>e.hp<=0&&before.e[e.slot]>0);
   const atkSnd = act.type==="meter"?"meter": !dealt?null : act.type==="attack"?"slash" : run.enemies.filter(e=>e.hp<before.e[e.slot]).length>1?"allhit":"skillhit";
   SND.sfx(atkSnd || (r.log.some(l=>/体力＋|MP＋|防護/.test(l))?"heal":"ok"));
-  if(killed && run.state!=="won") setTimeout(()=>SND.sfx("defeat"),180);
+  if(killed && run.state!=="won") setTimeout(()=>{if(G.st===st&&st.run===run&&G.screen==="battle"&&run.state!=="won"&&!document.hidden)SND.sfx("defeat");},180);
   if(r.log.some(l=>l.startsWith("パチパチ"))) SND.sfx("clap");
   if(r.log.some(l=>l.startsWith("キラコメ"))) SND.sfx("kira");
   G.cmd={};

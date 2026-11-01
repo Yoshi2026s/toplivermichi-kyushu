@@ -144,7 +144,8 @@ function statusBar(){
 function refreshTitleMusic(){
  const button=document.querySelector('[data-a="titleMusic"]');if(!button)return;
  const playing=SND.playing&&SND.current==='title'&&SND.volumes.music>0;
- button.dataset.play=playing?'false':'true';button.setAttribute('aria-pressed',String(playing));button.setAttribute('aria-label',playing?'タイトルBGMを消音':'タイトルBGMを再生');button.textContent=playing?'♪ BGM再生中・消音':SND.volumes.music===0?'♪ BGM音量0':SND.on?'♪ 最初のタッチで再生':'♪ 音をON';
+ const silent=SND.volumes.music===0;
+ button.dataset.play=playing?'false':'true';button.setAttribute('aria-pressed',String(playing));button.setAttribute('aria-label',playing?'タイトルBGMを消音':silent?'BGM音量の設定を開く':'タイトルBGMを再生');button.textContent=playing?'♪ BGM再生中・消音':silent?'♪ BGM音量0・設定':SND.on?'♪ BGMを再生・再開':'♪ 音をON';
 }
 function renderTitle(){
   return `<section class="title-screen">

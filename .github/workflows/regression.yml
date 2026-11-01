@@ -93,6 +93,9 @@ jobs:
       - run: node scripts/test-sound-comfort.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-ui-feedback.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - run: node scripts/test-audio-render.mjs
         env:
           MOBILE_BROWSER: chromium
@@ -146,6 +149,8 @@ jobs:
             .task/audio-render/report.json
             .task/sound-comfort/*.png
             .task/sound-comfort/report.json
+            .task/ui-feedback/*.png
+            .task/ui-feedback/report.json
             .task/world-qa/*.png
             .task/world-qa/report.json
             .task/title-qa/*.png

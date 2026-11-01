@@ -182,7 +182,7 @@ const SND = (()=>{
     if(activeSources.size>=96)return;
     const s=ac.createBufferSource(); s.buffer=noiseBuf; s.playbackRate.value=opt.rate||1;
     const f=ac.createBiquadFilter(); f.type=opt.type||"highpass"; f.frequency.value=hp; f.Q.value=opt.q??0.7;
-    const g=ac.createGain(); g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    const g=ac.createGain(); g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(vol,t+Math.min(0.003,dur*0.2)); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
     const pan=ac.createStereoPanner?ac.createStereoPanner():null; if(pan) pan.pan.value=opt.pan||0;
     s.connect(f); f.connect(g); const last=pan?(g.connect(pan),pan):g; last.connect(opt.out||musicBus);
     let reverbSend=null;

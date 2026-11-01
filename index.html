@@ -991,6 +991,7 @@ body.in-battle .dock-back{min-height:64px}
 .sheet .kv dt,.sheet .kv dd{min-width:0;max-width:100%;white-space:normal;word-break:break-word;overflow-wrap:anywhere}.record-level{display:block;font-size:17px}.record-xp{display:block;font-size:14px;line-height:1.5;word-break:break-word;overflow-wrap:anywhere}
 </style>
 <main id="screen" aria-live="off"></main>
+<div id="toast" class="toast" role="status" hidden></div>
 <div id="dock" class="dock" aria-label="ジョイコントローラー">
   <button class="btn dock-back" data-pad="back" aria-label="戻る">戻る</button>
   <div class="dock-center"><nav class="dock-actions" aria-label="冒険メニュー">
@@ -4965,7 +4966,7 @@ const SND = (()=>{
     if(activeSources.size>=96)return;
     const s=ac.createBufferSource(); s.buffer=noiseBuf; s.playbackRate.value=opt.rate||1;
     const f=ac.createBiquadFilter(); f.type=opt.type||"highpass"; f.frequency.value=hp; f.Q.value=opt.q??0.7;
-    const g=ac.createGain(); g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    const g=ac.createGain(); g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(vol,t+Math.min(0.003,dur*0.2)); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
     const pan=ac.createStereoPanner?ac.createStereoPanner():null; if(pan) pan.pan.value=opt.pan||0;
     s.connect(f); f.connect(g); const last=pan?(g.connect(pan),pan):g; last.connect(opt.out||musicBus);
     let reverbSend=null;
@@ -5624,7 +5625,7 @@ function render(){
   else if(s==="explore") html=renderExplore();
   else if(s==="battle") html=renderBattle();
   else if(s==="result") html=renderResult();
-  root.innerHTML = html + renderSheet() + renderDialog() + `<div id="toast" class="toast" role="status" hidden></div>`;
+  root.innerHTML = html + renderSheet() + renderDialog();
   document.body.classList.toggle("in-battle", s==="battle"); document.body.classList.toggle("in-explore", s==="explore");
   document.body.classList.toggle("in-result",s==="result");
   if(s==="explore") mountCanvas();
@@ -6143,7 +6144,7 @@ function renderCommand(run){
       <p class="small">敵の予告と残り体力・MPに合わせて行動します。</p>
       <p class="autolast" role="status">${G.autoLast?esc(G.autoLast):"考え中…"}</p>
       <p class="small">このターンの未行動：${al2.map(m=>esc(m.name)).join("・")||"なし"}</p>
-      <div class="confirmrow"><span></span><button class="btn primary stopauto" data-a="autoOff">中断</button></div></div>`;
+      <div class="confirmrow"><span></span><button class="btn primary stopauto" data-a="autoOff" aria-label="オート戦闘を中断して手動に戻す">手動に戻す</button></div></div>`;
   }
   const c=G.cmd; const al=run.party.filter(m=>m.hp>0&&!m.acted);
   if(c.actor==null || !run.party[c.actor] || run.party[c.actor].acted || run.party[c.actor].hp<=0){ c.actor = al.length? al[0].pos : null; c.type=null; }

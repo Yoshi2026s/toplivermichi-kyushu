@@ -104,7 +104,7 @@ function render(){
   else if(s==="explore") html=renderExplore();
   else if(s==="battle") html=renderBattle();
   else if(s==="result") html=renderResult();
-  root.innerHTML = html + renderSheet() + renderDialog() + `<div id="toast" class="toast" role="status" hidden></div>`;
+  root.innerHTML = html + renderSheet() + renderDialog();
   document.body.classList.toggle("in-battle", s==="battle"); document.body.classList.toggle("in-explore", s==="explore");
   document.body.classList.toggle("in-result",s==="result");
   if(s==="explore") mountCanvas();
@@ -623,7 +623,7 @@ function renderCommand(run){
       <p class="small">敵の予告と残り体力・MPに合わせて行動します。</p>
       <p class="autolast" role="status">${G.autoLast?esc(G.autoLast):"考え中…"}</p>
       <p class="small">このターンの未行動：${al2.map(m=>esc(m.name)).join("・")||"なし"}</p>
-      <div class="confirmrow"><span></span><button class="btn primary stopauto" data-a="autoOff">中断</button></div></div>`;
+      <div class="confirmrow"><span></span><button class="btn primary stopauto" data-a="autoOff" aria-label="オート戦闘を中断して手動に戻す">手動に戻す</button></div></div>`;
   }
   const c=G.cmd; const al=run.party.filter(m=>m.hp>0&&!m.acted);
   if(c.actor==null || !run.party[c.actor] || run.party[c.actor].acted || run.party[c.actor].hp<=0){ c.actor = al.length? al[0].pos : null; c.type=null; }

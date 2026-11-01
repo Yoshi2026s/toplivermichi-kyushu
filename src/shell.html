@@ -22,6 +22,13 @@ body.reduce-motion .battle-fx-layer{display:none}
 @media(orientation:landscape) and (max-height:600px) and (min-width:600px){.navigation-sheet .sheet-head{flex-wrap:nowrap;align-items:center;gap:8px;padding:4px 0}.navigation-sheet .sheet-head .label{flex:1;flex-basis:auto}.navigation-sheet .sheet-actions{width:auto;flex:none}.navigation-sheet .sheet-actions .btn{padding:4px 9px}.navigation-sheet .nav-filters{grid-template-columns:repeat(4,minmax(0,1fr));margin:5px 0}.navigation-sheet .nav-goal{margin:5px 0}.navigation-sheet .nav-search{margin-top:4px}}
 .help-search{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:5px;margin:8px 0}.help-search label{grid-column:1/-1}.help-search input{min-width:0;width:100%;box-sizing:border-box}.help-search .btn{min-width:48px;min-height:48px;padding:4px 8px}
 
+/* Clear selection and touch targets for independent music/effect controls. */
+.sound-volume{min-width:0;margin:12px 0;padding:10px;border:1px solid #8ca6af;border-radius:8px;background:#102735}
+.sound-volume legend{padding:0 6px;color:#f0dfb4;font-size:16px;line-height:1.5}
+.sound-volume .opts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.sound-volume .btn{min-width:0;min-height:48px;padding:6px 2px;font-size:14px;font-variant-numeric:tabular-nums}
+.sound-volume [aria-pressed="true"]{background:#355e60;color:#fff3cd;border:2px solid #efd58d;box-shadow:inset 0 -3px 0 #efd58d;font-weight:700}
+@media(max-width:350px){.sound-volume{padding:8px}.sound-volume .opts{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.sound-volume .btn{font-size:13px}}
 </style>
 <style>
 /* 縦1列・幅上限480。濃紺の文字窓と生成りの二重枠（第21F・21K節）。単一の夜色テーマで統一 */

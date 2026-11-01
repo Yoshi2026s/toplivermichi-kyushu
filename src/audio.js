@@ -275,13 +275,25 @@ const SND = (()=>{
     gain.setValueAtTime(musicGain()*.68,duckUntil);
     gain.linearRampToValueAtTime(musicGain(),duckUntil+0.38);
   }
+  // Quiet interface sounds leave the score steady; important events retain ducking.
+  const effectLast=new Map();
+  const effectProfile=name=>name==='step'?{level:.16,gap:.12,duck:false,cutoff:1800}:
+    ['ok','cancel','equip','evade'].includes(name)?{level:.48,gap:.075,duck:false,cutoff:3000}:
+    ['seaWave','clap'].includes(name)?{level:.48,gap:.16,duck:false,cutoff:2600}:
+    {level:.76,gap:.065,duck:true,cutoff:3800};
   function sfx(name){
-    if(!on||!ac||pageHidden()) return; const parts=SFX[name]||[]; if(!parts.length) return; let t=ac.currentTime+0.01;
-    duckBgm(parts.reduce((n,s)=>n+(s[0]==="noise"||s[0]===null?s[1]:s[2]),0)+0.08);
+    if(!on||!ac||pageHidden()||effectVolume===0) return;
+    const parts=SFX[name]; if(!Array.isArray(parts)) return;
+    const profile=effectProfile(name),now=ac.currentTime,last=effectLast.get(name);
+    if(last!==undefined&&now-last<profile.gap) return;
+    const needed=parts.reduce((sum,part)=>sum+(part[0]===null?0:part[0]==='noise'&&name!=='step'?2:1),0);
+    if([...activeSources.values()].filter(kind=>kind==='sfx').length+needed>24) return;
+    effectLast.set(name,now); let t=now+0.01;
+    if(profile.duck)duckBgm(parts.reduce((n,s)=>n+(s[0]==="noise"||s[0]===null?s[1]:s[2]),0)+0.08);
     for(const s of parts){
-      if(s[0]==="noise"){ noise(t,s[1]+0.03,0.36,1200,{type:"bandpass",q:0.5,out:sfxBus,rev:0.15}); noise(t,0.02,0.20,5000,{out:sfxBus}); t+=s[1]; }
+      if(s[0]==="noise"){ noise(t,s[1]+0.03,0.36*profile.level,name==='step'?600:1200,{type:"bandpass",q:0.5,out:sfxBus}); if(name!=='step')noise(t,0.02,0.10*profile.level,3500,{out:sfxBus}); t+=s[1]; }
       else if(s[0]===null){ t+=s[1]; }
-      else { voice(hz(s[1]),t,s[2],['heal','buy','equip','pet','petgrow','seaTreasure'].includes(name)?'glock':s[0],0.42,{out:sfxBus,sus:0.8,detune:4,cutoff:4500,fenv:1500,rev:0.18,a:0.002,d:0.03,r:0.05}); t+=s[2]; }
+      else { voice(hz(s[1]),t,s[2],['heal','buy','pet','petCare','petgrow','seaTreasure'].includes(name)?'glock':['ok','cancel','equip','evade'].includes(name)?'triangle':s[0],0.42*profile.level,{out:sfxBus,sus:0.65,cutoff:profile.cutoff,fenv:600,a:0.006,d:0.03,r:0.07}); t+=s[2]; }
     }
   }
   function outputLevel(value,time){
@@ -293,10 +305,10 @@ const SND = (()=>{
   }
   function setOn(v){
     if(v){ if(!init()){ on=false; return false; } if(ac.state==="suspended") ac.resume().catch(()=>{}); if(on) return true; on=true; outputLevel(0.85,0.06); const c=cur; cur=null; if(c) play(c); }
-    else { if(!on) return false; on=false; if(jingleT){ clearTimeout(jingleT); jingleT=null; } stopBgm(); stopSources(); outputLevel(0.0001,0.03); }
+    else { if(!on) return false; on=false; if(jingleT){ clearTimeout(jingleT); jingleT=null; } stopBgm(); stopSources(); effectLast.clear(); outputLevel(0.0001,0.03); }
     return on;
   }
-  function suspend(){ if(jingleT){ clearTimeout(jingleT); jingleT=null; } stopBgm(); stopSources(); if(ac&&ac.state==="running") ac.suspend().catch(()=>{}); }
+  function suspend(){ if(jingleT){ clearTimeout(jingleT); jingleT=null; } stopBgm(); stopSources(); effectLast.clear(); if(ac&&ac.state==="running") ac.suspend().catch(()=>{}); }
   function resume(){ if(!on||!ac) return; if(ac.state==="suspended") ac.resume().catch(()=>{}); if(timer||jingleT) return; const c=cur; cur=null; if(c) play(c); }
   return { sceneForMap,play, jingle, sfx, setOn, setVolumes, suspend, resume, get songs(){return Object.keys(SONGS);},get scores(){return Object.fromEntries(Object.entries(SONGS).map(([id,s])=>[id,{bars:s.chords.split(' ').length,bpm:s.bpm,seconds:s.chords.split(' ').length*240/s.bpm}]));},get instrumentation(){return {sampledInstruments:sampleBanks.size,sampleNotes,droppedSampleNotes};},get metrics(){return {...timing};},get sourceCount(){return activeSources.size;},get volumes(){return {music:musicVolume,effects:effectVolume};}, get playing(){return !!(on&&ac?.state==="running"&&timer&&!pageHidden());}, get on(){return on;}, get current(){return cur;} };
 })();

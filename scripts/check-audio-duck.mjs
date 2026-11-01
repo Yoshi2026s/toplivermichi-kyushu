@@ -29,7 +29,7 @@ const setOn=source.match(/function setOn\(v\)\{[\s\S]*?\n  \}/)?.[0];
 const suspend=source.match(/function suspend\(\)\{[^\n]+\}/)?.[0];
 if(!setOn||!suspend) throw new Error('audio state functions missing');
 const events=[];
-const controls=runInNewContext(`let ac={state:'running',suspend:()=>Promise.resolve()},on=true,cur='battle',jingleT=4;const stopSources=()=>{},init=()=>true,outputLevel=()=>events.push('level'),play=()=>events.push('play'),stopBgm=()=>events.push('stop');${setOn}\n${suspend}\n({setOn,suspend,get timer(){return jingleT}})`,{events,clearTimeout:()=>events.push('clear')});
+const controls=runInNewContext(`const effectLast=new Map();let ac={state:'running',suspend:()=>Promise.resolve()},on=true,cur='battle',jingleT=4;const stopSources=()=>{},init=()=>true,outputLevel=()=>events.push('level'),play=()=>events.push('play'),stopBgm=()=>events.push('stop');${setOn}\n${suspend}\n({setOn,suspend,get timer(){return jingleT}})`,{events,clearTimeout:()=>events.push('clear')});
 controls.setOn(true);
 if(events.length) throw new Error('repeated enable restarted audio');
 controls.setOn(false);

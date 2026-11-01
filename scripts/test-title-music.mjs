@@ -11,7 +11,7 @@ try{for(const device of ['standard','small','landscape','short']){
  assert.equal(await button.getAttribute('data-play'),'true');const size=await button.boundingBox();assert(size.height>=48&&size.width>=48);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  await button.tap();await page.waitForFunction(()=>SND.playing&&SND.current==='title'&&SND.instrumentation.sampleNotes>0&&SND.sourceCount>0);
  assert.equal(await page.evaluate(()=>G.screen),'title');await page.waitForFunction(()=>document.querySelector('[data-a="titleMusic"]').getAttribute('aria-pressed')==='true');
- const before=await page.evaluate(()=>SND.instrumentation.sampleNotes);await page.waitForTimeout(900);assert(await page.evaluate(n=>SND.instrumentation.sampleNotes>n,before));
+ const before=await page.evaluate(()=>SND.instrumentation.sampleNotes);await page.waitForFunction(n=>SND.instrumentation.sampleNotes>n,before,{timeout:5000});assert(await page.evaluate(n=>SND.instrumentation.sampleNotes>n,before));
  await button.tap();assert.equal(await page.evaluate(()=>SND.on),false);assert.equal(await page.evaluate(()=>SND.sourceCount),0);assert.equal(await page.evaluate(()=>localStorage.getItem('tlr-kyushu-sound')),'0');
  await page.reload();await button.waitFor();assert.equal(await page.evaluate(()=>SND.on),false);await page.locator('.title-visual').tap();assert.equal(await page.evaluate(()=>SND.on),false,'muted preference survives reload and background taps');
  await page.evaluate(()=>SND.setVolumes(0,.75));await button.tap();await page.locator('.overlay').waitFor();assert.equal(await page.evaluate(()=>SND.volumes.music),0,'zero volume must not be silently overwritten');await page.locator('[data-a="closeSheet"]').tap();

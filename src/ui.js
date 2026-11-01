@@ -122,6 +122,7 @@ function render(){
   const dh=document.querySelector("#dock .hint"); if(dh) dh.textContent = (s==="explore"&&!G.sheet&&!G.dlg)?"スティックで移動・中央で決定":"スティックで選択・中央で決定";
   if(G.dlg){ const b=$("#dlgNext"); if(b) b.focus({preventScroll:true}); }
   PAD.restore();
+  updateMenuInsets();
   if(s==="battle"&&!G.sheet&&!G.dlg&&!G.auto&&G.cmd?.type){const key=JSON.stringify(G.cmd);if(G.commandView?.run!==G.st.run||G.commandView.key!==key){G.commandView={run:G.st.run,key};revealBattleCommand();}}else if(s!=="battle")G.commandView=null;
   if(s==='result'&&G.st?.lastResult){
     G.resultView={state:G.st,result:G.st.lastResult};
@@ -242,9 +243,8 @@ function renderCurrentLocation(){
   return `<div class="here">${ar?`<span class="tag danger">遭遇エリア</span> ${esc(ar.name)}（推奨レベル${ar.q}）`:`<span class="tag ${m.kind==="field"?"danger":"safe"}">${m.kind==="field"?"街外の道":"安全"}</span>`}${near.length?`<span class="small">／近く：${near.map(o=>esc(o.label)).join("・")}</span>`:""}</div>`;
 }
 function renderMainMenu(){
-  return `<nav class="menu-grid main-menu" aria-label="冒険メニュー">
-    ${[["map","地図"],["items","道具"],["status","ステータス"],["party","編成"],["record","記録"],["pets","ペット"],["voyage","航海"],["dex","図鑑"],["settings","設定"],["help","解説"],["share","友だちに教える"]].map(([k,label])=>`<button class="btn" data-a="openSheet" data-k="${k}">${label}</button>`).join("")}
-  </nav>`;
+ const groups=[['移動と探索',[['map','地図','全国の行先を確認'],['voyage','航海','海域と船の旅']]],['仲間と準備',[['items','道具','使う・持ち物を確認'],['status','ステータス','体力と能力を確認'],['party','編成','仲間・装備を整える'],['pets','ペット','同行とお世話']]],['記録と設定',[['record','記録','冒険の達成を確認'],['dex','図鑑','出会った敵を調べる'],['settings','設定','音・操作・保存'],['help','解説','遊び方と機能を検索'],['share','友だちに教える','紹介文とリンク']]]];
+ return '<nav class="main-menu menu-catalog" aria-label="冒険メニュー">'+groups.map(([title,rows])=>'<section class="menu-category"><h3>'+title+'</h3><div class="menu-grid">'+rows.map(([k,label,help])=>'<button class="btn" data-a="openSheet" data-k="'+k+'" aria-label="'+label+'" aria-describedby="menu-help-'+k+'"><b>'+label+'</b><small id="menu-help-'+k+'">'+help+'</small></button>').join('')+'</div></section>').join('')+'</nav>';
 }
 function renderExplore(){
   const st=G.st,m=MAPS[st.mapId],exit=m.continuousWorld?worldTownExit(st):m.objects.find(o=>o.fieldExit&&!o.oceanRoute&&!o.oceanReturn);
@@ -635,8 +635,8 @@ function renderCommand(run){
   const S=a.S;
   const entries=[["attack","アタック"],["comment",a.job==="J02"?"コメント整理":"応援コメント"],["skill",JOBS[a.job].skill],["item","道具"],["guard","ガード"],["rest","ひと息つく"],["other","その他"]];
   const chip=(k,v,on,label)=>`<button class="chip ${on?"on":""}" data-a="cmdSet" data-k="${k}" data-v="${v}" aria-pressed="${on}">${on?"▶":""}${label}</button>`;
-  const enemyPick=()=>`<span class="chiplabel">対象</span>`+run.enemies.filter(e=>e.hp>0).map(e=>chip("target",e.slot,c.target===e.slot,esc(e.display))).join("");
-  const allyPick=(other)=>`<span class="chiplabel">対象</span>`+run.party.filter(m=>m.hp>0&&(!other||m!==a)).map(m=>chip("ally",m.pos,c.ally===m.pos,esc(m.name))).join("");
+  const enemyPick=()=>`<span class="chiplabel">対象</span>`+run.enemies.filter(e=>e.hp>0).map(e=>chip("target",e.slot,c.target===e.slot,esc(e.display)+`<small>HP ${e.hp}／${e.maxHP}</small>`)).join("");
+  const allyPick=(other)=>`<span class="chiplabel">対象</span>`+run.party.filter(m=>m.hp>0&&(!other||m!==a)).map(m=>chip("ally",m.pos,c.ally===m.pos,esc(m.name)+`<small>HP ${m.hp}／${m.maxHP}・MP ${m.c}</small>`)).join("");
   const linePick=()=>["greet","plan","thanks"].map(l=>chip("line",l,c.line===l,LINE_NAMES[l])).join("");
   const liveE=run.enemies.filter(e=>e.hp>0); if(liveE.length===1) c.target=liveE[0].slot;
   let sub="", info="";
@@ -678,7 +678,10 @@ function renderCommand(run){
   if(act){ const p=planAction(run,c.actor,act); ok=p.ok; prev = (info?`<span class="pinfo">${esc(info)}</span>`:"") + (p.ok? previewText(run,a,p) : `<span class="warn">${esc(p.reason)}</span>`); }
   else if(c.type){const hint=c.type==='item'&&!c.item?'道具を選択':c.type==='comment'||c.type==='skill'&&skillNeeds(a.job)==='line'?'台詞を選択':c.type==='skill'&&skillNeeds(a.job)==='mode'&&!c.mode?'技の使い方を選択':c.type==='other'?'使う技を選択':'対象を選択';prev+=`<span class="hint">${hint}</span>`;}
   else prev = `<span class="hint">${esc(a.name)}：行動を選択（未行動${al.length}人）</span>`;
+  const actionLabel=entries.find(([k])=>k===c.type)?.[1];
+  if(actionLabel)prev=`<b class="preview-actor">${esc(a.name)}：${esc(actionLabel)}</b>`+prev;
   return `<div class="win cmd">
+    <div class="command-context"><b>${esc(a.name)}</b><span>MP ${a.c}／${battleMPCap(a)}</span><small>${c.type?act&&ok?"対象と効果を確認して確定":"行動の対象・使い方を選択":"行動を選択"}</small></div>
     <div class="cmdgrid">${entries.map(([k,n])=>`<button class="btn ${c.type===k?"on":""}" data-a="cmdType" data-v="${k}" aria-pressed="${c.type===k}">${c.type===k?"▶":""}${esc(n).replace("コメント","<wbr>コメント").replace("コール","<wbr>コール")}</button>`).join("")}</div>
     ${sub?`<div class="chips">${sub}</div>`:""}
     <div class="confirmrow"><div class="preview" id="battlePreview" role="status" aria-live="polite">${prev}</div><button class="btn auto" data-a="autoOn" ${G.readOnly?"disabled":""}>オート</button><button class="btn primary" data-a="confirmAct" aria-describedby="battlePreview" ${act&&ok&&!G.readOnly?"":"disabled"}>確定</button></div></div>`;
@@ -878,6 +881,8 @@ function resultDone(){
 /* ---- シート（メニュー） ---- */
 function openSheet(k,data={}){ if(G.vaultSaving||G.shopSaving||G.petSaving||G.characterSaving||G.featureSaving) return; G.sheet=k; G.sheetData=data; G.walk.path=[]; render(); const el=$(".sheet"); if(el) el.scrollTop=0; }
 function closeSheet(){ if(G.vaultSaving||G.shopSaving||G.petSaving||G.characterSaving||G.featureSaving) return; G.sheet=null; render(); }
+function updateMenuInsets(){const sheet=document.querySelector('.sheet'),head=sheet?.querySelector('.sheet-head');if(sheet&&head)sheet.style.setProperty('--menu-head-space',Math.ceil(head.getBoundingClientRect().height)+22+'px');}
+window.addEventListener('resize',updateMenuInsets,{passive:true});
 function sheetWrap(title, body){ return `<div class="overlay" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div data-sheet="${esc(G.sheet||'')}" class="win sheet ${['guide','quests'].includes(G.sheet)?'navigation-sheet':G.sheet==='help'?'help-sheet':''}"><div class="sheet-head"><h2 class="label">${esc(title)}</h2><div class="sheet-actions"><button class="btn" data-a="closeSheet" ${G.vaultSaving||G.shopSaving?"disabled":""}>戻る</button>${G.screen==="explore"&&G.st&&!G.st.run?`<button class="btn" data-a="returnToMap" aria-label="MAPへ戻る">MAPへ</button>`:""}</div></div>${body}</div></div>`; }
 function renderSheet(){
   const k=G.sheet; if(!k) return ""; const st=G.st; const d=G.sheetData;

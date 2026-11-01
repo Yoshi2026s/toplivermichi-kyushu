@@ -158,7 +158,7 @@ jobs:
             .task/regional-qa/report.json
             .task/music-qa/report.json
             .task/audio-render/*.wav
-            .task/audio-render/report.json
+            .task/audio-render/*.json
             .task/sound-comfort/*.png
             .task/sound-comfort/report.json
             .task/ui-feedback/*.png

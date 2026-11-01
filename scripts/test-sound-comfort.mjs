@@ -24,6 +24,8 @@ try{for(const device of ['standard','small','landscape','short','narrow']){
   await page.getByRole('button',{name:'BGM 50％',exact:true}).tap();
   await page.getByRole('button',{name:'効果音 消音',exact:true}).tap();
   assert.deepEqual(await page.evaluate(()=>SND.volumes),{music:.5,effects:0});
+  assert(await page.getByRole('button',{name:'効果音を試す',exact:true}).isDisabled());
+  assert(await page.locator('#soundPreviewHint').textContent().then(s=>s.includes('音量を上げて')));
   assert.equal(await page.locator('.sound-volume [aria-pressed="true"]').count(),2);
   await page.locator('.sound-volume').last().scrollIntoViewIfNeeded();
   await page.screenshot({path:resolve(out,device+'.png'),fullPage:true});
@@ -31,6 +33,17 @@ try{for(const device of ['standard','small','landscape','short','narrow']){
   const muted=await page.evaluate(()=>SND.sourceCount);assert(muted>0&&muted<=96);
   await page.getByRole('button',{name:'効果音 75％',exact:true}).tap();
   const burst=await page.evaluate(()=>{const before=SND.sourceCount;for(let i=0;i<100;i++)SND.sfx('ok');return SND.sourceCount-before;});assert(burst>=1&&burst<=2);
+  const preview=page.getByRole('button',{name:'効果音を試す',exact:true});
+  assert(await preview.isEnabled());await page.waitForTimeout(400);
+  const beforePreview=await page.evaluate(()=>SND.instrumentation.sampleNotes);await preview.tap();
+  assert(await page.evaluate(()=>SND.instrumentation.sampleNotes)>beforePreview,'preview uses the actual sampled effect');
+  await page.locator('[data-a="toggleSound"]').tap();
+  assert(await preview.isDisabled());assert.equal(await page.evaluate(()=>SND.on),false);
+  assert(await page.locator('#soundPreviewHint').textContent().then(s=>s.includes('ONに')));
+  await preview.scrollIntoViewIfNeeded();await page.screenshot({path:resolve(out,device+'-preview-control.png'),fullPage:true});
+  await page.locator('#restoreIn').focus();assert.equal(await page.locator('#restoreIn').evaluate(el=>getComputedStyle(el).outlineStyle),'solid');
+  await page.keyboard.press('Tab');await page.locator('summary').first().focus();assert.equal(await page.locator('summary').first().evaluate(el=>getComputedStyle(el).outlineStyle),'solid');
+  await page.screenshot({path:resolve(out,device+'-preview.png'),fullPage:true});
   await page.evaluate(()=>{SND.setOn(false);});assert.equal(await page.evaluate(()=>SND.sourceCount),0);
   assert.deepEqual(errors,[]);report.push({device,sizes,burst,errors});console.log('PASS sound comfort '+device);
  }finally{await context.close();}

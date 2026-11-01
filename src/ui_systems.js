@@ -90,7 +90,7 @@ renderSettings=function(){
   if(!Number.isFinite(s.musicVolume))s.musicVolume=SND.volumes.music;
   if(!Number.isFinite(s.effectVolume))s.effectVolume=SND.volumes.effects;
  }
- const volumeControls=`<h3 class="label">音量を個別に調整</h3>${[["musicVolume","BGM"],["effectVolume","効果音"]].map(([key,label])=>`<fieldset class="sound-volume"><legend>${label}：${(s[key]??1)===0?'消音':Math.round((s[key]??1)*100)+'％'}</legend><div class="opts" role="group" aria-label="${label}の音量">${[0,.25,.5,.75,1].map(n=>`<button class="btn opt" data-a="soundVolume" data-k="${key}" data-v="${n}" aria-label="${label} ${n===0?'消音':n*100+'％'}" aria-pressed="${(s[key]??1)===n}">${n===0?'消音':n*100+'％'}</button>`).join("")}</div></fieldset>`).join("")}`;
+ const volumeControls=`<h3 class="label">音量を個別に調整</h3><p class="small">BGMだけ、効果音だけを消すこともできます。全体をOFFにすると、両方とも鳴りません。</p>${[["musicVolume","BGM"],["effectVolume","効果音"]].map(([key,label])=>`<fieldset class="sound-volume"><legend>${label}：${(s[key]??1)===0?'消音':Math.round((s[key]??1)*100)+'％'}</legend><div class="opts" role="group" aria-label="${label}の音量">${[0,.25,.5,.75,1].map(n=>`<button class="btn opt" data-a="soundVolume" data-k="${key}" data-v="${n}" aria-label="${label} ${n===0?'消音':n*100+'％'}" aria-pressed="${(s[key]??1)===n}">${n===0?'消音':n*100+'％'}</button>`).join("")}</div></fieldset>`).join("")}<button class="btn wide" data-a="soundPreview" ${!soundIsOn()||SND.volumes.effects===0?'disabled':''} aria-describedby="soundPreviewHint">効果音を試す</button><p class="small" id="soundPreviewHint">${!soundIsOn()?'試聴するには「BGM・効果音」をONにしてください。':SND.volumes.effects===0?'試聴するには効果音の音量を上げてください。':'現在の効果音の音量で、短い回復音を鳴らします。'}</p>`;
  // Keep audio controls beside the sound switch, ahead of save/restore fields.
  return base.replace('<details class="control-help">',volumeControls+'<details class="control-help">')+`<h3 class="label">移動と応援</h3><button class="btn" data-a="moveSpeed">移動速度：${s.moveSpeed==="fast"?"高速":"通常"}</button><button class="btn" data-a="listenerToggle">リスナーコメント：${s.listenerComments===false?"OFF":"ON"}</button>`;
 };
@@ -106,6 +106,7 @@ Object.assign(ACT,{
   helpFilter(el){if(G.sheet!=="help"||(el.dataset.v!=="all"&&!Object.hasOwn(SYSTEM_HELP,el.dataset.v)))return;G.sheetData.category=el.dataset.v;G.sheetData.page=0;G.helpQuery={...G.sheetData};render();},
   helpSearch(){if(G.sheet!=="help")return;G.sheetData.query=String($("#helpSearch")?.value||"").slice(0,100);G.sheetData.page=0;G.helpQuery={...G.sheetData};render();},
   helpPage(el){if(G.sheet!=="help")return;const p=Number(el.dataset.v);if(!Number.isInteger(p)||p<0||p>3)return;G.sheetData.page=p;G.helpQuery={...G.sheetData};render();},
+  soundPreview(){if(G.sheet!=="settings"||G.dlg||G.readOnly||!soundIsOn()||SND.volumes.effects===0)return;SND.sfx("heal");},
   soundVolume(el){
    if(G.screen!=="title"&&(!G.st||G.st.run)||G.sheet!=="settings"||G.readOnly||!["musicVolume","effectVolume"].includes(el.dataset.k))return;
    const n=Number(el.dataset.v);if(![0,.25,.5,.75,1].includes(n))return;

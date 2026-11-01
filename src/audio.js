@@ -167,9 +167,12 @@ const SND = (()=>{
     src.buffer=sample.buffer;src.playbackRate.setValueAtTime(2**((note-sample.root)/12),t);src.loop=sample.loopEnd>0;src.loopStart=sample.loopStart;src.loopEnd=sample.loopEnd;
     const release=opt.r??.16,attack=Math.min(opt.a??.012,dur*.2),sustain=opt.sus??.8,level=vol*(opt.expression??1)*(out===sfxBus?1:2);
     gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(level,t+attack);gain.gain.linearRampToValueAtTime(level*sustain,t+Math.min(dur*.6,attack+.12));gain.gain.setValueAtTime(level*sustain,t+dur);gain.gain.linearRampToValueAtTime(.0001,t+dur+release);
-    src.connect(gain);const last=pan?(gain.connect(pan),pan):gain;if(pan)pan.pan.value=opt.pan||0;last.connect(out);
+    // Recorded notes must honor the same tone control as synthesized effects.
+    const filter=Number.isFinite(opt.cutoff)?ac.createBiquadFilter():null;
+    if(filter){filter.type='lowpass';filter.Q.value=opt.q??.7;const cutoff=Math.max(200,Math.min(ac.sampleRate*.45,opt.cutoff));filter.frequency.setValueAtTime(Math.min(ac.sampleRate*.45,cutoff+(opt.fenv||0)),t);filter.frequency.exponentialRampToValueAtTime(cutoff,t+Math.min(.25,dur));src.connect(filter);filter.connect(gain);}else src.connect(gain);
+    const last=pan?(gain.connect(pan),pan):gain;if(pan)pan.pan.value=opt.pan||0;last.connect(out);
     const send=out!==sfxBus&&opt.rev?ac.createGain():null;if(send){send.gain.value=opt.rev;last.connect(send);send.connect(revIn);}
-    trackSource(src,out,()=>{for(const node of [gain,pan,send])try{node?.disconnect();}catch(e){}},gain.gain,t);src.start(t);src.stop(t+dur+release+.02);sampleNotes++;return true;
+    trackSource(src,out,()=>{for(const node of [gain,pan,send,filter])try{node?.disconnect();}catch(e){}},gain.gain,t);src.start(t);src.stop(t+dur+release+.02);sampleNotes++;return true;
   }
   /* 1音：オシレーター（2本で厚み）→ 音量エンベロープ → ローパス → 定位 → バス＋送り */
   function voice(f, t, dur, wave, vol, opt={}){

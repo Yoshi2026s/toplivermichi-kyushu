@@ -18,6 +18,20 @@ try{
   return {seconds:1.6,tailRms:Math.sqrt(tail/count),afterRelease:end};
  },source);
  assert(longNoise.tailRms>1e-6,'long noise continues beyond the one-second source material');assert(longNoise.afterRelease<1e-7,'long noise stops after its release');console.log('PASS long noise buffer and release render');
+ const sampledTone=await page.evaluate(async source=>{
+  const render=async cutoff=>{
+   const rate=22050,ac=new OfflineAudioContext(2,rate/2,rate),buffer=ac.createBuffer(1,rate/2,rate),data=buffer.getChannelData(0);
+   for(let i=0;i<data.length;i++)data[i]=.5*Math.sin(2*Math.PI*7000*i/rate);
+   const sampleBanks=new Map([['glock',[{root:69,buffer,loopEnd:0,loopStart:0}]]]),out=ac.destination,ended=[];
+   const block=source.slice(source.indexOf('  function sampleVoice('),source.indexOf('  /* 1音'));
+   const play=new Function('ac','sampleBanks','activeSources','musicBus','sfxBus','trackSource','revIn','let sampleTurns=0,sampleNotes=0,droppedSampleNotes=0;'+block+';return sampleVoice;')(ac,sampleBanks,new Map(),{},out,(_src,_out,cleanup)=>ended.push(cleanup),null);
+   play(440,.02,.25,'glock',.5,{out,cutoff,r:.04});const rendered=await ac.startRendering();
+   const channels=Array.from({length:2},(_,c)=>{const wave=rendered.getChannelData(c);let sum=0,tail=0;for(let i=0;i<wave.length;i++){sum+=wave[i]*wave[i];if(i>rate*.4)tail=Math.max(tail,Math.abs(wave[i]));}return {rms:Math.sqrt(sum/wave.length),tail};});ended.forEach(clean=>clean());return channels;
+  };
+  return {raw:await render(undefined),softened:await render(3000)};
+ },source);
+ for(let c=0;c<2;c++){assert(sampledTone.raw[c].rms>.001);assert(sampledTone.softened[c].rms<sampledTone.raw[c].rms*.15,'recorded effects honor their high-frequency rolloff');assert(sampledTone.softened[c].tail<1e-7,'filtered sample releases completely');}
+ await writeFile(resolve(out,'sample-tone.json'),JSON.stringify(sampledTone,null,2));console.log('PASS recorded effect tone control on both channels');
  for(const scene of ['title','field','battle']){
   const result=await page.evaluate(async({source,scene})=>{
    const rate=22050,seconds=5,offline=new OfflineAudioContext(2,rate*seconds,rate),callbacks=new Set();

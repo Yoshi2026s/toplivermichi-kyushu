@@ -14,6 +14,7 @@ sound.sfx('ok');assert.equal(notes.length,1);assert.equal(notes[0][3],'triangle'
 for(let i=0;i<100;i++)sound.sfx('ok');assert.equal(notes.length,1,'same-frame repeats do not stack');
 ac.currentTime+=.08;sound.sfx('ok');assert.equal(notes.length,2,'deliberate repeated input still sounds');
 sound.sfx('step');assert.equal(noises.length,1);assert(noises[0][2]<.06);assert.equal(ducks.length,0,'footsteps do not pump the score');
+const waveStart=noises.length;sound.sfx('seaWave');assert.equal(noises.length-waveStart,2,'waves have no sharp high-frequency accent');for(const n of noises.slice(waveStart)){assert(n[2]<.13);assert.equal(n[3],900);assert.equal(n[4].a,.025);}assert.equal(ducks.length,0,'arrival waves leave BGM steady');ac.currentTime+=.2;sound.sfx('seaWave');assert.equal(noises.length-waveStart,2,'arrival repeats do not stack');ac.currentTime+=.16;sound.sfx('seaWave');assert.equal(noises.length-waveStart,4,'a later arrival remains audible');
 sound.sfx('damage');assert.equal(ducks.length,1,'important battle events remain audible over music');
 const before=[notes.length,noises.length,ducks.length];sound.mute(0);ac.currentTime+=1;sound.sfx('damage');assert.deepEqual([notes.length,noises.length,ducks.length],before,'muted effects never duck BGM or allocate voices');
 sound.mute(1);sound.fill();sound.sfx('heal');assert.deepEqual([notes.length,noises.length,ducks.length],before,'effect bursts respect their voice budget');

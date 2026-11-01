@@ -208,7 +208,7 @@ const SND = (()=>{
     if(activeSources.size>=96)return;
     const s=ac.createBufferSource(); s.buffer=noiseBuf; s.loop=true; s.playbackRate.value=opt.rate||1;
     const f=ac.createBiquadFilter(); f.type=opt.type||"highpass"; f.frequency.value=hp; f.Q.value=opt.q??0.7;
-    const g=ac.createGain(); g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(vol,t+Math.min(0.003,dur*0.2)); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    const g=ac.createGain(); g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(vol,t+Math.min(opt.a??0.003,dur*0.2)); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
     const pan=ac.createStereoPanner?ac.createStereoPanner():null; if(pan) pan.pan.value=opt.pan||0;
     s.connect(f); f.connect(g); const last=pan?(g.connect(pan),pan):g; last.connect(opt.out||musicBus);
     let reverbSend=null;
@@ -330,7 +330,8 @@ const SND = (()=>{
   }
   const effectProfile=name=>name==='step'?{level:.16,gap:.12,duck:false,cutoff:1800}:
     ['ok','cancel','equip','evade'].includes(name)?{level:.48,gap:.075,duck:false,cutoff:3000}:
-    ['seaWave','clap'].includes(name)?{level:.48,gap:.16,duck:false,cutoff:2600}:
+    name==='seaWave'?{level:.34,gap:.35,duck:false,cutoff:1800}:
+    name==='clap'?{level:.48,gap:.16,duck:false,cutoff:2600}:
     ['damage','down','meter','skillhit','allhit','slash','defeat','enc'].includes(name)?{level:.56,gap:.085,duck:true,cutoff:2600,tone:'triangle'}:
     ['win','rank'].includes(name)?{level:.64,gap:.12,duck:true,cutoff:3200,tone:'trumpet'}:
     ['level','seaRescue','kira'].includes(name)?{level:.76,gap:.12,duck:true,cutoff:3200,tone:'glock'}:
@@ -341,12 +342,12 @@ const SND = (()=>{
     const parts=SFX[name]; if(!Array.isArray(parts)) return;
     const profile=effectProfile(name),now=ac.currentTime,last=effectLast.get(name);
     if(last!==undefined&&now-last<profile.gap) return;
-    const needed=parts.reduce((sum,part)=>sum+(part[0]===null?0:part[0]==='noise'&&name!=='step'?2:1),0);
+    const needed=parts.reduce((sum,part)=>sum+(part[0]===null?0:part[0]==='noise'&&!['step','seaWave'].includes(name)?2:1),0);
     if([...activeSources.values()].filter(kind=>kind==='sfx').length+needed>24) return;
     effectLast.set(name,now); let t=now+0.01;
     if(profile.duck)duckBgm(parts.reduce((n,s)=>n+(s[0]==="noise"||s[0]===null?s[1]:s[2]),0)+0.08);
     for(const s of parts){
-      if(s[0]==="noise"){ noise(t,s[1]+0.03,0.36*profile.level,name==='step'?600:1200,{type:"bandpass",q:0.5,out:sfxBus}); if(name!=='step')noise(t,0.02,0.10*profile.level,3500,{out:sfxBus}); t+=s[1]; }
+      if(s[0]==="noise"){ noise(t,s[1]+0.03,0.36*profile.level,name==='step'?600:name==='seaWave'?900:1200,{type:"bandpass",q:0.5,out:sfxBus,...(name==='seaWave'?{a:.025}:{})}); if(!['step','seaWave'].includes(name))noise(t,0.02,0.10*profile.level,3500,{out:sfxBus}); t+=s[1]; }
       else if(s[0]===null){ t+=s[1]; }
       else { voice(hz(s[1]),t,s[2],profile.tone||(['heal','buy','pet','petCare','petgrow','seaTreasure'].includes(name)?'glock':['ok','cancel','equip','evade'].includes(name)?'triangle':s[0]),0.42*profile.level,{out:sfxBus,sus:0.65,cutoff:profile.cutoff,fenv:600,a:0.006,d:0.03,r:0.07}); t+=s[2]; }
     }

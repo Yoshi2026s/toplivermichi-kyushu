@@ -84,7 +84,12 @@ function renderSystemHelp(){
 const systemBaseRenderSheet=renderSheet;
 renderSheet=function(){if(G.sheet==="help")return sheetWrap("解説",renderSystemHelp());return systemBaseRenderSheet();};
 const systemBaseSettings=renderSettings;
-renderSettings=function(){const s=G.st?.settings||G.tmpSettings||{};return systemBaseSettings()+`<h3 class="label">音量を個別に調整</h3>${[["musicVolume","BGM"],["effectVolume","効果音"]].map(([key,label])=>`<fieldset class="sound-volume"><legend>${label}：${(s[key]??1)===0?'消音':Math.round((s[key]??1)*100)+'％'}</legend><div class="opts" role="group" aria-label="${label}の音量">${[0,.25,.5,.75,1].map(n=>`<button class="btn opt" data-a="soundVolume" data-k="${key}" data-v="${n}" aria-label="${label} ${n===0?'消音':n*100+'％'}" aria-pressed="${(s[key]??1)===n}">${n===0?'消音':n*100+'％'}</button>`).join("")}</div></fieldset>`).join("")}<h3 class="label">移動と応援</h3><button class="btn" data-a="moveSpeed">移動速度：${s.moveSpeed==="fast"?"高速":"通常"}</button><button class="btn" data-a="listenerToggle">リスナーコメント：${s.listenerComments===false?"OFF":"ON"}</button>`;};
+renderSettings=function(){
+ const base=systemBaseSettings(),s=G.st?.settings||G.tmpSettings||{};
+ const volumeControls=`<h3 class="label">音量を個別に調整</h3>${[["musicVolume","BGM"],["effectVolume","効果音"]].map(([key,label])=>`<fieldset class="sound-volume"><legend>${label}：${(s[key]??1)===0?'消音':Math.round((s[key]??1)*100)+'％'}</legend><div class="opts" role="group" aria-label="${label}の音量">${[0,.25,.5,.75,1].map(n=>`<button class="btn opt" data-a="soundVolume" data-k="${key}" data-v="${n}" aria-label="${label} ${n===0?'消音':n*100+'％'}" aria-pressed="${(s[key]??1)===n}">${n===0?'消音':n*100+'％'}</button>`).join("")}</div></fieldset>`).join("")}`;
+ // Keep audio controls beside the sound switch, ahead of save/restore fields.
+ return base.replace('<details class="control-help">',volumeControls+'<details class="control-help">')+`<h3 class="label">移動と応援</h3><button class="btn" data-a="moveSpeed">移動速度：${s.moveSpeed==="fast"?"高速":"通常"}</button><button class="btn" data-a="listenerToggle">リスナーコメント：${s.listenerComments===false?"OFF":"ON"}</button>`;
+};
 const systemBaseRender=render;
 render=function(){systemBaseRender();observeListenerScene();};
 const systemBaseCharSprite=charSprite;

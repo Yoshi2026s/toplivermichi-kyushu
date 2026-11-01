@@ -93,6 +93,9 @@ jobs:
       - run: node scripts/test-sound-comfort.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-audio-render.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - run: node scripts/test-music.mjs
         env:
           MOBILE_BROWSER: chromium

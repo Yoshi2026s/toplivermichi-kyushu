@@ -88,10 +88,25 @@ const SND = (()=>{
   function trackSource(node,out,cleanup){activeSources.set(node,out===sfxBus?'sfx':'music');node.onended=()=>{activeSources.delete(node);try{node.disconnect();}catch(e){}if(cleanup)cleanup();};}
   function stopSources(group){for(const [node,kind] of activeSources){if(group&&kind!==group)continue;try{node.stop();node.disconnect();}catch(e){}activeSources.delete(node);}}
   const musicGain=()=>0.5*musicVolume;
+  function holdGain(gain,t){
+    if(typeof gain.cancelAndHoldAtTime==='function')gain.cancelAndHoldAtTime(t);
+    else {gain.cancelScheduledValues(t);gain.setValueAtTime(gain.value,t);}
+  }
+  function mixMusic(){
+    if(!ac||!musicBus)return;
+    const t=ac.currentTime,ducked=duckUntil>t,end=t+.025,until=Math.max(duckUntil,end);
+    // Direct score and its room/echo returns follow the same envelope.
+    for(const [node,level]of [[musicBus,.5],[revOutput,.55],[delayOutput,.45]]){
+      if(!node)continue;
+      const gain=node.gain,target=level*musicVolume;
+      holdGain(gain,t);gain.linearRampToValueAtTime(target*(ducked?.68:1),end);
+      if(ducked){gain.setValueAtTime(target*.68,until);gain.linearRampToValueAtTime(target,until+.38);}
+    }
+  }
   function setVolumes(music,effects){
     if(!Number.isFinite(music)||!Number.isFinite(effects))return false;
     musicVolume=Math.max(0,Math.min(1,music));effectVolume=Math.max(0,Math.min(1,effects));
-    if(ac&&musicBus){const t=ac.currentTime;musicBus.gain.cancelScheduledValues(t);musicBus.gain.setValueAtTime(musicGain()*(duckUntil>t?.68:1),t);if(duckUntil>t){musicBus.gain.setValueAtTime(musicGain()*.68,duckUntil);musicBus.gain.linearRampToValueAtTime(musicGain(),duckUntil+.38);}sfxBus.gain.setValueAtTime(.75*effectVolume,t);if(revOutput)revOutput.gain.setValueAtTime(.55*musicVolume,t);if(delayOutput)delayOutput.gain.setValueAtTime(.45*musicVolume,t);}
+    if(ac&&musicBus){const t=ac.currentTime;mixMusic();holdGain(sfxBus.gain,t);sfxBus.gain.linearRampToValueAtTime(.75*effectVolume,t+.025);}
     return true;
   }
   function impulse(sec,decay){ const len=Math.floor(ac.sampleRate*sec), b=ac.createBuffer(2,len,ac.sampleRate);
@@ -245,7 +260,7 @@ const SND = (()=>{
     for(let i=0;i<steps;i+=4) kick(t0+i*sd);
     jingleT=setTimeout(()=>{ jingleT=null; if(next){ const n=next; cur=null; play(n); } }, (steps*sd+0.25)*1000);
   }
-  function stopBgm(){ if(timer){ clearInterval(timer); timer=null; } stopSources("music"); duckUntil=0; if(musicBus&&ac){ musicBus.gain.cancelScheduledValues(ac.currentTime); musicBus.gain.setValueAtTime(musicGain(),ac.currentTime); } }
+  function stopBgm(){ if(timer){ clearInterval(timer); timer=null; } stopSources("music"); duckUntil=0; mixMusic(); }
   /* 効果音とジングル */
   const SFX = {
     seaWave:[["noise",.12],[null,.04],["noise",.16]],seaRescue:[["p25",76,.08],["p25",81,.08],["p25",88,.18]],seaTreasure:[["p12",79,.06],["p12",84,.06],["p12",91,.25]],
@@ -265,15 +280,8 @@ const SND = (()=>{
     rank:[["p25",72,.12],["p25",79,.12],["p25",84,.12],["p25",88,.12],["p25",91,.4]]
   };
   function duckBgm(duration){
-    if(!ac||!musicBus||!timer) return;
-    const now=ac.currentTime;
-    duckUntil=Math.max(duckUntil,now+duration);
-    const gain=musicBus.gain;
-    if(typeof gain.cancelAndHoldAtTime==="function") gain.cancelAndHoldAtTime(now);
-    else { gain.cancelScheduledValues(now); gain.setValueAtTime(Math.min(gain.value,musicGain()),now); }
-    gain.linearRampToValueAtTime(musicGain()*.68,now+0.025);
-    gain.setValueAtTime(musicGain()*.68,duckUntil);
-    gain.linearRampToValueAtTime(musicGain(),duckUntil+0.38);
+    if(!ac||!musicBus||!timer)return;
+    duckUntil=Math.max(duckUntil,ac.currentTime+duration);mixMusic();
   }
   // Quiet interface sounds leave the score steady; important events retain ducking.
   const effectLast=new Map();

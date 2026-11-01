@@ -337,7 +337,7 @@ body.reduce-motion .battle-fx-layer{display:none}
 .help-search{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:5px;margin:8px 0}.help-search label{grid-column:1/-1}.help-search input{min-width:0;width:100%;box-sizing:border-box}.help-search .btn{min-width:48px;min-height:48px;padding:4px 8px}
 
 /* Clear selection and touch targets for independent music/effect controls. */
-.sound-volume{min-width:0;margin:12px 0;padding:10px;border:1px solid #8ca6af;border-radius:8px;background:#102735}
+.sound-volume{scroll-margin-top:80px;min-width:0;margin:12px 0;padding:10px;border:1px solid #8ca6af;border-radius:8px;background:#102735}
 .sound-volume legend{padding:0 6px;color:#f0dfb4;font-size:16px;line-height:1.5}
 .sound-volume .opts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
 .sound-volume .btn{min-width:0;min-height:48px;padding:6px 2px;font-size:14px;font-variant-numeric:tabular-nums}
@@ -4871,10 +4871,25 @@ const SND = (()=>{
   function trackSource(node,out,cleanup){activeSources.set(node,out===sfxBus?'sfx':'music');node.onended=()=>{activeSources.delete(node);try{node.disconnect();}catch(e){}if(cleanup)cleanup();};}
   function stopSources(group){for(const [node,kind] of activeSources){if(group&&kind!==group)continue;try{node.stop();node.disconnect();}catch(e){}activeSources.delete(node);}}
   const musicGain=()=>0.5*musicVolume;
+  function holdGain(gain,t){
+    if(typeof gain.cancelAndHoldAtTime==='function')gain.cancelAndHoldAtTime(t);
+    else {gain.cancelScheduledValues(t);gain.setValueAtTime(gain.value,t);}
+  }
+  function mixMusic(){
+    if(!ac||!musicBus)return;
+    const t=ac.currentTime,ducked=duckUntil>t,end=t+.025,until=Math.max(duckUntil,end);
+    // Direct score and its room/echo returns follow the same envelope.
+    for(const [node,level]of [[musicBus,.5],[revOutput,.55],[delayOutput,.45]]){
+      if(!node)continue;
+      const gain=node.gain,target=level*musicVolume;
+      holdGain(gain,t);gain.linearRampToValueAtTime(target*(ducked?.68:1),end);
+      if(ducked){gain.setValueAtTime(target*.68,until);gain.linearRampToValueAtTime(target,until+.38);}
+    }
+  }
   function setVolumes(music,effects){
     if(!Number.isFinite(music)||!Number.isFinite(effects))return false;
     musicVolume=Math.max(0,Math.min(1,music));effectVolume=Math.max(0,Math.min(1,effects));
-    if(ac&&musicBus){const t=ac.currentTime;musicBus.gain.cancelScheduledValues(t);musicBus.gain.setValueAtTime(musicGain()*(duckUntil>t?.68:1),t);if(duckUntil>t){musicBus.gain.setValueAtTime(musicGain()*.68,duckUntil);musicBus.gain.linearRampToValueAtTime(musicGain(),duckUntil+.38);}sfxBus.gain.setValueAtTime(.75*effectVolume,t);if(revOutput)revOutput.gain.setValueAtTime(.55*musicVolume,t);if(delayOutput)delayOutput.gain.setValueAtTime(.45*musicVolume,t);}
+    if(ac&&musicBus){const t=ac.currentTime;mixMusic();holdGain(sfxBus.gain,t);sfxBus.gain.linearRampToValueAtTime(.75*effectVolume,t+.025);}
     return true;
   }
   function impulse(sec,decay){ const len=Math.floor(ac.sampleRate*sec), b=ac.createBuffer(2,len,ac.sampleRate);
@@ -5028,7 +5043,7 @@ const SND = (()=>{
     for(let i=0;i<steps;i+=4) kick(t0+i*sd);
     jingleT=setTimeout(()=>{ jingleT=null; if(next){ const n=next; cur=null; play(n); } }, (steps*sd+0.25)*1000);
   }
-  function stopBgm(){ if(timer){ clearInterval(timer); timer=null; } stopSources("music"); duckUntil=0; if(musicBus&&ac){ musicBus.gain.cancelScheduledValues(ac.currentTime); musicBus.gain.setValueAtTime(musicGain(),ac.currentTime); } }
+  function stopBgm(){ if(timer){ clearInterval(timer); timer=null; } stopSources("music"); duckUntil=0; mixMusic(); }
   /* 効果音とジングル */
   const SFX = {
     seaWave:[["noise",.12],[null,.04],["noise",.16]],seaRescue:[["p25",76,.08],["p25",81,.08],["p25",88,.18]],seaTreasure:[["p12",79,.06],["p12",84,.06],["p12",91,.25]],
@@ -5048,15 +5063,8 @@ const SND = (()=>{
     rank:[["p25",72,.12],["p25",79,.12],["p25",84,.12],["p25",88,.12],["p25",91,.4]]
   };
   function duckBgm(duration){
-    if(!ac||!musicBus||!timer) return;
-    const now=ac.currentTime;
-    duckUntil=Math.max(duckUntil,now+duration);
-    const gain=musicBus.gain;
-    if(typeof gain.cancelAndHoldAtTime==="function") gain.cancelAndHoldAtTime(now);
-    else { gain.cancelScheduledValues(now); gain.setValueAtTime(Math.min(gain.value,musicGain()),now); }
-    gain.linearRampToValueAtTime(musicGain()*.68,now+0.025);
-    gain.setValueAtTime(musicGain()*.68,duckUntil);
-    gain.linearRampToValueAtTime(musicGain(),duckUntil+0.38);
+    if(!ac||!musicBus||!timer)return;
+    duckUntil=Math.max(duckUntil,ac.currentTime+duration);mixMusic();
   }
   // Quiet interface sounds leave the score steady; important events retain ducking.
   const effectLast=new Map();
@@ -7568,7 +7576,12 @@ function renderSystemHelp(){
 const systemBaseRenderSheet=renderSheet;
 renderSheet=function(){if(G.sheet==="help")return sheetWrap("解説",renderSystemHelp());return systemBaseRenderSheet();};
 const systemBaseSettings=renderSettings;
-renderSettings=function(){const s=G.st?.settings||G.tmpSettings||{};return systemBaseSettings()+`<h3 class="label">音量を個別に調整</h3>${[["musicVolume","BGM"],["effectVolume","効果音"]].map(([key,label])=>`<fieldset class="sound-volume"><legend>${label}：${(s[key]??1)===0?'消音':Math.round((s[key]??1)*100)+'％'}</legend><div class="opts" role="group" aria-label="${label}の音量">${[0,.25,.5,.75,1].map(n=>`<button class="btn opt" data-a="soundVolume" data-k="${key}" data-v="${n}" aria-label="${label} ${n===0?'消音':n*100+'％'}" aria-pressed="${(s[key]??1)===n}">${n===0?'消音':n*100+'％'}</button>`).join("")}</div></fieldset>`).join("")}<h3 class="label">移動と応援</h3><button class="btn" data-a="moveSpeed">移動速度：${s.moveSpeed==="fast"?"高速":"通常"}</button><button class="btn" data-a="listenerToggle">リスナーコメント：${s.listenerComments===false?"OFF":"ON"}</button>`;};
+renderSettings=function(){
+ const base=systemBaseSettings(),s=G.st?.settings||G.tmpSettings||{};
+ const volumeControls=`<h3 class="label">音量を個別に調整</h3>${[["musicVolume","BGM"],["effectVolume","効果音"]].map(([key,label])=>`<fieldset class="sound-volume"><legend>${label}：${(s[key]??1)===0?'消音':Math.round((s[key]??1)*100)+'％'}</legend><div class="opts" role="group" aria-label="${label}の音量">${[0,.25,.5,.75,1].map(n=>`<button class="btn opt" data-a="soundVolume" data-k="${key}" data-v="${n}" aria-label="${label} ${n===0?'消音':n*100+'％'}" aria-pressed="${(s[key]??1)===n}">${n===0?'消音':n*100+'％'}</button>`).join("")}</div></fieldset>`).join("")}`;
+ // Keep audio controls beside the sound switch, ahead of save/restore fields.
+ return base.replace('<details class="control-help">',volumeControls+'<details class="control-help">')+`<h3 class="label">移動と応援</h3><button class="btn" data-a="moveSpeed">移動速度：${s.moveSpeed==="fast"?"高速":"通常"}</button><button class="btn" data-a="listenerToggle">リスナーコメント：${s.listenerComments===false?"OFF":"ON"}</button>`;
+};
 const systemBaseRender=render;
 render=function(){systemBaseRender();observeListenerScene();};
 const systemBaseCharSprite=charSprite;

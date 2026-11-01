@@ -11,6 +11,7 @@ try{for(const device of ['standard','small','landscape','short','narrow']){
   await page.goto(app.url);await page.locator('[data-a="newGame"]').waitFor();
   await page.locator('[data-a="openSheet"][data-k="settings"]').first().tap();
   assert.equal(await page.locator('.sound-volume').count(),2);
+  assert(await page.locator('.sound-volume').first().evaluate(el=>Boolean(el.compareDocumentPosition(document.querySelector('#restoreIn'))&Node.DOCUMENT_POSITION_FOLLOWING)),'audio controls precede unrelated restore fields');
   const sizes=await page.locator('.sound-volume button').evaluateAll(buttons=>buttons.map(b=>{const r=b.getBoundingClientRect();return {width:r.width,height:r.height,label:b.getAttribute('aria-label')};}));
   assert(sizes.every(r=>r.width>=48&&r.height>=48&&r.label));
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));

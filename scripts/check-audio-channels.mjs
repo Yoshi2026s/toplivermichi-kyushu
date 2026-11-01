@@ -53,3 +53,6 @@ console.log('Audio channels: 25 scene/terrain/sea tracks, alternating melody, in
 
 const fallback=runInNewContext(source+'\nSND',{ORCHESTRA_BANK:bank,atob:()=>{throw Error('sample decoder unavailable');},document,window:{AudioContext:FakeContext},setInterval:f=>{callbacks.add(f);return f;},clearInterval:f=>callbacks.delete(f),setTimeout:()=>1,clearTimeout:()=>{},Float32Array,Math});
 assert(fallback.setOn(true));fallback.play('field');assert.equal(fallback.instrumentation.sampledInstruments,0);assert(fallback.sourceCount>0,'failed sample decoder preserves synthetic music fallback');fallback.setOn(false);assert.equal(fallback.sourceCount,0);console.log('Unavailable sample decoder falls back to synthesis without breaking mute or cleanup');
+
+class BrokenContext extends FakeContext{createDynamicsCompressor(){throw Error('audio initialization unavailable');}}
+const broken=runInNewContext(source+';SND',{window:{AudioContext:BrokenContext},document,setInterval:()=>1,clearInterval(){},setTimeout:()=>1,clearTimeout(){},Float32Array,Math});assert.equal(broken.setOn(true),false);assert.doesNotThrow(()=>context.events.get('statechange')(),'late state events after initialization failure remain harmless');

@@ -4920,7 +4920,7 @@ const SND = (()=>{
     if(ac) return true;
     try{
       ac=new (window.AudioContext||window.webkitAudioContext)({latencyHint:"interactive"});
-      ac.addEventListener?.("statechange",()=>{if(ac.state!=="running"){stopSources("sfx");effectLast.clear();}if(typeof refreshTitleMusic==="function")refreshTitleMusic();if(typeof refreshSoundStatus==="function")refreshSoundStatus();});
+      ac.addEventListener?.("statechange",()=>{if(!ac)return;if(ac.state!=="running"){stopSources("sfx");effectLast.clear();}if(typeof refreshTitleMusic==="function")refreshTitleMusic();if(typeof refreshSoundStatus==="function")refreshSoundStatus();});
       const comp=ac.createDynamicsCompressor(); comp.threshold.value=-16; comp.knee.value=12; comp.ratio.value=3.5; comp.attack.value=0.004; comp.release.value=0.18;
       master=ac.createGain(); master.gain.value=0.85; master.connect(comp); comp.connect(ac.destination);
       const low=ac.createBiquadFilter(); low.type="lowshelf"; low.frequency.value=140; low.gain.value=2.5;

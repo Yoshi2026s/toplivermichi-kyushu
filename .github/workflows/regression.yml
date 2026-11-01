@@ -105,6 +105,12 @@ jobs:
       - run: node scripts/test-sound-comfort.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-settings-continuity.mjs
+        env:
+          MOBILE_BROWSER: chromium
+      - run: node scripts/test-effect-balance.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - run: node scripts/test-ui-feedback.mjs
         env:
           MOBILE_BROWSER: chromium
@@ -157,6 +163,9 @@ jobs:
             .task/regional-qa/*.png
             .task/regional-qa/report.json
             .task/music-qa/report.json
+            .task/settings-continuity/*.png
+            .task/settings-continuity/report.json
+            .task/effect-balance/report.json
             .task/audio-render/*.wav
             .task/audio-render/*.json
             .task/sound-comfort/*.png

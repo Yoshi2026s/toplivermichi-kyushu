@@ -92,10 +92,22 @@ renderSettings=function(){
  }
  const volumeControls=`<h3 class="label">音量を個別に調整</h3><p class="small">BGMだけ、効果音だけを消すこともできます。全体をOFFにすると、両方とも鳴りません。</p>${[["musicVolume","BGM"],["effectVolume","効果音"]].map(([key,label])=>`<fieldset class="sound-volume"><legend>${label}：${(s[key]??1)===0?'消音':Math.round((s[key]??1)*100)+'％'}</legend><div class="opts" role="group" aria-label="${label}の音量">${[0,.25,.5,.75,1].map(n=>`<button class="btn opt" data-a="soundVolume" data-k="${key}" data-v="${n}" aria-label="${label} ${n===0?'消音':n*100+'％'}" aria-pressed="${(s[key]??1)===n}">${n===0?'消音':n*100+'％'}</button>`).join("")}</div></fieldset>`).join("")}<button class="btn wide" data-a="soundPreview" ${!soundIsOn()||SND.volumes.effects===0?'disabled':''} aria-describedby="soundPreviewHint">効果音を試す</button><p class="small" id="soundPreviewHint">${!soundIsOn()?'試聴するには「BGM・効果音」をONにしてください。':SND.volumes.effects===0?'試聴するには効果音の音量を上げてください。':'現在の効果音の音量で、短い回復音を鳴らします。'}</p>`;
  // Keep audio controls beside the sound switch, ahead of save/restore fields.
- return base.replace('<details class="control-help">',volumeControls+'<details class="control-help">')+`<h3 class="label">移動と応援</h3><button class="btn" data-a="moveSpeed">移動速度：${s.moveSpeed==="fast"?"高速":"通常"}</button><button class="btn" data-a="listenerToggle">リスナーコメント：${s.listenerComments===false?"OFF":"ON"}</button>`;
+ return base.replace('<details class="control-help">',volumeControls+'<details class="control-help">')+`<h3 class="label">移動と応援</h3><button class="btn" data-a="moveSpeed">移動速度：${s.moveSpeed==="fast"?"高速":"通常"}</button><button class="btn ${s.listenerComments===false?'':'on'}" data-a="listenerToggle" aria-pressed="${s.listenerComments!==false}">リスナーコメント：${s.listenerComments===false?"OFF":"ON"}</button>`;
 };
 const systemBaseRender=render;
-render=function(){systemBaseRender();observeListenerScene();};
+render=function(){
+ const sheet=G.sheet==='settings'?document.querySelector('.sheet'):null;
+ const draft=sheet?.querySelector('#restoreIn'),active=sheet?.contains(document.activeElement)?document.activeElement:null;
+ const saved=draft?{value:draft.value,start:draft.selectionStart,end:draft.selectionEnd,direction:draft.selectionDirection,inputScroll:draft.scrollTop,scroll:sheet.scrollTop,details:Array.from(sheet.querySelectorAll('details'),el=>el.open),focus:active?{id:active.id,a:active.dataset.a,k:active.dataset.k,v:active.dataset.v}:null}:null;
+ systemBaseRender();observeListenerScene();
+ if(saved&&G.sheet==='settings'){
+  const next=document.querySelector('.sheet'),input=next?.querySelector('#restoreIn');
+  if(input){input.value=saved.value;input.setSelectionRange(saved.start,saved.end,saved.direction);input.scrollTop=saved.inputScroll;next.querySelectorAll('details').forEach((el,i)=>{el.open=saved.details[i]||false;});
+   const f=saved.focus,target=f?.id?document.getElementById(f.id):f?.a?Array.from(next.querySelectorAll('[data-a]')).find(el=>el.dataset.a===f.a&&el.dataset.k===f.k&&(el.dataset.v===f.v||f.a==='setOpt'&&f.k!=='difficulty')):null;
+   target?.focus({preventScroll:true});next.scrollTop=saved.scroll;
+  }
+ }
+};
 const systemBaseCharSprite=charSprite;
 charSprite=function(cid,dir,frame){if(G.oceanDrawing)return systemBaseCharSprite(cid,dir,frame);if(cid==="moe"&&G.st?.heroine)return ART.person("partner",PAL.violet,PAL.cream,dir,frame,{long:G.st.heroine.gender!=="男性",ribbon:G.st.heroine.gender!=="男性"?PAL.coral:null});return systemBaseCharSprite(cid,dir,frame);};
 const systemBaseOpen=openSheet,systemBaseClose=closeSheet;

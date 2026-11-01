@@ -96,6 +96,9 @@ jobs:
       - run: node scripts/test-title-focus.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-title-volume-state.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - run: node scripts/test-jingle-pause.mjs
         env:
           MOBILE_BROWSER: chromium
@@ -168,6 +171,8 @@ jobs:
             .task/title-music-qa/report.json
             .task/title-focus/*.png
             .task/title-focus/report.json
+            .task/title-volume-state/*.png
+            .task/title-volume-state/report.json
             .task/jingle-pause/report.json
             .task/illustrated-*.png
             .task/illustrated-ui-report.json

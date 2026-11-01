@@ -1,6 +1,6 @@
 {
   "version": "5.34",
-  "generatedAtUTC": "2026-11-01T05:06:17.720Z",
+  "generatedAtUTC": "2026-11-01T05:32:53.635Z",
   "checks": [
     {
       "name": "check-action-safety.mjs",
@@ -8,7 +8,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 870,
+      "durationMs": 2451,
       "stdout": "Dialogue stale buttons and repeated completion are safe\nNearby interaction rejects remote and out-of-context controls\nManual battle selection validates actor, command, target and frontmost screen\nConfirm rejects stale/modal/incomplete actions and valid action executes once\nDefeat return is context checked and applies its existing cost once\nRetreat requires live confirmation and cannot discard won rewards\nHelp search supports Enter and retains query through filtering\nHelp empty results reset and query-aware pagination are available read-only\nPaging rejects detached controls after context changes",
       "stderr": ""
     },
@@ -18,7 +18,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 1858,
+      "durationMs": 1892,
       "stdout": "Map cache retains recent frames, evicts old layers and regenerates identical pixels",
       "stderr": ""
     },
@@ -28,7 +28,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 3082,
+      "durationMs": 2278,
       "stdout": "Audio channels: 25 scene/terrain/sea tracks, alternating melody, independent saved volume levels, zero music with effects enabled, 96-source ceiling, mute/suspend cleanup, idempotent resume and blocked-resume handling passed\nUnavailable sample decoder falls back to synthesis without breaking mute or cleanup",
       "stderr": ""
     },
@@ -38,7 +38,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 1321,
+      "durationMs": 1144,
       "stdout": "IMA standard vectors, companded endpoints, malformed-length rejection, waveform quality, unchanged frame counts and compact bank budget passed",
       "stderr": ""
     },
@@ -48,7 +48,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 117,
+      "durationMs": 110,
       "stdout": "Audio: short duck, overlapping effects, stop reset, mute/unmute gain OK\nAudio: repeated settings and jingle cancellation OK\nAudio: visibility resume is idempotent OK",
       "stderr": ""
     },
@@ -58,7 +58,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 195,
+      "durationMs": 294,
       "stdout": "PASS audio interruption: suspended/interrupted recovery, running/closed guards, active music/jingle preservation, rejection and mute",
       "stderr": ""
     },
@@ -68,7 +68,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 179,
+      "durationMs": 287,
       "stdout": "Audio mix: smooth independent volume, coordinated direct/reverb/delay duck and recovery, zero levels during active duck and cleanup pass",
       "stderr": ""
     },
@@ -78,7 +78,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 122,
+      "durationMs": 136,
       "stdout": "Unknown and prototype track/jingle names preserve current music and its scheduled transition",
       "stderr": ""
     },
@@ -88,7 +88,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 113,
+      "durationMs": 133,
       "stdout": "Audio transitions: short release for audible music, immediate future-note cancellation, effect isolation, no fade extension and complete cleanup pass",
       "stderr": ""
     },
@@ -98,7 +98,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 170,
+      "durationMs": 283,
       "stdout": "Auto items: thresholds, purchasable recovery and immutable search OK",
       "stderr": ""
     },
@@ -108,7 +108,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 155,
+      "durationMs": 182,
       "stdout": "Auto UI rejects repeated start, modal/read-only starts and hidden/read-only/completed actions",
       "stderr": ""
     },
@@ -118,7 +118,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 284,
+      "durationMs": 310,
       "stdout": "Badge catalog: 100 IDs, 10 groups, live progress, recommendations and filter OK",
       "stderr": ""
     },
@@ -128,7 +128,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 161,
+      "durationMs": 139,
       "stdout": "Delayed battle jingles respect active screen, battle identity and save identity\nDelayed defeat sound rejects obsolete battles, save switches, screens and hidden pages",
       "stderr": ""
     },
@@ -138,7 +138,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 633,
+      "durationMs": 587,
       "stdout": "Actual hit/miss/counter/MP receipts, no persisted effects, 2x DPR, stale frames, battle/save/visibility/reduced-motion cancellation and rendered effect variants pass",
       "stderr": ""
     },
@@ -148,7 +148,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 199,
+      "durationMs": 129,
       "stdout": "Battle log: 80-entry retention, newest/oldest pages, empty state OK",
       "stderr": ""
     },
@@ -158,7 +158,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 1208,
+      "durationMs": 2002,
       "stdout": "56 stationary illustrated NPC identities; 22 pets at three growth stages; 40 distinct ocean creatures; illustrated land enemies and bosses passed",
       "stderr": ""
     },
@@ -168,7 +168,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 9442,
+      "durationMs": 9695,
       "stdout": "All four graphics checks create valid PNGs without .task, independently of test order and working directory",
       "stderr": ""
     },
@@ -178,7 +178,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 109,
+      "durationMs": 110,
       "stdout": "Control actions: back unwinds target/item/action, idle opens pause, ready action confirms, dialogue goes back, held movement releases",
       "stderr": ""
     },
@@ -188,7 +188,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 838,
+      "durationMs": 943,
       "stdout": "Expanded battle: 5 abilities, 22 traits, 33 careers/66 equipment, 66 additional skills/22 inherited skills/9 signatures; crit/evasion RNG isolation, cooldowns, 66 job decisions, physical-field practice, reward and save guards passed\nComplete release UI: physical jobcenter, 66 decision flow, save rollback, read-only and facility guards, job change and battle skill entry passed",
       "stderr": ""
     },
@@ -198,7 +198,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 998,
+      "durationMs": 1259,
       "stdout": "25 distinct scores, 32–48 bars, developed second cycles, contrasting instrumentation/rhythms, 20 acoustic samples, verified pitch roots, loop bounds and decoded memory budget",
       "stderr": ""
     },
@@ -208,7 +208,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 383,
+      "durationMs": 303,
       "stdout": "51 outdoor maps: grass and road arrivals start encounters, 1/24 vs 1/28, safe towns/entrances and removed signs passed",
       "stderr": ""
     },
@@ -218,7 +218,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 3558,
+      "durationMs": 3604,
       "stdout": "HD sprites render; doubled maps retain logical tap coordinates at three CSS scales; cache memory bounded",
       "stderr": ""
     },
@@ -228,7 +228,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 1348,
+      "durationMs": 1632,
       "stdout": "All party/NPC identities, illustrated two-head characters, four directions, transparency, still residents, bounded cache and active-build replacement passed",
       "stderr": ""
     },
@@ -238,7 +238,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 109,
+      "durationMs": 166,
       "stdout": "Gamepad ignores hidden/unfocused pages and retains focused edge-triggered input",
       "stderr": ""
     },
@@ -248,7 +248,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 119,
+      "durationMs": 168,
       "stdout": "Native form editing, IME and modified shortcuts preserved; game movement remains active",
       "stderr": ""
     },
@@ -258,7 +258,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 124,
+      "durationMs": 152,
       "stdout": "Modal Tab boundaries wrap, native form traversal remains available and page Tab is unchanged",
       "stderr": ""
     },
@@ -268,7 +268,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 122,
+      "durationMs": 125,
       "stdout": "Focus loss clears held input, queued movement and stick visuals",
       "stderr": ""
     },
@@ -278,7 +278,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 107,
+      "durationMs": 120,
       "stdout": "Joystick center confirms once; drag, ring, cancel, capture loss, blur and extra-pointer guards passed\nOff-center origin, sensitive start, direction stability, deliberate turns and neutral return passed\nBack release, jitter, duplicate click, drag, redraw, capture loss and blur guards passed",
       "stderr": ""
     },
@@ -288,7 +288,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 2155,
+      "durationMs": 2287,
       "stdout": "PASS title boot completes with an image title, with or without a saved game\nPASS all build modules load together\nPASS three-stage setup, IME, same names, drafts and atomic save rollback\nPASS custom partner name fully replaces fixed biography and profile names\nPASS new menus remain reachable through all render wrappers\nPASS menu back stack and direct MAP return respect readonly, saving and battles\nPASS all47 regional support unlocks and readonly mutation guard\nPASS all100 badge names and expanded/pet/challenge eligibility connect to main list\nPASS legacy5.33 inventories, quest progress, sea positions and saved battle migrate once\nPASS character save locks prevent cross-module callbacks and rollback races\nPASS readonly pet details and vault navigation do not mutate saved state\nPASS story replay rejects prototype IDs, unread scenes and stale readonly callbacks\nPASS autowalk tokens survive cancellation without reuse and save switches clear old plans\nPASS all51 quests complete through callbacks with new character and pet systems enabled\nIntegration: 14 combined build/module/UI/save/lock/campaign checks passed",
       "stderr": ""
     },
@@ -298,7 +298,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 103,
+      "durationMs": 203,
       "stdout": "PASS jingle clock: paused/partial playback, completion, replacement and mute",
       "stderr": ""
     },
@@ -308,7 +308,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 752,
+      "durationMs": 748,
       "stdout": "Shop search has native submit and applies its query\nShop filter and tab changes retain the current search draft\nEmpty shop results reset in one action without mutating saved state\nShop quantity shortcuts respect affordability including zero balance\nVault search uses the readable shared input before compact mode/category controls\nVault names/IDs accept fullwidth and multiple words consistently with paging\nJob search supports trimmed input, view changes and one-action clearing\nGear search resets without changing equipment and keeps explicit disposal confirmation\nUnavailable or saving views keep search controls disabled",
       "stderr": ""
     },
@@ -318,7 +318,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 609,
+      "durationMs": 695,
       "stdout": "Listeners: 352 contextual texts, 512+77 names, 1–5 timed bubbles, 650–1000ms spacing, 5sec lifetime, 12text/24name deduplication, independent save histories; 47 regional supports and 51 jobcenters passed\nListener visibility cleanup, fresh return and saved-off preference passed",
       "stderr": ""
     },
@@ -328,7 +328,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 389,
+      "durationMs": 460,
       "stdout": "Management: six-item searchable shops, readonly views, quantity units, explicit equipment transfer/preview, six protected ticket gear, keeper conversations, atomic nearby inn/rest and save rollback passed",
       "stderr": ""
     },
@@ -338,7 +338,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 272,
+      "durationMs": 291,
       "stdout": "3 distinct storefront facades, 5 unique map symbols, town/fort mapping and uncluttered NPC handling passed",
       "stderr": ""
     },
@@ -348,7 +348,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 106,
+      "durationMs": 131,
       "stdout": "Map transitions keep one animation loop and ignore obsolete callbacks",
       "stderr": ""
     },
@@ -358,7 +358,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 135,
+      "durationMs": 189,
       "stdout": "PASS conservative viewport margins preserve sprites/shadows; one live media query follows OS changes and game override",
       "stderr": ""
     },
@@ -368,7 +368,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 113,
+      "durationMs": 140,
       "stdout": "Merged instructions: URL sharing, fallback/cancel/read-only, reduced motion, 12px minimum passed\nLow HP: 30% boundary, healthy and KO labels passed",
       "stderr": ""
     },
@@ -378,7 +378,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 743,
+      "durationMs": 833,
       "stdout": "Settings explains actual control positions; long help is folded and restore remains available\nMAP header removes repeated labels while retaining the complete save warning\nTravel copy is concise and encounter warning is shown where relevant\nQuest cards show remaining goal; full kill counts remain in details\nBattle prompts identify the missing selection without repetitive generic wording\nResult summary suppresses zero counts without hiding missing or incomplete history",
       "stderr": ""
     },
@@ -388,7 +388,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 853,
+      "durationMs": 1252,
       "stdout": "PASS every town has a reachable shopping-street pet store and separate residential lounge\nPASS store purchases and lounge care/companions have distinct authoritative location guards\nPASS remote pet menu is a pure status and learned/upcoming skill view\nPASS new, old and restored player/partner/pet names use halfwidth Latin letters and digits\nPASS exploration and battle party states expose current/max MP\nPASS facility shortcuts, deduplicated recent destinations, nearby distances and pinned quest progress\nPASS mini-map facility abbreviations and non-mutating water/grass animation with reduced-motion freeze",
       "stderr": ""
     },
@@ -398,7 +398,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 4158,
+      "durationMs": 5857,
       "stdout": "National story: 51 main quests, 43 local stories/bosses, 6 boss patterns, 146 outdoor encounter victories; complete UI progression, old-save migration, rewards, ending/replay and chapter caps passed",
       "stderr": ""
     },
@@ -408,7 +408,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 273,
+      "durationMs": 244,
       "stdout": "National registry, progression locks, itineraries, atomic joins and directory OK; travel actions covered by check-travel-modes.mjs",
       "stderr": ""
     },
@@ -418,7 +418,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 469,
+      "durationMs": 423,
       "stdout": "Nationwide: 47 prefectures, 51 town/field pairs, 43 unique stories/bosses, 50 connected routes, 129 new outdoor areas and regional locks OK",
       "stderr": ""
     },
@@ -428,7 +428,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 2173,
+      "durationMs": 1245,
       "stdout": "Navigation: 51 town/field pairs, pure reachable distances, facility search, escaped queries, stale actions, pause/resume, manual override, quest destinations, battle interruption, safe abandonment and read-only guards passed\nSearch: compound region/type query, preserved draft, accessible result count and reset path passed\nRecommended quest: explicit acceptance and direct next-destination shortcut passed\nMovement: invalid destinations preserve the current plan and own-tile tap cancels safely\nRead-only UI: acceptance and abandonment are visibly disabled and settings/view actions remain pure\nMap edges: off-map approach cells do not create phantom shortcuts\nStale controls: closed guide rows, unrelated sheets and previous-route stop buttons are rejected\nArrival: opening the destination completes the route instead of leaving a stale resume action\nSearch accuracy: healing excludes date-only rest and missing type aliases stay empty",
       "stderr": ""
     },
@@ -438,7 +438,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 178,
+      "durationMs": 172,
       "stdout": "Noise envelope: soft short attack, quiet release and source ceiling pass",
       "stderr": ""
     },
@@ -448,7 +448,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 1374,
+      "durationMs": 2298,
       "stdout": "Ocean: 65 areas, 3,250 distinct enemy records, 8 connected routes (224 cells/216 sea), safe ports, 40 rendered forms, capped caches, isolated kills, transactional once-only events and save/read-only/stale guards passed",
       "stderr": ""
     },
@@ -458,7 +458,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 3736,
+      "durationMs": 5368,
       "stdout": "PASS 1344 real-MAP route comparisons (896 reachable); same tie-break/transition rules, disconnected and own-tile behavior",
       "stderr": ""
     },
@@ -468,7 +468,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 402,
+      "durationMs": 331,
       "stdout": "PASS pet town-rooms-and-paths\nPASS pet room-only-interaction\nPASS pet species-food-and-supplies\nPASS pet five-item-purchase-and-double-tap\nPASS pet category-and-invalid-quantity\nPASS pet six-independent-care-records\nPASS pet three-activities-one-daily-use\nPASS pet no-effect-keeps-items-and-day\nPASS pet growth-album-and-bounded-journal\nPASS pet legacy-and-restart-preservation\nPASS pet two-distinct-run-snapshots\nPASS pet healing-before-actions-no-revival\nPASS pet mp-cap-and-priority\nPASS pet species-support-and-turn-ledger\nPASS pet defense-reduces-real-damage\nPASS pet speed-affects-real-evasion\nPASS pet enemy-attack-down-expires\nPASS pet sleep-one-action-and-resistance\nPASS pet confusion-self-hit-and-victory\nPASS pet failed-save-readonly-and-draft\nPASS pet preferred-skill-and-effective-fallback\nPASS defense unit scaling, expiration and facility-specific navigation",
       "stderr": ""
     },
@@ -478,7 +478,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 797,
+      "durationMs": 1158,
       "stdout": "Pet care links target the care, play, battle and album sections\nGrowth album shows attained portraits and keeps future forms locked\nShop switches the selected pet without losing category or changing saves\nRead-only tabs can browse pet supplies while purchases remain blocked\nSupply selection rejects stale controls and retains the chosen supply\nBattle cards expose active ally buffs and enemy sleep/confusion",
       "stderr": ""
     },
@@ -488,7 +488,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 370,
+      "durationMs": 1441,
       "stdout": "PASS ★1–5 adoption and all 264 supply prices, sell ratios and duplicate charging\nPASS high rarity grows more slowly over equal care without lowering attained stages\nPASS fractional growth survives reloads, cannot be repeated, caps safely and previews stay pure\nPASS feeding, free activities and walks all share the rarity growth rules\nPASS old affection, stages, memories and preferred skills survive additive migration\nPASS real battle HP/MP/attack/ward/cheer/defense/speed/weaken/confusion effects strengthen by rarity\nPASS ★5 can control two targets, effects expire after one action and cannot lock every turn\nPASS five distinct accessible rarity frames with increasing decoration\nPASS premium-price multi-buy is atomic and rolls back on save failure\nPASS travel assistance also scales by rarity while preserving HP/MP caps",
       "stderr": ""
     },
@@ -498,7 +498,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 363,
+      "durationMs": 587,
       "stdout": "Pets: 22 species, 88 learned skills, 264 supplies, 10 stages, care/daily/capacity, travel, two battle companions, once-per-turn/resume, UI guards passed",
       "stderr": ""
     },
@@ -508,7 +508,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 108,
+      "durationMs": 142,
       "stdout": "Photo layout progress: pure reading, escaping, boundaries, stale sheets, latest following, 80-line trim and new/empty battle reset passed",
       "stderr": ""
     },
@@ -518,7 +518,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 778,
+      "durationMs": 1574,
       "stdout": "Additional-skill search uses Enter/reset without changing the battle\nSkill search accepts multiword/fullwidth input and paging retains the draft\nSkill list keeps effects/resources while moving learned requirements to details\nAdditional skill targets expose their selected state and meaningful group\nSkill detail Back preserves its battle/list context\nPet menu groups show actions available at the current facility\nEmpty pet filters recover in one action and reject stale controls\nPet supplies page counts follow stock and preserve the selected pet\nOcean pages reject stale controls and expose a large area picker\nParty and status screens explain story rank without repeating the partner name\nOcean cards show useful species and level information without internal record IDs",
       "stderr": ""
     },
@@ -528,7 +528,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 19688,
+      "durationMs": 21417,
       "stdout": "51 distinct regional renders on identical geometry; 10 architecture families, field consistency, unchanged gameplay data and bounded static cache",
       "stderr": ""
     },
@@ -538,7 +538,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 4757,
+      "durationMs": 3976,
       "stdout": "Release checks reject stale HTML, modified/missing art and stale manifests; all embedded graphics/fonts and README links are present",
       "stderr": ""
     },
@@ -548,7 +548,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 102,
+      "durationMs": 112,
       "stdout": "Result return is one action, cancels stale movement, rejects modal/read-only/battle and repeated callbacks",
       "stderr": ""
     },
@@ -558,7 +558,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 245,
+      "durationMs": 222,
       "stdout": "Kyushu M01–M08: save compatibility, battles, direct boss completion, ranks, rewards and stale-result guards OK",
       "stderr": ""
     },
@@ -568,7 +568,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 861,
+      "durationMs": 1362,
       "stdout": "Save replacement stays newest across restore, title restore and reload. Save recovery: generation choice, corrupt checksum, malformed JSON, invalid state, local fallback, visit migration, restore rollback OK",
       "stderr": ""
     },
@@ -578,7 +578,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 461,
+      "durationMs": 906,
       "stdout": "Selected changes: chapter gating, over-cap legacy saves, 300 gear kinds, 8-copy cap, boss settlement, waiting JP, names and MP labels OK",
       "stderr": ""
     },
@@ -588,7 +588,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 151,
+      "durationMs": 285,
       "stdout": "Shop offer bounds and stale token OK",
       "stderr": ""
     },
@@ -598,7 +598,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 156,
+      "durationMs": 151,
       "stdout": "PASS cached terrain, unchanged minimap zero pixel work, battle frame reuse/KO invalidation, 30Hz ambient and reduced/menu pause",
       "stderr": ""
     },
@@ -608,7 +608,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 129,
+      "durationMs": 112,
       "stdout": "Sound comfort: muted/hidden effects, repeat suppression, subtle footsteps/UI, important-event ducking and 24-effect-source budget pass",
       "stderr": ""
     },
@@ -618,7 +618,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 360,
+      "durationMs": 470,
       "stdout": "Split maps: 51 distinct safe towns, 51 distinct outdoor maps, every zone/object/exit reachable",
       "stderr": ""
     },
@@ -628,7 +628,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 225,
+      "durationMs": 234,
       "stdout": "Removed stream feature: no live actions/screens, pending saves complete once, orphaned saves preserve earned progress OK",
       "stderr": ""
     },
@@ -638,7 +638,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 109,
+      "durationMs": 94,
       "stdout": "Target weighting and KO exclusion OK",
       "stderr": ""
     },
@@ -648,7 +648,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 115,
+      "durationMs": 102,
       "stdout": "Original title overture: 32 complete bars, two distinct cycles, valid notes and section harmony",
       "stderr": ""
     },
@@ -658,7 +658,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 327,
+      "durationMs": 281,
       "stdout": "51 towns: separate parcels, aligned entrances, sidewalks, courtyards, waterfront ports and rural dirt trails",
       "stderr": ""
     },
@@ -668,7 +668,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 1461,
+      "durationMs": 2099,
       "stdout": "Travel: all51 physical town exits, all50 outdoor routes both ways, progression locks, station-only visited trains, stale/readonly guards and legacy position recovery passed",
       "stderr": ""
     },
@@ -678,7 +678,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 5170,
+      "durationMs": 1534,
       "stdout": "Gold and item vault: transfer, overflow, capacity and legacy save OK",
       "stderr": ""
     },
@@ -688,7 +688,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 1786,
+      "durationMs": 685,
       "stdout": "Illustrated cached walking poses, eight phases, four directions, movement-distance sync, follower, pause and map-loop checks passed\nPose LRU: hot walking image survives 150 cold entries; unused artwork regenerates identical pixels; 128-entry limit retained",
       "stderr": ""
     },
@@ -698,7 +698,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 276,
+      "durationMs": 167,
       "stdout": "PASS elapsed-time walking at simulated 30/50/60/90/120Hz; ordered arrivals; battle/menu/map/route/visibility cancellation; catch-up cap",
       "stderr": ""
     },
@@ -708,7 +708,7 @@
       "exitCode": 0,
       "signal": null,
       "error": null,
-      "durationMs": 12290,
+      "durationMs": 17448,
       "stdout": "Painted towns and fields in all six terrains; 4x resolution, frame-independent cache, deterministic regeneration, 32MB budget and unchanged gameplay maps",
       "stderr": ""
     }
@@ -754,7 +754,7 @@
     "ui_ocean.js": "f9c6239ae95f7fbdf894c0831ecf8c7475bd67af46744f52818ce70e2ee80b3c",
     "ui_pets.js": "a3708a91e9b138b0883b1fa872972d3c77d9c63ca62c70f5770ffd41fd44c446",
     "ui_search.js": "49a654e831c567f1ab2721ed72ad71a613b7d9f2d2944cdf4885585b42ae90eb",
-    "ui_systems.js": "9add5b5f523dfdd97afca039ef78d3f6be2bd20a18ad2ecb484e3db27648f7c8",
+    "ui_systems.js": "e46cf17b96ba97253d8a9a2acb2173459a1143bf76efb210268b3905bdf2a8d1",
     "walk_animation.js": "3b1c21b894a8a61e376de40ba597831b40a047169d3255e29c6068e7ababf6b9",
     "world_art.js": "2fa8834244fc1174d3bf8a6e0eacb7b10f23df001d47a9602be8f8d5eee2c687"
   },
@@ -776,11 +776,11 @@
     "assets/audio/orchestra-bank.json": "3ee8d6fa4be91cebe4654cbef1051b1fb3a4aa5b94adecf4b7a306ad92c9c437"
   },
   "artifactSHA256": {
-    "index.html": "dc523de15a00c8cf2496beb3f6a8cb3ca56a95b1c0ad670d24784a0b8611b8b9",
-    "README.md": "5d20221293a77e4e0f54fa5bdd66ba08d24a8fe485f1e83f1f3e9fe64621b43e",
+    "index.html": "3a2787d51c713cbbdb51032c3157b3952e9bd0d299e2bae15b6026d4bddc54c5",
+    "README.md": "4a5a48df855a2857da6b01ff008cb63738f5694ae7f1171f673be040898f6073",
     "VERSION.txt": "4bc1061edf51ac10ad713f2821a194ff940adda9b29493df28c69f92fa49556e",
     "GAME_SPEC.md": "334c5bc889ae26e5123d69716b927c0f7d7cedc144eaf61c4397e54c3eb0f61c",
     "GAME_SPEC.txt": "334c5bc889ae26e5123d69716b927c0f7d7cedc144eaf61c4397e54c3eb0f61c",
-    "release-manifest.json": "fed05565b66e2f4c31b0edd86795bc4cdce55aefc83e33be914d1e7650383635"
+    "release-manifest.json": "6c92403f64618d024a18e60f049e4dd33622441b41b166c67f5d1985c3cb7e9b"
   }
 }

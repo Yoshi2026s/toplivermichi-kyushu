@@ -424,7 +424,7 @@ function onMapTap(e){
 function arrive(){
   if(!G.st||G.readOnly||G.sheet||G.dlg||G.lock||document.hidden||G.screen!=="explore"||G.st.run)return;
   const st=G.st, m=MAPS[st.mapId]; const zone=zoneAt(m,st.pos.x,st.pos.y);
-  if(SND.current!==(m.kind==="field"?"field":"fukuoka")) exploreBgm();
+  if(SND.current!==SND.sceneForMap(m)) exploreBgm();
   if(m.kind==="field" && zone){
     // 草地1/24、街道1/28。安全MAPと出入口では抽選しない。
     const canFight = st.party.some(c=>vitalOf(c).hp>0);

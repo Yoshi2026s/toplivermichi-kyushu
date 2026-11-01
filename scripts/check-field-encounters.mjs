@@ -9,7 +9,7 @@ const arrive=ui.slice(ui.indexOf('function arrive(){'),ui.indexOf('function expl
 const noop=()=>{};let rolls=[],battles=[];
 const G={screen:'explore',walk:{path:[],pending:null}};
 const g=runInNewContext(data+'\n'+helpers+'\n'+arrive+'\n({MAPS,NATIONAL_MAP_PAIRS,zoneAt,encounterDenominator,walkable,arrive})',{
- G,document:{hidden:false},SND:{current:'field'},exploreBgm:noop,commit:noop,keepFlush:noop,refreshHere:noop,interact:noop,
+ G,document:{hidden:false},SND:{current:'field',sceneForMap:m=>m.kind==='field'?'field':'fukuoka'},exploreBgm:noop,commit:noop,keepFlush:noop,refreshHere:noop,interact:noop,
  vitalOf:()=>({hp:10}),randInt:n=>{rolls.push(n);return 0;},createFieldRun:(st,zone)=>({zone}),startBattle:r=>battles.push(r)
 });
 for(const [hub,pair]of Object.entries(g.NATIONAL_MAP_PAIRS)){

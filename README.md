@@ -122,3 +122,5 @@ BGM切替時の減衰と、結果画面の閲覧位置・詳細保持は [音と
 全国MAPの歩行経路表示と再開操作: [検証・仕様](docs/WORLD_WALKING_ROUTE_2026_11_02.md)。
 
 全国MAPの経路全体表示・境界BGM: [仕様・検証](docs/WORLD_ROUTE_FRAME_2026_11_02.md)。
+
+全国MAPの検索位置表示とBGM選曲: [仕様・検証](docs/WORLD_SEARCH_LOCATION_2026_11_02.md)。

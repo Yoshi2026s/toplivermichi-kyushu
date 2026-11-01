@@ -55,7 +55,8 @@ h3.label{font-size:16px;margin-top:8px}
 .btn{font:inherit;font-size:17px;min-height:48px;padding:8px 12px;background:var(--ink);color:var(--cream);border:2px solid var(--mist);border-radius:2px;cursor:pointer;text-align:left;touch-action:manipulation}
 .btn:hover{border-color:var(--cream)}
 .btn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
-.btn:disabled,.btn[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
+body .btn:disabled,body .btn[aria-disabled="true"]{opacity:1;color:#b7bdc6;background:#1c2937;border-color:#637383;box-shadow:none;cursor:not-allowed}
+.input:focus-visible,summary:focus-visible{outline:3px solid #f5d78b;outline-offset:3px}
 .btn.primary{background:var(--red);border-color:var(--cream);font-weight:700}
 .btn.on{border-color:var(--gold);background:#2E2A22}
 .btn.sq{min-width:48px;text-align:center;padding:0}

@@ -369,7 +369,8 @@ h3.label{font-size:16px;margin-top:8px}
 .btn{font:inherit;font-size:17px;min-height:48px;padding:8px 12px;background:var(--ink);color:var(--cream);border:2px solid var(--mist);border-radius:2px;cursor:pointer;text-align:left;touch-action:manipulation}
 .btn:hover{border-color:var(--cream)}
 .btn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
-.btn:disabled,.btn[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
+body .btn:disabled,body .btn[aria-disabled="true"]{opacity:1;color:#b7bdc6;background:#1c2937;border-color:#637383;box-shadow:none;cursor:not-allowed}
+.input:focus-visible,summary:focus-visible{outline:3px solid #f5d78b;outline-offset:3px}
 .btn.primary{background:var(--red);border-color:var(--cream);font-weight:700}
 .btn.on{border-color:var(--gold);background:#2E2A22}
 .btn.sq{min-width:48px;text-align:center;padding:0}
@@ -4952,9 +4953,12 @@ const SND = (()=>{
     src.buffer=sample.buffer;src.playbackRate.setValueAtTime(2**((note-sample.root)/12),t);src.loop=sample.loopEnd>0;src.loopStart=sample.loopStart;src.loopEnd=sample.loopEnd;
     const release=opt.r??.16,attack=Math.min(opt.a??.012,dur*.2),sustain=opt.sus??.8,level=vol*(opt.expression??1)*(out===sfxBus?1:2);
     gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(level,t+attack);gain.gain.linearRampToValueAtTime(level*sustain,t+Math.min(dur*.6,attack+.12));gain.gain.setValueAtTime(level*sustain,t+dur);gain.gain.linearRampToValueAtTime(.0001,t+dur+release);
-    src.connect(gain);const last=pan?(gain.connect(pan),pan):gain;if(pan)pan.pan.value=opt.pan||0;last.connect(out);
+    // Recorded notes must honor the same tone control as synthesized effects.
+    const filter=Number.isFinite(opt.cutoff)?ac.createBiquadFilter():null;
+    if(filter){filter.type='lowpass';filter.Q.value=opt.q??.7;const cutoff=Math.max(200,Math.min(ac.sampleRate*.45,opt.cutoff));filter.frequency.setValueAtTime(Math.min(ac.sampleRate*.45,cutoff+(opt.fenv||0)),t);filter.frequency.exponentialRampToValueAtTime(cutoff,t+Math.min(.25,dur));src.connect(filter);filter.connect(gain);}else src.connect(gain);
+    const last=pan?(gain.connect(pan),pan):gain;if(pan)pan.pan.value=opt.pan||0;last.connect(out);
     const send=out!==sfxBus&&opt.rev?ac.createGain():null;if(send){send.gain.value=opt.rev;last.connect(send);send.connect(revIn);}
-    trackSource(src,out,()=>{for(const node of [gain,pan,send])try{node?.disconnect();}catch(e){}},gain.gain,t);src.start(t);src.stop(t+dur+release+.02);sampleNotes++;return true;
+    trackSource(src,out,()=>{for(const node of [gain,pan,send,filter])try{node?.disconnect();}catch(e){}},gain.gain,t);src.start(t);src.stop(t+dur+release+.02);sampleNotes++;return true;
   }
   /* 1音：オシレーター（2本で厚み）→ 音量エンベロープ → ローパス → 定位 → バス＋送り */
   function voice(f, t, dur, wave, vol, opt={}){
@@ -7619,7 +7623,7 @@ renderSettings=function(){
   if(!Number.isFinite(s.musicVolume))s.musicVolume=SND.volumes.music;
   if(!Number.isFinite(s.effectVolume))s.effectVolume=SND.volumes.effects;
  }
- const volumeControls=`<h3 class="label">音量を個別に調整</h3>${[["musicVolume","BGM"],["effectVolume","効果音"]].map(([key,label])=>`<fieldset class="sound-volume"><legend>${label}：${(s[key]??1)===0?'消音':Math.round((s[key]??1)*100)+'％'}</legend><div class="opts" role="group" aria-label="${label}の音量">${[0,.25,.5,.75,1].map(n=>`<button class="btn opt" data-a="soundVolume" data-k="${key}" data-v="${n}" aria-label="${label} ${n===0?'消音':n*100+'％'}" aria-pressed="${(s[key]??1)===n}">${n===0?'消音':n*100+'％'}</button>`).join("")}</div></fieldset>`).join("")}`;
+ const volumeControls=`<h3 class="label">音量を個別に調整</h3><p class="small">BGMだけ、効果音だけを消すこともできます。全体をOFFにすると、両方とも鳴りません。</p>${[["musicVolume","BGM"],["effectVolume","効果音"]].map(([key,label])=>`<fieldset class="sound-volume"><legend>${label}：${(s[key]??1)===0?'消音':Math.round((s[key]??1)*100)+'％'}</legend><div class="opts" role="group" aria-label="${label}の音量">${[0,.25,.5,.75,1].map(n=>`<button class="btn opt" data-a="soundVolume" data-k="${key}" data-v="${n}" aria-label="${label} ${n===0?'消音':n*100+'％'}" aria-pressed="${(s[key]??1)===n}">${n===0?'消音':n*100+'％'}</button>`).join("")}</div></fieldset>`).join("")}<button class="btn wide" data-a="soundPreview" ${!soundIsOn()||SND.volumes.effects===0?'disabled':''} aria-describedby="soundPreviewHint">効果音を試す</button><p class="small" id="soundPreviewHint">${!soundIsOn()?'試聴するには「BGM・効果音」をONにしてください。':SND.volumes.effects===0?'試聴するには効果音の音量を上げてください。':'現在の効果音の音量で、短い回復音を鳴らします。'}</p>`;
  // Keep audio controls beside the sound switch, ahead of save/restore fields.
  return base.replace('<details class="control-help">',volumeControls+'<details class="control-help">')+`<h3 class="label">移動と応援</h3><button class="btn" data-a="moveSpeed">移動速度：${s.moveSpeed==="fast"?"高速":"通常"}</button><button class="btn" data-a="listenerToggle">リスナーコメント：${s.listenerComments===false?"OFF":"ON"}</button>`;
 };
@@ -7635,6 +7639,7 @@ Object.assign(ACT,{
   helpFilter(el){if(G.sheet!=="help"||(el.dataset.v!=="all"&&!Object.hasOwn(SYSTEM_HELP,el.dataset.v)))return;G.sheetData.category=el.dataset.v;G.sheetData.page=0;G.helpQuery={...G.sheetData};render();},
   helpSearch(){if(G.sheet!=="help")return;G.sheetData.query=String($("#helpSearch")?.value||"").slice(0,100);G.sheetData.page=0;G.helpQuery={...G.sheetData};render();},
   helpPage(el){if(G.sheet!=="help")return;const p=Number(el.dataset.v);if(!Number.isInteger(p)||p<0||p>3)return;G.sheetData.page=p;G.helpQuery={...G.sheetData};render();},
+  soundPreview(){if(G.sheet!=="settings"||G.dlg||G.readOnly||!soundIsOn()||SND.volumes.effects===0)return;SND.sfx("heal");},
   soundVolume(el){
    if(G.screen!=="title"&&(!G.st||G.st.run)||G.sheet!=="settings"||G.readOnly||!["musicVolume","effectVolume"].includes(el.dataset.k))return;
    const n=Number(el.dataset.v);if(![0,.25,.5,.75,1].includes(n))return;

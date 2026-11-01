@@ -915,6 +915,7 @@ body.in-result:not(.no-dock){--dockH:64px}.in-result .dock .stick{width:60px;hei
 @media(orientation:portrait) and (max-height:550px){.result .rbanner h2{font-size:22px;line-height:1.2}}
 .result .rmems.many .rmh .small,.result .rmems.many .gauge .bar,.result .rmems.many .gauge .good{display:none}.result .rmems.many .rmem{gap:0}.result .rmems.many .rvitals,.result .rmems.many .gauge{font-size:12px}.result .rmems.many .rmh b{font-size:14px;line-height:1.25}
 .title-sound-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(70px,1fr);gap:8px}.title-screen .title-sound-row .btn{min-height:50px;padding:6px 8px;font-size:14px;letter-spacing:0}.title-music[aria-pressed="true"]{border-color:#e8cc86;background:linear-gradient(135deg,#345b62,#223a50)}
+.title-screen .btn{scroll-margin-top:12px;scroll-margin-bottom:calc(var(--dockH) + 12px + env(safe-area-inset-bottom,0px))}
 
 /* 操作欄の基本サイズ。写真参考の配置は末尾で統一。 */
 .dock .stick{order:2}.dock .dock-back{order:3;width:56px;min-width:56px;min-height:56px;padding:4px}.dock .stick-confirm{font-size:13px;line-height:1.1;white-space:nowrap}
@@ -5049,7 +5050,7 @@ const SND = (()=>{
   let jingleT=null;
   function jingle(name, next){
     if(!Object.hasOwn(JINGLES,name))return;
-    clearTimeout(jingleT);
+    clearTimeout(jingleT);jingleT=null;
     const J=JINGLES[name]; if(!J) return;
     stopBgm(); cur=next||null;
     if(!on||!ac||pageHidden()){ return; }
@@ -5060,7 +5061,15 @@ const SND = (()=>{
     lane(J.harm,"strings",0.16,{pan:-0.35,cutoff:2600,rev:0.35,sus:0.7,r:0.12});
     lane(J.bass,"bass",0.3,{sub:true,cutoff:1300,sus:0.9,r:0.08});
     for(let i=0;i<steps;i+=4) kick(t0+i*sd);
-    jingleT=setTimeout(()=>{ jingleT=null; if(next){ const n=next; cur=null; play(n); } }, (steps*sd+0.25)*1000);
+    const end=t0+steps*sd+.2;
+    let handle;
+    const finish=()=>{
+      if(jingleT!==handle)return;
+      const remaining=end-ac.currentTime;
+      if(remaining>0){handle=setTimeout(finish,Math.max(25,remaining*1000));jingleT=handle;return;}
+      jingleT=null;if(next){cur=null;play(next);}
+    };
+    handle=setTimeout(finish,(end-ac.currentTime)*1000);jingleT=handle;
   }
   function stopBgm(){ if(timer){ clearInterval(timer); timer=null; } stopSources("music",true); duckUntil=0; mixMusic(); }
   /* 効果音とジングル */

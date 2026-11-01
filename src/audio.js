@@ -265,7 +265,7 @@ const SND = (()=>{
   let jingleT=null;
   function jingle(name, next){
     if(!Object.hasOwn(JINGLES,name))return;
-    clearTimeout(jingleT);
+    clearTimeout(jingleT);jingleT=null;
     const J=JINGLES[name]; if(!J) return;
     stopBgm(); cur=next||null;
     if(!on||!ac||pageHidden()){ return; }
@@ -276,7 +276,15 @@ const SND = (()=>{
     lane(J.harm,"strings",0.16,{pan:-0.35,cutoff:2600,rev:0.35,sus:0.7,r:0.12});
     lane(J.bass,"bass",0.3,{sub:true,cutoff:1300,sus:0.9,r:0.08});
     for(let i=0;i<steps;i+=4) kick(t0+i*sd);
-    jingleT=setTimeout(()=>{ jingleT=null; if(next){ const n=next; cur=null; play(n); } }, (steps*sd+0.25)*1000);
+    const end=t0+steps*sd+.2;
+    let handle;
+    const finish=()=>{
+      if(jingleT!==handle)return;
+      const remaining=end-ac.currentTime;
+      if(remaining>0){handle=setTimeout(finish,Math.max(25,remaining*1000));jingleT=handle;return;}
+      jingleT=null;if(next){cur=null;play(next);}
+    };
+    handle=setTimeout(finish,(end-ac.currentTime)*1000);jingleT=handle;
   }
   function stopBgm(){ if(timer){ clearInterval(timer); timer=null; } stopSources("music",true); duckUntil=0; mixMusic(); }
   /* 効果音とジングル */

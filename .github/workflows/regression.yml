@@ -75,6 +75,9 @@ jobs:
       - run: node scripts/test-result-overview.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-result-reading.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - run: npm run test:battle-ui
         env:
           MOBILE_BROWSER: chromium
@@ -160,6 +163,8 @@ jobs:
             .task/battle-initial-*.png
             .task/result-overview/*.png
             .task/result-overview/report.json
+            .task/result-reading/*.png
+            .task/result-reading/report.json
             .task/battle-boss-*.png
             .task/battle-viewport-layout.json
             .task/battle-readability-*.png

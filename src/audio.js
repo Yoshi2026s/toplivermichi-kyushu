@@ -85,8 +85,24 @@ const SND = (()=>{
   let musicVolume=1,effectVolume=1;
   const activeSources=new Map();
   const pageHidden=()=>typeof document!=="undefined"&&document.hidden;
-  function trackSource(node,out,cleanup){activeSources.set(node,out===sfxBus?'sfx':'music');node.onended=()=>{activeSources.delete(node);try{node.disconnect();}catch(e){}if(cleanup)cleanup();};}
-  function stopSources(group){for(const [node,kind] of activeSources){if(group&&kind!==group)continue;try{node.stop();node.disconnect();}catch(e){}activeSources.delete(node);}}
+  const sourceReleases=new Map(),releasingSources=new Set();
+  function trackSource(node,out,cleanup,gain,start=0){
+    activeSources.set(node,out===sfxBus?'sfx':'music');if(gain)sourceReleases.set(node,{gain,start});
+    node.onended=()=>{activeSources.delete(node);sourceReleases.delete(node);releasingSources.delete(node);try{node.disconnect();}catch(e){}if(cleanup)cleanup();};
+  }
+  function stopSources(group,fade=false){
+    const now=ac?.currentTime||0;
+    for(const [node,kind]of activeSources){
+      if(group&&kind!==group)continue;
+      if(fade&&releasingSources.has(node))continue;
+      const release=sourceReleases.get(node);
+      if(fade&&release&&release.start<=now){
+        try{holdGain(release.gain,now);release.gain.linearRampToValueAtTime(.0001,now+.012);node.stop(now+.02);releasingSources.add(node);continue;}catch(e){}
+      }
+      try{node.stop();}catch(e){}try{node.disconnect();}catch(e){}
+      activeSources.delete(node);sourceReleases.delete(node);releasingSources.delete(node);
+    }
+  }
   const musicGain=()=>0.5*musicVolume;
   function holdGain(gain,t){
     if(typeof gain.cancelAndHoldAtTime==='function')gain.cancelAndHoldAtTime(t);
@@ -153,7 +169,7 @@ const SND = (()=>{
     gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(level,t+attack);gain.gain.linearRampToValueAtTime(level*sustain,t+Math.min(dur*.6,attack+.12));gain.gain.setValueAtTime(level*sustain,t+dur);gain.gain.linearRampToValueAtTime(.0001,t+dur+release);
     src.connect(gain);const last=pan?(gain.connect(pan),pan):gain;if(pan)pan.pan.value=opt.pan||0;last.connect(out);
     const send=out!==sfxBus&&opt.rev?ac.createGain():null;if(send){send.gain.value=opt.rev;last.connect(send);send.connect(revIn);}
-    trackSource(src,out,()=>{for(const node of [gain,pan,send])try{node?.disconnect();}catch(e){}});src.start(t);src.stop(t+dur+release+.02);sampleNotes++;return true;
+    trackSource(src,out,()=>{for(const node of [gain,pan,send])try{node?.disconnect();}catch(e){}},gain.gain,t);src.start(t);src.stop(t+dur+release+.02);sampleNotes++;return true;
   }
   /* 1音：オシレーター（2本で厚み）→ 音量エンベロープ → ローパス → 定位 → バス＋送り */
   function voice(f, t, dur, wave, vol, opt={}){
@@ -167,10 +183,10 @@ const SND = (()=>{
     const pan=ac.createStereoPanner?ac.createStereoPanner():null; if(pan) pan.pan.value=opt.pan||0;
     const mk=(det,lvl)=>{ const o=ac.createOscillator(); if(waves[wave]) o.setPeriodicWave(waves[wave]); else o.type=wave; o.frequency.setValueAtTime(f,t); o.detune.value=det;
       if(opt.slide) o.frequency.exponentialRampToValueAtTime(opt.slide,t+dur);
-      if(opt.vib && dur>0.22){ const l=ac.createOscillator(), lg=ac.createGain(); l.frequency.value=5.2; lg.gain.setValueAtTime(0,t); lg.gain.linearRampToValueAtTime(f*0.01,t+0.2); l.connect(lg); lg.connect(o.frequency); sources.push(l);nodes.push(lg);trackSource(l,out,clean);l.start(t); l.stop(t+dur+R+0.05); }
-      const og=ac.createGain(); og.gain.value=lvl; o.connect(og); og.connect(g); sources.push(o);nodes.push(og);trackSource(o,out,clean);o.start(t); o.stop(t+dur+R+0.05); };
+      if(opt.vib && dur>0.22){ const l=ac.createOscillator(), lg=ac.createGain(); l.frequency.value=5.2; lg.gain.setValueAtTime(0,t); lg.gain.linearRampToValueAtTime(f*0.01,t+0.2); l.connect(lg); lg.connect(o.frequency); sources.push(l);nodes.push(lg);trackSource(l,out,clean,g.gain,t);l.start(t); l.stop(t+dur+R+0.05); }
+      const og=ac.createGain(); og.gain.value=lvl; o.connect(og); og.connect(g); sources.push(o);nodes.push(og);trackSource(o,out,clean,g.gain,t);o.start(t); o.stop(t+dur+R+0.05); };
     if(opt.detune){ mk(-opt.detune,0.55); mk(opt.detune,0.55); } else mk(0,1);
-    if(opt.sub){ const o=ac.createOscillator(); o.type="sine"; o.frequency.setValueAtTime(f/2,t); const og=ac.createGain(); og.gain.value=0.6; o.connect(og); og.connect(g); sources.push(o);nodes.push(og);trackSource(o,out,clean);o.start(t); o.stop(t+dur+R+0.05); }
+    if(opt.sub){ const o=ac.createOscillator(); o.type="sine"; o.frequency.setValueAtTime(f/2,t); const og=ac.createGain(); og.gain.value=0.6; o.connect(og); og.connect(g); sources.push(o);nodes.push(og);trackSource(o,out,clean,g.gain,t);o.start(t); o.stop(t+dur+R+0.05); }
     g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(vol,t+A); g.gain.linearRampToValueAtTime(vol*S,t+A+D);
     g.gain.setValueAtTime(vol*S,t+Math.max(A+D,dur)); g.gain.linearRampToValueAtTime(0.0001,t+Math.max(A+D,dur)+R);
     nodes.push(g,flt);if(pan)nodes.push(pan);
@@ -187,7 +203,7 @@ const SND = (()=>{
     s.connect(f); f.connect(g); const last=pan?(g.connect(pan),pan):g; last.connect(opt.out||musicBus);
     let reverbSend=null;
     if(opt.rev&&(opt.out||musicBus)!==sfxBus){ reverbSend=ac.createGain(); reverbSend.gain.value=opt.rev; last.connect(reverbSend); reverbSend.connect(revIn); }
-    trackSource(s,opt.out||musicBus,()=>{for(const n of [f,g,pan,reverbSend])try{n?.disconnect();}catch(e){}});
+    trackSource(s,opt.out||musicBus,()=>{for(const n of [f,g,pan,reverbSend])try{n?.disconnect();}catch(e){}},g.gain,t);
     s.start(t, Math.random()*0.5); s.stop(t+dur+0.02);
   }
   function kick(t,out){ voice(165,t,0.13,"sine",1.0,{slide:42,a:0.002,d:0.05,sus:0.6,r:0.12,cutoff:900,out}); noise(t,0.012,0.35,2500,{out}); }
@@ -262,7 +278,7 @@ const SND = (()=>{
     for(let i=0;i<steps;i+=4) kick(t0+i*sd);
     jingleT=setTimeout(()=>{ jingleT=null; if(next){ const n=next; cur=null; play(n); } }, (steps*sd+0.25)*1000);
   }
-  function stopBgm(){ if(timer){ clearInterval(timer); timer=null; } stopSources("music"); duckUntil=0; mixMusic(); }
+  function stopBgm(){ if(timer){ clearInterval(timer); timer=null; } stopSources("music",true); duckUntil=0; mixMusic(); }
   /* 効果音とジングル */
   const SFX = {
     seaWave:[["noise",.12],[null,.04],["noise",.16]],seaRescue:[["p25",76,.08],["p25",81,.08],["p25",88,.18]],seaTreasure:[["p12",79,.06],["p12",84,.06],["p12",91,.25]],

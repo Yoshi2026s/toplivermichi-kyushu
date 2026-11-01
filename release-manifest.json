@@ -5,12 +5,12 @@
   "sourceFileCount": 35,
   "files": {
     "index.html": {
-      "bytes": 8176463,
-      "sha256": "55a4ec2316db0fcdd1039b899a9909d0201329b8a2beb02b046698aab1377973"
+      "bytes": 8177667,
+      "sha256": "35dd1322fd71778944b1028f0347333e7e3ded484901e509783e5bfd73218365"
     },
     "README.md": {
-      "bytes": 8888,
-      "sha256": "e3238c4f56a94c710bfd5f283f7433de45eb37027bbafc1cec5a9a62cc6a70a9"
+      "bytes": 9055,
+      "sha256": "7a929f71dd3b12f2348f4527f67e7bdab17feee168b6f4f9f0320c7d99c18d98"
     },
     "VERSION.txt": {
       "bytes": 156,

@@ -131,7 +131,7 @@ const SND = (()=>{
     if(ac) return true;
     try{
       ac=new (window.AudioContext||window.webkitAudioContext)({latencyHint:"interactive"});
-      ac.addEventListener?.("statechange",()=>{if(typeof refreshTitleMusic==="function")refreshTitleMusic();});
+      ac.addEventListener?.("statechange",()=>{if(!ac)return;if(ac.state!=="running"){stopSources("sfx");effectLast.clear();}if(typeof refreshTitleMusic==="function")refreshTitleMusic();if(typeof refreshSoundStatus==="function")refreshSoundStatus();});
       const comp=ac.createDynamicsCompressor(); comp.threshold.value=-16; comp.knee.value=12; comp.ratio.value=3.5; comp.attack.value=0.004; comp.release.value=0.18;
       master=ac.createGain(); master.gain.value=0.85; master.connect(comp); comp.connect(ac.destination);
       const low=ac.createBiquadFilter(); low.type="lowshelf"; low.frequency.value=140; low.gain.value=2.5;
@@ -319,6 +319,11 @@ const SND = (()=>{
   }
   // Quiet interface sounds leave the score steady; important events retain ducking.
   const effectLast=new Map();
+  async function prepareEffects(){
+    const context=ac;if(!on||!context||pageHidden()||effectVolume===0)return false;
+    try{if(context.state==='suspended'||context.state==='interrupted')await context.resume();}catch(e){return false;}
+    return !!(on&&ac===context&&context.state==='running'&&!pageHidden()&&effectVolume>0);
+  }
   const effectProfile=name=>name==='step'?{level:.16,gap:.12,duck:false,cutoff:1800}:
     ['ok','cancel','equip','evade'].includes(name)?{level:.48,gap:.075,duck:false,cutoff:3000}:
     ['seaWave','clap'].includes(name)?{level:.48,gap:.16,duck:false,cutoff:2600}:
@@ -328,7 +333,7 @@ const SND = (()=>{
     name==='lose'?{level:.64,gap:.12,duck:true,cutoff:2200,tone:'cello'}:
     {level:.76,gap:.065,duck:true,cutoff:3800};
   function sfx(name){
-    if(!on||!ac||pageHidden()||effectVolume===0) return;
+    if(!on||!ac||ac.state!=="running"||pageHidden()||effectVolume===0) return;
     const parts=SFX[name]; if(!Array.isArray(parts)) return;
     const profile=effectProfile(name),now=ac.currentTime,last=effectLast.get(name);
     if(last!==undefined&&now-last<profile.gap) return;
@@ -356,5 +361,5 @@ const SND = (()=>{
   }
   function suspend(){ if(jingleT){ clearTimeout(jingleT); jingleT=null; } stopBgm(); stopSources(); effectLast.clear(); if(ac&&ac.state==="running") ac.suspend().catch(()=>{}); }
   function resume(){ if(!on||!ac) return; if(ac.state==="suspended"||ac.state==="interrupted") ac.resume().catch(()=>{}); if(timer||jingleT) return; const c=cur; cur=null; if(c) play(c); }
-  return { sceneForMap,play, jingle, sfx, setOn, setVolumes, suspend, resume, get songs(){return Object.keys(SONGS);},get scores(){return Object.fromEntries(Object.entries(SONGS).map(([id,s])=>[id,{bars:s.chords.split(' ').length,bpm:s.bpm,seconds:s.chords.split(' ').length*240/s.bpm}]));},get instrumentation(){return {sampledInstruments:sampleBanks.size,sampleNotes,droppedSampleNotes};},get metrics(){return {...timing};},get sourceCount(){return activeSources.size;},get volumes(){return {music:musicVolume,effects:effectVolume};}, get playing(){return !!(on&&ac?.state==="running"&&timer&&!pageHidden());}, get on(){return on;}, get current(){return cur;} };
+  return { sceneForMap,play, jingle, sfx, prepareEffects, setOn, setVolumes, suspend, resume, get songs(){return Object.keys(SONGS);},get scores(){return Object.fromEntries(Object.entries(SONGS).map(([id,s])=>[id,{bars:s.chords.split(' ').length,bpm:s.bpm,seconds:s.chords.split(' ').length*240/s.bpm}]));},get instrumentation(){return {sampledInstruments:sampleBanks.size,sampleNotes,droppedSampleNotes};},get metrics(){return {...timing};},get sourceCount(){return activeSources.size;},get volumes(){return {music:musicVolume,effects:effectVolume};}, get ready(){return !!(on&&ac?.state==='running'&&!pageHidden());}, get playing(){return !!(on&&ac?.state==="running"&&timer&&!pageHidden());}, get on(){return on;}, get current(){return cur;} };
 })();

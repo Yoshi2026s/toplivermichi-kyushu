@@ -35,7 +35,8 @@ try{
  for(const scene of ['title','field','battle']){
   const result=await page.evaluate(async({source,scene})=>{
    const rate=22050,seconds=5,offline=new OfflineAudioContext(2,rate*seconds,rate),callbacks=new Set();
-   const factory=function(){return offline;};
+   // Offline fixtures model a running audio device while scheduling the render.
+   const factory=function(){return new Proxy(offline,{get(target,key){if(key==='state')return 'running';const value=Reflect.get(target,key,target);return typeof value==='function'?value.bind(target):value;}});};
    const sound=new Function('window','document','setInterval','clearInterval','setTimeout','clearTimeout','ORCHESTRA_BANK','ORCHESTRA_CODEC',source+';return SND;')({AudioContext:factory},{hidden:false},f=>{callbacks.add(f);return f;},f=>callbacks.delete(f),()=>1,()=>{},ORCHESTRA_BANK,ORCHESTRA_CODEC);
    sound.setOn(true);sound.play(scene);
    const waits=[];

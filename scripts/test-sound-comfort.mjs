@@ -8,9 +8,19 @@ try{for(const device of ['standard','small','landscape','short','narrow']){
  const options=device==='narrow'?{...mobileOptions('small'),viewport:{width:320,height:640}}:mobileOptions(device),context=await browser.newContext(options),page=await context.newPage(),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
  try{
-  await page.goto(app.url);await page.locator('[data-a="newGame"]').waitFor();
+  await page.addInitScript(()=>{const Base=window.AudioContext;window.AudioContext=class extends Base{constructor(...args){super(...args);window.testAudioContext=this;}};});
+  await page.goto(app.url,{waitUntil:'domcontentloaded',timeout:90000});await page.locator('[data-a="newGame"]').waitFor();
   await page.locator('[data-a="openSheet"][data-k="settings"]').first().tap();
   assert.equal(await page.locator('.sound-volume').count(),2);
+  await page.waitForFunction(()=>SND.ready);
+  await page.evaluate(async()=>{const el=document.querySelector('#restoreIn');window.soundDraft=el;el.value='確認用';el.focus();el.setSelectionRange(1,2);SND.sfx('rank');await window.testAudioContext.suspend();});
+  await page.waitForFunction(()=>document.querySelector('#soundState').textContent.includes('一時停止'));
+  const paused=await page.evaluate(()=>{const before={notes:SND.instrumentation.sampleNotes,sources:SND.sourceCount};for(let i=0;i<10;i++)for(const name of ['heal','rank','damage'])SND.sfx(name);return {before,after:{notes:SND.instrumentation.sampleNotes,sources:SND.sourceCount}};});assert.deepEqual(paused.after,paused.before,'paused effects never reserve delayed sounds');
+  assert.deepEqual(await page.locator('#restoreIn').evaluate(el=>[el===window.soundDraft,el.value,el.selectionStart,el.selectionEnd,document.activeElement===el]),[true,'確認用',1,2,true],'status updates preserve the actual input node and selection');
+  await page.locator('#soundState').scrollIntoViewIfNeeded();await page.screenshot({path:resolve(out,device+'-paused.png'),fullPage:true});
+  const fresh=await page.evaluate(async()=>{await window.testAudioContext.resume();const before=SND.instrumentation.sampleNotes;SND.sfx('rank');return {before,after:SND.instrumentation.sampleNotes};});assert(fresh.after>fresh.before,'a fresh event sounds immediately after recovery');await page.waitForFunction(()=>SND.ready&&!document.querySelector('#soundState').textContent.includes('一時停止'));
+  assert(await page.locator('#restoreIn').evaluate(el=>el===window.soundDraft),'audio recovery never redraws the settings');
+  await page.evaluate(async()=>{await window.testAudioContext.suspend();});const beforePreviewResume=await page.evaluate(()=>SND.instrumentation.sampleNotes);await page.evaluate(()=>ACT.soundPreview());assert(await page.evaluate(()=>SND.instrumentation.sampleNotes)>beforePreviewResume,'preview awaits actual recovery before playing');
   assert(await page.locator('.sound-volume').first().evaluate(el=>Boolean(el.compareDocumentPosition(document.querySelector('#restoreIn'))&Node.DOCUMENT_POSITION_FOLLOWING)),'audio controls precede unrelated restore fields');
   const sizes=await page.locator('.sound-volume button').evaluateAll(buttons=>buttons.map(b=>{const r=b.getBoundingClientRect();return {width:r.width,height:r.height,label:b.getAttribute('aria-label')};}));
   assert(sizes.every(r=>r.width>=48&&r.height>=48&&r.label));

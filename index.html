@@ -338,6 +338,7 @@ body.reduce-motion .battle-fx-layer{display:none}
 
 .difficulty-options .btn{min-width:0;padding-inline:4px;text-align:center;white-space:nowrap}
 .difficulty-options [aria-pressed="true"]{box-shadow:inset 0 -3px 0 #efd58d}
+.sound-state{border-left:3px solid #cdb574;background:#102735;padding:8px 10px;line-height:1.6;overflow-wrap:anywhere}
 /* Clear selection and touch targets for independent music/effect controls. */
 .sound-volume{scroll-margin-top:80px;min-width:0;margin:12px 0;padding:10px;border:1px solid #8ca6af;border-radius:8px;background:#102735}
 .sound-volume legend{padding:0 6px;color:#f0dfb4;font-size:16px;line-height:1.5}
@@ -4919,7 +4920,7 @@ const SND = (()=>{
     if(ac) return true;
     try{
       ac=new (window.AudioContext||window.webkitAudioContext)({latencyHint:"interactive"});
-      ac.addEventListener?.("statechange",()=>{if(typeof refreshTitleMusic==="function")refreshTitleMusic();});
+      ac.addEventListener?.("statechange",()=>{if(!ac)return;if(ac.state!=="running"){stopSources("sfx");effectLast.clear();}if(typeof refreshTitleMusic==="function")refreshTitleMusic();if(typeof refreshSoundStatus==="function")refreshSoundStatus();});
       const comp=ac.createDynamicsCompressor(); comp.threshold.value=-16; comp.knee.value=12; comp.ratio.value=3.5; comp.attack.value=0.004; comp.release.value=0.18;
       master=ac.createGain(); master.gain.value=0.85; master.connect(comp); comp.connect(ac.destination);
       const low=ac.createBiquadFilter(); low.type="lowshelf"; low.frequency.value=140; low.gain.value=2.5;
@@ -5107,6 +5108,11 @@ const SND = (()=>{
   }
   // Quiet interface sounds leave the score steady; important events retain ducking.
   const effectLast=new Map();
+  async function prepareEffects(){
+    const context=ac;if(!on||!context||pageHidden()||effectVolume===0)return false;
+    try{if(context.state==='suspended'||context.state==='interrupted')await context.resume();}catch(e){return false;}
+    return !!(on&&ac===context&&context.state==='running'&&!pageHidden()&&effectVolume>0);
+  }
   const effectProfile=name=>name==='step'?{level:.16,gap:.12,duck:false,cutoff:1800}:
     ['ok','cancel','equip','evade'].includes(name)?{level:.48,gap:.075,duck:false,cutoff:3000}:
     ['seaWave','clap'].includes(name)?{level:.48,gap:.16,duck:false,cutoff:2600}:
@@ -5116,7 +5122,7 @@ const SND = (()=>{
     name==='lose'?{level:.64,gap:.12,duck:true,cutoff:2200,tone:'cello'}:
     {level:.76,gap:.065,duck:true,cutoff:3800};
   function sfx(name){
-    if(!on||!ac||pageHidden()||effectVolume===0) return;
+    if(!on||!ac||ac.state!=="running"||pageHidden()||effectVolume===0) return;
     const parts=SFX[name]; if(!Array.isArray(parts)) return;
     const profile=effectProfile(name),now=ac.currentTime,last=effectLast.get(name);
     if(last!==undefined&&now-last<profile.gap) return;
@@ -5144,7 +5150,7 @@ const SND = (()=>{
   }
   function suspend(){ if(jingleT){ clearTimeout(jingleT); jingleT=null; } stopBgm(); stopSources(); effectLast.clear(); if(ac&&ac.state==="running") ac.suspend().catch(()=>{}); }
   function resume(){ if(!on||!ac) return; if(ac.state==="suspended"||ac.state==="interrupted") ac.resume().catch(()=>{}); if(timer||jingleT) return; const c=cur; cur=null; if(c) play(c); }
-  return { sceneForMap,play, jingle, sfx, setOn, setVolumes, suspend, resume, get songs(){return Object.keys(SONGS);},get scores(){return Object.fromEntries(Object.entries(SONGS).map(([id,s])=>[id,{bars:s.chords.split(' ').length,bpm:s.bpm,seconds:s.chords.split(' ').length*240/s.bpm}]));},get instrumentation(){return {sampledInstruments:sampleBanks.size,sampleNotes,droppedSampleNotes};},get metrics(){return {...timing};},get sourceCount(){return activeSources.size;},get volumes(){return {music:musicVolume,effects:effectVolume};}, get playing(){return !!(on&&ac?.state==="running"&&timer&&!pageHidden());}, get on(){return on;}, get current(){return cur;} };
+  return { sceneForMap,play, jingle, sfx, prepareEffects, setOn, setVolumes, suspend, resume, get songs(){return Object.keys(SONGS);},get scores(){return Object.fromEntries(Object.entries(SONGS).map(([id,s])=>[id,{bars:s.chords.split(' ').length,bpm:s.bpm,seconds:s.chords.split(' ').length*240/s.bpm}]));},get instrumentation(){return {sampledInstruments:sampleBanks.size,sampleNotes,droppedSampleNotes};},get metrics(){return {...timing};},get sourceCount(){return activeSources.size;},get volumes(){return {music:musicVolume,effects:effectVolume};}, get ready(){return !!(on&&ac?.state==='running'&&!pageHidden());}, get playing(){return !!(on&&ac?.state==="running"&&timer&&!pageHidden());}, get on(){return on;}, get current(){return cur;} };
 })();
 
 /* URLだけを共有する。セーブ・入力名・クエリは渡さない。 */
@@ -7544,6 +7550,15 @@ Object.assign(ACT,{
 });
 
 /* 共通の設定・作成・解説・移動再開。追加画面は既存の保存・操作受付に統合する。 */
+function soundStatusText(){
+ if(!soundIsOn())return 'BGM・効果音はOFFです。';
+ const v=SND.volumes;
+ if(v.music===0&&v.effects===0)return 'BGM・効果音ともに消音です。音量を上げると再生できます。';
+ if(!SND.on)return '音声の開始・再開には、画面を操作してください。';
+ if(!SND.ready)return '音声は一時停止中です。画面の操作で再開を試みます。';
+ return v.music===0?'BGMは消音、効果音はONです。':v.effects===0?'効果音は消音、BGMはONです。':'BGM・効果音はONです。';
+}
+function refreshSoundStatus(){const el=document.querySelector('#soundState');if(el){const text=soundStatusText();if(el.textContent!==text)el.textContent=text;}}
 function applySoundSettings(settings={}){
   if(typeof SND.setVolumes==="function")SND.setVolumes(Number.isFinite(settings.musicVolume)?settings.musicVolume:1,Number.isFinite(settings.effectVolume)?settings.effectVolume:1);
   if(settings.sound===false&&SND.on)SND.setOn(false);else if(settings.sound!==false&&!SND.on)SND.setOn(true);
@@ -7635,7 +7650,7 @@ renderSettings=function(){
   if(!Number.isFinite(s.musicVolume))s.musicVolume=SND.volumes.music;
   if(!Number.isFinite(s.effectVolume))s.effectVolume=SND.volumes.effects;
  }
- const volumeControls=`<h3 class="label">音量を個別に調整</h3><p class="small">BGMだけ、効果音だけを消すこともできます。全体をOFFにすると、両方とも鳴りません。</p>${[["musicVolume","BGM"],["effectVolume","効果音"]].map(([key,label])=>`<fieldset class="sound-volume"><legend>${label}：${(s[key]??1)===0?'消音':Math.round((s[key]??1)*100)+'％'}</legend><div class="opts" role="group" aria-label="${label}の音量">${[0,.25,.5,.75,1].map(n=>`<button class="btn opt" data-a="soundVolume" data-k="${key}" data-v="${n}" aria-label="${label} ${n===0?'消音':n*100+'％'}" aria-pressed="${(s[key]??1)===n}">${n===0?'消音':n*100+'％'}</button>`).join("")}</div></fieldset>`).join("")}<button class="btn wide" data-a="soundPreview" ${!soundIsOn()||SND.volumes.effects===0?'disabled':''} aria-describedby="soundPreviewHint">効果音を試す</button><p class="small" id="soundPreviewHint">${!soundIsOn()?'試聴するには「BGM・効果音」をONにしてください。':SND.volumes.effects===0?'試聴するには効果音の音量を上げてください。':'現在の効果音の音量で、短い回復音を鳴らします。'}</p>`;
+ const volumeControls=`<p class="small sound-state" id="soundState" role="status" aria-live="polite" aria-atomic="true">${esc(soundStatusText())}</p><h3 class="label">音量を個別に調整</h3><p class="small">BGMだけ、効果音だけを消すこともできます。全体をOFFにすると、両方とも鳴りません。</p>${[["musicVolume","BGM"],["effectVolume","効果音"]].map(([key,label])=>`<fieldset class="sound-volume"><legend>${label}：${(s[key]??1)===0?'消音':Math.round((s[key]??1)*100)+'％'}</legend><div class="opts" role="group" aria-label="${label}の音量">${[0,.25,.5,.75,1].map(n=>`<button class="btn opt" data-a="soundVolume" data-k="${key}" data-v="${n}" aria-label="${label} ${n===0?'消音':n*100+'％'}" aria-pressed="${(s[key]??1)===n}">${n===0?'消音':n*100+'％'}</button>`).join("")}</div></fieldset>`).join("")}<button class="btn wide" data-a="soundPreview" ${!soundIsOn()||SND.volumes.effects===0?'disabled':''} aria-describedby="soundPreviewHint">効果音を試す</button><p class="small" id="soundPreviewHint">${!soundIsOn()?'試聴するには「BGM・効果音」をONにしてください。':SND.volumes.effects===0?'試聴するには効果音の音量を上げてください。':'現在の効果音の音量で、短い回復音を鳴らします。'}</p>`;
  // Keep audio controls beside the sound switch, ahead of save/restore fields.
  return base.replace('<details class="control-help">',volumeControls+'<details class="control-help">')+`<h3 class="label">移動と応援</h3><button class="btn" data-a="moveSpeed">移動速度：${s.moveSpeed==="fast"?"高速":"通常"}</button><button class="btn ${s.listenerComments===false?'':'on'}" data-a="listenerToggle" aria-pressed="${s.listenerComments!==false}">リスナーコメント：${s.listenerComments===false?"OFF":"ON"}</button>`;
 };
@@ -7663,7 +7678,7 @@ Object.assign(ACT,{
   helpFilter(el){if(G.sheet!=="help"||(el.dataset.v!=="all"&&!Object.hasOwn(SYSTEM_HELP,el.dataset.v)))return;G.sheetData.category=el.dataset.v;G.sheetData.page=0;G.helpQuery={...G.sheetData};render();},
   helpSearch(){if(G.sheet!=="help")return;G.sheetData.query=String($("#helpSearch")?.value||"").slice(0,100);G.sheetData.page=0;G.helpQuery={...G.sheetData};render();},
   helpPage(el){if(G.sheet!=="help")return;const p=Number(el.dataset.v);if(!Number.isInteger(p)||p<0||p>3)return;G.sheetData.page=p;G.helpQuery={...G.sheetData};render();},
-  soundPreview(){if(G.sheet!=="settings"||G.dlg||G.readOnly||!soundIsOn()||SND.volumes.effects===0)return;SND.sfx("heal");},
+  async soundPreview(){if(G.sheet!=="settings"||G.dlg||G.readOnly||!soundIsOn()||SND.volumes.effects===0)return;if(!await SND.prepareEffects()){refreshSoundStatus();return;}if(G.sheet!=="settings"||G.dlg||G.readOnly||!soundIsOn()||SND.volumes.effects===0)return;SND.sfx("heal");},
   soundVolume(el){
    if(G.screen!=="title"&&(!G.st||G.st.run)||G.sheet!=="settings"||G.readOnly||!["musicVolume","effectVolume"].includes(el.dataset.k))return;
    const n=Number(el.dataset.v);if(![0,.25,.5,.75,1].includes(n))return;

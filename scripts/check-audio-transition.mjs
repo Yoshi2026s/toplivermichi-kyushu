@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
+const source=readFileSync(new URL('../src/audio.js',import.meta.url),'utf8');
+const block=source.slice(source.indexOf('  const activeSources='),source.indexOf('  const musicGain='));
+const events=[],gain={value:.3,cancelAndHoldAtTime:t=>events.push(['hold',t]),linearRampToValueAtTime:(v,t)=>events.push(['fade',v,t])},sfxBus={},musicBus={},ac={currentTime:10};
+const state=runInNewContext(`${block};({trackSource,stopSources,get count(){return activeSources.size}})`,{sfxBus,musicBus,ac,document:{hidden:false},holdGain:(g,t)=>g.cancelAndHoldAtTime(t)});
+const node=()=>({stops:[],stop(t){this.stops.push(t);},disconnect(){this.disconnected=true;}});
+const playing=node(),future=node(),effect=node();let cleanups=0;
+state.trackSource(playing,musicBus,()=>cleanups++,gain,9);state.trackSource(future,musicBus,()=>cleanups++,gain,11);state.trackSource(effect,sfxBus,()=>cleanups++,gain,9);
+state.stopSources('music',true);
+assert(events.some(e=>e[0]==='fade'&&e[1]<=.0001&&e[2]>10),'audible music fades instead of disconnecting abruptly');
+assert.equal(playing.disconnected,undefined);assert(playing.stops[0]>10&&playing.stops[0]<=10.025);assert.equal(future.disconnected,true,'not-yet-started notes cancel immediately');assert.equal(effect.stops.length,0,'scene changes preserve effects');
+state.stopSources('music',true);assert.equal(playing.stops.length,1,'repeated transitions do not extend an old fade');
+playing.onended();assert.equal(state.count,1);assert.equal(playing.disconnected,true);
+state.stopSources();assert.equal(state.count,0);assert.equal(effect.disconnected,true);assert.equal(effect.stops[0],undefined,'mute cancels remaining sources immediately');
+future.onended();effect.onended();assert.equal(cleanups,3);
+console.log('Audio transitions: short release for audible music, immediate future-note cancellation, effect isolation, no fade extension and complete cleanup pass');

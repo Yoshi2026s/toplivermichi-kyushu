@@ -98,6 +98,9 @@ function render(){
   stopBattleTimer();
   if(typeof BATTLE_FX!=="undefined")BATTLE_FX.cancel();
   const s=G.screen;
+  const sameResult=s==='result'&&G.resultView?.state===G.st&&G.resultView?.result===G.st?.lastResult;
+  const resultScroll=sameResult?(window.scrollY||0):0;
+  const resultDetails=sameResult?Array.from(document.querySelectorAll('.result details'),el=>el.open):[];
   let html="";
   if(s==="title") html=renderTitle();
   else if(s==="new") html=renderNew();
@@ -120,7 +123,12 @@ function render(){
   if(G.dlg){ const b=$("#dlgNext"); if(b) b.focus({preventScroll:true}); }
   PAD.restore();
   if(s==="battle"&&!G.sheet&&!G.dlg&&!G.auto&&G.cmd?.type){const key=JSON.stringify(G.cmd);if(G.commandView?.run!==G.st.run||G.commandView.key!==key){G.commandView={run:G.st.run,key};revealBattleCommand();}}else if(s!=="battle")G.commandView=null;
-  if(s==="result"&&!G.sheet&&!G.dlg){window.scrollTo?.(0,0);$('[data-a="resultDone"]')?.focus?.({preventScroll:true});}
+  if(s==='result'&&G.st?.lastResult){
+    G.resultView={state:G.st,result:G.st.lastResult};
+    document.querySelectorAll('.result details').forEach((el,i)=>{el.open=resultDetails[i]||false;});
+    window.scrollTo?.(0,resultScroll);
+    if(!sameResult&&!G.sheet&&!G.dlg)$('[data-a="resultDone"]')?.focus?.({preventScroll:true});
+  }else G.resultView=null;
 }
 function statusBar(){
   const st=G.st; const m=MAPS[st.mapId];

@@ -17,3 +17,5 @@ assert(read('assets/audio/orchestra-bank.json').length<1300000,'compact bank avo
 console.log('27 distinct scores, 32–48 bars, developed second cycles, contrasting instrumentation/rhythms, 20 acoustic samples, verified pitch roots, loop bounds and decoded memory budget');
 
 for(const [id,level]of [['field_road',.86],['field_harbor',.82]]){assert.equal(api.compile(api.SONGS[id]).level,level,'dedicated theme mix reaches the scheduler');assert.equal(api.sceneForMap({kind:'field',terrain:'plain',musicScene:id}),id);}assert.equal(api.sceneForMap({kind:'field',terrain:'plain',musicScene:'__proto__'}),'field');
+
+assert.equal(api.compile(api.SONGS.field_harbor).percussion,false);assert.equal(api.compile(api.SONGS.field_harbor).chime,.04);assert.equal(api.compile(api.SONGS.field_road).percussion,true);

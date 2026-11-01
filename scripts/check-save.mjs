@@ -116,17 +116,17 @@ if(!seedGeneration)throw new Error('save replacement generation helper missing')
 const current=game.newGame('維持する記録','男性'),incoming=game.newGame('復元する記録','女性');
 current.saveGeneration=200;db.auto=makeRecord(current,300);db['auto-prev']=makeRecord(current,299);store.value=null;
 const uiState={st:current,screen:'explore',sheet:'settings',readOnly:false,saveStatus:'保存済み',hasSave:true,walk:{path:[]},dlg:null,cmd:{}};
-let saveSucceeds=false,rendered=0,message='';
+let saveSucceeds=false,rendered=0,restoreMusic=0,message='';
 const restore=runInNewContext(`${core}\n${validate}\n${migrate}\n${seedGeneration}\n${actions}\nACT.restore`,{
   G:uiState,loadSave:game.loadSave,$:()=>({value:JSON.stringify({app:'toplivermichi-kyushu',state:incoming})}),
   commit:async()=>{uiState.st.saveGeneration++;return saveSucceeds;},
   setSave:value=>{uiState.saveStatus=value;},toast:value=>{message=value;},render:()=>{rendered++;},
-  soundPref:()=>true,clearTimeout:()=>{}
+  soundPref:()=>true,clearTimeout:()=>{},exploreBgm:()=>{restoreMusic++;}
 });
 await restore();
-if(uiState.st!==current||uiState.screen!=='explore'||uiState.sheet!=='settings'||uiState.saveStatus!=='保存済み'||rendered||!message.includes('元の記録を維持')) throw new Error('failed backup restore replaced the current game');
+if(uiState.st!==current||uiState.screen!=='explore'||uiState.sheet!=='settings'||uiState.saveStatus!=='保存済み'||rendered||restoreMusic||!message.includes('元の記録を維持')) throw new Error('failed backup restore replaced the current game');
 saveSucceeds=true; await restore();
-if(uiState.st.profile.name!=='復元する記録'||uiState.sheet!==null||uiState.screen!=='explore'||rendered!==1||!message.includes('読み込みました')) throw new Error('successful backup restore failed');
+if(uiState.st.profile.name!=='復元する記録'||uiState.sheet!==null||uiState.screen!=='explore'||rendered!==1||restoreMusic!==1||!message.includes('読み込みました')) throw new Error('successful backup restore failed');
 if(uiState.st.saveGeneration!==301)throw new Error('restoring an older backup must exceed both in-memory and persisted generations');
 db['auto-prev']=db.auto;db.auto=makeRecord(uiState.st,uiState.st.saveGeneration);
 const restoredReload=await game.loadSave();
@@ -146,7 +146,7 @@ const positionUi={st:current,screen:'explore',sheet:'settings',readOnly:false,sa
 let restoredPositionMessage='';
 const restorePosition=runInNewContext(`${core}\n${validate}\n${migrate}\n${seedGeneration}\n${actions}\nACT.restore`,{
   G:positionUi,loadSave:game.loadSave,$:()=>({value:JSON.stringify({app:'toplivermichi-kyushu',state:incomingPosition})}),
-  commit:async()=>true,setSave:()=>{},toast:value=>{restoredPositionMessage=value;},render:()=>{},soundPref:()=>true,clearTimeout:()=>{}
+  commit:async()=>true,setSave:()=>{},toast:value=>{restoredPositionMessage=value;},render:()=>{},soundPref:()=>true,clearTimeout:()=>{},exploreBgm:()=>{}
 });
 await restorePosition();
 if(!atAnchor(positionUi.st,'KY05')||!restoredPositionMessage.includes('保存位置を現在の地形')) throw new Error('backup restore did not explain position recovery');

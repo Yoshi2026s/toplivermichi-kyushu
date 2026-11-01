@@ -5103,6 +5103,10 @@ const SND = (()=>{
   const effectProfile=name=>name==='step'?{level:.16,gap:.12,duck:false,cutoff:1800}:
     ['ok','cancel','equip','evade'].includes(name)?{level:.48,gap:.075,duck:false,cutoff:3000}:
     ['seaWave','clap'].includes(name)?{level:.48,gap:.16,duck:false,cutoff:2600}:
+    ['damage','down','meter','skillhit','allhit','slash','defeat','enc'].includes(name)?{level:.56,gap:.085,duck:true,cutoff:2600,tone:'triangle'}:
+    ['win','rank'].includes(name)?{level:.64,gap:.12,duck:true,cutoff:3200,tone:'trumpet'}:
+    ['level','seaRescue','kira'].includes(name)?{level:.76,gap:.12,duck:true,cutoff:3200,tone:'glock'}:
+    name==='lose'?{level:.64,gap:.12,duck:true,cutoff:2200,tone:'cello'}:
     {level:.76,gap:.065,duck:true,cutoff:3800};
   function sfx(name){
     if(!on||!ac||pageHidden()||effectVolume===0) return;
@@ -5116,7 +5120,7 @@ const SND = (()=>{
     for(const s of parts){
       if(s[0]==="noise"){ noise(t,s[1]+0.03,0.36*profile.level,name==='step'?600:1200,{type:"bandpass",q:0.5,out:sfxBus}); if(name!=='step')noise(t,0.02,0.10*profile.level,3500,{out:sfxBus}); t+=s[1]; }
       else if(s[0]===null){ t+=s[1]; }
-      else { voice(hz(s[1]),t,s[2],['heal','buy','pet','petCare','petgrow','seaTreasure'].includes(name)?'glock':['ok','cancel','equip','evade'].includes(name)?'triangle':s[0],0.42*profile.level,{out:sfxBus,sus:0.65,cutoff:profile.cutoff,fenv:600,a:0.006,d:0.03,r:0.07}); t+=s[2]; }
+      else { voice(hz(s[1]),t,s[2],profile.tone||(['heal','buy','pet','petCare','petgrow','seaTreasure'].includes(name)?'glock':['ok','cancel','equip','evade'].includes(name)?'triangle':s[0]),0.42*profile.level,{out:sfxBus,sus:0.65,cutoff:profile.cutoff,fenv:600,a:0.006,d:0.03,r:0.07}); t+=s[2]; }
     }
   }
   function outputLevel(value,time){
@@ -6490,7 +6494,7 @@ function renderSettings(){
     <div class="row3">${Object.entries(DIFFICULTY).map(([k,v])=>`<button class="btn ${s.difficulty===k?"on":""}" data-a="setOpt" data-k="difficulty" data-v="${k}" ${busy?"disabled":""}>${s.difficulty===k?"▶ ":""}${v.name}</button>`).join("")}</div>
     <h3 class="label">音と演出</h3>
     <div class="stack"><button class="btn ${soundIsOn()?"on":""}" data-a="toggleSound" aria-pressed="${soundIsOn()}">${soundIsOn()?"BGM・効果音：ON":"BGM・効果音：OFF"}</button>
-    <button class="btn ${s.reduceMotion?"on":""}" data-a="setOpt" data-k="reduceMotion" data-v="${!s.reduceMotion}">${s.reduceMotion?"▶ 演出を減らす：ON":"演出を減らす：OFF"}</button>
+    <button class="btn ${s.reduceMotion?"on":""}" data-a="setOpt" data-k="reduceMotion" data-v="${!s.reduceMotion}" aria-pressed="${!!s.reduceMotion}">${s.reduceMotion?"▶ 演出を減らす：ON":"演出を減らす：OFF"}</button>
     <button class="btn ${s.dock!==false?"on":""}" data-a="setOpt" data-k="dock" data-v="${s.dock===false}" aria-pressed="${s.dock!==false}">操作パッド：${s.dock!==false?"表示":"非表示"}</button></div>
     <details class="control-help"><summary>操作の説明</summary><p>左が戻る、右がスティック。中央で決定します。</p>
     <p>探索はドラッグで移動、中央で調べる・停止・再開。メニューや戦闘は項目を選んで決定。会話は中央で次の台詞、戻るで前の台詞を表示します。対応するゲームコントローラーも使えます。</p></details>
@@ -7625,10 +7629,22 @@ renderSettings=function(){
  }
  const volumeControls=`<h3 class="label">音量を個別に調整</h3><p class="small">BGMだけ、効果音だけを消すこともできます。全体をOFFにすると、両方とも鳴りません。</p>${[["musicVolume","BGM"],["effectVolume","効果音"]].map(([key,label])=>`<fieldset class="sound-volume"><legend>${label}：${(s[key]??1)===0?'消音':Math.round((s[key]??1)*100)+'％'}</legend><div class="opts" role="group" aria-label="${label}の音量">${[0,.25,.5,.75,1].map(n=>`<button class="btn opt" data-a="soundVolume" data-k="${key}" data-v="${n}" aria-label="${label} ${n===0?'消音':n*100+'％'}" aria-pressed="${(s[key]??1)===n}">${n===0?'消音':n*100+'％'}</button>`).join("")}</div></fieldset>`).join("")}<button class="btn wide" data-a="soundPreview" ${!soundIsOn()||SND.volumes.effects===0?'disabled':''} aria-describedby="soundPreviewHint">効果音を試す</button><p class="small" id="soundPreviewHint">${!soundIsOn()?'試聴するには「BGM・効果音」をONにしてください。':SND.volumes.effects===0?'試聴するには効果音の音量を上げてください。':'現在の効果音の音量で、短い回復音を鳴らします。'}</p>`;
  // Keep audio controls beside the sound switch, ahead of save/restore fields.
- return base.replace('<details class="control-help">',volumeControls+'<details class="control-help">')+`<h3 class="label">移動と応援</h3><button class="btn" data-a="moveSpeed">移動速度：${s.moveSpeed==="fast"?"高速":"通常"}</button><button class="btn" data-a="listenerToggle">リスナーコメント：${s.listenerComments===false?"OFF":"ON"}</button>`;
+ return base.replace('<details class="control-help">',volumeControls+'<details class="control-help">')+`<h3 class="label">移動と応援</h3><button class="btn" data-a="moveSpeed">移動速度：${s.moveSpeed==="fast"?"高速":"通常"}</button><button class="btn ${s.listenerComments===false?'':'on'}" data-a="listenerToggle" aria-pressed="${s.listenerComments!==false}">リスナーコメント：${s.listenerComments===false?"OFF":"ON"}</button>`;
 };
 const systemBaseRender=render;
-render=function(){systemBaseRender();observeListenerScene();};
+render=function(){
+ const sheet=G.sheet==='settings'?document.querySelector('.sheet'):null;
+ const draft=sheet?.querySelector('#restoreIn'),active=sheet?.contains(document.activeElement)?document.activeElement:null;
+ const saved=draft?{value:draft.value,start:draft.selectionStart,end:draft.selectionEnd,direction:draft.selectionDirection,inputScroll:draft.scrollTop,scroll:sheet.scrollTop,details:Array.from(sheet.querySelectorAll('details'),el=>el.open),focus:active?{id:active.id,a:active.dataset.a,k:active.dataset.k,v:active.dataset.v}:null}:null;
+ systemBaseRender();observeListenerScene();
+ if(saved&&G.sheet==='settings'){
+  const next=document.querySelector('.sheet'),input=next?.querySelector('#restoreIn');
+  if(input){input.value=saved.value;input.setSelectionRange(saved.start,saved.end,saved.direction);input.scrollTop=saved.inputScroll;next.querySelectorAll('details').forEach((el,i)=>{el.open=saved.details[i]||false;});
+   const f=saved.focus,target=f?.id?document.getElementById(f.id):f?.a?Array.from(next.querySelectorAll('[data-a]')).find(el=>el.dataset.a===f.a&&el.dataset.k===f.k&&(el.dataset.v===f.v||f.a==='setOpt'&&f.k!=='difficulty')):null;
+   target?.focus({preventScroll:true});next.scrollTop=saved.scroll;
+  }
+ }
+};
 const systemBaseCharSprite=charSprite;
 charSprite=function(cid,dir,frame){if(G.oceanDrawing)return systemBaseCharSprite(cid,dir,frame);if(cid==="moe"&&G.st?.heroine)return ART.person("partner",PAL.violet,PAL.cream,dir,frame,{long:G.st.heroine.gender!=="男性",ribbon:G.st.heroine.gender!=="男性"?PAL.coral:null});return systemBaseCharSprite(cid,dir,frame);};
 const systemBaseOpen=openSheet,systemBaseClose=closeSheet;

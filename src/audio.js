@@ -317,6 +317,10 @@ const SND = (()=>{
   const effectProfile=name=>name==='step'?{level:.16,gap:.12,duck:false,cutoff:1800}:
     ['ok','cancel','equip','evade'].includes(name)?{level:.48,gap:.075,duck:false,cutoff:3000}:
     ['seaWave','clap'].includes(name)?{level:.48,gap:.16,duck:false,cutoff:2600}:
+    ['damage','down','meter','skillhit','allhit','slash','defeat','enc'].includes(name)?{level:.56,gap:.085,duck:true,cutoff:2600,tone:'triangle'}:
+    ['win','rank'].includes(name)?{level:.64,gap:.12,duck:true,cutoff:3200,tone:'trumpet'}:
+    ['level','seaRescue','kira'].includes(name)?{level:.76,gap:.12,duck:true,cutoff:3200,tone:'glock'}:
+    name==='lose'?{level:.64,gap:.12,duck:true,cutoff:2200,tone:'cello'}:
     {level:.76,gap:.065,duck:true,cutoff:3800};
   function sfx(name){
     if(!on||!ac||pageHidden()||effectVolume===0) return;
@@ -330,7 +334,7 @@ const SND = (()=>{
     for(const s of parts){
       if(s[0]==="noise"){ noise(t,s[1]+0.03,0.36*profile.level,name==='step'?600:1200,{type:"bandpass",q:0.5,out:sfxBus}); if(name!=='step')noise(t,0.02,0.10*profile.level,3500,{out:sfxBus}); t+=s[1]; }
       else if(s[0]===null){ t+=s[1]; }
-      else { voice(hz(s[1]),t,s[2],['heal','buy','pet','petCare','petgrow','seaTreasure'].includes(name)?'glock':['ok','cancel','equip','evade'].includes(name)?'triangle':s[0],0.42*profile.level,{out:sfxBus,sus:0.65,cutoff:profile.cutoff,fenv:600,a:0.006,d:0.03,r:0.07}); t+=s[2]; }
+      else { voice(hz(s[1]),t,s[2],profile.tone||(['heal','buy','pet','petCare','petgrow','seaTreasure'].includes(name)?'glock':['ok','cancel','equip','evade'].includes(name)?'triangle':s[0]),0.42*profile.level,{out:sfxBus,sus:0.65,cutoff:profile.cutoff,fenv:600,a:0.006,d:0.03,r:0.07}); t+=s[2]; }
     }
   }
   function outputLevel(value,time){

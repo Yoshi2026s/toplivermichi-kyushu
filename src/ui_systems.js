@@ -98,12 +98,12 @@ const systemBaseRender=render;
 render=function(){
  const sheet=G.sheet==='settings'?document.querySelector('.sheet'):null;
  const draft=sheet?.querySelector('#restoreIn'),active=sheet?.contains(document.activeElement)?document.activeElement:null;
- const saved=draft?{value:draft.value,start:draft.selectionStart,end:draft.selectionEnd,direction:draft.selectionDirection,inputScroll:draft.scrollTop,scroll:sheet.scrollTop,details:Array.from(sheet.querySelectorAll('details'),el=>el.open),focus:active?{id:active.id,a:active.dataset.a,k:active.dataset.k,v:active.dataset.v}:null}:null;
+ const saved=draft?{value:draft.value,start:draft.selectionStart,end:draft.selectionEnd,direction:draft.selectionDirection,inputScroll:draft.scrollTop,scroll:sheet.scrollTop,details:Array.from(sheet.querySelectorAll('details'),el=>el.open),focus:active?{summary:active.tagName==='SUMMARY'?Array.from(sheet.querySelectorAll('summary')).indexOf(active):-1,id:active.id,a:active.dataset.a,k:active.dataset.k,v:active.dataset.v}:null}:null;
  systemBaseRender();observeListenerScene();
  if(saved&&G.sheet==='settings'){
   const next=document.querySelector('.sheet'),input=next?.querySelector('#restoreIn');
   if(input){input.value=saved.value;input.setSelectionRange(saved.start,saved.end,saved.direction);input.scrollTop=saved.inputScroll;next.querySelectorAll('details').forEach((el,i)=>{el.open=saved.details[i]||false;});
-   const f=saved.focus,target=f?.id?document.getElementById(f.id):f?.a?Array.from(next.querySelectorAll('[data-a]')).find(el=>el.dataset.a===f.a&&el.dataset.k===f.k&&(el.dataset.v===f.v||f.a==='setOpt'&&f.k!=='difficulty')):null;
+   const f=saved.focus,target=f?.id?document.getElementById(f.id):f?.a?Array.from(next.querySelectorAll('[data-a]')).find(el=>el.dataset.a===f.a&&el.dataset.k===f.k&&(el.dataset.v===f.v||f.a==='setOpt'&&f.k!=='difficulty')):f?.summary>=0?next.querySelectorAll('summary')[f.summary]:null;
    target?.focus({preventScroll:true});next.scrollTop=saved.scroll;
   }
  }

@@ -61,7 +61,9 @@ const SND = (()=>{
   function transposeSong(base,shift,bpm,style,swap=false){const bars=base.chords.split(' '),lead=base.lead.split('|').map(s=>s.trim()),alt=base.leadAlt.split('|').map(s=>s.trim());const order=swap?[1,0,2,3]:[0,1,2,3],reorder=a=>order.flatMap(i=>a.slice(i*8,i*8+8));const trans=s=>s.replace(/[A-G][#b]?\d/g,n=>noteName(midi(n)+shift));return {...base,bpm,style,chords:reorder(bars).map(c=>{const m=c.match(/^([A-G][#b]?)(.*)$/);return noteName(60+NOTE[m[1]]+shift).replace(/\d$/,'')+m[2];}).join(' '),lead:trans(reorder(lead).join(' | ')),leadAlt:trans(reorder(alt).join(' | '))};}
   for(const [id,shift,bpm,style,swap]of [['field_forest',-5,94,'soft',true],['field_mountain',2,112,'march',false],['field_coast',5,108,'town',true],['field_river',-2,100,'soft',true],['field_lake',0,86,'soft',false]])SONGS[id]=transposeSong(SONGS.field,shift,bpm,style,swap);
   for(const [id,shift,bpm]of [['town_coast',2,112],['town_forest',5,104],['town_mountain',-3,108]])SONGS[id]=transposeSong(SONGS.fukuoka,shift,bpm,'town',true);
-  function sceneForMap(m){if(!m)return 'title';const terrain=m.terrain||'plain';if(m.kind==='field')return SONGS['field_'+terrain]?'field_'+terrain:'field';return ['coast','river','lake'].includes(terrain)?'town_coast':terrain==='forest'?'town_forest':terrain==='mountain'?'town_mountain':'fukuoka';}
+  SONGS.field_road={...transposeSong(SONGS.field,0,104,'soft',true),level:.86};
+  SONGS.field_harbor={...transposeSong(SONGS.fukuoka,0,88,'soft',true),level:.82};
+  function sceneForMap(m){if(m?.musicScene&&Object.hasOwn(SONGS,m.musicScene))return m.musicScene;if(!m)return 'title';const terrain=m.terrain||'plain';if(m.kind==='field')return SONGS['field_'+terrain]?'field_'+terrain:'field';return ['coast','river','lake'].includes(terrain)?'town_coast':terrain==='forest'?'town_forest':terrain==='mountain'?'town_mountain':'fukuoka';}
   const STYLE = {
     overture:{bass:"r . 5 . r8 . 5 .",arp:"0 1 2 1 0 2 1 2",hat:"",kick:"",snare:". . x . . . x .",leadVol:.3,arpVol:.09,bassVol:.5},
     soft:  {bass:"r . . . 5 . . .", arp:"0 1 2 1 0 1 2 1", hat:"", kick:"", snare:"", leadVol:.32, arpVol:.08, bassVol:.5},
@@ -78,7 +80,7 @@ const SND = (()=>{
     const pat = p => p? p.split(" ") : [];
     const alt=[]; const alternate=(s.leadAlt||s.lead).replace(/\|/g," ").trim().split(/\s+/);
     alternate.forEach((t,i)=>{const n=midi(t);if(n!=null){let len=1;while(alternate[i+len]==="-")len++;alt.push({step:i,n,len});}});
-    return { bpm:s.bpm, steps:bars.length*8, bars, lead, alt, style:s.style, st, bass:pat(st.bass), arp:pat(st.arp), hat:pat(st.hat), kick:pat(st.kick), snare:pat(st.snare) };
+    return { level:s.level??1, bpm:s.bpm, steps:bars.length*8, bars, lead, alt, style:s.style, st, bass:pat(st.bass), arp:pat(st.arp), hat:pat(st.hat), kick:pat(st.kick), snare:pat(st.snare) };
   }
   /* 音の通り道：パート別バス → 音色EQ → コンプレッサー → 出力。リバーブとディレイは送りで混ぜる */
   let musicBus=null, sfxBus=null, revIn=null, dlyIn=null, dly=null, duckUntil=0, revOutput=null, delayOutput=null;
@@ -223,7 +225,7 @@ const SND = (()=>{
     const section=Math.floor(bar/8),style=S.style,combat=['battle','boss'].includes(style),quiet=section===2||(style==='soft'&&section!==3),final=section===(combat?5:3),swap=cycle%2;
     const leads=style==='town'?['oboe','flute','strings','oboe']:style==='pop'?['glock','strings','flute','trumpet']:style==='soft'?['flute','cello','oboe','strings']:style==='overture'?['horn','strings','flute','trumpet']:combat?['strings','trumpet','oboe','strings','horn','trumpet']:['horn','strings','flute','trumpet'];
     const lead=swap&&section===0?'flute':leads[section%leads.length];
-    return {section,lead,quiet,final,combat,level:(quiet?.66:final?1.08:.88)*(1+.07*Math.sin((bar%8)*Math.PI/7)),tempo:quiet?.98:final?1.015:1,
+    return {section,lead,quiet,final,combat,level:(S.level??1)*(quiet?.66:final?1.08:.88)*(1+.07*Math.sin((bar%8)*Math.PI/7)),tempo:quiet?.98:final?1.015:1,
       bass:quiet?'r . . . 5 . . .':style==='town'?'r . 5 . r8 . 5 .':combat&&section!==1?'r . r8 . 5 r r8 .':'r . . 5 r8 . 5 .',
       arp:quiet?[0,null,2,null,1,null,2,null]:section%2?[0,2,null,1,2,null,0,1]:[0,null,1,2,null,1,2,null],
       rhythm:quiet?'sustain':combat&&section%3!==1?'spiccato':style==='town'&&section!==3?'pizz':['march','overture'].includes(style)&&section===1?'spiccato':style==='pop'&&section%2===0?'pizz':'sustain'};

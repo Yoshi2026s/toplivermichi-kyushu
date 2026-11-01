@@ -36,6 +36,9 @@ jobs:
       - run: node scripts/test-world-save.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-world-polish.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - run: node scripts/test-world-ui.mjs
         env:
           MOBILE_BROWSER: chromium
@@ -195,6 +198,8 @@ jobs:
             .task/illustrated-*.png
             .task/illustrated-ui-report.json
             .task/battle-initial-*.png
+            .task/world-polish/*.png
+            .task/world-polish/report.json
             .task/world-save/*.png
             .task/world-save/report.json
             .task/world-ui/*.png

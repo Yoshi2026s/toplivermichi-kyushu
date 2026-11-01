@@ -240,7 +240,7 @@ function charSprite(cid,dir,frame){ if(cid==="hero") return heroSprite(dir,frame
 /* ---- 探索 ---- */
 function renderCurrentLocation(){
   const st=G.st,m=MAPS[st.mapId],zone=zoneAt(m,st.pos.x,st.pos.y),ar=zone?AREAS[zone]:null,near=nearbyObjects();
-  return `<div class="here">${ar?`<span class="tag danger">遭遇エリア</span> ${esc(ar.name)}（推奨レベル${ar.q}）`:`<span class="tag ${m.kind==="field"?"danger":"safe"}">${m.kind==="field"?"街外の道":"安全"}</span>`}${near.length?`<span class="small">／近く：${near.map(o=>esc(o.label)).join("・")}</span>`:""}</div>`;
+  return `<div class="here">${ar?`<span class="tag danger">遭遇エリア</span> ${esc(ar.name)}（推奨レベル${ar.q}）`:`<span class="tag safe" title="${m.kind==="field"?"現在の地点は遭遇エリア外です":"安全な街の中です"}">${m.kind==="field"?"遭遇なし":"安全"}</span>`}${near.length?`<span class="small">／近く：${near.map(o=>esc(o.label)).join("・")}</span>`:""}</div>`;
 }
 function renderMainMenu(){
  const groups=[['移動と探索',[['map','地図','全国の行先を確認'],['voyage','航海','海域と船の旅']]],['仲間と準備',[['items','道具','使う・持ち物を確認'],['status','ステータス','体力と能力を確認'],['party','編成','仲間・装備を整える'],['pets','ペット','同行とお世話']]],['記録と設定',[['record','記録','冒険の達成を確認'],['dex','図鑑','出会った敵を調べる'],['settings','設定','音・操作・保存'],['help','解説','遊び方と機能を検索'],['share','友だちに教える','紹介文とリンク']]]];
@@ -257,7 +257,7 @@ function renderExplore(){
     </header>
     <div class="mapwrap" data-map-kind="${esc(m.kind)}"><aside id="navRoute" class="map-route" aria-label="移動先" hidden></aside><canvas id="map" aria-label="${esc(m.name)}の地図。地面をタップすると移動します。"></canvas>
       <canvas id="minimap" aria-label="${m.continuousWorld?'全国ミニマップ。明るい地域は解放済み、暗い地域は未解放。点線は船路、丸は現在地、白枠は表示範囲。':'全体ミニマップ。白丸は現在地、白枠は表示範囲。城門は砦、家は街、ベッドは宿屋、瓶は道具屋、書類は職業窓口、肉球はペット施設。道＝道具、ペ＝ペット店、控＝控え所、宿＝宿屋、職＝職業、砦＝ボス、街＝出口'}"></canvas>
-      ${exit?`<button class="btn map-exit" data-a="guideTo" data-v="${exit.id}" data-map="${esc(st.mapId)}">${m.kind==="town"?"街外へ":"街へ戻る"}</button>`:""}
+      ${exit?`<button class="btn map-exit" aria-label="${esc(m.kind==="town"?(HUBS[m.hub]?.name||m.name)+"の街外へ歩く":(HUBS[exit.to]?.name||HUBS[m.hub]?.name||"街")+"へ歩いて戻る")}" data-a="guideTo" data-v="${exit.id}" data-map="${esc(st.mapId)}">${m.kind==="town"?"街外へ":"街へ戻る"}</button>`:""}
     </div>
     ${partyStrip()}
 
@@ -636,7 +636,7 @@ function renderCommand(run){
   const entries=[["attack","アタック"],["comment",a.job==="J02"?"コメント整理":"応援コメント"],["skill",JOBS[a.job].skill],["item","道具"],["guard","ガード"],["rest","ひと息つく"],["other","その他"]];
   const chip=(k,v,on,label)=>`<button class="chip ${on?"on":""}" data-a="cmdSet" data-k="${k}" data-v="${v}" aria-pressed="${on}">${on?"▶":""}${label}</button>`;
   const enemyPick=()=>`<span class="chiplabel">対象</span>`+run.enemies.filter(e=>e.hp>0).map(e=>chip("target",e.slot,c.target===e.slot,esc(e.display)+`<small>HP ${e.hp}／${e.maxHP}</small>`)).join("");
-  const allyPick=(other)=>`<span class="chiplabel">対象</span>`+run.party.filter(m=>m.hp>0&&(!other||m!==a)).map(m=>chip("ally",m.pos,c.ally===m.pos,esc(m.name)+`<small>HP ${m.hp}／${m.maxHP}・MP ${m.c}</small>`)).join("");
+  const allyPick=(other)=>`<span class="chiplabel">対象</span>`+run.party.filter(m=>m.hp>0&&(!other||m!==a)).map(m=>chip("ally",m.pos,c.ally===m.pos,esc(m.name)+`<small>HP ${m.hp}／${m.maxHP}・MP ${m.c}／${battleMPCap(m)}</small>`)).join("");
   const linePick=()=>["greet","plan","thanks"].map(l=>chip("line",l,c.line===l,LINE_NAMES[l])).join("");
   const liveE=run.enemies.filter(e=>e.hp>0); if(liveE.length===1) c.target=liveE[0].slot;
   let sub="", info="";
@@ -663,7 +663,7 @@ function renderCommand(run){
       const it=c.item&&ITEMS[c.item];
       if(it){ const nd=itemNeeds(it); info=`${itemText(it,run.V)}（${ITEM_RARITY[it.stars].slice(0,2)}）${a.pouch&&it.cat!=="攻撃"?"・ポーチで1.5倍":""}`;
         if(nd==="enemy") sub+=`<span class="chipbreak"></span>`+enemyPick(); if(nd==="ally") sub+=`<span class="chipbreak"></span>`+allyPick(false);
-        if(nd==="down") sub+=`<span class="chipbreak"></span><span class="chiplabel">対象</span>`+(run.party.filter(m=>m.hp<=0).map(m=>chip("ally",m.pos,c.ally===m.pos,esc(m.name))).join("")||`<span class="hint">戦闘不能の仲間はいません</span>`); } }
+        if(nd==="down") sub+=`<span class="chipbreak"></span><span class="chiplabel">対象</span>`+(run.party.filter(m=>m.hp<=0).map(m=>chip("ally",m.pos,c.ally===m.pos,esc(m.name)+`<small>戦闘不能・HP 0／${m.maxHP}</small>`)).join("")||`<span class="hint">戦闘不能の仲間はいません</span>`); } }
   }
   if(c.type==="guard") info="受けるダメージ半分・MP＋1";
   if(c.type==="rest") info=`自分のMP＋${4+a.rest}`;
@@ -813,7 +813,7 @@ function renderResult(){
   const title = r.kind==="boss" ? "ボスを鎮めた！" : "勝利！";
   const sub = (r.turns?`${r.turns}ターン`:"")+(foes.length?`・${foes.map(e=>esc(e.name)).join("、")}を鎮めた`:"");
   const formatResult=n=>new Intl.NumberFormat("ja-JP",{notation:Math.abs(n)>=100000?"compact":"standard",maximumFractionDigits:1}).format(n);
-  const card=(lab,val,cls="")=>`<div class="rstat ${cls}"><span class="rlab">${lab}</span><span class="rval">${val}</span></div>`;
+  const card=(lab,val,cls="",full=val)=>`<div class="rstat ${cls}"><span class="rlab">${lab}</span><span class="rval" title="${esc(full)}"><span aria-hidden="true">${val}</span><span class="sr-only result-exact-value">${esc(full)}</span></span></div>`;
   const resultMembers=r.members?.length?r.members:st.party.map(cid=>({cid,maxBefore:charStats(st,cid,L).maxHP,maxAfter:charStats(st,cid,L).maxHP}));
   const mem=resultMembers.map(x=>{
     const j=(r.jp||[]).find(y=>y.cid===x.cid)||{gain:0}; const s=charStats(st,x.cid,L); const v=vitalOf(x.cid);
@@ -839,7 +839,7 @@ function renderResult(){
   const summary=[receivedCount?`入手 ${receivedCount}件`:'',unreceivedCount?`受取不可 ${unreceivedCount}件`:'',(r.newBadges||[]).length?`新バッジ ${r.newBadges.length}件`:'',usedItems.length?`道具使用 ${usedItems.length}回${r.itemsUsedKnown===true?'':'（記録不完全）'}`:r.itemsUsedKnown===true?'道具未使用':'道具履歴なし'].filter(Boolean).join('・');
   return `<section class="result${up?' level-celebration':''}" aria-labelledby="rtitle">
     <div class="rbanner ${up?'level-royal':r.kind==="boss"?"boss":""}">${up?`<div class="level-sparkles" aria-hidden="true">${Array.from({length:8},(_,i)=>`<i style="--i:${i}"></i>`).join('')}</div>`:''}<h2 id="rtitle">${up?'レベルアップ！':title}</h2>${up?`<strong>Lv${r.levelBefore} → ${L}</strong>`:''}<p>${up?title+'・':''}${r.turns?`${r.turns}ターン`:""}${foes.length?`・敵${foes.length}体`:""}</p></div>
-    <div class="rgrid">${card("経験値",`＋${formatResult(r.xp)}`)}${card("ゴールド",`＋${formatResult(r.gold)}`,"gold")}${r.tickets?card("チケット",`＋${formatResult(r.tickets)}`):card("所持金",`${formatResult(st.gold)}G`)}</div>
+    <div class="rgrid">${card("経験値",`＋${formatResult(r.xp)}`,"",`＋${r.xp.toLocaleString()}`)}${card("ゴールド",`＋${formatResult(r.gold)}`,"gold",`＋${r.gold.toLocaleString()}`)}${r.tickets?card("チケット",`＋${formatResult(r.tickets)}`,"",`＋${r.tickets.toLocaleString()}`):card("所持金",`${formatResult(st.gold)}G`,"",`${st.gold.toLocaleString()}G`)}</div>
     <div class="gauge rxp"><span>${up?`Lv${r.levelBefore}→${L}`: `レベル${L}`}</span><span class="bar xp"><i style="width:${pct(xpNow,xpSpan)}%"></i></span><b class="result-next-level">${L<levelLimit(st)?`Lv${L+1}まで あと${Math.max(0,xpSpan-xpNow).toLocaleString()}`:"現在の上限"}</b></div>
     ${r.quest?`<div class="rquest done">依頼「${esc(QUESTS[r.quest].name)}」完了！</div>`:r.kills&&r.killQuest?`<div class="rquest">依頼の討伐 ${r.killNow}/${r.killNeed}</div>`:""}
     <div class="rmems ${resultMembers.length>2?"many":""}" aria-label="仲間の戦闘後の状態">${mem}</div>

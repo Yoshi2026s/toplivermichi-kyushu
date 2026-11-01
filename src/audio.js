@@ -330,11 +330,11 @@ const SND = (()=>{
     gain.linearRampToValueAtTime(value,now+time);
   }
   function setOn(v){
-    if(v){ if(!init()){ on=false; return false; } if(ac.state==="suspended") ac.resume().catch(()=>{}); if(on) return true; on=true; outputLevel(0.85,0.06); const c=cur; cur=null; if(c) play(c); }
+    if(v){ if(!init()){ on=false; return false; } if(ac.state==="suspended"||ac.state==="interrupted") ac.resume().catch(()=>{}); if(on) return true; on=true; outputLevel(0.85,0.06); const c=cur; cur=null; if(c) play(c); }
     else { if(!on) return false; on=false; if(jingleT){ clearTimeout(jingleT); jingleT=null; } stopBgm(); stopSources(); effectLast.clear(); outputLevel(0.0001,0.03); }
     return on;
   }
   function suspend(){ if(jingleT){ clearTimeout(jingleT); jingleT=null; } stopBgm(); stopSources(); effectLast.clear(); if(ac&&ac.state==="running") ac.suspend().catch(()=>{}); }
-  function resume(){ if(!on||!ac) return; if(ac.state==="suspended") ac.resume().catch(()=>{}); if(timer||jingleT) return; const c=cur; cur=null; if(c) play(c); }
+  function resume(){ if(!on||!ac) return; if(ac.state==="suspended"||ac.state==="interrupted") ac.resume().catch(()=>{}); if(timer||jingleT) return; const c=cur; cur=null; if(c) play(c); }
   return { sceneForMap,play, jingle, sfx, setOn, setVolumes, suspend, resume, get songs(){return Object.keys(SONGS);},get scores(){return Object.fromEntries(Object.entries(SONGS).map(([id,s])=>[id,{bars:s.chords.split(' ').length,bpm:s.bpm,seconds:s.chords.split(' ').length*240/s.bpm}]));},get instrumentation(){return {sampledInstruments:sampleBanks.size,sampleNotes,droppedSampleNotes};},get metrics(){return {...timing};},get sourceCount(){return activeSources.size;},get volumes(){return {music:musicVolume,effects:effectVolume};}, get playing(){return !!(on&&ac?.state==="running"&&timer&&!pageHidden());}, get on(){return on;}, get current(){return cur;} };
 })();

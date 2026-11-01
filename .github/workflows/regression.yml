@@ -158,6 +158,8 @@ jobs:
             .task/world-qa/report.json
             .task/title-qa/*.png
             .task/title-qa/report.json
+            .task/title-music-qa/*.png
+            .task/title-music-qa/report.json
             .task/illustrated-*.png
             .task/illustrated-ui-report.json
             .task/battle-initial-*.png

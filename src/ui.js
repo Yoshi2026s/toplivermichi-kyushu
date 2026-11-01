@@ -18,7 +18,7 @@ function commit(){
   const st=G.st; if(!st || G.readOnly) return Promise.resolve();
   if(!st.run) ensureVitals(st);
   st.saveGeneration++;
-  const json=JSON.stringify(st); const rec={gen:st.saveGeneration, time:Date.now(), state:json, sum:checksum(json)};
+  const json=JSON.stringify(typeof encodeWorldSave==='function'?encodeWorldSave(st):st); const rec={gen:st.saveGeneration, time:Date.now(), state:json, sum:checksum(json)};
   setSave("保存中…");
   saveChain = saveChain.then(async()=>{
     try{ const prev=await DB.get("auto"); await DB.putPair(rec, prev&&prev.gen<rec.gen?prev:null); setSave("保存済み"); return true; }
@@ -247,7 +247,7 @@ function renderMainMenu(){
   </nav>`;
 }
 function renderExplore(){
-  const st=G.st,m=MAPS[st.mapId],exit=m.objects.find(o=>o.fieldExit&&!o.oceanRoute&&!o.oceanReturn);
+  const st=G.st,m=MAPS[st.mapId],exit=m.continuousWorld?worldTownExit(st):m.objects.find(o=>o.fieldExit&&!o.oceanRoute&&!o.oceanReturn);
   return `<section class="explore">
     <header class="xhead">
       <div class="srow"><span class="place">${esc(m.name)}</span><span>${st.day}日目</span></div>
@@ -256,7 +256,7 @@ function renderExplore(){
       <div class="xsave small" aria-live="polite"><span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（閲覧のみ）":""}</div>
     </header>
     <div class="mapwrap" data-map-kind="${esc(m.kind)}"><aside id="navRoute" class="map-route" aria-label="移動先" hidden></aside><canvas id="map" aria-label="${esc(m.name)}の地図。地面をタップすると移動します。"></canvas>
-      <canvas id="minimap" aria-label="全体ミニマップ。白丸は現在地、白枠は表示範囲。城門は砦、家は街、ベッドは宿屋、瓶は道具屋、書類は職業窓口、肉球はペット施設。道＝道具、ペ＝ペット店、控＝控え所、宿＝宿屋、職＝職業、砦＝ボス、街＝出口"></canvas>
+      <canvas id="minimap" aria-label="${m.continuousWorld?'全国ミニマップ。明るい地域は解放済み、暗い地域は未解放。点線は船路、丸は現在地、白枠は表示範囲。':'全体ミニマップ。白丸は現在地、白枠は表示範囲。城門は砦、家は街、ベッドは宿屋、瓶は道具屋、書類は職業窓口、肉球はペット施設。道＝道具、ペ＝ペット店、控＝控え所、宿＝宿屋、職＝職業、砦＝ボス、街＝出口'}"></canvas>
       ${exit?`<button class="btn map-exit" data-a="guideTo" data-v="${exit.id}" data-map="${esc(st.mapId)}">${m.kind==="town"?"街外へ":"街へ戻る"}</button>`:""}
     </div>
     ${partyStrip()}
@@ -342,9 +342,11 @@ function drawMap(){
   const still=reducedMotion(); const f=still?0:Math.floor(now/320)%4, f2=still?0:Math.floor(now/600)%2;
   const ratio=G.mapRenderScale||1,vw=G.vw*16,vh=G.vh*16;g.setTransform(ratio,0,0,ratio,0,0);
   g.fillStyle=PAL.ink; g.fillRect(0,0,vw,vh);
+  if(m.continuousWorld)drawWorldTerrain(g,m,cam,vw,vh);else{
   const layer=ART.mapLayer(st.mapId,0);
   const sx=Math.max(0,cam.x), sy=Math.max(0,cam.y), w=Math.min(vw,layer.width/(layer.artScale||1)-sx), h=Math.min(vh,layer.height/(layer.artScale||1)-sy);
   const lr=layer.artScale||1;g.drawImage(layer,sx*lr,sy*lr,w*lr,h*lr,sx-cam.x,sy-cam.y,w,h);
+  }
   drawMapAmbient(g,m,cam,now,still,vw,vh);
   const sprites=[];
   for(const o of m.objects){
@@ -362,19 +364,12 @@ function drawMap(){
   const walking=moving&&!G.dlg&&!G.sheet&&!G.lock&&!document.hidden;
   const wf=SOFT_ART.phase(G.walkDistance||0,walking,still);
   const pp=playerPixel();
-  // 2人目の追従表示（表示のみ。判定は先頭だけ）
-  const fol=G.fol; const lead=st.party[0], second=st.party[1];
-  if(second && fol && (fol.x!==st.pos.x||fol.y!==st.pos.y||moving)){
-    let fx=fol.x*16, fy=fol.y*16; let tx=fol.x, ty=fol.y;
-    if(moving){ tx=st.pos.x; ty=st.pos.y; fx+=(tx-fol.x)*16*G.walk.prog; fy+=(ty-fol.y)*16*G.walk.prog; }
-    const dx=(moving?tx:st.pos.x)-fol.x, dy=(moving?ty:st.pos.y)-fol.y; const fd = dy>0?0:dy<0?1:dx<0?2:dx>0?3:st.dir;
-    const fw=wf&&(tx!==fol.x||ty!==fol.y)?1+(wf-1+4)%8:0;
-    sprites.push({y:fy/16, px:{x:fx,y:fy}, img:charSprite(second,fd,fw)});
-  }
+  const lead=st.party[0];
+  if(typeof partyMapFollowers==='function')partyMapFollowers(st,wf,sprites);
   sprites.push({y:pp.y/16+0.01, px:pp, img:charSprite(lead,st.dir,wf)});
   if(typeof petMapFollowers==='function'&&!G.oceanDrawing)petMapFollowers(st,pp,wf,sprites);
   sprites.sort((a,b)=>a.y-b.y);
-  for(const s of sprites){ const x=(s.px?s.px.x:s.x*16)+(s.idleX||0), y=(s.px?s.px.y:s.y*16)+(s.idleY||0); g.fillStyle='rgba(6,17,28,.27)'; g.beginPath(); g.ellipse(x+8-cam.x,y+13-cam.y,6,2,0,0,Math.PI*2); g.fill(); g.save();if(s.img.bossBase){g.drawImage(s.img,x-8-cam.x,y-30-cam.y,32,48);}else if(s.img.artScale){g.shadowColor='#071522b0';g.shadowBlur=ratio;g.shadowOffsetY=.5;g.drawImage(s.img.mapImage||s.img,x-2-cam.x,y-14-cam.y,20,30);}else g.drawImage(s.img,x-cam.x,y-8-cam.y,16,24);g.restore(); }
+  for(const s of sprites){ const x=(s.px?s.px.x:s.x*16)+(s.idleX||0), y=(s.px?s.px.y:s.y*16)+(s.idleY||0); g.fillStyle='rgba(6,17,28,.27)'; g.beginPath(); g.ellipse(x+8-cam.x,y+13-cam.y,6,2,0,0,Math.PI*2); g.fill(); g.save();if(s.img.petArt){g.drawImage(s.img,x+8-s.img.mapWidth/2-cam.x,y+14-s.img.mapHeight-cam.y,s.img.mapWidth,s.img.mapHeight);}else if(s.img.bossBase){g.drawImage(s.img,x-8-cam.x,y-30-cam.y,32,48);}else if(s.img.artScale){g.shadowColor='#071522b0';g.shadowBlur=ratio;g.shadowOffsetY=.5;g.drawImage(s.img.mapImage||s.img,x-2-cam.x,y-14-cam.y,20,30);}else g.drawImage(s.img,x-cam.x,y-8-cam.y,16,24);g.restore(); }
   if(moving){ const d=G.walk.path[G.walk.path.length-1]; const bl=Math.floor(now/250)%2; g.strokeStyle=bl?PAL.cream:PAL.gold; g.strokeRect(d.x*16-cam.x+3.5,d.y*16-cam.y+3.5,9,9); }
 }
 function startLoop(){
@@ -392,7 +387,7 @@ function startLoop(){
       const advance=Math.min(1-w.prog,remaining);remaining-=advance;
       G.walkDistance=((G.walkDistance||0)+advance*16)%32000;
       w.prog+=advance;
-      if(w.prog>=1){w.prog=0;w.path.shift();G.fol={...G.st.pos};G.st.pos={x:n.x,y:n.y};arrive();}
+      if(w.prog>=1){w.prog=0;w.path.shift();if(typeof recordPartyStep==='function')recordPartyStep(G.st,n);G.fol={...G.st.pos};G.st.pos={x:n.x,y:n.y};arrive();}
       // Arrival may enter a battle, open a menu, change maps or replace the route.
       if(G.mapLoopToken!==token||G.st!==state||G.st.mapId!==map||G.walk!==w||w.path!==path||G.screen!=="explore"||document.hidden)break;
     }
@@ -839,10 +834,10 @@ function renderResult(){
   const anyLow=st.roster.some(c=>{const v=vitalOf(c),s=charStats(st,c,L); return v.hp<=0||isLow(v.hp,s.maxHP);});
   const receivedCount=(r.items||[]).length+(r.itemsVaulted||[]).length+(r.itemsKept||[]).length+gifts.length,unreceivedCount=(r.itemsLost||[]).length;
   const summary=[receivedCount?`入手 ${receivedCount}件`:'',unreceivedCount?`受取不可 ${unreceivedCount}件`:'',(r.newBadges||[]).length?`新バッジ ${r.newBadges.length}件`:'',usedItems.length?`道具使用 ${usedItems.length}回${r.itemsUsedKnown===true?'':'（記録不完全）'}`:r.itemsUsedKnown===true?'道具未使用':'道具履歴なし'].filter(Boolean).join('・');
-  return `<section class="result" aria-labelledby="rtitle">
-    <div class="rbanner ${r.kind==="boss"?"boss":""}"><h2 id="rtitle">${title}</h2><p>${r.turns?`${r.turns}ターン`:""}${foes.length?`・敵${foes.length}体`:""}</p></div>
+  return `<section class="result${up?' level-celebration':''}" aria-labelledby="rtitle">
+    <div class="rbanner ${up?'level-royal':r.kind==="boss"?"boss":""}">${up?`<div class="level-sparkles" aria-hidden="true">${Array.from({length:8},(_,i)=>`<i style="--i:${i}"></i>`).join('')}</div>`:''}<h2 id="rtitle">${up?'レベルアップ！':title}</h2>${up?`<strong>Lv${r.levelBefore} → ${L}</strong>`:''}<p>${up?title+'・':''}${r.turns?`${r.turns}ターン`:""}${foes.length?`・敵${foes.length}体`:""}</p></div>
     <div class="rgrid">${card("経験値",`＋${formatResult(r.xp)}`)}${card("ゴールド",`＋${formatResult(r.gold)}`,"gold")}${r.tickets?card("チケット",`＋${formatResult(r.tickets)}`):card("所持金",`${formatResult(st.gold)}G`)}</div>
-    <div class="gauge rxp"><span>${up?`Lv${r.levelBefore}→${L}`: `レベル${L}`}</span><span class="bar xp"><i style="width:${pct(xpNow,xpSpan)}%"></i></span><b>${L<levelLimit(st)?`次まで${Math.max(0,xpSpan-xpNow).toLocaleString()}`:"最大"}</b></div>
+    <div class="gauge rxp"><span>${up?`Lv${r.levelBefore}→${L}`: `レベル${L}`}</span><span class="bar xp"><i style="width:${pct(xpNow,xpSpan)}%"></i></span><b class="result-next-level">${L<levelLimit(st)?`Lv${L+1}まで あと${Math.max(0,xpSpan-xpNow).toLocaleString()}`:"現在の上限"}</b></div>
     ${r.quest?`<div class="rquest done">依頼「${esc(QUESTS[r.quest].name)}」完了！</div>`:r.kills&&r.killQuest?`<div class="rquest">依頼の討伐 ${r.killNow}/${r.killNeed}</div>`:""}
     <div class="rmems ${resultMembers.length>2?"many":""}" aria-label="仲間の戦闘後の状態">${mem}</div>
     ${anyLow?`<p class="rwarning warn" role="status">体力わずか・戦闘不能の仲間がいます。MAPで回復を。</p>`:""}
@@ -895,7 +890,7 @@ function renderSheet(){
     case "guide": { const m=MAPS[st.mapId]; return sheetWrap("オート移動", `<p class="small">選ぶと、その場所まで実際に歩きます（途中の遭遇エリアでは抽選があります）。</p><div class="stack">${m.objects.filter(o=>o.type!=="tower").map(o=>{ const a=o.area?AREAS[o.area]:null; return `<button class="btn" data-a="guideTo" data-v="${o.id}">${esc(o.label)}${a?`（推奨レベル${a.q}）`:""}</button>`; }).join("")}</div>`); }
     case "quests": return sheetWrap("やること", renderQuests());
     case "map": return sheetWrap("全国の旅の地図", renderWorld());
-    case "travel": return sheetWrap("街外の道", "<p>街間の徒歩移動は街外MAPの道を進みます。街の出口から出発してください。</p>");
+    case "travel": return sheetWrap("街外の道", "<p>全国の陸路は街外を続けて歩きます。海上区間は港から船で渡ります。</p>");
     case "rail": return sheetWrap("新幹線駅",renderRail());
     case "rest": return sheetWrap("休息", `${d.reason?`<p class="warn">${esc(d.reason)}</p>`:""}<p>日付を進めると翌日になります（費用なし）。体力とMPは回復しません。回復は宿屋で。今は${st.day}日目。</p><div class="stack"><button class="btn primary" data-a="doRest">日付を進める</button><button class="btn" data-a="closeSheet">やめる</button></div>`);
     case "party": return sheetWrap(G.sheetData?.view?.startsWith("eq:")?"装備":"編成", renderParty());
@@ -974,7 +969,7 @@ function renderQuests(){
 }
 function renderWorld(){
   const st=G.st; const safe=isSafe();
-  let h=`<p class="small">街間は街外MAPの道を歩くか、街の新幹線駅から移動します。地図のボタンは街の出口までの道案内です。</p><div class="stack">`;
+  let h=`<p class="small">街間は街外MAPの道を歩くか、街の新幹線駅から移動します。地図のボタンは街外の目的地や出航港までの道案内です。</p><div class="stack">`;
   const current=curHub();
   const adjacent=new Set([current]);
   for(const route of NATIONAL_ROUTES.filter(r=>r.status==="playable")){
@@ -1474,7 +1469,7 @@ const ACT = {
   toggleSound(){ const want=!soundIsOn(); const on=SND.setOn(want); G.soundWant=want; try{ localStorage.setItem("tlr-kyushu-sound", want?"1":"0"); }catch(e){}
     if(G.st){ G.st.settings.sound=want; commit(); } if(G.tmpSettings) G.tmpSettings.sound=want;
     if(want&&!on) toast("この端末では音を出せませんでした。消音で続けます。"); render(); },
-  showBackup(){ G.sheetData.backup=JSON.stringify({app:"toplivermichi-kyushu",version:GAME_VERSION,state:G.st}); render(); },
+  showBackup(){ G.sheetData.backup=JSON.stringify({app:"toplivermichi-kyushu",version:GAME_VERSION,state:typeof encodeWorldSave==='function'?encodeWorldSave(G.st):G.st}); render(); },
   copyBackup(){ const t=$("#backupOut"); try{ navigator.clipboard.writeText(t.value).then(()=>toast("コピーしました。メモ帳などへ貼り付けて保管してください。"),()=>{t.select();toast("文字列を選択しました。コピーしてください。");}); }catch(e){ t.select(); toast("文字列を選択しました。コピーしてください。"); } },
   async restore(){ if(G.readOnly||G.sheet!=="settings") return toast("この画面では復元できません。"); const t=$("#restoreIn"); if(!t) return toast("復元欄がありません。"); const raw=(t.value||"").trim(); if(raw.length>5000000) return toast("大きすぎます（上限5,000,000バイト）。");
     try{ const o=JSON.parse(raw); if(o.app!=="toplivermichi-kyushu"||!o.state||o.state.schemaVersion!==SCHEMA_VERSION||!o.state.profile) throw 0; validateState(o.state);

@@ -30,6 +30,12 @@ jobs:
       - run: npm run test:mobile
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-world-audio.mjs
+        env:
+          MOBILE_BROWSER: chromium
+      - run: node scripts/test-world-ui.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - run: node scripts/test-map-ui.mjs
         env:
           MOBILE_BROWSER: chromium
@@ -186,6 +192,9 @@ jobs:
             .task/illustrated-*.png
             .task/illustrated-ui-report.json
             .task/battle-initial-*.png
+            .task/world-ui/*.png
+            .task/world-ui/report.json
+            .task/world-audio/report.json
             .task/result-overview/*.png
             .task/result-overview/report.json
             .task/result-reading/*.png

@@ -4,7 +4,7 @@ import {runInNewContext} from 'node:vm';
 const source=readFileSync(new URL('../src/audio.js',import.meta.url),'utf8');
 const block=source.slice(source.indexOf('  const JINGLES ='),source.indexOf('  function stopBgm'));
 const ac={currentTime:10},pending=new Map(),played=[];let serial=0;
-const snd=runInNewContext(`let on=true,cur=null;${block};({jingle,get timer(){return jingleT},mute(){on=false;clearTimeout(jingleT);jingleT=null;}})`,{ac,pageHidden:()=>false,stopBgm:()=>{},midi:()=>null,voice:()=>{},kick:()=>{},play:n=>played.push(n),setTimeout:(fn,ms)=>{pending.set(++serial,{fn,ms});return serial;},clearTimeout:id=>pending.delete(id)});
+const snd=runInNewContext(`let on=true,cur=null;${block};({jingle,get timer(){return jingleT},mute(){on=false;clearTimeout(jingleT);jingleT=null;}})`,{ac,pageHidden:()=>false,stopBgm:()=>{},midi:()=>null,hz:n=>n,voice:()=>{},kick:()=>{},play:n=>played.push(n),setTimeout:(fn,ms)=>{pending.set(++serial,{fn,ms});return serial;},clearTimeout:id=>pending.delete(id)});
 snd.jingle('fanfare','victory');let first=pending.get(snd.timer);assert(first.ms>0);
 first.fn();assert.equal(played.length,0,'wall time alone must not end a paused jingle');assert.notEqual(snd.timer,1);
 ac.currentTime+=first.ms/1000-.1;pending.get(snd.timer).fn();assert.equal(played.length,0,'partial audio playback must finish first');

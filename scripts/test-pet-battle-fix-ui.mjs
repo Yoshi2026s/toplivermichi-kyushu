@@ -12,12 +12,12 @@ try{for(const device of ['standard','small','landscape','short']){
  await page.locator('[data-a="petView"][data-k="care"]').first().tap();assert.equal(await page.locator('[data-k="shop"]').count(),0);assert(await page.locator('[data-a="petFollowing"]').count());
  await page.evaluate(()=>{const o=MAPS[G.st.mapId].objects.find(o=>o.type==='petshop');G.st.pos={x:o.x,y:o.y+1};G.sheet='petShopHome';G.sheetData={};render();});
  await page.locator('#pet-supplies').tap();assert.equal(await page.locator('[data-k="care"]').count(),0);assert(await page.locator('[data-a="petBuy"]').count());
- await page.evaluate(()=>{G.sheet=null;render();});await page.waitForFunction(()=>petMapImages.size===2&&[...petMapImages.values()].every(i=>i.complete&&i.naturalWidth));
- assert.equal(await page.evaluate(()=>{const sprites=[];petMapFollowers(G.st,playerPixel(),2,sprites);return sprites.length;}),2);
+ await page.evaluate(()=>{G.sheet=null;render();});await page.waitForFunction(()=>SOFT_ART.ready('pets'));
+ assert.equal(await page.evaluate(()=>{const sprites=[];petMapFollowers(G.st,playerPixel(),2,sprites);return sprites.length;}),0,'a newly placed party has no invented walking trail');
  for(const [key,dx,dy] of [['ArrowDown',0,1],['ArrowUp',0,-1],['ArrowLeft',-1,0],['ArrowRight',1,0]]){
  const before=await page.evaluate(({dx,dy})=>{const m=MAPS[G.st.mapId];for(let y=2;y<m.h-2;y++)for(let x=2;x<m.w-2;x++)if(walkable(m,x,y)&&walkable(m,x+dx,y+dy)&&!objAt(m,x,y)&&!objAt(m,x+dx,y+dy)){G.st.pos={x,y};G.fol=null;G.walk={path:[],prog:0,pending:null};render();return {x,y};}}, {dx,dy});
  await page.locator('body').click({position:{x:2,y:2}});await page.keyboard.down(key);try{await page.waitForFunction(p=>G.st.pos.x!==p.x||G.st.pos.y!==p.y,before,{timeout:5000});}finally{await page.keyboard.up(key);}
- await page.waitForFunction(()=>!G.walk.path.length);assert.equal(await page.evaluate(()=>{const a=[];petMapFollowers(G.st,playerPixel(),2,a);return a.length;}),2);
+ await page.waitForFunction(()=>!G.walk.path.length);assert.equal(await page.evaluate(()=>{const a=[];petMapFollowers(G.st,playerPixel(),2,a);return a.length;}),2);assert(await page.evaluate(()=>petMapImages.size>=2&&[...petMapImages.values()].every(c=>c.petArt&&c.width>=96&&c.height>=112)),'both pets use high-resolution walking canvases after actual movement');
  }
  if(device==='landscape'){
  await page.evaluate(()=>{for(const p of Object.values(petData(G.st).owned))p.name='ながいなまえのペットさん';render();});

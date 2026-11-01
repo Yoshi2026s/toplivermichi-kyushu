@@ -267,7 +267,7 @@ const SND = (()=>{
   /* ジングル：短い曲を1回鳴らし、終わったら next の曲へ（勝利・レベルアップ・全滅） */
   const JINGLES = {
     fanfare:{ bpm:150, lead:"C5 C5 C5 - C5 - G#4 - A#4 - C5 - A#4 C5 - - | G5 - - - - - . .", bass:"C3 . C3 . C3 . G#2 . A#2 . C3 . A#2 C3 . . | G2 - C3 - C2 - . ." , harm:"E4 E4 E4 - E4 - C4 - D4 - E4 - D4 E4 - - | B4 - - - - - . ." },
-    levelup:{ bpm:168, lead:"G5 - B5 - D6 - G6 - | F#6 - D6 - A5 - D6 - | G6 - - - B6 - - - | G6 - - - - - . .", bass:"G3 - . - D3 - . - | D3 - . - F#3 - . - | G3 - . - D3 - . - | G2 - - - - - . .", harm:"D5 - G5 - B5 - D6 - | D6 - A5 - F#5 - A5 - | D6 - - - G6 - - - | D6 - - - - - . ." },
+    levelup:{ bpm:168, lead:"G5 - B5 - D6 - G6 - | F#6 - D6 - A5 - D6 - | G6 - - - B5 - D6 - | G6 - D6 - B5 - - - | C6 E6 G6 - E6 D6 C6 B5 | A5 - D6 F#6 A6 - G6 F#6 | G6 - D6 B5 G5 B5 D6 - | G6 - - - - - . .", bass:"G3 - . - D3 - . - | D3 - . - F#3 - . - | G3 - . - D3 - . - | G2 - - - D3 - . . | C3 - G3 - C3 - E3 - | D3 - A3 - D3 - F#3 - | G3 - D3 - B2 - D3 - | G2 - - - - - . .", harm:"D5 - G5 - B5 - D6 - | D6 - A5 - F#5 - A5 - | D6 - - - G5 - B5 - | D6 - B5 - G5 - - - | G5 - C6 - E6 - C6 - | F#5 - A5 - D6 - A5 - | B5 - G5 - D5 - G5 - | D6 - - - G5 - . ." },
     lose:{ bpm:90, lead:"E5 - D#5 - D5 - C#5 - | C5 - - - B4 - - - | A4 - - - - - . .", bass:"A3 - - - G#3 - - - | F3 - - - E3 - - - | A2 - - - - - . .", harm:"C5 - B4 - A#4 - A4 - | G#4 - - - G4 - - - | E4 - - - - - . ." }
   };
   let jingleT=null;
@@ -277,13 +277,14 @@ const SND = (()=>{
     const J=JINGLES[name]; if(!J) return;
     stopBgm(); cur=next||null;
     if(!on||!ac||pageHidden()){ return; }
+    const jobs=[],note=(...args)=>name==='levelup'?jobs.push(args):voice(...args);
     const sd=60/J.bpm/2; let t0=ac.currentTime+0.05, steps=0;
     const lane=(str,wave,vol,o)=>{ const toks=str.replace(/\|/g," ").trim().split(/\s+/); steps=Math.max(steps,toks.length);
-      toks.forEach((tk,i)=>{ const n=midi(tk); if(n==null) return; let len=1; while(toks[i+len]==="-") len++; voice(hz(n),t0+i*sd,sd*len*0.92,wave,vol,{vib:len>2,...o}); }); };
+      toks.forEach((tk,i)=>{ const n=midi(tk); if(n==null) return; let len=1; while(toks[i+len]==="-") len++; note(hz(n),t0+i*sd,sd*len*0.92,wave,vol,{vib:len>2,...o}); }); };
     lane(J.lead,"trumpet",0.26,{detune:7,cutoff:3400,fenv:2000,q:1.2,rev:0.3,dly:0.15,sus:0.8,r:0.14});
     lane(J.harm,"strings",0.16,{pan:-0.35,cutoff:2600,rev:0.35,sus:0.7,r:0.12});
     lane(J.bass,"bass",0.3,{sub:true,cutoff:1300,sus:0.9,r:0.08});
-    for(let i=0;i<steps;i+=4) kick(t0+i*sd);
+    for(let i=0;i<steps;i+=4){if(name==='levelup'){note(hz(43+(i%8?7:0)),t0+i*sd,sd*1.4,'timpani',.16,{a:.003,sus:.4,r:.2,rev:.18});note(hz(79+(i%8?7:0)),t0+i*sd+.04,sd*1.7,'harp',.085,{pan:i%8?-.3:.3,a:.005,r:.25,rev:.2});if(i%16===0)note(hz(91),t0+i*sd+.08,sd*2,'glock',.07,{a:.003,r:.4,rev:.25});}else kick(t0+i*sd);}
     const end=t0+steps*sd+.2;
     let handle;
     const finish=()=>{
@@ -293,6 +294,7 @@ const SND = (()=>{
       jingleT=null;if(next){cur=null;play(next);}
     };
     handle=setTimeout(finish,(end-ac.currentTime)*1000);jingleT=handle;
+    if(name==='levelup'){jobs.sort((a,b)=>a[1]-b[1]);let cursor=0;const pump=()=>{if(jingleT!==handle||!on||!ac)return;while(cursor<jobs.length&&jobs[cursor][1]<ac.currentTime+.4){const event=jobs[cursor++];if(event[1]>=ac.currentTime+.005)voice(...event);}if(cursor<jobs.length)setTimeout(pump,25);};pump();}
   }
   function stopBgm(){ if(timer){ clearInterval(timer); timer=null; } stopSources("music",true); duckUntil=0; mixMusic(); }
   /* 効果音とジングル */

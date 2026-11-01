@@ -937,10 +937,11 @@ function renderSettings(){
   const st=G.st; const s=st?st.settings:G.tmpSettings||(G.tmpSettings={difficulty:"std",sound:soundPref(),reduceMotion:false});
   const busy = st&&st.run;
   return `<h3 class="label">難易度</h3><p class="small">敵の体力・攻撃力と戦闘開始時のエールだけが変わります。報酬・地域の強さ・物語は共通。戦闘開始時に固定されます。</p>
-    <div class="row3">${Object.entries(DIFFICULTY).map(([k,v])=>`<button class="btn ${s.difficulty===k?"on":""}" data-a="setOpt" data-k="difficulty" data-v="${k}" ${busy?"disabled":""}>${s.difficulty===k?"▶ ":""}${v.name}</button>`).join("")}</div>
+    <div class="row3 difficulty-options" role="group" aria-label="難易度">${Object.entries(DIFFICULTY).map(([k,v])=>`<button class="btn ${s.difficulty===k?"on":""}" data-a="setOpt" data-k="difficulty" data-v="${k}" aria-pressed="${s.difficulty===k}" ${busy?"disabled":""}>${v.name}</button>`).join("")}</div>
     <h3 class="label">音と演出</h3>
     <div class="stack"><button class="btn ${soundIsOn()?"on":""}" data-a="toggleSound" aria-pressed="${soundIsOn()}">${soundIsOn()?"BGM・効果音：ON":"BGM・効果音：OFF"}</button>
-    <button class="btn ${s.reduceMotion?"on":""}" data-a="setOpt" data-k="reduceMotion" data-v="${!s.reduceMotion}" aria-pressed="${!!s.reduceMotion}">${s.reduceMotion?"▶ 演出を減らす：ON":"演出を減らす：OFF"}</button>
+    <button class="btn ${s.reduceMotion?"on":""}" data-a="setOpt" data-k="reduceMotion" data-v="${!s.reduceMotion}" aria-pressed="${!!s.reduceMotion}" ${!s.reduceMotion&&reducedMotion()?'aria-describedby="motionSystemNote"':''}>${s.reduceMotion?"▶ 演出を減らす：ON":"演出を減らす：OFF"}</button>
+    ${!s.reduceMotion&&reducedMotion()?'<p class="small" id="motionSystemNote">端末の「動きを減らす」設定が優先されています。現在、動く演出を減らしています。</p>':''}
     <button class="btn ${s.dock!==false?"on":""}" data-a="setOpt" data-k="dock" data-v="${s.dock===false}" aria-pressed="${s.dock!==false}">操作パッド：${s.dock!==false?"表示":"非表示"}</button></div>
     <details class="control-help"><summary>操作の説明</summary><p>左が戻る、右がスティック。中央で決定します。</p>
     <p>探索はドラッグで移動、中央で調べる・停止・再開。メニューや戦闘は項目を選んで決定。会話は中央で次の台詞、戻るで前の台詞を表示します。対応するゲームコントローラーも使えます。</p></details>

@@ -138,7 +138,10 @@ const SND = (()=>{
       const high=ac.createBiquadFilter(); high.type="highshelf"; high.frequency.value=5200; high.gain.value=-5;
       low.connect(high); high.connect(master);
       musicBus=ac.createGain(); musicBus.gain.value=musicGain(); musicBus.connect(low);
-      sfxBus=ac.createGain(); sfxBus.gain.value=0.75*effectVolume; sfxBus.connect(low);
+      sfxBus=ac.createGain(); sfxBus.gain.value=0.75*effectVolume;
+      // Catch overlapping effects before they can pump the shared music output.
+      const effectsComp=ac.createDynamicsCompressor();effectsComp.threshold.value=-24;effectsComp.knee.value=12;effectsComp.ratio.value=4;effectsComp.attack.value=.003;effectsComp.release.value=.12;
+      sfxBus.connect(effectsComp);
       bus=musicBus;
       // リバーブ（小さめのホール）
       const conv=ac.createConvolver(); conv.buffer=impulse(2.8,2.8); const revLp=ac.createBiquadFilter(); revLp.type="lowpass"; revLp.frequency.value=4200;
@@ -147,6 +150,8 @@ const SND = (()=>{
       // ディレイ（付点8分のこだま）
       dlyIn=ac.createGain(); dly=ac.createDelay(1.5); dly.delayTime.value=0.3; const fb=ac.createGain(); fb.gain.value=0.3; const dLp=ac.createBiquadFilter(); dLp.type="lowpass"; dLp.frequency.value=2600; const dOut=ac.createGain(); delayOutput=dOut; dOut.gain.value=0.45*musicVolume;
       dlyIn.connect(dly); dly.connect(dLp); dLp.connect(fb); fb.connect(dly); dLp.connect(dOut); dOut.connect(low); dOut.connect(revIn);
+      // Compensate the compressor makeup gain after compression; quiet effects retain their level.
+      const effectsOut=ac.createGain();effectsOut.gain.value=.45;effectsComp.connect(effectsOut);effectsOut.connect(low);
       const pulse=d=>{ const N=48, re=new Float32Array(N), im=new Float32Array(N); for(let n=1;n<N;n++) re[n]=2/(n*Math.PI)*Math.sin(n*Math.PI*d)*Math.exp(-n/36); return ac.createPeriodicWave(re,im); };
       const orchestral=(partials)=>{const re=new Float32Array(32),im=new Float32Array(32);partials.forEach((a,i)=>im[i+1]=a);return ac.createPeriodicWave(re,im);};
       waves={p25:pulse(.25),p12:pulse(.125),p50:pulse(.5),strings:orchestral([1,.48,.3,.22,.16,.1,.08,.05]),horn:orchestral([1,.56,.27,.13,.06,.03]),flute:orchestral([1,.07,.12,.025]),harp:orchestral([1,.38,.18,.08,.03])};

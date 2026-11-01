@@ -336,6 +336,8 @@ body.reduce-motion .battle-fx-layer{display:none}
 @media(orientation:landscape) and (max-height:600px) and (min-width:600px){.navigation-sheet .sheet-head{flex-wrap:nowrap;align-items:center;gap:8px;padding:4px 0}.navigation-sheet .sheet-head .label{flex:1;flex-basis:auto}.navigation-sheet .sheet-actions{width:auto;flex:none}.navigation-sheet .sheet-actions .btn{padding:4px 9px}.navigation-sheet .nav-filters{grid-template-columns:repeat(4,minmax(0,1fr));margin:5px 0}.navigation-sheet .nav-goal{margin:5px 0}.navigation-sheet .nav-search{margin-top:4px}}
 .help-search{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:5px;margin:8px 0}.help-search label{grid-column:1/-1}.help-search input{min-width:0;width:100%;box-sizing:border-box}.help-search .btn{min-width:48px;min-height:48px;padding:4px 8px}
 
+.difficulty-options .btn{min-width:0;padding-inline:4px;text-align:center;white-space:nowrap}
+.difficulty-options [aria-pressed="true"]{box-shadow:inset 0 -3px 0 #efd58d}
 /* Clear selection and touch targets for independent music/effect controls. */
 .sound-volume{scroll-margin-top:80px;min-width:0;margin:12px 0;padding:10px;border:1px solid #8ca6af;border-radius:8px;background:#102735}
 .sound-volume legend{padding:0 6px;color:#f0dfb4;font-size:16px;line-height:1.5}
@@ -4924,7 +4926,10 @@ const SND = (()=>{
       const high=ac.createBiquadFilter(); high.type="highshelf"; high.frequency.value=5200; high.gain.value=-5;
       low.connect(high); high.connect(master);
       musicBus=ac.createGain(); musicBus.gain.value=musicGain(); musicBus.connect(low);
-      sfxBus=ac.createGain(); sfxBus.gain.value=0.75*effectVolume; sfxBus.connect(low);
+      sfxBus=ac.createGain(); sfxBus.gain.value=0.75*effectVolume;
+      // Catch overlapping effects before they can pump the shared music output.
+      const effectsComp=ac.createDynamicsCompressor();effectsComp.threshold.value=-24;effectsComp.knee.value=12;effectsComp.ratio.value=4;effectsComp.attack.value=.003;effectsComp.release.value=.12;
+      sfxBus.connect(effectsComp);
       bus=musicBus;
       // リバーブ（小さめのホール）
       const conv=ac.createConvolver(); conv.buffer=impulse(2.8,2.8); const revLp=ac.createBiquadFilter(); revLp.type="lowpass"; revLp.frequency.value=4200;
@@ -4933,6 +4938,8 @@ const SND = (()=>{
       // ディレイ（付点8分のこだま）
       dlyIn=ac.createGain(); dly=ac.createDelay(1.5); dly.delayTime.value=0.3; const fb=ac.createGain(); fb.gain.value=0.3; const dLp=ac.createBiquadFilter(); dLp.type="lowpass"; dLp.frequency.value=2600; const dOut=ac.createGain(); delayOutput=dOut; dOut.gain.value=0.45*musicVolume;
       dlyIn.connect(dly); dly.connect(dLp); dLp.connect(fb); fb.connect(dly); dLp.connect(dOut); dOut.connect(low); dOut.connect(revIn);
+      // Compensate the compressor makeup gain after compression; quiet effects retain their level.
+      const effectsOut=ac.createGain();effectsOut.gain.value=.45;effectsComp.connect(effectsOut);effectsOut.connect(low);
       const pulse=d=>{ const N=48, re=new Float32Array(N), im=new Float32Array(N); for(let n=1;n<N;n++) re[n]=2/(n*Math.PI)*Math.sin(n*Math.PI*d)*Math.exp(-n/36); return ac.createPeriodicWave(re,im); };
       const orchestral=(partials)=>{const re=new Float32Array(32),im=new Float32Array(32);partials.forEach((a,i)=>im[i+1]=a);return ac.createPeriodicWave(re,im);};
       waves={p25:pulse(.25),p12:pulse(.125),p50:pulse(.5),strings:orchestral([1,.48,.3,.22,.16,.1,.08,.05]),horn:orchestral([1,.56,.27,.13,.06,.03]),flute:orchestral([1,.07,.12,.025]),harp:orchestral([1,.38,.18,.08,.03])};
@@ -6491,10 +6498,11 @@ function renderSettings(){
   const st=G.st; const s=st?st.settings:G.tmpSettings||(G.tmpSettings={difficulty:"std",sound:soundPref(),reduceMotion:false});
   const busy = st&&st.run;
   return `<h3 class="label">難易度</h3><p class="small">敵の体力・攻撃力と戦闘開始時のエールだけが変わります。報酬・地域の強さ・物語は共通。戦闘開始時に固定されます。</p>
-    <div class="row3">${Object.entries(DIFFICULTY).map(([k,v])=>`<button class="btn ${s.difficulty===k?"on":""}" data-a="setOpt" data-k="difficulty" data-v="${k}" ${busy?"disabled":""}>${s.difficulty===k?"▶ ":""}${v.name}</button>`).join("")}</div>
+    <div class="row3 difficulty-options" role="group" aria-label="難易度">${Object.entries(DIFFICULTY).map(([k,v])=>`<button class="btn ${s.difficulty===k?"on":""}" data-a="setOpt" data-k="difficulty" data-v="${k}" aria-pressed="${s.difficulty===k}" ${busy?"disabled":""}>${v.name}</button>`).join("")}</div>
     <h3 class="label">音と演出</h3>
     <div class="stack"><button class="btn ${soundIsOn()?"on":""}" data-a="toggleSound" aria-pressed="${soundIsOn()}">${soundIsOn()?"BGM・効果音：ON":"BGM・効果音：OFF"}</button>
-    <button class="btn ${s.reduceMotion?"on":""}" data-a="setOpt" data-k="reduceMotion" data-v="${!s.reduceMotion}" aria-pressed="${!!s.reduceMotion}">${s.reduceMotion?"▶ 演出を減らす：ON":"演出を減らす：OFF"}</button>
+    <button class="btn ${s.reduceMotion?"on":""}" data-a="setOpt" data-k="reduceMotion" data-v="${!s.reduceMotion}" aria-pressed="${!!s.reduceMotion}" ${!s.reduceMotion&&reducedMotion()?'aria-describedby="motionSystemNote"':''}>${s.reduceMotion?"▶ 演出を減らす：ON":"演出を減らす：OFF"}</button>
+    ${!s.reduceMotion&&reducedMotion()?'<p class="small" id="motionSystemNote">端末の「動きを減らす」設定が優先されています。現在、動く演出を減らしています。</p>':''}
     <button class="btn ${s.dock!==false?"on":""}" data-a="setOpt" data-k="dock" data-v="${s.dock===false}" aria-pressed="${s.dock!==false}">操作パッド：${s.dock!==false?"表示":"非表示"}</button></div>
     <details class="control-help"><summary>操作の説明</summary><p>左が戻る、右がスティック。中央で決定します。</p>
     <p>探索はドラッグで移動、中央で調べる・停止・再開。メニューや戦闘は項目を選んで決定。会話は中央で次の台詞、戻るで前の台詞を表示します。対応するゲームコントローラーも使えます。</p></details>
@@ -7635,12 +7643,12 @@ const systemBaseRender=render;
 render=function(){
  const sheet=G.sheet==='settings'?document.querySelector('.sheet'):null;
  const draft=sheet?.querySelector('#restoreIn'),active=sheet?.contains(document.activeElement)?document.activeElement:null;
- const saved=draft?{value:draft.value,start:draft.selectionStart,end:draft.selectionEnd,direction:draft.selectionDirection,inputScroll:draft.scrollTop,scroll:sheet.scrollTop,details:Array.from(sheet.querySelectorAll('details'),el=>el.open),focus:active?{id:active.id,a:active.dataset.a,k:active.dataset.k,v:active.dataset.v}:null}:null;
+ const saved=draft?{value:draft.value,start:draft.selectionStart,end:draft.selectionEnd,direction:draft.selectionDirection,inputScroll:draft.scrollTop,scroll:sheet.scrollTop,details:Array.from(sheet.querySelectorAll('details'),el=>el.open),focus:active?{summary:active.tagName==='SUMMARY'?Array.from(sheet.querySelectorAll('summary')).indexOf(active):-1,id:active.id,a:active.dataset.a,k:active.dataset.k,v:active.dataset.v}:null}:null;
  systemBaseRender();observeListenerScene();
  if(saved&&G.sheet==='settings'){
   const next=document.querySelector('.sheet'),input=next?.querySelector('#restoreIn');
   if(input){input.value=saved.value;input.setSelectionRange(saved.start,saved.end,saved.direction);input.scrollTop=saved.inputScroll;next.querySelectorAll('details').forEach((el,i)=>{el.open=saved.details[i]||false;});
-   const f=saved.focus,target=f?.id?document.getElementById(f.id):f?.a?Array.from(next.querySelectorAll('[data-a]')).find(el=>el.dataset.a===f.a&&el.dataset.k===f.k&&(el.dataset.v===f.v||f.a==='setOpt'&&f.k!=='difficulty')):null;
+   const f=saved.focus,target=f?.id?document.getElementById(f.id):f?.a?Array.from(next.querySelectorAll('[data-a]')).find(el=>el.dataset.a===f.a&&el.dataset.k===f.k&&(el.dataset.v===f.v||f.a==='setOpt'&&f.k!=='difficulty')):f?.summary>=0?next.querySelectorAll('summary')[f.summary]:null;
    target?.focus({preventScroll:true});next.scrollTop=saved.scroll;
   }
  }

@@ -49,7 +49,7 @@ context.resume=()=>Promise.reject(new Error('audio resume blocked'));
 sound.setOn(true);
 await new Promise(resolve=>setTimeout(resolve,0));
 sound.setOn(false);
-console.log('Audio channels: 25 scene/terrain/sea tracks, alternating melody, independent saved volume levels, zero music with effects enabled, 96-source ceiling, mute/suspend cleanup, idempotent resume and blocked-resume handling passed');
+console.log('Audio channels: 27 scene/terrain/sea tracks, alternating melody, independent saved volume levels, zero music with effects enabled, 96-source ceiling, mute/suspend cleanup, idempotent resume and blocked-resume handling passed');
 
 const fallback=runInNewContext(source+'\nSND',{ORCHESTRA_BANK:bank,atob:()=>{throw Error('sample decoder unavailable');},document,window:{AudioContext:FakeContext},setInterval:f=>{callbacks.add(f);return f;},clearInterval:f=>callbacks.delete(f),setTimeout:()=>1,clearTimeout:()=>{},Float32Array,Math});
 assert(fallback.setOn(true));fallback.play('field');assert.equal(fallback.instrumentation.sampledInstruments,0);assert(fallback.sourceCount>0,'failed sample decoder preserves synthetic music fallback');fallback.setOn(false);assert.equal(fallback.sourceCount,0);console.log('Unavailable sample decoder falls back to synthesis without breaking mute or cleanup');

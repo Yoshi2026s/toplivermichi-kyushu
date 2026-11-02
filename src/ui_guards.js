@@ -14,7 +14,7 @@ function syncReadOnlyUi(){
   const sheet=document.querySelector('.sheet'),host=sheet||document.querySelector('.explore .xsave,.battle .cmd,.result .rfoot');
   if(!host)return;
   let note=document.getElementById('readonlyContext');
-  if(!note){note=document.createElement('p');note.id='readonlyContext';note.className='readonly-note';note.textContent='閲覧専用：この画面では記録を変更できません。操作中のタブで続けてください。';if(sheet)sheet.querySelector('.sheet-head').after(note);else host.prepend(note);}
+  if(!note){note=document.createElement('p');note.id='readonlyContext';note.className='readonly-note';note.textContent='閲覧専用：記録の変更は操作中のタブで行ってください。';if(sheet)sheet.querySelector('.sheet-head').after(note);else host.prepend(note);}
   document.querySelectorAll('#screen button[data-a]').forEach(button=>{if(READ_ONLY_ACTIONS.has(button.dataset.a))return;button.disabled=true;const ids=new Set((button.getAttribute('aria-describedby')||'').split(/\s+/).filter(Boolean));ids.add(note.id);button.setAttribute('aria-describedby',[...ids].join(' '));});
 }
 for(const [name,handler] of Object.entries(ACT)){

@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
+const source=readFileSync(new URL('../src/ui.js',import.meta.url),'utf8'),start=source.indexOf('function dismissToast(){'),end=source.indexOf("document.addEventListener('pointerdown'",start);
+assert(start>=0&&end>start);
+let now=0,next=0;const timers=new Map(),element={hidden:true,textContent:''},G={};
+const ui=runInNewContext(source.slice(start,end)+';({toast,dismissToast,toastDuration})',{G,$:()=>element,setTimeout(fn,ms){const id=++next;timers.set(id,{fn,at:now+ms});return id;},clearTimeout(id){timers.delete(id);}});
+const advance=ms=>{now+=ms;for(const[id,t]of [...timers])if(t.at<=now){timers.delete(id);t.fn();}};
+const short=ui.toastDuration('保存しました'),long=ui.toastDuration('保存の状態を確認してください。'.repeat(8));assert(short>=2600);assert(long>short&&long<=12000);assert.equal(ui.toastDuration('長'.repeat(10000)),12000,'very long notices have a bounded lifetime');
+ui.toast('一つ目');advance(1000);ui.toast('二つ目の確認');assert.equal(timers.size,1,'replacement cancels the old expiry');advance(short-1000);assert.equal(element.hidden,false,'old expiry cannot hide the replacement');assert.equal(element.textContent,'二つ目の確認');advance(12000);assert.equal(element.hidden,true);
+ui.toast('<b>そのままの文字列</b>');assert.equal(element.textContent,'<b>そのままの文字列</b>');ui.dismissToast();assert.equal(element.hidden,true);assert.equal(timers.size,0);assert.equal(G.toast,'<b>そのままの文字列</b>','the last status remains available without being redisplayed');
+ui.toast('保存の状態を確認してください。'.repeat(8));advance(2601);assert.equal(element.hidden,false,'a long message remains readable after the former fixed expiry');advance(12000);assert.equal(element.hidden,true);
+console.log('Notice length controls readable lifetime, replacement cancels old expiry, dismissal clears timers and plain text is retained');

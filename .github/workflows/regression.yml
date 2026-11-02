@@ -90,6 +90,9 @@ jobs:
       - run: node scripts/test-pet-battle-fix-ui.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-pet-ground.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - run: node scripts/test-pet-complete-ui.mjs
         env:
           MOBILE_BROWSER: chromium
@@ -176,6 +179,8 @@ jobs:
             .task/pet-rarity/report.json
             .task/pet-next/*.png
             .task/pet-next/report.json
+            .task/pet-ground-browser/*.png
+            .task/pet-ground-browser/report.json
             .task/pet-complete/*.png
             .task/pet-complete/report.json
             .task/queued-mobile/*.png

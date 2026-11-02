@@ -267,6 +267,9 @@ jobs:
       - run: node scripts/test-auto-equipment.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-recent-queues.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -279,4 +282,5 @@ jobs:
             .task/readonly-clarity/
             .task/equipment-currency/
             .task/auto-equipment/
+            .task/recent-queues/
           if-no-files-found: ignore

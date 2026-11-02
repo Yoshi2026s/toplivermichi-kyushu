@@ -7,7 +7,7 @@ const files=['data_enemies.js','data_saga_enemies.js','data_items.js','data_nati
 const noop=()=>{},fields={};
 const ctx={console,performance:{now:()=>0},setTimeout:()=>0,clearTimeout:noop,setInterval:()=>0,clearInterval:noop,navigator:{},localStorage:{getItem:()=>null},SND:{sfx:noop,play:noop,setVolumes:noop},document:{hidden:false,addEventListener:noop,querySelector:s=>fields[s]||null,querySelectorAll:()=>[],getElementById:()=>null},window:{addEventListener:noop,matchMedia:()=>({matches:true})}};
 vm.createContext(ctx);
-const g=vm.runInContext(files.map(read).join('\n')+`\nrender=()=>{};commit=()=>Promise.resolve(true);drawMiniSprites=()=>{};({G,ACT,MAPS,HUBS,NPCS,EQUIP,QUESTS,newGame,ensureVitals,restoreAll,charStats,shopOffer,shopOfferToken,managementToken,managementEquipPlanToken,managementGearPlan,managementExchangePreview,managementFacilityOffer,MANAGEMENT_RARE_GEAR,managementShopEntries,renderShop,renderParty,renderManagementEquipPreview,renderManagementExchange,renderManagementGear,availableCount,equippedCount,talkNpc})`,ctx);
+const g=vm.runInContext(files.map(read).join('\n')+`\nrender=()=>{};commit=()=>Promise.resolve(true);drawMiniSprites=()=>{};({G,ACT,MAPS,HUBS,NPCS,EQUIP,QUESTS,newGame,ensureVitals,restoreAll,charStats,shopOffer,shopOfferToken,managementToken,managementEquipPlanToken,managementGearPlan,managementFacilityOffer,LEGACY_GEAR,managementShopEntries,renderShop,renderParty,renderManagementEquipPreview,renderManagementGear,availableCount,equippedCount,talkNpc})`,ctx);
 const make=()=>{const st=g.newGame('管理検査','女性');g.ensureVitals(st);return st;};
 function explore(st,map='KY01'){g.G.st=st;g.G.screen='explore';g.G.sheet=null;g.G.dlg=null;g.G.readOnly=false;g.G.walk={path:[]};st.mapId=map;st.pos={x:g.MAPS[map].safeAnchor[0],y:g.MAPS[map].safeAnchor[1]};}
 function near(st,type){const o=g.MAPS[st.mapId].objects.find(o=>o.type===type);assert(o,`map must contain ${type}`);st.pos={x:o.x+1,y:o.y};return o;}
@@ -29,14 +29,9 @@ assert(!g.managementGearPlan(st,'hero','w','constructor').ok);assert(!g.manageme
 g.G.sheet='gearPreview';g.G.sheetData={cid:'hero',slot:'w',item:'CW03',from:'moe'};assert.match(g.renderManagementEquipPreview(),/もえ/);assert.match(g.renderManagementEquipPreview(),/最大体力/);
 g.G.readOnly=true;const equipEl={dataset:{token:g.managementToken(st),plan:g.managementEquipPlanToken(st,g.G.sheetData)},disabled:false};await g.ACT.managementEquipConfirm(equipEl);assert.equal(JSON.stringify(st),equipBefore);g.G.readOnly=false;
 equipEl.dataset.token=g.managementToken(st);await g.ACT.managementEquipConfirm(equipEl);assert.equal(st.equip.hero.w,'CW03');assert.equal(st.equip.moe.w,null);const equipped=JSON.stringify(st);await g.ACT.managementEquipConfirm(equipEl);assert.equal(JSON.stringify(st),equipped);
-// Rare exchange uses tickets, protects sell/drop and refuses stale/capacity/readonly.
-assert.equal(Object.keys(g.MANAGEMENT_RARE_GEAR).length,6);for(const id of Object.keys(g.QUESTS))st.quests[id]='complete';st.tickets=50000;g.G.sheet='pointExchange';g.G.sheetData={};near(st,'shop');
-for(const id of Object.keys(g.MANAGEMENT_RARE_GEAR)){
- assert(g.managementExchangePreview(st,id).ok);const el={dataset:{v:id,token:g.managementToken(st)},disabled:false},beforeTickets=st.tickets;
- await g.ACT.managementExchangeDo(el);assert.equal(st.owned[id],1);assert.equal(st.tickets,beforeTickets-g.MANAGEMENT_RARE_GEAR[id].cost);
- const saved=JSON.stringify(st);await g.ACT.managementExchangeDo(el);assert.equal(JSON.stringify(st),saved);
- assert.equal(g.shopOffer(st,{shop:shop.shop,tab:'sell',item:id,qty:1}).unit,-1);
-}
+// The retired exchange cannot be invoked; legacy owned equipment remains usable and protected.
+assert.equal(Object.keys(g.LEGACY_GEAR).length,6);assert.equal(g.ACT.managementExchangeDo,undefined);assert(!g.renderShop().includes('pointExchange'));
+for(const id of Object.keys(g.LEGACY_GEAR)){st.owned[id]=1;assert.equal(g.shopOffer(st,{shop:shop.shop,tab:'sell',item:id,qty:1}).unit,-1);assert(g.managementGearPlan(st,'hero',g.EQUIP[id].slot,id).ok);}
 const rare='UX01';g.G.sheet='gearDispose';g.G.sheetData={item:rare};const rareBefore=JSON.stringify(st);await g.ACT.managementGearDrop({dataset:{v:rare,token:g.managementToken(st)}});assert.equal(JSON.stringify(st),rareBefore,'rare equipment cannot be discarded');
 // Atomic inn/rest: require a fresh facility confirmation, exact nearby facility, no double days.
 const hotel=make();explore(hotel);hotel.gold=1000;near(hotel,'inn');hotel.vitals.hero.hp=1;g.G.sheet='inn';g.G.sheetData={};let offer=g.managementFacilityOffer(hotel,'inn');assert(offer);
@@ -48,5 +43,5 @@ hotel.mapId=Object.entries(g.MAPS).find(([,m])=>m.kind!=='field'&&m.objects.some
 await g.ACT.doRest(restEl);assert.equal(hotel.day,restBefore.day+1);assert.equal(hotel.gold,restBefore.gold);assert.equal(hotel.vitals.hero.hp,5);assert.equal(hotel.vitals.hero.c,2);
 hotel.mapId='KY01';near(hotel,'inn');g.G.sheet='inn';g.G.sheetData={};offer=g.managementFacilityOffer(hotel,'inn');const failedBefore=JSON.stringify(hotel);vm.runInContext('commit=()=>Promise.resolve(false);',ctx);await g.ACT.doInn({dataset:{facility:offer.token}});assert.equal(JSON.stringify(hotel),failedBefore,'failed save rolls back inn fee/healing/day');
 vm.runInContext('commit=()=>Promise.resolve(true);',ctx);g.G.readOnly=true;offer=g.managementFacilityOffer(hotel,'inn');await g.ACT.doInn({dataset:{facility:offer.token}});assert.equal(JSON.stringify(hotel),failedBefore);
-console.log('Management: six-item searchable shops, readonly views, quantity units, explicit equipment transfer/preview, six protected ticket gear, keeper conversations, atomic nearby inn/rest and save rollback passed');
+console.log('Management: six-item searchable shops, readonly views, quantity units, explicit equipment transfer/preview, six protected legacy gear and retired exchange, keeper conversations, atomic nearby inn/rest and save rollback passed');
 function clone(v){return JSON.parse(JSON.stringify(v));}

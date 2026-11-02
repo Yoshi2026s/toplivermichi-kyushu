@@ -5,24 +5,24 @@
   "sourceFileCount": 36,
   "files": {
     "index.html": {
-      "bytes": 8249777,
-      "sha256": "9db4ab5b359094ba1745971aab77278e4f04912834c8f9e73f8afc4f1c5bf94f"
+      "bytes": 8663391,
+      "sha256": "786478c922a2e53c91fd91dd81fca3056b908c5ac37813ffdd289a38ba5e1676"
     },
     "README.md": {
-      "bytes": 12309,
-      "sha256": "af35d30a8718aff47b85c27aa86f53cd1a8b04109880e17a08333828990b82c0"
+      "bytes": 12554,
+      "sha256": "2263eb3344b39079879301662ba2e8ae6d80ea18bd5b1e131363d3d0dd8ab25f"
     },
     "VERSION.txt": {
       "bytes": 156,
       "sha256": "4bc1061edf51ac10ad713f2821a194ff940adda9b29493df28c69f92fa49556e"
     },
     "GAME_SPEC.md": {
-      "bytes": 24727,
-      "sha256": "8109629196469070774d519845741e55dfeee427f56c3de1b3442726117605b7"
+      "bytes": 25842,
+      "sha256": "99b2a5167e08e5a005ab7e503aedadefaa0610d457fbc25a5c170aca70d44239"
     },
     "GAME_SPEC.txt": {
-      "bytes": 24727,
-      "sha256": "8109629196469070774d519845741e55dfeee427f56c3de1b3442726117605b7"
+      "bytes": 25842,
+      "sha256": "99b2a5167e08e5a005ab7e503aedadefaa0610d457fbc25a5c170aca70d44239"
     }
   },
   "assets": {
@@ -53,6 +53,10 @@
     "assets/illustrated/pets.webp": {
       "bytes": 319022,
       "sha256": "0728b5075d9b480659ed33faf59fa86a54a0eea2835280d55f5708ac139e0701"
+    },
+    "assets/illustrated/pets-rear.webp": {
+      "bytes": 305106,
+      "sha256": "157e780cc9b748ce1b5bff4c7f4bad0da7a77b50ff613f085e59c9d1b7174f0a"
     },
     "assets/illustrated/enemies.webp": {
       "bytes": 169072,

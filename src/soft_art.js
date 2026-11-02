@@ -1,7 +1,7 @@
 /* Soft illustrated two-head figures from the approved sample. Embedded, decoded once, cached poses. */
 const SOFT_ART=(()=>{
  const cache=new Map(),LIMIT=128,TAU=Math.PI*2,images={},errors=[];
- const sources={front:'__SOFT_FRONT_DATA_URI__',back:'__SOFT_BACK_DATA_URI__',side:'__SOFT_SIDE_DATA_URI__',npc:'__SOFT_NPC_DATA_URI__',pets:'__SOFT_PETS_DATA_URI__',enemies:'__SOFT_ENEMIES_DATA_URI__'};
+ const sources={front:'__SOFT_FRONT_DATA_URI__',back:'__SOFT_BACK_DATA_URI__',side:'__SOFT_SIDE_DATA_URI__',npc:'__SOFT_NPC_DATA_URI__',pets:'__SOFT_PETS_DATA_URI__',petsRear:'__SOFT_PETS_REAR_DATA_URI__',enemies:'__SOFT_ENEMIES_DATA_URI__'};
  const loaded=Promise.all(Object.entries(sources).map(([key,src])=>new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>{images[key]=image;resolve();};image.onerror=()=>{errors.push(key);reject(new Error('Character artwork could not load: '+key));};image.src=src;})));
  const hash=s=>{let h=2166136261;for(const c of String(s))h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0;};
  function keep(key,make){if(cache.has(key)){const c=cache.get(key);cache.delete(key);cache.set(key,c);return c;}const c=make();cache.set(key,c);if(cache.size>LIMIT)cache.delete(cache.keys().next().value);return c;}
@@ -30,9 +30,10 @@ const SOFT_ART=(()=>{
   if(boss||stage>=8){g.fillStyle='#f2ce7e';g.strokeStyle='#795b38';g.lineWidth=Math.max(.7,size/120);g.beginPath();for(const [i,[x,y]]of [[.35,.20],[.33,.08],[.43,.13],[.5,.025],[.57,.13],[.67,.08],[.65,.20]].entries()){if(i)g.lineTo(x*size,y*size);else g.moveTo(x*size,y*size);}g.closePath();g.fill();g.stroke();}
   if(pattern){g.fillStyle=tone;g.strokeStyle='#f6e5b9';g.lineWidth=size*.009;g.beginPath();g.arc(size*.77,size*.76,size*.05,0,TAU);g.fill();g.stroke();g.fillStyle='#fff5dc';for(let i=0;i<pattern;i++)g.fillRect(size*(.745+i%4*.014),size*(.74+Math.floor(i/4)*.025),size*.009,size*.015);}
   return c;});}
+ function petRear(id,size=96){if(!images.petsRear)return null;return keep('petRear/'+id+'/'+size,()=>{const i=Math.max(0,Math.min(21,parseInt(id.slice(-2),10)-1)),c=canvas(size,size),g=c.getContext('2d');g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.drawImage(images.petsRear,i%6*192,Math.floor(i/6)*192,192,192,0,0,size,size);return c;});}
  function petSvg(id,stage=1){stage=Math.max(1,Math.min(10,Math.floor(Number(stage)||1)));return keep('petSvg/'+id+'/'+stage,()=>{const s=PET_SPECIES[id]||PET_SPECIES.PT01,c=creature('pet/'+id,s.shape,s.color,96,0,false,stage);return '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="96" height="96" viewBox="0 0 96 96" role="img" aria-label="'+s.name+' ★'+s.rarity+' 成長'+stage+'" data-pet-rarity="'+s.rarity+'">'+petRarityFrame(id)+'<image width="96" height="96" xlink:href="'+c.toDataURL('image/png')+'"/>'+petRarityAccessory(id,stage)+'<circle cx="79" cy="80" r="13" fill="#173149" stroke="#edce87" stroke-width="2"/><text x="79" y="85" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#fff0c9">'+stage+'</text></svg>';});}
  function title(c){if(!c)return;c.getContext('2d').clearRect(0,0,c.width,c.height);c.style.backgroundImage='url("__TITLE_DAWN_DATA_URI__")';}
 
  ART.person=person;ART.enemy=(profile,species,attr,area,frame=0,size=32,boss=false)=>creature(profile+'/'+area,species,({水:'#659cb5',熱:'#c87568',電:'#d7b65f',光:'#d9cc98',無:'#91a0a9'})[attr]||'#8da594',size,frame,boss);
- return {person,portrait,title,phase,pose,creature,petSvg,loaded,ready:key=>!!images[({down:'front',npc:'npc'})[key]||key]||!key&&Object.keys(images).length===6,stats:()=>({entries:cache.size,limit:LIMIT,decoded:Object.keys(images).length,errors:[...errors]}),geometry:{headHeights:2,canvas:[64,96],foot:92}};
+ return {person,portrait,title,phase,pose,creature,petRear,petSvg,loaded,ready:key=>!!images[({down:'front',npc:'npc'})[key]||key]||!key&&Object.keys(images).length===Object.keys(sources).length,stats:()=>({entries:cache.size,limit:LIMIT,decoded:Object.keys(images).length,errors:[...errors]}),geometry:{headHeights:2,canvas:[64,96],foot:92}};
 })();

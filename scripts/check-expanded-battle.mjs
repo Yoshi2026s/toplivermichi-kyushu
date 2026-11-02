@@ -74,7 +74,7 @@ const worker=fresh();for(const [job,event] of Object.entries(g.JOB_EVENTS)){
 const novice=fresh();assert.equal(g.canChangeJob(novice,'hero','J15'),false);assert.equal(g.canChangeJob(novice,'hero','__proto__'),false);
 novice.mapId='KY01';assert.equal(g.createTrainingRun(novice,'J15'),null);
 novice.mapId='KY01-field';const challenge=g.createTrainingRun(novice,'J15');assert.equal(challenge.kind,'challenge');challenge.enemies[0].hp=0;challenge.state='won';assert.ok(g.expandedBattleBadges(challenge).includes('B009'));assert.ok(g.expandedBattleBadges(challenge).includes('B093'));
-const reward=g.applyVictory(novice,challenge),gold=novice.gold,tickets=novice.tickets;assert.ok(reward.tickets>0);g.applyVictory(novice,challenge);assert.equal(novice.gold,gold);assert.equal(novice.tickets,tickets);
+const reward=g.applyVictory(novice,challenge),gold=novice.gold;assert.ok(reward.xp>0);assert.equal(Object.hasOwn(reward,"tickets"),false);g.applyVictory(novice,challenge);assert.equal(novice.gold,gold);assert.equal(Object.hasOwn(novice,"tickets"),false);
 const caps=arena();caps.party[0].c=caps.party[0].maxMP;assert.equal(g.planAction(caps,0,{type:'rest'}).ok,false);caps.party[0].c=0;g.applyAction(caps,0,{type:'rest'});assert.ok(caps.party[0].c<=caps.party[0].maxMP);
 console.log('Expanded battle: 5 abilities, 22 traits, 33 careers/66 equipment, 66 additional skills/22 inherited skills/9 signatures; crit/evasion RNG isolation, cooldowns, 66 job decisions, physical-field practice, reward and save guards passed');
 

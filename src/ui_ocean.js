@@ -39,14 +39,14 @@ function oceanDefaultArea(){
 function oceanSheetWrap(title,html){return sheetWrap(title,html).replace('data-a="closeSheet"','data-a="oceanBack"');}
 function oceanOverview(){
   const st=G.st,id=oceanDefaultArea(),a=OCEAN_AREAS[id],r=oceanAreaRecord(st,id),route=OCEAN_ROUTES[a.routeId],pending=G.sheetData.pendingEvent;
-  const eventLabels={rescue:"漂流者を救助",survey:"海洋敵の調査報告",treasure:"灯台と漂着宝箱"};
+  const eventLabels={rescue:"漂流者を救助",treasure:"灯台と漂着宝箱"};
   const localMap=MAPS[st.mapId],atSea=localMap.combatDomain==="sea";
   const eventCards=Object.entries(eventLabels).map(([key,label])=>{
     const status=oceanEventAvailability(st,id,key,{readOnly:G.readOnly,busy:!!G.lock||!!G.oceanSaving});
-    return `<div class="qcard"><b>${r[key]?"● 完了":"○ 未完了"} ${label}</b><p class="small">${key==="survey"?"同じ海域の海洋敵3体を討伐して報告。報酬：チケット60枚。":key==="treasure"?"この海域で救助後、灯台の地図を調べる。報酬：120G。":"この海域の海面か案内標で救助。報酬：80G。"}</p>${r[key]?"":`<button class="btn" data-a="oceanEventSelect" data-area="${id}" data-event="${key}" ${status.ok?"":"disabled"}>${label}の確認</button>${status.ok?"":`<p class="small">${esc(status.reason)}</p>`}`}</div>`;
+    return `<div class="qcard"><b>${r[key]?"● 完了":"○ 未完了"} ${label}</b><p class="small">${key==="treasure"?"この海域で救助後、灯台の地図を調べる。報酬：120G。":"この海域の海面か案内標で救助。報酬：80G。"}</p>${r[key]?"":`<button class="btn" data-a="oceanEventSelect" data-area="${id}" data-event="${key}" ${status.ok?"":"disabled"}>${label}の確認</button>${status.ok?"":`<p class="small">${esc(status.reason)}</p>`}`}</div>`;
   }).join("");
   return `<p class="small">港と街は安全です。船は指定の航路・海辺を進み、敵に遭遇します。航路外の水面には入れません。イベント報酬は各海域でそれぞれ1回です。</p>
-    <h3 class="label">${esc(a.name)}</h3><p>推奨レベル${a.q}・海洋敵討伐${r.kills}/3体・${esc(OCEAN_THEMES[a.region].name)}</p><p class="small">${esc(a.lore)}</p>
+    <h3 class="label">${esc(a.name)}</h3><p>推奨レベル${a.q}・海洋敵討伐${r.kills}体・${esc(OCEAN_THEMES[a.region].name)}</p><p class="small">${esc(a.lore)}</p>
     <div class="srow">${OCEAN_SPECIES.map((name,f)=>`<span><canvas data-ocean-sprite="${id}|${f*10}" width="64" height="64" style="width:48px;height:48px;image-rendering:pixelated" aria-hidden="true"></canvas><br><span class="small">${name}</span></span>`).join("")}</div>
     ${pending&&G.sheetData.opState===st?`<div class="qcard"><b>${esc(eventLabels[pending.event])}を実行します</b><p class="small">報酬はこの海域で一度だけです。</p><button class="btn primary" data-a="oceanEventDo" data-area="${pending.area}" data-event="${pending.event}" data-token="${esc(pending.token)}" ${G.oceanSaving?"disabled":""}>確定する</button><button class="btn" data-a="oceanEventCancel" ${G.oceanSaving?"disabled":""}>やめる</button></div>`:eventCards}
     <button class="btn" data-a="oceanDexOpen" data-area="${id}">海洋モンスター図鑑</button>
@@ -99,11 +99,11 @@ Object.assign(ACT,{
   async oceanEventDo(el){
     if(!oceanUiCanAct())return;const st=G.st,d=G.sheetData,p=d.pendingEvent,id=el.dataset.area,event=el.dataset.event;
     if(!p||d.opState!==st||p.area!==id||p.event!==event||el.dataset.token!==p.token||p.token!==oceanEventToken(st,id,event))return toast("イベントの状態が変わりました。確認し直してください。");
-    const before={gold:st.gold,tickets:st.tickets,ocean:st.ocean===undefined?undefined:clone(st.ocean)},result=claimOceanEvent(st,id,event);
+    const before={gold:st.gold,ocean:st.ocean===undefined?undefined:clone(st.ocean)},result=claimOceanEvent(st,id,event);
     if(!result.ok)return toast(result.reason);el.disabled=true;G.oceanSaving=true;
     let saved=false;try{saved=await commit();}catch(e){}
     G.oceanSaving=false;
-    if(!saved){st.gold=before.gold;st.tickets=before.tickets;if(before.ocean===undefined)delete st.ocean;else st.ocean=before.ocean;delete d.pendingEvent;delete d.opState;render();return toast("保存できなかったため、イベントと報酬を元に戻しました。保存先の空きを確認して再試行してください。");}
-    delete d.pendingEvent;delete d.opState;render();SND.sfx(event==="rescue"?"seaRescue":event==="treasure"?"seaTreasure":"ok");say([...result.lines,["",`${result.gold?`${result.gold}G`:`チケット${result.tickets}枚`}を受け取りました。`]]);
+    if(!saved){st.gold=before.gold;if(before.ocean===undefined)delete st.ocean;else st.ocean=before.ocean;delete d.pendingEvent;delete d.opState;render();return toast("保存できなかったため、イベントと報酬を元に戻しました。保存先の空きを確認して再試行してください。");}
+    delete d.pendingEvent;delete d.opState;render();SND.sfx(event==="rescue"?"seaRescue":event==="treasure"?"seaTreasure":"ok");say([...result.lines,["",`${result.gold}Gを受け取りました。`]]);
   }
 });

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';import {mkdir,writeFile} from 'node:fs/promises';import {resolve} from 'node:path';import {chromium,browserOptions,mobileOptions,serveGame} from './mobile-runtime.mjs';
 await mkdir(resolve('.task'),{recursive:true});const app=process.env.GAME_TEST_URL?{url:process.env.GAME_TEST_URL,close:async()=>{}}:await serveGame(),browser=await chromium.launch(browserOptions()),results=[];
 try{for(const device of ['standard','small','landscape','short']){const context=await browser.newContext(mobileOptions(device)),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));try{
- await page.goto(app.url);await page.locator('[data-a="newGame"]').waitFor();await page.evaluate(()=>SOFT_ART.loaded);assert.equal(await page.evaluate(()=>SOFT_ART.stats().decoded),6);
+ await page.goto(app.url);await page.locator('[data-a="newGame"]').waitFor();await page.evaluate(()=>SOFT_ART.loaded);assert.equal(await page.evaluate(()=>SOFT_ART.stats().decoded),7);
  if(device==='standard'){
   const pets=await page.evaluate(async()=>{let count=0;for(const id of Object.keys(PET_SPECIES))for(const stage of [1,5,10]){const svg=petSpriteSvg(id,stage),img=new Image();img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);await img.decode();const c=document.createElement('canvas');c.width=c.height=96;const g=c.getContext('2d');g.drawImage(img,0,0);if(g.getImageData(0,0,96,96).data.filter((v,i)=>i%4===3&&v>128).length<1000)throw Error('Blank pet SVG '+id+'/'+stage);count++;}return count;});assert.equal(pets,66,'all species and growth stages decode visibly in the real browser');
  }

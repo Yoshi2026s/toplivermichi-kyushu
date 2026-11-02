@@ -1,17 +1,17 @@
 /* 海域の計算と保存。ここでは画面・通信・自動保存を行わない。 */
 function oceanAreaRecord(st,areaId){
   if(!Object.hasOwn(OCEAN_AREAS,areaId))return null;
-  return st.ocean?.areas?.[areaId]||{kills:0,rescue:false,survey:false,treasure:false};
+  return st.ocean?.areas?.[areaId]||{kills:0,rescue:false,treasure:false};
 }
 function validateOceanState(st){
   const s=st.ocean;if(s===undefined)return true;
   if(!s||typeof s!=="object"||s.version!==1||!s.areas||typeof s.areas!=="object"||Array.isArray(s.areas)||!Array.isArray(s.visitedRoutes)||s.visitedRoutes.some(id=>!Object.hasOwn(OCEAN_ROUTES,id)))throw Error("海域記録の形式が正しくありません。");
   for(const [id,r]of Object.entries(s.areas)){
-    if(!Object.hasOwn(OCEAN_AREAS,id)||!r||!Number.isSafeInteger(r.kills)||r.kills<0||[r.rescue,r.survey,r.treasure].some(v=>typeof v!=="boolean")||r.treasure&&!r.rescue||r.survey&&r.kills<3)throw Error("海域の達成記録が正しくありません。");
+    if(!Object.hasOwn(OCEAN_AREAS,id)||!r||!Number.isSafeInteger(r.kills)||r.kills<0||[r.rescue,r.treasure].some(v=>typeof v!=="boolean")||(r.survey!==undefined&&typeof r.survey!=="boolean")||r.treasure&&!r.rescue||r.survey&&r.kills<3)throw Error("海域の達成記録が正しくありません。");
   }
   return true;
 }
-function migrateOcean(st){validateOceanState(st);if(!st.ocean)st.ocean={version:1,areas:{},visitedRoutes:[]};return st;}
+function migrateOcean(st){validateOceanState(st);if(!st.ocean)st.ocean={version:1,areas:{},visitedRoutes:[]};for(const r of Object.values(st.ocean.areas))delete r.survey;return st;}
 function oceanRouteAvailable(st,id){const r=OCEAN_ROUTES[id];return !!r&&st.quests?.[r.quest]==="complete";}
 function currentOceanArea(st){const m=MAPS[st.mapId];return m?.combatDomain==="sea"?m.encountersByCell[`${st.pos.x},${st.pos.y}`]||null:null;}
 function oceanEnemyDef(areaId,idx){
@@ -45,27 +45,26 @@ function recordOceanVictory(st,run,res){
   migrateOcean(st);const id=run.oceanArea,r={...oceanAreaRecord(st,id)};
   r.kills=Math.min(Number.MAX_SAFE_INTEGER,r.kills+run.enemies.length);st.ocean.areas[id]=r;run.oceanVictoryRecorded=true;
   const route=OCEAN_AREAS[id].routeId;if(!st.ocean.visitedRoutes.includes(route))st.ocean.visitedRoutes.push(route);
-  if(res?.notes)res.notes.push(`${OCEAN_AREAS[id].name}：海洋敵討伐 ${r.kills}/3体${r.kills>=3&&!r.survey?"。調査報告ができます。":"。"}`);
+  if(res?.notes)res.notes.push(`${OCEAN_AREAS[id].name}：海洋敵討伐 ${r.kills}体。`);
 }
 function oceanEventAvailability(st,areaId,event,context={}){
   const a=OCEAN_AREAS[areaId],r=oceanAreaRecord(st,areaId),m=MAPS[st.mapId];
-  if(!a||!["rescue","survey","treasure"].includes(event))return {ok:false,reason:"海域・イベントの指定が正しくありません。"};
+  if(!a||!["rescue","treasure"].includes(event))return {ok:false,reason:"海域・イベントの指定が正しくありません。"};
   if(context.readOnly||context.busy||st.run)return {ok:false,reason:"今は海上イベントを実行できません。"};
   if(m?.combatDomain!=="sea"||m.oceanRoute!==a.routeId||!oceanRouteAvailable(st,a.routeId))return {ok:false,reason:"対象の航路へ出発してください。"};
   const atArea=currentOceanArea(st)===areaId,near=Math.max(Math.abs(st.pos.x-a.marker[0]),Math.abs(st.pos.y-a.marker[1]))<=1;
   if(!atArea&&!near)return {ok:false,reason:"この海域の海面か案内標まで移動してください。"};
   if(r[event])return {ok:false,reason:"この報酬は受取済みです。"};
-  if(event==="survey"&&r.kills<3)return {ok:false,reason:`この海域の海洋敵をあと${3-r.kills}体倒してください。`};
   if(event==="treasure"&&!r.rescue)return {ok:false,reason:"同じ海域で漂流者を救助すると地図が手に入ります。"};
   return {ok:true,reason:""};
 }
-function oceanEventToken(st,areaId,event){const r=oceanAreaRecord(st,areaId);return JSON.stringify([st.saveGeneration,st.mapId,st.pos.x,st.pos.y,areaId,event,r,st.gold,st.tickets]);}
+function oceanEventToken(st,areaId,event){const r=oceanAreaRecord(st,areaId);return JSON.stringify([st.saveGeneration,st.mapId,st.pos.x,st.pos.y,areaId,event,r,st.gold]);}
 function claimOceanEvent(st,areaId,event,context={}){
   const can=oceanEventAvailability(st,areaId,event,context);if(!can.ok)return can;
-  const gold=event==="rescue"?80:event==="treasure"?120:0,tickets=event==="survey"?60:0;
-  if(!Number.isSafeInteger(st.gold+gold)||!Number.isSafeInteger(st.tickets+tickets))return {ok:false,reason:"所持数の上限です。"};
-  migrateOcean(st);st.ocean.areas[areaId]={...oceanAreaRecord(st,areaId),[event]:true};st.gold+=gold;st.tickets+=tickets;
-  return {ok:true,gold,tickets,lines:event==="survey"?[["航海案内人",`${OCEAN_AREAS[areaId].name}の三体分の調査記録を受け取った。五系統の違いを次の船乗りに伝えよう。`]]:[["",OCEAN_AREAS[areaId][event==="rescue"?"rescueStory":"treasureStory"]]]};
+  const gold=event==="rescue"?80:120;
+  if(!Number.isSafeInteger(st.gold+gold))return {ok:false,reason:"所持数の上限です。"};
+  migrateOcean(st);st.ocean.areas[areaId]={...oceanAreaRecord(st,areaId),[event]:true};st.gold+=gold;
+  return {ok:true,gold,lines:[["",OCEAN_AREAS[areaId][event==="rescue"?"rescueStory":"treasureStory"]]]};
 }
 
 /* 専用ドット画像。海洋敵96件・海戦背景24件までのLRU。 */

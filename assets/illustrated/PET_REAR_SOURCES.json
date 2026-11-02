@@ -1,0 +1,173 @@
+{
+  "created": "2026-11-02",
+  "method": "OpenAI built-in image_gen; transparent rear-view atlas generated from pets.webp as a style reference",
+  "source": "pets-rear-source.png",
+  "output": "pets-rear.webp",
+  "columns": 6,
+  "rows": 4,
+  "cell": [
+    192,
+    192
+  ],
+  "sourceSize": [
+    1536,
+    1024
+  ],
+  "bounds": [
+    {
+      "x": 59,
+      "y": 11,
+      "w": 190,
+      "h": 244,
+      "pixels": 34888
+    },
+    {
+      "x": 300,
+      "y": 19,
+      "w": 218,
+      "h": 236,
+      "pixels": 36491
+    },
+    {
+      "x": 556,
+      "y": 10,
+      "w": 160,
+      "h": 245,
+      "pixels": 28157
+    },
+    {
+      "x": 795,
+      "y": 28,
+      "w": 177,
+      "h": 237,
+      "pixels": 29716
+    },
+    {
+      "x": 1035,
+      "y": 35,
+      "w": 234,
+      "h": 218,
+      "pixels": 40089
+    },
+    {
+      "x": 1318,
+      "y": 11,
+      "w": 207,
+      "h": 244,
+      "pixels": 35373
+    },
+    {
+      "x": 17,
+      "y": 285,
+      "w": 213,
+      "h": 219,
+      "pixels": 31568
+    },
+    {
+      "x": 263,
+      "y": 269,
+      "w": 216,
+      "h": 238,
+      "pixels": 38694
+    },
+    {
+      "x": 520,
+      "y": 273,
+      "w": 221,
+      "h": 231,
+      "pixels": 38929
+    },
+    {
+      "x": 784,
+      "y": 283,
+      "w": 220,
+      "h": 226,
+      "pixels": 36733
+    },
+    {
+      "x": 1039,
+      "y": 274,
+      "w": 214,
+      "h": 236,
+      "pixels": 38667
+    },
+    {
+      "x": 1277,
+      "y": 298,
+      "w": 249,
+      "h": 206,
+      "pixels": 36197
+    },
+    {
+      "x": 24,
+      "y": 535,
+      "w": 207,
+      "h": 225,
+      "pixels": 38327
+    },
+    {
+      "x": 265,
+      "y": 532,
+      "w": 249,
+      "h": 229,
+      "pixels": 37498
+    },
+    {
+      "x": 521,
+      "y": 602,
+      "w": 246,
+      "h": 153,
+      "pixels": 23780
+    },
+    {
+      "x": 774,
+      "y": 554,
+      "w": 238,
+      "h": 211,
+      "pixels": 32789
+    },
+    {
+      "x": 1041,
+      "y": 547,
+      "w": 242,
+      "h": 217,
+      "pixels": 35245
+    },
+    {
+      "x": 1331,
+      "y": 519,
+      "w": 155,
+      "h": 251,
+      "pixels": 28659
+    },
+    {
+      "x": 70,
+      "y": 776,
+      "w": 158,
+      "h": 237,
+      "pixels": 22668
+    },
+    {
+      "x": 249,
+      "y": 782,
+      "w": 231,
+      "h": 227,
+      "pixels": 41371
+    },
+    {
+      "x": 525,
+      "y": 768,
+      "w": 209,
+      "h": 243,
+      "pixels": 36171
+    },
+    {
+      "x": 756,
+      "y": 773,
+      "w": 268,
+      "h": 240,
+      "pixels": 40985
+    }
+  ],
+  "prompt": "Create ONE production sprite atlas for a Japanese cozy RPG. Reference image is the existing FRONT pet atlas, style reference only. Create matching FULL BODY REAR VIEWS of exactly the same first 22 pets, facing straight away from camera (north), no eyes or faces visible. Keep their soft hand painted chibi style, rounded fluffy bodies, nuanced fur shading, clean warm dark outlines, rich texture, cute proportions matching the reference. This is a REAR-VIEW atlas, never front faces disguised by blanking. Each species must be anatomically distinct from behind, with correct distinctive ears, tails, wings, shell, fur patterns. Transparent background, no shadows on ground, no text, no grid lines. Exactly 6 columns and 4 rows, uniform equal square cells, one centered entire pet per cell with generous transparent padding. Read left to right top to bottom in this precise order: row1 shiba inu with red neck scarf and curled cream tail; calico cat with bell collar and curved patterned tail; white rabbit long ears round pompom tail; green peach-faced lovebird folded green wings blue tail; hedgehog bristly spiny back; red squirrel huge fluffy curved tail. Row2 brown river otter long tapered tail; orange fox very bushy white-tipped tail; tanuki with brown bushy tail and a green leaf on head; gray raccoon with clearly ringed tail; brown owl folded feathered wings; gray koala round fuzzy ears tiny tail. Row3 red panda with orange black ringed huge tail; blue penguin folded flippers and orange feet; pale gray seal with hind flippers and dotted skin; green turtle round segmented shell and visible small head facing away; fluffy cream sheep with drooping ears short legs and round tail; cream alpaca tall neck and small tail. Row4 spotted brown fawn with slender legs and white rump tail; white snow leopard with gray spots and thick curved tail; fluffy white wolf with long bushy tail; small purple fantasy star dragon with two wings, purple tail, tiny horns and dorsal scales; remaining last TWO cells completely EMPTY transparent. All 22 characters must be full body, facing exactly BACKWARDS, feet resting at same relative baseline within each equal cell. No crowns, equipment or growth accessories besides reference scarf/collar/leaf. High quality game-ready bitmap atlas. Preserve actual alpha transparency."
+}

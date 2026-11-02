@@ -87,7 +87,7 @@ const capped=g.newGame('上限の報酬','男性');capped.xp=g.xpFor(100);capped
 const battle=g.createBossRun(capped,'B01');battle.state='won';battle.enemies[0].hp=0;
 const cappedResult=g.applyVictory(capped,battle);
 assert.equal(cappedResult.xp,0);assert.equal(cappedResult.gold,108);assert.equal(capped.jp.hero.J22,g.jpFor(100));
-const quest=g.newGame('別々の報酬','女性');quest.quests.M02='bossReady';
+const quest=g.newGame('別々の報酬','女性');quest.gold=0;quest.quests.M02='bossReady';
 const run=g.createBossRun(quest,'B01');run.state='won';run.enemies[0].hp=0;
 const reward=g.applyVictory(quest,run);assert.equal(reward.xp,136);assert.equal(quest.quests.M02,'complete');
 assert.equal(quest.xp,136);assert.equal(quest.gold,108);assert.equal(quest.quests.M03,'available');

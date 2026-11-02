@@ -48,10 +48,10 @@ function petAdoptPreview(st,id){
   const s=petSpecies(id);if(!s)return {ok:false,reason:"この種類は登録されていません。"};
   if(petOwned(st,id))return {ok:false,reason:"もう家族になっています。"};
   if(petProgressCount(st)<s.unlockCount)return {ok:false,reason:`本編依頼を${s.unlockCount}件終えると出会えます。`};
-  if(st.tickets<s.adoptionTickets)return {ok:false,reason:`チケットが${s.adoptionTickets-st.tickets}枚足りません。`};
-  return {ok:true,cost:s.adoptionTickets};
+  if(st.gold<s.adoptionGold)return {ok:false,reason:`ゴールドが${s.adoptionGold-st.gold}G足りません。`};
+  return {ok:true,cost:s.adoptionGold};
 }
-function adoptPet(st,id){const offer=petAdoptPreview(st,id);if(!offer.ok)return offer;migratePets(st);st.tickets-=offer.cost;st.petState.owned[id]=petDefault(id);return {ok:true,pet:st.petState.owned[id],sound:"petgrow",log:`${PET_SPECIES[id].name}が家族になった。`};}
+function adoptPet(st,id){const offer=petAdoptPreview(st,id);if(!offer.ok)return offer;migratePets(st);st.gold-=offer.cost;st.petState.owned[id]=petDefault(id);return {ok:true,pet:st.petState.owned[id],sound:"petgrow",log:`${PET_SPECIES[id].name}が家族になった。`};}
 function petCarePreview(st,id,action,supplyId){
   const p=petOwned(st,id);if(!p||!Object.hasOwn(PET_CARE_TYPES,action))return {ok:false,reason:"ペットとお世話を選び直してください。"};
   if(p.daily[action]===st.day)return {ok:false,reason:"今日は完了しています。"};

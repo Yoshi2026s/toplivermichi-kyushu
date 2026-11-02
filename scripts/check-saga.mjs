@@ -53,9 +53,9 @@ for(let n=1;n<=8;n++){
   assert(flow.qprog[id]===q.kills&&flow.quests[id]==='bossReady',`${id} field victories did not unlock boss`);
   const boss=game.createBossRun(flow,q.boss);
   assert(boss.hub===q.hub&&boss.areaId===`${q.hub}-A3`&&boss.enemies[0].id===q.boss,`${id} boss battle invalid`);
-  const before=flow.tickets,result=game.applyVictory(flow,boss);
+  const before=flow.gold,result=game.applyVictory(flow,boss);
   assert(flow.bossDefeated[q.boss]&&flow.quests[id]==='complete'&&flow.activeQuest===null,`${id} boss did not finish quest`);
-  assert(flow.moeRank===n&&flow.tickets>before&&result.quest===id,`${id} rank or rewards missing`);
+  assert(flow.moeRank===n&&flow.gold>before&&!Object.hasOwn(flow,"tickets")&&result.quest===id,`${id} rank or rewards missing`);
   assert(!Object.values(flow.quests).includes('combatDone')&&!flow.stream,`${id} retained removed stream state`);
   const once=JSON.stringify({xp:flow.xp,gold:flow.gold,tickets:flow.tickets,bag:flow.bag});
   game.applyVictory(flow,boss);game.completeQuest(flow,id,{xp:0,tickets:0});

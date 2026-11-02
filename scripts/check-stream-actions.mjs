@@ -29,9 +29,9 @@ for(const id of ['M02','M03','M04','M05','M06','M07','M08']){
   const st=game.newGame('配信待ち','女性'),q=game.QUESTS[id];
   st.quests[id]='combatDone';st.activeQuest=id;st.bossDefeated[q.boss]=true;
   st.stream={hub:q.hub,hand:2,score:60,done:false};
-  const tickets=st.tickets,next=game.migrate(copy(st));
+  const gold=st.gold;st.tickets=123;const next=game.migrate(copy(st));
   assert(!('stream' in next)&&next.quests[id]==='complete'&&next.activeQuest===null,`${id} pending save did not complete`);
-  assert(next.tickets===tickets+200&&next.moeRank>=Number(id.slice(1)),`${id} migrated rewards or rank missing`);
+  assert(!Object.hasOwn(next,"tickets")&&next.gold===gold+123+(q.reward?.gold||0)&&next.moeRank>=Number(id.slice(1)),`${id} migrated rewards or rank missing`);
   const again=game.migrate(copy(next));
   assert(stats(again)===stats(next),`${id} migration duplicated rewards`);
 }
@@ -54,7 +54,7 @@ assert(repaired.quests.M03==='complete'&&repaired.quests.M04==='active'&&repaire
 
 const multiple=game.newGame('複数待機','女性');multiple.quests.M03='combatDone';multiple.quests.M04='combatDone';
 const multipleNext=game.migrate(copy(multiple));
-assert(multipleNext.quests.M03==='complete'&&multipleNext.quests.M04==='complete'&&multipleNext.tickets===multiple.tickets+400,'migration lost a second pending quest');
+assert(multipleNext.quests.M03==='complete'&&multipleNext.quests.M04==='complete'&&!Object.hasOwn(multipleNext,"tickets")&&multipleNext.gold===multiple.gold+(game.QUESTS.M03.reward?.gold||0)+(game.QUESTS.M04.reward?.gold||0),'migration lost a second pending quest');
 assert(stats(game.migrate(copy(multipleNext)))===stats(multipleNext),'multiple pending quests rewarded twice');
 
 const finished=game.newGame('完了記録','男性');finished.quests.M05='complete';finished.stream={done:true,score:100};

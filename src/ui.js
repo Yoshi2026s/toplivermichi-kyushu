@@ -141,7 +141,7 @@ function statusBar(){
   return `<header class="status">
     <div class="srow"><span class="place">${esc(m.name)}</span><span>${st.day}日目</span></div>
     <div class="goal">${esc(objective())}</div>
-    <div class="srow small"><span>レベル${levelOf(st.xp,st)}・${st.gold.toLocaleString()}ゴールド・チケット${st.tickets.toLocaleString()}</span><span>${esc(charName(st,"moe"))} ${MOE_RANKS[st.moeRank]}</span></div>
+    <div class="srow small"><span>レベル${levelOf(st.xp,st)}・${st.gold.toLocaleString()}ゴールド</span><span>${esc(charName(st,"moe"))} ${MOE_RANKS[st.moeRank]}</span></div>
     <div class="small" aria-live="polite"><span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（別のタブで操作中のため閲覧のみ）":""}</div>
   </header>`;
 }
@@ -248,7 +248,7 @@ function renderCurrentLocation(){
   return `<div class="here">${ar?`<span class="tag danger">遭遇エリア</span> ${esc(ar.name)}（推奨レベル${ar.q}）`:`<span class="tag safe" title="${m.kind==="field"?"現在の地点は遭遇エリア外です":"安全な街の中です"}">${m.kind==="field"?"遭遇なし":"安全"}</span>`}${near.length?`<span class="small">／近く：${near.map(o=>esc(o.label)).join("・")}</span>`:""}</div>`;
 }
 function renderMainMenu(){
- const groups=[['移動と探索',[['map','地図','全国の行先を確認'],['voyage','航海','海域と船の旅']]],['仲間と準備',[['items','道具','使う・持ち物を確認'],['status','ステータス','体力と能力を確認'],['party','編成','仲間・装備を整える'],['pets','ペット','同行とお世話']]],['記録と設定',[['record','記録','冒険の達成を確認'],['dex','図鑑','出会った敵を調べる'],['settings','設定','音・操作・保存'],['help','解説','遊び方と機能を検索'],['share','友だちに教える','紹介文とリンク']]]];
+ const groups=[['移動と探索',[['map','地図','全国の行先を確認'],['voyage','航海','海域と船の旅']]],['仲間と準備',[['items','道具','使う・持ち物を確認'],['status','ステータス','体力と能力を確認'],['party','編成','同行する仲間を整える'],['equipment','装備','武器・防具・アクセサリーを変更'],['pets','ペット','同行とお世話']]],['記録と設定',[['record','記録','冒険の達成を確認'],['dex','図鑑','出会った敵を調べる'],['settings','設定','音・操作・保存'],['help','解説','遊び方と機能を検索'],['share','友だちに教える','紹介文とリンク']]]];
  return '<nav class="main-menu menu-catalog" aria-label="冒険メニュー">'+groups.map(([title,rows])=>'<section class="menu-category"><h3>'+title+'</h3><div class="menu-grid">'+rows.map(([k,label,help])=>'<button class="btn" data-a="openSheet" data-k="'+k+'" aria-label="'+label+'" aria-describedby="menu-help-'+k+'"><b>'+label+'</b><small id="menu-help-'+k+'">'+help+'</small></button>').join('')+'</div></section>').join('')+'</nav>';
 }
 function renderExplore(){
@@ -499,12 +499,12 @@ function openBox(o){
   const hub=o.box.slice(0,4); const rep = hub==="KY01"?"akari":"sota"; const sq = hub==="KY01"?"S01":"S02";
   const okA = o.box.endsWith("A") && st.talked[rep]; const okB = o.box.endsWith("B") && st.quests[sq]==="complete";
   if(!(okA||okB)) return say([["",o.box.endsWith("A")?`この箱は、${NPCS[rep].name}と初めて話すと開けられる。`:`この箱は、任意依頼${sq}を終えると開けられる。`]]);
-  st.boxes[o.box]=true; st.tickets+=40; st.cards.push(o.box);
+  st.boxes[o.box]=true; st.cards.push(o.box);
   const ev=ITEM_EVENTS[o.box.slice(0,4)+"-BOX-"+o.box.slice(-1)]; let extra=[];
   if(ev){ const g=giveItem(st,ev[0],ev[1]); const nm=ITEMS[ev[0]].name;
     if(g.got) extra.push(["",`道具「${nm}」×${g.got}も入っていた！（非売品）`]); if(g.vaulted) extra.push(["",`道具袋がいっぱいのため、${nm}×${g.vaulted}はアイテム金庫へ送った。`]); if(g.kept) extra.push(["",`金庫もいっぱいのため、${nm}×${g.kept}は宿屋の預かり所へ送った。`]); }
   commit(); SND.sfx("ok");
-  say([["",`応援箱を開けた！ チケット＋40、記念カード「${BOX_CARDS[o.box]}」を手に入れた。`],...extra]);
+  say([["",`応援箱を開けた！ 記念カード「${BOX_CARDS[o.box]}」を手に入れた。`],...extra]);
 }
 function bossPrompt(bid){
   const st=G.st, b=BOSSES[bid]; if(MAPS[st.mapId].kind!=="field"||!b) return; const qid=Object.keys(QUESTS).find(k=>QUESTS[k].boss===bid);
@@ -844,14 +844,14 @@ function renderResult(){
   const summary=[receivedCount?`入手 ${receivedCount}件`:'',unreceivedCount?`受取不可 ${unreceivedCount}件`:'',(r.newBadges||[]).length?`新バッジ ${r.newBadges.length}件`:'',usedItems.length?`道具使用 ${usedItems.length}回${r.itemsUsedKnown===true?'':'（記録のある分）'}`:r.itemsUsedKnown===true?'道具未使用':'道具履歴なし'].filter(Boolean).join('・');
   return `<section class="result${up?' level-celebration':''}" aria-labelledby="rtitle">
     <div class="rbanner ${up?'level-royal':r.kind==="boss"?"boss":""}">${up?`<div class="level-sparkles" aria-hidden="true">${Array.from({length:8},(_,i)=>`<i style="--i:${i}"></i>`).join('')}</div>`:''}<h2 id="rtitle">${up?'レベルアップ！':title}</h2>${up?`<strong>Lv${r.levelBefore} → ${L}</strong>`:''}<p>${up?title+'・':''}${r.turns?`${r.turns}ターン`:""}${foes.length?`・敵${foes.length}体`:""}</p></div>
-    <div class="rgrid">${card("経験値",`＋${formatResult(r.xp)}`,"",`＋${r.xp.toLocaleString()}`)}${card("ゴールド",`＋${formatResult(r.gold)}`,"gold",`＋${r.gold.toLocaleString()}`)}${r.tickets?card("チケット",`＋${formatResult(r.tickets)}`,"",`＋${r.tickets.toLocaleString()}`):card("所持金",`${formatResult(st.gold)}G`,"",`${st.gold.toLocaleString()}G`)}</div>
+    <div class="rgrid">${card("経験値",`＋${formatResult(r.xp)}`,"",`＋${r.xp.toLocaleString()}`)}${card("ゴールド",`＋${formatResult(r.gold)}`,"gold",`＋${r.gold.toLocaleString()}`)}${card("所持金",`${formatResult(st.gold)}G`,"",`${st.gold.toLocaleString()}G`)}</div>
     <div class="gauge rxp"><span>${up?`Lv${r.levelBefore}→${L}`: `レベル${L}`}</span><span class="bar xp"><i style="width:${pct(xpNow,xpSpan)}%"></i></span><b class="result-next-level">${L<levelLimit(st)?`Lv${L+1}まで あと${Math.max(0,xpSpan-xpNow).toLocaleString()}`:"現在の上限"}</b></div>
     ${r.quest?`<div class="rquest done">依頼「${esc(QUESTS[r.quest].name)}」完了！</div>`:r.kills&&r.killQuest?`<div class="rquest">依頼の討伐 ${r.killNow}/${r.killNeed}</div>`:""}
     <div class="rmems ${resultMembers.length>2?"many":""}" aria-label="仲間の戦闘後の状態">${mem}</div>
     ${anyLow?`<p class="rwarning warn" role="status">体力わずか・戦闘不能の仲間がいます。MAPで回復を。</p>`:""}
     <p class="rsummary ${unreceivedCount?'warn':''}">${summary}</p>
     <div class="rfoot"><button class="btn primary wide" data-a="resultDone">MAPへ戻る</button></div>
-    <details class="rbox result-details"><summary>報酬・成長・戦闘の詳細</summary><p>${sub}</p><ul class="rlist">${resultMembers.map(x=>{const j=(r.jp||[]).find(y=>y.cid===x.cid)||{gain:0};return `<li>${esc(charName(st,x.cid))}・${esc(JOBS[charStats(st,x.cid,L).job].name)}：熟練度${j.R0??"不明"}→${j.R1??"不明"}（＋${j.gain}）・最大体力${x.maxBefore}→${x.maxAfter}</li>`;}).join("")}</ul><p>経験値＋${r.xp.toLocaleString()}・ゴールド＋${r.gold.toLocaleString()}・所持金${st.gold.toLocaleString()}G${r.tickets?`・チケット＋${r.tickets.toLocaleString()}`:""}</p>
+    <details class="rbox result-details"><summary>報酬・成長・戦闘の詳細</summary><p>${sub}</p><ul class="rlist">${resultMembers.map(x=>{const j=(r.jp||[]).find(y=>y.cid===x.cid)||{gain:0};return `<li>${esc(charName(st,x.cid))}・${esc(JOBS[charStats(st,x.cid,L).job].name)}：熟練度${j.R0??"不明"}→${j.R1??"不明"}（＋${j.gain}）・最大体力${x.maxBefore}→${x.maxAfter}</li>`;}).join("")}</ul><p>経験値＋${r.xp.toLocaleString()}・ゴールド＋${r.gold.toLocaleString()}・所持金${st.gold.toLocaleString()}G</p>
       ${up?`<p class="good">レベルアップ！ ${r.levelBefore} → ${r.levelAfter}</p>`:""}
       ${items.length||gifts.length?`<h3 class="label">手に入れたもの</h3><ul class="rlist">${[...items,...gifts].join("")}</ul>`:""}
       ${renderUsedItemHistory(r,usedItems)}
@@ -1523,7 +1523,7 @@ function drawMiniSprites(){
 function validateState(s){
   if(typeof validateOceanState==="function")validateOceanState(s);
   const okNum=v=>Number.isFinite(v)&&v>=0;
-  if(!okNum(s.xp)||!okNum(s.gold)||!okNum(s.tickets)||!MAPS[s.mapId]||!Array.isArray(s.roster)||!Array.isArray(s.party)||s.party.length<1||s.party.length>4||new Set(s.party).size!==s.party.length||s.party.some(c=>!CHARS[c]||!s.roster.includes(c))) throw new Error("bad");
+  if(!okNum(s.xp)||!okNum(s.gold)||(s.tickets!==undefined&&(!Number.isSafeInteger(s.tickets)||s.tickets<0||!Number.isSafeInteger(s.gold+s.tickets)))||!MAPS[s.mapId]||!Array.isArray(s.roster)||!Array.isArray(s.party)||s.party.length<1||s.party.length>4||new Set(s.party).size!==s.party.length||s.party.some(c=>!CHARS[c]||!s.roster.includes(c))) throw new Error("bad");
   if(s.vaultGold!==undefined&&(!Number.isSafeInteger(s.vaultGold)||s.vaultGold<0)) throw new Error("bad vault");
   if(s.itemVault!==undefined&&(!Array.isArray(s.itemVault)||s.itemVault.some(e=>!ITEMS[e.id]&&!EQUIP[e.id]||!Number.isSafeInteger(e.n)||e.n<1)||itemVaultCount(s)>ITEM_VAULT_MAX||new Set(s.itemVault.map(e=>e.id)).size!==s.itemVault.length||s.itemVault.some(e=>EQUIP[e.id]&&(s.owned[e.id]||0)+e.n>8))) throw new Error("bad item vault");
   if(s.pendingGifts!==undefined&&(!Array.isArray(s.pendingGifts)||s.pendingGifts.some(id=>!EQUIP[id])||new Set(s.pendingGifts).size!==s.pendingGifts.length)) throw new Error("bad pending gifts");
@@ -1540,6 +1540,7 @@ function supportAvailable(st,id){
   return false;
 }
 function migrate(s){
+  retireTickets(s);
   migrateGrowth(s);
   s.gameVersion=GAME_VERSION;
   const layoutChanged=s.mapLayoutVersion!==MAP_LAYOUT_VERSION;

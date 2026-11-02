@@ -2,7 +2,7 @@ import {readFileSync} from 'node:fs';
 import {createContext,runInContext} from 'node:vm';
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url),{createCanvas,Image}=require(process.env.CANVAS_MODULE_PATH||'@napi-rs/canvas');
-const assets={FRONT:'party-front',BACK:'party-back',SIDE:'party-side',NPC:'npc-front',PETS:'pets',ENEMIES:'enemies'};
+const assets={FRONT:'party-front',BACK:'party-back',SIDE:'party-side',NPC:'npc-front',PETS:'pets',PETS_REAR:'pets-rear',ENEMIES:'enemies'};
 export async function illustratedContext(code,extra={}){
  if(code.includes('__ORCHESTRA_BANK_JSON__'))code=code.replaceAll('__ORCHESTRA_BANK_JSON__',readFileSync(new URL('../assets/audio/orchestra-bank.json',import.meta.url),'utf8').trim());
  for(const [token,name]of Object.entries(assets))code=code.replaceAll('__SOFT_'+token+'_DATA_URI__','data:image/webp;base64,'+readFileSync(new URL('../assets/illustrated/'+name+'.webp',import.meta.url)).toString('base64'));

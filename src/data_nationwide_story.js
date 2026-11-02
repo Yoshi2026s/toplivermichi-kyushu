@@ -253,7 +253,7 @@ for(let index=0;index<NATIONWIDE_ORDER.length;index++){
   const pref=NATIONAL_PREFECTURES.find(p=>p.id===prefId),questId=`N${suffix}`,bossId=`NB${suffix}`,npcId=`nwGuide${suffix}`;
   const previousQuest=NATIONWIDE_QUEST_ORDER[NATIONWIDE_QUEST_ORDER.length-1];
   const q=27+Math.floor(index*0.65),kills=index===NATIONWIDE_ORDER.length-1?5:3;
-  const reward={xp:180+index*35,gold:200+index*12,tickets:220};
+  const reward={xp:180+index*35,gold:200+index*12};
   const introScene=`${questId}_START`,completeScene=`${questId}_DONE`;
   const story={hub,prefId,regionId:pref.regionId,questId,previousQuest,bossId,npcId,title,npc,role,premise,approach,resolution,areas,reward,introScene,completeScene};
   NATIONWIDE_STORIES[hub]=story;

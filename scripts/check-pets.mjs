@@ -36,9 +36,9 @@ for(const action of ['feed','play','groom','rest']){
  st.day++;p.bond=0;p.fullness=10;p.mood=10;p.clean=10;const id=`PT01-${action}-1`;g.bagAdd(st.bag,id,1);
  const out=g.carePet(st,'PT01',action,id);assert(out.ok);assert.equal(g.bagCount(st.bag,id),0);assert.equal(p.daily[action],st.day);assert(!g.carePet(st,'PT01',action,id).ok);
 }
-// Adoption needs progress and tickets, rejects duplicate charging.
-st.tickets=9999;for(const id of Object.keys(g.PET_SPECIES)){
- if(id==='PT01')continue;for(const q of Object.keys(st.quests))st.quests[q]='complete';assert(g.adoptPet(st,id).ok);const money=st.tickets;assert(!g.adoptPet(st,id).ok);assert.equal(st.tickets,money);
+// Adoption needs progress and gold, rejects duplicate charging.
+st.gold=9999;for(const id of Object.keys(g.PET_SPECIES)){
+ if(id==='PT01')continue;for(const q of Object.keys(st.quests))st.quests[q]='complete';assert(g.adoptPet(st,id).ok);const money=st.gold;assert(!g.adoptPet(st,id).ok);assert.equal(st.gold,money);
 }
 assert.equal(Object.keys(st.petState.owned).length,22);
 // Celebration and walk deliveries are atomic and use per-item capacity.

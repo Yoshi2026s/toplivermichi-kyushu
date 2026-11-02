@@ -2,11 +2,11 @@
 const PET_GROWTH_THRESHOLDS=[0,10,20,30,40,50,60,70,80,100];
 const PET_SKILL_STAGES=[1,3,5,8];
 const PET_RARITY_RULES={
- 1:{tickets:40,supply:1,growth:2,growthText:'標準',color:'#86aab7'},
- 2:{tickets:80,supply:2,growth:3,growthText:'標準の2/3',color:'#c0d9e5'},
- 3:{tickets:160,supply:3,growth:4,growthText:'標準の1/2',color:'#f0cb72'},
- 4:{tickets:320,supply:5,growth:5,growthText:'標準の2/5',color:'#c2a1ed'},
- 5:{tickets:640,supply:8,growth:6,growthText:'標準の1/3',color:'#ffe5a0'}
+ 1:{adoptionGold:40,supply:1,growth:2,growthText:'標準',color:'#86aab7'},
+ 2:{adoptionGold:80,supply:2,growth:3,growthText:'標準の2/3',color:'#c0d9e5'},
+ 3:{adoptionGold:160,supply:3,growth:4,growthText:'標準の1/2',color:'#f0cb72'},
+ 4:{adoptionGold:320,supply:5,growth:5,growthText:'標準の2/5',color:'#c2a1ed'},
+ 5:{adoptionGold:640,supply:8,growth:6,growthText:'標準の1/3',color:'#ffe5a0'}
 };
 const PET_SPECIES={};
 const PET_SKILLS={};
@@ -43,7 +43,7 @@ for(let i=0;i<PET_ROWS.length;i++){
   const labels=[`${name}のぬくもり`,`${name}のひと息`,support1,support2];
   const types=["hp","mp",supportType1,supportType2];
   skillIds.forEach((sid,j)=>PET_SKILLS[sid]={id:sid,name:labels[j],kind:types[j],stage:PET_SKILL_STAGES[j],family:j<2?"heal":"support"});
-  PET_SPECIES[id]={id,name,shape,color,rarity,skills:skillIds,unlockCount:i===0?0:Math.min(42,(i-1)*2),adoptionTickets:i===0?0:PET_RARITY_RULES[rarity].tickets};
+  PET_SPECIES[id]={id,name,shape,color,rarity,skills:skillIds,unlockCount:i===0?0:Math.min(42,(i-1)*2),adoptionGold:i===0?0:PET_RARITY_RULES[rarity].adoptionGold};
   for(const [kind,stem] of [["feed","ごはん"],["play","おもちゃ"],["groom","ブラシ"],["rest","おやすみ布"]]){
     for(let tier=1;tier<=3;tier++){
       const sid=`${id}-${kind}-${tier}`,label=["いつもの","ふかふかの","とっておきの"][tier-1];

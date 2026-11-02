@@ -46,10 +46,10 @@ g.applyVictory(s,run);assert.equal(s.qprog.M02,0,'sea kills cannot advance a lan
 const before=JSON.stringify(s);g.applyVictory(s,run);assert.equal(JSON.stringify(s),before,'sea victory reward once');
 s.run=null;s.quests.M02='complete';g.recordOceanVictory(s,{oceanArea:a.id,enemies:[{}]}, {notes:[]});assert.equal(g.oceanAreaRecord(s,a.id).kills,3);
 const other=areas[1];assert.equal(g.oceanAreaRecord(s,other.id).kills,0);
-const gold0=s.gold,tk0=s.tickets;
+const gold0=s.gold;
 assert(!g.claimOceanEvent(s,a.id,'treasure').ok);assert(!g.claimOceanEvent(s,a.id,'rescue',{readOnly:true}).ok);assert(!g.claimOceanEvent(s,a.id,'rescue',{busy:true}).ok);
 assert(g.claimOceanEvent(s,a.id,'rescue').ok);assert.equal(s.gold,gold0+80);assert(!g.claimOceanEvent(s,a.id,'rescue').ok);
-assert(g.claimOceanEvent(s,a.id,'survey').ok);assert.equal(s.tickets,tk0+60);assert(g.claimOceanEvent(s,a.id,'treasure').ok);assert.equal(s.gold,gold0+200);
+const retiredBefore=JSON.stringify(s);assert(!g.claimOceanEvent(s,a.id,'survey').ok);assert.equal(JSON.stringify(s),retiredBefore);assert(!Object.hasOwn(s,'tickets'));assert(g.claimOceanEvent(s,a.id,'treasure').ok);assert.equal(s.gold,gold0+200);
 assert(!g.claimOceanEvent(s,a.id,'survey').ok);assert(!g.claimOceanEvent(s,a.id,'treasure').ok);
 const loaded=JSON.parse(JSON.stringify(s)),stable=JSON.stringify(loaded);g.migrateOcean(loaded);assert.equal(JSON.stringify(loaded),stable);
 assert(!g.claimOceanEvent(loaded,a.id,'rescue').ok);assert(!g.claimOceanEvent(loaded,other.id,'rescue').ok,'stale area rejects');
@@ -63,7 +63,7 @@ assert.equal(uiState.gold,oldGold);assert(!g.oceanAreaRecord(uiState,a.id).rescu
 g.setCommitResult(true);g.G.sheet='ocean';g.G.sheetData={area:a.id};g.G.dlg=null;g.ACT.oceanEventSelect({dataset:{area:a.id,event:'rescue'}});
 const good=g.G.sheetData.pendingEvent;await g.ACT.oceanEventDo({dataset:{area:a.id,event:'rescue',token:good.token}});assert(g.oceanAreaRecord(uiState,a.id).rescue);
 const unchanged=JSON.stringify(uiState);await g.ACT.oceanEventDo({dataset:{area:a.id,event:'rescue',token:good.token}});assert.equal(JSON.stringify(uiState),unchanged);
-g.G.dlg=null;g.G.sheet='ocean';g.G.sheetData={area:a.id};assert(g.renderSheet().includes('65海域'));g.G.sheet='oceanDex';assert(g.renderSheet().includes('/3250項目'));
+g.G.dlg=null;g.G.sheet='ocean';g.G.sheetData={area:a.id};assert(g.renderSheet().includes('65海域'));assert(!g.renderSheet().includes('調査報告'));assert(!g.renderSheet().includes('チケット'));g.G.sheet='oceanDex';assert(g.renderSheet().includes('/3250項目'));
 const forms=new Set();
 for(let region=0;region<8;region++)for(let family=0;family<5;family++){
   const c=g.oceanEnemySprite(region,family,0,32);forms.add(createHash('sha256').update(c.toBuffer('image/png')).digest('hex'));
@@ -77,4 +77,4 @@ for(let frame=0;frame<100;frame++)assert.equal(g.ART.object('oceanEvent',frame),
 assert.equal(g.OCEAN_ART_CACHE.markers.size,1);assert.deepEqual(marker.toBuffer('image/png'),markerPixels,'reusing the marker never changes its pixels');
 const atlas=createCanvas(8*128,5*128),ctx=atlas.getContext('2d');for(let region=0;region<8;region++)for(let family=0;family<5;family++)ctx.drawImage(g.oceanEnemySprite(region,family,0,128),region*128,family*128);
 mkdirSync(resolve(root,'.task'),{recursive:true});writeFileSync(resolve(root,'.task/ocean-forms.png'),atlas.toBuffer('image/png'));
-console.log('Ocean: 65 areas, 3,250 distinct enemy records, 8 connected routes (224 cells/216 sea), safe ports, 40 rendered forms, capped caches, isolated kills, transactional once-only events and save/read-only/stale guards passed');
+console.log('Ocean: 65 areas, 3,250 distinct enemy records, 8 connected routes (224 cells/216 sea), safe ports, 40 rendered forms, capped caches, isolated kills, retired survey and transactional once-only rescue/treasure and save/read-only/stale guards passed');

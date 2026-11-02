@@ -58,7 +58,7 @@ assert.equal(g.MAP_LAYOUT_VERSION,makeState().mapLayoutVersion);
 const patterns=new Set();
 for(const story of Object.values(g.NATIONWIDE_STORIES)){
   const q=g.QUESTS[story.questId],boss=g.BOSSES[story.bossId];
-  assert.equal(q.requires,story.previousQuest);assert(q.reward.xp>0&&q.reward.gold>0&&q.reward.tickets>0);
+  assert.equal(q.requires,story.previousQuest);assert(q.reward.xp>0&&q.reward.gold>0&&!Object.hasOwn(q.reward,"tickets"));
   assert(g.SCENES[q.introScene].lines('検査').length>=4);
   assert(g.SCENES[q.completeScene].lines('検査').some(line=>line[1]===story.resolution));
   assert.equal(Object.keys(g.MAPS[g.HUBS[q.hub].fieldMap].zones).length,3);
@@ -115,7 +115,7 @@ for(let index=0;index<g.NATIONWIDE_QUEST_ORDER.length;index++){
   assert.equal(journey.quests[id],'complete');assert.equal(journey.activeQuest,null);
   assert.equal(journey.bossDefeated[q.boss],true);
   assert.equal(journey.gold-before.gold,g.bossReward(q.boss).gold+(q.reward?.gold||0));
-  assert.equal(journey.tickets-before.tickets,q.reward?.tickets??200);
+  assert.equal(Object.hasOwn(journey,"tickets"),false);
   assert.equal('stream' in journey,false);
   const settled=JSON.stringify(journey);g.completeQuest(journey,id,{});assert.equal(JSON.stringify(journey),settled,'quest rewards must apply once');
   const back=field.objects.find(o=>o.fieldExit);journey.pos={x:back.x,y:back.y};g.arrive();
@@ -149,12 +149,12 @@ for(const id of ['M02','M03','M04','M05','M06','M07','M08','N44']){
   legacy.quests[id]='combatDone';legacy.activeQuest=id;legacy.bossDefeated[g.QUESTS[id].boss]=true;
   legacy.stream={hub:g.QUESTS[id].hub,hand:2,score:40};delete legacy.mapLayoutVersion;
   legacy.gold=1234;legacy.vaultGold=567;legacy.bag[0].n=7;
-  const bag=JSON.stringify(legacy.bag),equip=JSON.stringify(legacy.equip),tickets=legacy.tickets;
+  const bag=JSON.stringify(legacy.bag),equip=JSON.stringify(legacy.equip);legacy.tickets=246;
   g.migrate(legacy);assert.equal(legacy.quests[id],'complete');assert.equal(legacy.activeQuest,null);
   assert.equal('stream' in legacy,false);assert.equal(legacy.vaultGold,567);assert.equal(JSON.stringify(legacy.equip),equip);
   assert.equal(legacy.bag[0].n,7);assert(JSON.parse(bag).length<=legacy.bag.length);
-  assert.equal(legacy.gold,1234+(g.QUESTS[id].reward?.gold||0));
-  assert.equal(legacy.tickets,tickets+(g.QUESTS[id].reward?.tickets??200));
+  assert.equal(legacy.gold,1234+246+(g.QUESTS[id].reward?.gold||0));
+  assert.equal(Object.hasOwn(legacy,"tickets"),false);
   assert.equal(legacy.mapLayoutVersion,g.MAP_LAYOUT_VERSION);
   const once=JSON.stringify(legacy);g.migrate(legacy);assert.equal(JSON.stringify(legacy),once,'save migration must be idempotent');
 }

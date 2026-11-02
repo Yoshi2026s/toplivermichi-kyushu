@@ -52,7 +52,7 @@ function newGame(name, gender, options={}){
     visitedMaps:["KY01"], visitedHubs:["KY01"], xp:0,
     roster:["hero","moe"], party:["hero","moe"], vitals:null,
     jobs:{}, jp:{}, equip:{}, owned:{CW01:8, CA01:8}, pendingGifts:[], favorite:{},
-    gold:0, vaultGold:0, tickets:200, gifts:{W:{},A:{}},
+    gold:200, vaultGold:0, gifts:{W:{},A:{}},
     bag:INITIAL_ITEMS.map(([id,n])=>({id,n})), keep:[], itemVault:[], itemsVersion:1,
     quests:Object.fromEntries(Object.keys(QUESTS).map(id=>[id,id==="M01"?"available":"locked"])), qprog:{}, activeQuest:null,
     talked:{}, boxes:{}, cards:[], bossDefeated:{}, seen:{}, killCount:{},
@@ -496,7 +496,9 @@ function enemyPhase(run,visual=[]){
         if(battleRandom(run)<(t.petSpeedBonus>0?Math.min(.5,(t.evasionRate??0.02)+t.petSpeedBonus):(t.evasionRate??0.02))){visual.push({side:"party",slot:t.pos,kind:"miss",counter:true,source:e.slot,attr:e.attr});run.actionFlags.evaded=true;log.push(`${t.name}は${e.display}の攻撃をかわした！`);continue;}
         critical=!!run.expanded&&battleRandom(run)<(e.criticalRate??0.03);
       }
-      let inc=critical?Math.ceil(act.power*1.5):Math.max(0,act.power-run.V*(t.armorD+t.ward)-(run.expanded?Math.floor((t.defense||0)/6):0));
+      // Equipment cannot make every landed attack harmless. Active wards can still fully absorb it.
+      const armor=Math.max(0,run.V*(t.armorD||0)+(run.expanded?Math.floor((t.defense||0)/6):0));
+      let inc=critical?Math.ceil(act.power*1.5):Math.max(0,Math.max(act.power>0?1:0,act.power-armor)-run.V*(t.ward||0));
       if(!critical&&run.expanded) inc=Math.ceil(inc*(1-(t.trait?.reduction||0)));
       // Defense bonus shares character-defense units; V is reserved for wards.
       const petDefense=Math.max(0,Math.floor(((t.defense||0)+(t.petDefenseBonus||0))/6)-Math.floor((t.defense||0)/6));
@@ -531,7 +533,7 @@ function enemyPhase(run,visual=[]){
 
 /* ---- 戦闘報酬（第17B・17H節）。一度だけ適用 ---- */
 function applyVictory(st, run){
-  const res = { xp:0, gold:0, tickets:0, jp:[], levelBefore:levelOf(st.xp,st), levelAfter:0, gifts:[], quest:null, kills:0, notes:[] };
+  const res = { xp:0, gold:0, jp:[], levelBefore:levelOf(st.xp,st), levelAfter:0, gifts:[], quest:null, kills:0, notes:[] };
   if(run.rewardsApplied) return res;
   storeVitals(st, run); st.bag = clone(run.bag||st.bag||[]); res.items=[]; res.itemsKept=[]; res.itemsLost=[];
   const L0 = levelOf(st.xp,st); const max0 = Object.fromEntries(st.roster.map(cid=>[cid,charStats(st,cid,L0).maxHP]));
@@ -559,7 +561,7 @@ function applyVictory(st, run){
     const reward=bossReward(run.bossId);
     res.xp=addExperience(st,reward.xp); res.gold=reward.gold; st.gold+=reward.gold;
   }
-  if(run.kind==="challenge"){st.trainingWins=st.trainingWins||{};if(!st.trainingWins[run.trainingJob]){res.xp=addExperience(st,30+run.q);res.tickets=60;st.tickets+=60;st.trainingWins[run.trainingJob]=true;res.notes.push(`${JOBS[run.trainingJob].name}の実技を達成した。`);}}
+  if(run.kind==="challenge"){st.trainingWins=st.trainingWins||{};if(!st.trainingWins[run.trainingJob]){res.xp=addExperience(st,30+run.q);st.trainingWins[run.trainingJob]=true;res.notes.push(`${JOBS[run.trainingJob].name}の実技を達成した。`);}}
   // JP
   for(const m of run.party){
     const base = run.turn<=3 ? 12 : 6+2*Math.min(3,m.valid);
@@ -605,10 +607,10 @@ function completeQuest(st, qid, res){
   if(!Q||st.quests[qid]==="complete") return;
   st.quests[qid]="complete";
   if(st.activeQuest===qid) st.activeQuest=null;
-  const xp = addExperience(st,Q.reward?.xp??(Q.main?40:10)), tk = Q.reward?.tickets??(Q.main?200:80), gold=Q.reward?.gold||0;
+  const xp = addExperience(st,Q.reward?.xp??(Q.main?40:10)), gold=Q.reward?.gold||0;
   const ev = ITEM_EVENTS[qid]; if(ev) giveItem(st, ev[0], ev[1], res, `依頼${qid}の達成`);
-  st.tickets+=tk; st.gold+=gold;
-  if(res){ res.xp=(res.xp||0)+xp; res.tickets=(res.tickets||0)+tk; res.gold=(res.gold||0)+gold; res.quest=qid; }
+  st.gold+=gold;
+  if(res){ res.xp=(res.xp||0)+xp; res.gold=(res.gold||0)+gold; res.quest=qid; }
   const unlock=id=>{if(!st.quests[id]||st.quests[id]==="locked") st.quests[id]="available";};
   if(qid==="M01"){ st.moeRank=Math.max(st.moeRank,1); unlock("M02"); }
   if(qid==="M02"){ st.moeRank=Math.max(st.moeRank,2); st.fukuokaClear=true; unlock("M03"); }
@@ -1239,3 +1241,9 @@ function answerJobEvent(st,choice,token){
 }
 
 function battleMPCap(actor){return Number.isFinite(actor?.maxMP)?actor.maxMP:10;}
+
+function retireTickets(st){
+ if(Object.hasOwn(st,"tickets")){const old=st.tickets;if(!Number.isSafeInteger(old)||old<0||!Number.isSafeInteger(st.gold+old))throw Error("旧データの残高を所持金へ移行できません。");st.gold+=old;delete st.tickets;}
+ if(st.lastResult)delete st.lastResult.tickets;
+ return st;
+}

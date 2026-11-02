@@ -361,6 +361,9 @@ body.reduce-motion .battle-fx-layer{display:none}
 .sheet{overscroll-behavior-y:contain;scrollbar-color:#b7c9c9 #14283b}
 /* Separate action choices from their targets without narrowing touch controls. */
 .command-choices{flex:1 1 100%;min-width:0;max-width:100%;margin:0;padding:6px 8px 8px;border:1px solid #7c9ba4;border-radius:7px;box-sizing:border-box;background:#102b3a}.command-choices legend{padding:0 5px;color:#c0ded8;font-size:13px;font-weight:700}.choice-options{display:flex;flex-wrap:wrap;gap:6px;min-width:0}.choice-options .chip{max-width:100%;overflow-wrap:anywhere;text-align:left}.command-choices .hint{font-size:14px;line-height:1.5}
+.readonly-note{font-size:14px;line-height:1.5;margin:8px 0;padding:7px 9px;border-left:3px solid #abd1cd;background:#173746;color:#e1eeeb;overflow-wrap:anywhere}.xsave .readonly-note{margin:3px 0 0;padding:3px 6px}.sheet .readonly-note{margin-top:0}.rfoot .readonly-note{grid-column:1/-1}
+#screen button:disabled[aria-describedby~="readonlyContext"]{color:#b7bdc6;background:#1c2937;border-color:#637383;box-shadow:none;cursor:not-allowed}
+#dock .stick-confirm:disabled{color:#b7bdc6;background:#1c2937;border-color:#637383;box-shadow:none;cursor:not-allowed}
 </style>
 <style>
 /* 縦1列・幅上限480。濃紺の文字窓と生成りの二重枠（第21F・21K節）。単一の夜色テーマで統一 */
@@ -5708,6 +5711,7 @@ function render(){
   else if(s==="battle") html=renderBattle();
   else if(s==="result") html=renderResult();
   root.innerHTML = html + renderSheet() + renderDialog();
+  if(typeof syncReadOnlyUi==='function')syncReadOnlyUi();
   document.body.classList.toggle("in-battle", s==="battle"); document.body.classList.toggle("in-explore", s==="explore");
   document.body.classList.toggle("in-result",s==="result");
   if(s==="explore") mountCanvas();
@@ -5853,7 +5857,7 @@ function renderExplore(){
       <div class="srow"><span class="place">${esc(m.name)}</span><span>${st.day}日目</span></div>
       ${renderCurrentLocation()}
       <div class="goal">${esc(objective())}</div>
-      <div class="xsave small" aria-live="polite"><span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（閲覧のみ）":""}</div>
+      <div class="xsave small" aria-live="polite"><span id="saveStat">${esc(G.saveStatus)}</span></div>
     </header>
     <div class="mapwrap" data-map-kind="${esc(m.kind)}"><aside id="navRoute" class="map-route" aria-label="移動先" hidden></aside><canvas id="map" aria-label="${esc(m.name)}の地図。地面をタップすると移動します。"></canvas>
       <canvas id="minimap" aria-label="${m.continuousWorld?'全国ミニマップ。明るい地域は解放済み、暗い地域は未解放。点線は船路、丸は現在地、白枠は表示範囲。':'全体ミニマップ。白丸は現在地、白枠は表示範囲。城門は砦、家は街、ベッドは宿屋、瓶は道具屋、書類は職業窓口、肉球はペット施設。道＝道具、ペ＝ペット店、控＝控え所、宿＝宿屋、職＝職業、砦＝ボス、街＝出口'}"></canvas>
@@ -7995,7 +7999,8 @@ function updateControlHints(){
  else if(G.screen==='battle'&&!G.sheet){a=G.auto?'決定':document.querySelector('.cmd [data-a="confirmAct"]:not([disabled])')?'確定':'選ぶ';b=G.auto?'中断':!G.cmd?.type?'休止':'戻る';}
  else if(G.screen==='result'&&!G.sheet)a='MAPへ';
  const selected=document.activeElement;if(!G.sheet&&!G.dlg&&['battle','result'].includes(G.screen)&&selected?.closest?.('.battle,.result')){if(selected.matches('button[data-a="openSheet"]'))a=selected.textContent.trim();else if(selected.matches('summary'))a=selected.parentElement.open?'詳細を閉じる':'詳細を開く';}
- back.disabled=!!(G.dlg&&(G.dlg.i||0)===0&&(G.dlg.after||G.dlg.sceneId));confirm.textContent='決定';confirm.setAttribute('aria-label','決定：'+a);confirm.title=a;back.textContent='戻る';back.setAttribute('aria-label','戻る：'+b);back.title=b;
+ const readOnlyRoot=!!(G.readOnly&&!G.sheet&&!G.dlg&&['explore','battle','result'].includes(G.screen));if(readOnlyRoot){a=G.screen==='explore'?'閲覧項目を選ぶ':'閲覧専用';b='閲覧専用';}
+ back.disabled=readOnlyRoot||!!(G.dlg&&(G.dlg.i||0)===0&&(G.dlg.after||G.dlg.sceneId));confirm.textContent='決定';confirm.setAttribute('aria-label','決定：'+a);confirm.title=a;back.textContent='戻る';back.setAttribute('aria-label','戻る：'+b);back.title=b;
 }
 function manualTravelOverride(){if(!G.walkPlan)return;G.walkPlan=null;G.walk.path=G.walk.path.slice(0,1);G.walk.pending=null;updateNavigationHud();updateControlHints();}
 function navigationReleaseOnContextChange(){const next={state:G.st,screen:G.screen,sheet:G.sheet,dialog:G.dlg,run:G.st?.run,readonly:G.readOnly},old=NAV_UI.inputContext;if(old?.state===G.st&&['guide','quests'].includes(old.sheet)&&next.sheet!==old.sheet)navigationCaptureDraft(old.sheet);if(old&&Object.keys(next).some(k=>next[k]!==old[k])&&typeof PAD!=='undefined')PAD.release?.();NAV_UI.inputContext=next;}
@@ -8047,7 +8052,8 @@ function currentActionButton(el){return !el?.dataset?.actionEpoch||el.dataset.ac
 const actionSafetyRender=render;
 render=function(){
  const result=actionSafetyRender();document.querySelectorAll('[data-a]').forEach(el=>{if(ACTION_SCREEN_BUTTONS.has(el.dataset.a))el.dataset.actionEpoch=String(G.controlEpoch||0);});
- if(G.readOnly&&['battle','result'].includes(G.screen))document.querySelectorAll('#screen button[data-a]').forEach(el=>{if(!READ_ONLY_ACTIONS.has(el.dataset.a))el.disabled=true;});
+ // 案内HUDなど、描画の後半に追加した操作も同じ閲覧制限にそろえる。
+ if(typeof syncReadOnlyUi==='function')syncReadOnlyUi();
  const confirm=document.querySelector('#dock .stick-confirm');if(confirm){confirm.disabled=!!(G.readOnly&&['battle','result'].includes(G.screen)&&!G.sheet&&!G.dlg);if(confirm.disabled)confirm.setAttribute('aria-label','閲覧中のため決定できません');}
  return result;
 };
@@ -8319,6 +8325,14 @@ const READ_ONLY_ACTIONS=new Set([
   "helpFilter","helpSearch","helpPage","featureBack","managementShopSearch","managementShopFilter","managementShopPage","managementShopQty","managementEquipPreview","managementShopTalk","managementNpcTalk","managementGearSearch","managementGearPage","managementDisposePreview"
 ]);
 function systemOperationPending(){return !!(G.petSaving||G.characterSaving||G.oceanSaving||G.featureSaving||G.vaultSaving||G.shopSaving||G.starting);}
+function syncReadOnlyUi(){
+  if(!G.readOnly)return;
+  const sheet=document.querySelector('.sheet'),host=sheet||document.querySelector('.explore .xsave,.battle .cmd,.result .rfoot');
+  if(!host)return;
+  let note=document.getElementById('readonlyContext');
+  if(!note){note=document.createElement('p');note.id='readonlyContext';note.className='readonly-note';note.textContent='閲覧専用：この画面では記録を変更できません。操作中のタブで続けてください。';if(sheet)sheet.querySelector('.sheet-head').after(note);else host.prepend(note);}
+  document.querySelectorAll('#screen button[data-a]').forEach(button=>{if(READ_ONLY_ACTIONS.has(button.dataset.a))return;button.disabled=true;const ids=new Set((button.getAttribute('aria-describedby')||'').split(/\s+/).filter(Boolean));ids.add(note.id);button.setAttribute('aria-describedby',[...ids].join(' '));});
+}
 for(const [name,handler] of Object.entries(ACT)){
   ACT[name]=function(...args){
     if(systemOperationPending())return;

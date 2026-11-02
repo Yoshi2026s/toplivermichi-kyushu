@@ -4,7 +4,8 @@ function currentActionButton(el){return !el?.dataset?.actionEpoch||el.dataset.ac
 const actionSafetyRender=render;
 render=function(){
  const result=actionSafetyRender();document.querySelectorAll('[data-a]').forEach(el=>{if(ACTION_SCREEN_BUTTONS.has(el.dataset.a))el.dataset.actionEpoch=String(G.controlEpoch||0);});
- if(G.readOnly&&['battle','result'].includes(G.screen))document.querySelectorAll('#screen button[data-a]').forEach(el=>{if(!READ_ONLY_ACTIONS.has(el.dataset.a))el.disabled=true;});
+ // 案内HUDなど、描画の後半に追加した操作も同じ閲覧制限にそろえる。
+ if(typeof syncReadOnlyUi==='function')syncReadOnlyUi();
  const confirm=document.querySelector('#dock .stick-confirm');if(confirm){confirm.disabled=!!(G.readOnly&&['battle','result'].includes(G.screen)&&!G.sheet&&!G.dlg);if(confirm.disabled)confirm.setAttribute('aria-label','閲覧中のため決定できません');}
  return result;
 };

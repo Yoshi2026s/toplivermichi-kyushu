@@ -47,6 +47,9 @@ body.reduce-motion .battle-fx-layer{display:none}
 .sheet{overscroll-behavior-y:contain;scrollbar-color:#b7c9c9 #14283b}
 /* Separate action choices from their targets without narrowing touch controls. */
 .command-choices{flex:1 1 100%;min-width:0;max-width:100%;margin:0;padding:6px 8px 8px;border:1px solid #7c9ba4;border-radius:7px;box-sizing:border-box;background:#102b3a}.command-choices legend{padding:0 5px;color:#c0ded8;font-size:13px;font-weight:700}.choice-options{display:flex;flex-wrap:wrap;gap:6px;min-width:0}.choice-options .chip{max-width:100%;overflow-wrap:anywhere;text-align:left}.command-choices .hint{font-size:14px;line-height:1.5}
+.readonly-note{font-size:14px;line-height:1.5;margin:8px 0;padding:7px 9px;border-left:3px solid #abd1cd;background:#173746;color:#e1eeeb;overflow-wrap:anywhere}.xsave .readonly-note{margin:3px 0 0;padding:3px 6px}.sheet .readonly-note{margin-top:0}.rfoot .readonly-note{grid-column:1/-1}
+#screen button:disabled[aria-describedby~="readonlyContext"]{color:#b7bdc6;background:#1c2937;border-color:#637383;box-shadow:none;cursor:not-allowed}
+#dock .stick-confirm:disabled{color:#b7bdc6;background:#1c2937;border-color:#637383;box-shadow:none;cursor:not-allowed}
 </style>
 <style>
 /* 縦1列・幅上限480。濃紺の文字窓と生成りの二重枠（第21F・21K節）。単一の夜色テーマで統一 */

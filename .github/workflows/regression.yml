@@ -258,6 +258,9 @@ jobs:
       - run: node scripts/test-notice-input.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-readonly-clarity.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -267,4 +270,5 @@ jobs:
             .task/focus-visibility/
             .task/command-groups/
             .task/notice-input/
+            .task/readonly-clarity/
           if-no-files-found: ignore

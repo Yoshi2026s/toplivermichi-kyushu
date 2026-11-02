@@ -112,6 +112,7 @@ function render(){
   else if(s==="battle") html=renderBattle();
   else if(s==="result") html=renderResult();
   root.innerHTML = html + renderSheet() + renderDialog();
+  if(typeof syncReadOnlyUi==='function')syncReadOnlyUi();
   document.body.classList.toggle("in-battle", s==="battle"); document.body.classList.toggle("in-explore", s==="explore");
   document.body.classList.toggle("in-result",s==="result");
   if(s==="explore") mountCanvas();
@@ -257,7 +258,7 @@ function renderExplore(){
       <div class="srow"><span class="place">${esc(m.name)}</span><span>${st.day}日目</span></div>
       ${renderCurrentLocation()}
       <div class="goal">${esc(objective())}</div>
-      <div class="xsave small" aria-live="polite"><span id="saveStat">${esc(G.saveStatus)}</span>${G.readOnly?"（閲覧のみ）":""}</div>
+      <div class="xsave small" aria-live="polite"><span id="saveStat">${esc(G.saveStatus)}</span></div>
     </header>
     <div class="mapwrap" data-map-kind="${esc(m.kind)}"><aside id="navRoute" class="map-route" aria-label="移動先" hidden></aside><canvas id="map" aria-label="${esc(m.name)}の地図。地面をタップすると移動します。"></canvas>
       <canvas id="minimap" aria-label="${m.continuousWorld?'全国ミニマップ。明るい地域は解放済み、暗い地域は未解放。点線は船路、丸は現在地、白枠は表示範囲。':'全体ミニマップ。白丸は現在地、白枠は表示範囲。城門は砦、家は街、ベッドは宿屋、瓶は道具屋、書類は職業窓口、肉球はペット施設。道＝道具、ペ＝ペット店、控＝控え所、宿＝宿屋、職＝職業、砦＝ボス、街＝出口'}"></canvas>

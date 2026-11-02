@@ -1,6 +1,6 @@
 /* 能力・職業特性・職歴装備。旧セーブの数値と所持品は移行時に保持する。 */
 const CHARACTER_SYSTEM_VERSION=1;
-const ABILITY_NAMES={vitality:"体力",strength:"ちから",defense:"身の守り",agility:"すばやさ",charm:"魅力"};
+const ABILITY_NAMES={vitality:"体力",strength:"ちから",defense:"身の守り",agility:"すばやさ",intelligence:"かしこさ",charm:"魅力"};
 const CAREER_NAMES=["社会福祉士","会社員","公務員","教師","保育士","看護師","医療事務","介護職","調理師","栄養士","ショップ店員","スーパーのレジ担当","工場作業者","トラック運転手","電気工事士","配管工","建築士","大工","システムエンジニア","デザイナー","写真家","映像制作者","観光ガイド","ホテルスタッフ","農業従事者","漁業従事者","美容師","スポーツ指導者","音楽家","俳優","自営業","学生","これから探す"];
 const CAREERS={};
 CAREER_NAMES.forEach((name,i)=>{
@@ -34,6 +34,7 @@ const JOB_TRAITS={
   J21:{name:"確かな構図",text:"会心率＋8%。単体攻撃の追加値＋1。",crit:.08,single:1,mult:[.98,1.12,.95,1.12,1.08]},
   J22:{name:"出番を支える",text:"応援コメントと応援技能のエール＋4。",cheer:4,mult:[1.05,.98,1,1,1.18]}
 };
+const JOB_INTELLIGENCE_MULT=Object.fromEntries(JOB_IDS.map((id,i)=>[id,[.85,1.35,1,1.2,1.05,.9,1,1.2,1.15,1.25,1.15,1.15,1.35,1.15,1.05,1.1,1.2,1.25,1.1,1.1,1.05,1.3][i]]));
 const SIGNATURES={hero:{name:"推し色の大合唱",effect:"all",power:28},moe:{name:"あなたへ返す光",effect:"healAll",power:24},naoki:{name:"夜明けのライトワーク",effect:"single",power:48},kohei:{name:"約束の機材便",effect:"all",power:30},mio:{name:"おかえりケア",effect:"reviveAll",power:28},kayo:{name:"みんなの差し入れ",effect:"mpAll",power:6},tsumugi:{name:"声をつなぐ回路",effect:"all",power:34},makoto:{name:"星空のステージ",effect:"wardAll",power:8},gaku:{name:"ひらく音の道",effect:"pierce",power:44}};
 const EXTRA_SKILLS={};
 for(const [i,job] of JOB_IDS.entries()){

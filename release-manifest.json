@@ -2,27 +2,27 @@
   "version": "5.34",
   "schemaVersion": 5,
   "buildDate": "2026-10-31",
-  "sourceFileCount": 36,
+  "sourceFileCount": 37,
   "files": {
     "index.html": {
-      "bytes": 8663391,
-      "sha256": "786478c922a2e53c91fd91dd81fca3056b908c5ac37813ffdd289a38ba5e1676"
+      "bytes": 8680006,
+      "sha256": "e7980d51705f943710e01ae2bb31c25b50f3f74164fbff64697a36dc8bba9f6b"
     },
     "README.md": {
-      "bytes": 12554,
-      "sha256": "2263eb3344b39079879301662ba2e8ae6d80ea18bd5b1e131363d3d0dd8ab25f"
+      "bytes": 12889,
+      "sha256": "4bd474d2be323d19e038a1eaecf8214343ccce42e1065fba83c035aca322e367"
     },
     "VERSION.txt": {
       "bytes": 156,
       "sha256": "4bc1061edf51ac10ad713f2821a194ff940adda9b29493df28c69f92fa49556e"
     },
     "GAME_SPEC.md": {
-      "bytes": 25842,
-      "sha256": "99b2a5167e08e5a005ab7e503aedadefaa0610d457fbc25a5c170aca70d44239"
+      "bytes": 27401,
+      "sha256": "4ba658fa032ac2dd8ce25488c214515035b68d8089347044052e9df96d1816a2"
     },
     "GAME_SPEC.txt": {
-      "bytes": 25842,
-      "sha256": "99b2a5167e08e5a005ab7e503aedadefaa0610d457fbc25a5c170aca70d44239"
+      "bytes": 27401,
+      "sha256": "4ba658fa032ac2dd8ce25488c214515035b68d8089347044052e9df96d1816a2"
     }
   },
   "assets": {

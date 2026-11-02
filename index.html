@@ -365,6 +365,8 @@ body.reduce-motion .battle-fx-layer{display:none}
 #screen button:disabled[aria-describedby~="readonlyContext"]{color:#b7bdc6;background:#1c2937;border-color:#637383;box-shadow:none;cursor:not-allowed}
 #dock .stick-confirm:disabled{color:#b7bdc6;background:#1c2937;border-color:#637383;box-shadow:none;cursor:not-allowed}
 .menu-grid .btn[data-k="equipment"]{--menu-icon:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m4%203%208%208-3%203-8-8V3h3Zm9%208%203%203m-6%201-3%203m1-5-3%203m6%201%203%203m1-9%206-6v6l-4%204M14%2021l7-7%22%2F%3E%3C%2Fsvg%3E")}
+.gear-set-compare{width:100%;table-layout:fixed;border-collapse:collapse;font-size:14px;margin:12px 0}.gear-set-compare th,.gear-set-compare td{padding:8px 3px;border-bottom:1px solid #e8cc7c33;text-align:right;overflow-wrap:anywhere}.gear-set-compare th:first-child{width:31%;text-align:left}.gear-set-compare thead{color:#ecd18b}.gear-set-compare tbody th{font-weight:600}.gear-set-actions{margin:8px 0}.gear-shop-suggestions{margin:8px 0 14px}.set-cost{padding:10px;border:1px solid #d5bc78;border-radius:10px}
+.ability-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}.ability-summary>div{padding:8px;background:#132d4155;border-radius:8px;min-width:0}.ability-summary dt{font-size:14px;overflow-wrap:anywhere}.ability-summary dd{margin:4px 0 0;font-size:17px;font-weight:700}
 </style>
 <style>
 /* 縦1列・幅上限480。濃紺の文字窓と生成りの二重枠（第21F・21K節）。単一の夜色テーマで統一 */
@@ -2302,7 +2304,7 @@ for(const [id,m]of Object.entries(MAPS)){if(m.kind!=='town')continue;m.objects=m
 
 /* 能力・職業特性・職歴装備。旧セーブの数値と所持品は移行時に保持する。 */
 const CHARACTER_SYSTEM_VERSION=1;
-const ABILITY_NAMES={vitality:"体力",strength:"ちから",defense:"身の守り",agility:"すばやさ",charm:"魅力"};
+const ABILITY_NAMES={vitality:"体力",strength:"ちから",defense:"身の守り",agility:"すばやさ",intelligence:"かしこさ",charm:"魅力"};
 const CAREER_NAMES=["社会福祉士","会社員","公務員","教師","保育士","看護師","医療事務","介護職","調理師","栄養士","ショップ店員","スーパーのレジ担当","工場作業者","トラック運転手","電気工事士","配管工","建築士","大工","システムエンジニア","デザイナー","写真家","映像制作者","観光ガイド","ホテルスタッフ","農業従事者","漁業従事者","美容師","スポーツ指導者","音楽家","俳優","自営業","学生","これから探す"];
 const CAREERS={};
 CAREER_NAMES.forEach((name,i)=>{
@@ -2336,6 +2338,7 @@ const JOB_TRAITS={
   J21:{name:"確かな構図",text:"会心率＋8%。単体攻撃の追加値＋1。",crit:.08,single:1,mult:[.98,1.12,.95,1.12,1.08]},
   J22:{name:"出番を支える",text:"応援コメントと応援技能のエール＋4。",cheer:4,mult:[1.05,.98,1,1,1.18]}
 };
+const JOB_INTELLIGENCE_MULT=Object.fromEntries(JOB_IDS.map((id,i)=>[id,[.85,1.35,1,1.2,1.05,.9,1,1.2,1.15,1.25,1.15,1.15,1.35,1.15,1.05,1.1,1.2,1.25,1.1,1.1,1.05,1.3][i]]));
 const SIGNATURES={hero:{name:"推し色の大合唱",effect:"all",power:28},moe:{name:"あなたへ返す光",effect:"healAll",power:24},naoki:{name:"夜明けのライトワーク",effect:"single",power:48},kohei:{name:"約束の機材便",effect:"all",power:30},mio:{name:"おかえりケア",effect:"reviveAll",power:28},kayo:{name:"みんなの差し入れ",effect:"mpAll",power:6},tsumugi:{name:"声をつなぐ回路",effect:"all",power:34},makoto:{name:"星空のステージ",effect:"wardAll",power:8},gaku:{name:"ひらく音の道",effect:"pierce",power:44}};
 const EXTRA_SKILLS={};
 for(const [i,job] of JOB_IDS.entries()){
@@ -2656,7 +2659,8 @@ function charStats(st, cid, L, jobOverride, equipOverride){
   const S = Kof(R) + (W && W.job===job ? 1 : 0);
   const supportHP = 0;
   const maxHP = 50+6*(L-1) + 2*Math.floor(R/2) + V*(((A&&A.hp)||0)+((X&&X.hp)||0)+supportHP);
-  const startC = Math.min(10, 8+(R>=5?1:0)+((W&&W.c)||0)+((A&&A.c)||0)+((X&&X.c)||0));
+  const rawMP=8+(R>=5?1:0)+((W&&W.c)||0)+((A&&A.c)||0)+((X&&X.c)||0);
+  const startC = st.characterVersion===1?rawMP:Math.min(10,rawMP);
   const stats={ job, R, S, V, maxHP, startC,
     wAtk:(W&&W.atk)||0, accAtk:(X&&X.atk)||0, armorD:(A&&A.d)||0,
     commentA:((W&&W.commentA)||0)+((X&&X.commentA)||0),
@@ -3684,7 +3688,8 @@ function migrateCharacter(st){
     const run=st.run;run.expanded=true;run.rngState=Number.isInteger(run.rngState)&&run.rngState!==0?run.rngState:((run.seq||1)*2654435761)>>>0;run.rngCount=Number.isInteger(run.rngCount)?run.rngCount:0;
     for(const m of run.party||[]){
       const s=charStats(st,m.cid,run.L||levelOf(st.xp,st));
-      for(const key of ["vitality","strength","defense","agility","charm","criticalRate","evasionRate","trait"])m[key]=s[key];
+      for(const key of ["vitality","strength","defense","agility","intelligence","charm","criticalRate","evasionRate","trait"])m[key]=s[key];
+      m.maxMP=s.startC;m.c=Math.max(0,Math.min(m.maxMP,Number(m.c)||0));
       m.learnedJobs=[...(st.learnedJobs[m.cid]||[])];m.learnedSkills=[...(st.learnedSkills[m.cid]||[])];m.cooldowns=m.cooldowns||{};m.signatureUsed=!!m.signatureUsed;m.name=charName(st,m.cid);
     }
   }
@@ -3697,9 +3702,11 @@ function expandedCharStats(st,cid,L,s,equipment){
   const strength=Math.max(1,Math.floor((10+2*(L-1)+Math.floor(s.R/3))*mult[1])+add("strength"));
   const defense=Math.max(1,Math.floor((8+L-1+Math.floor(s.R/3))*mult[2])+add("defense"));
   const agility=Math.max(1,Math.floor((8+L-1+Math.floor(s.R/4))*mult[3])+add("agility"));
+  const intelligence=Math.max(1,Math.floor((12+2*(L-1)+Math.floor(s.R/3))*JOB_INTELLIGENCE_MULT[s.job])+add("intelligence"));
+  const startC=Math.max(1,s.startC+Math.max(0,Math.floor(intelligence/6)-2));
   const charm=Math.max(1,Math.floor((10+Math.floor((L-1)*.8)+Math.floor(s.R/3))*mult[4])+add("charm"));
   const maxHP=Math.max(1,Math.floor(s.maxHP*mult[0])+add("vitality")*2);
-  return {...s,maxHP,vitality,strength,defense,agility,charm,trait,attackPower:10+2*L+s.V*(s.wAtk+s.accAtk+Math.floor(strength/6)+(trait.single||0)),defensePower:s.V*s.armorD+Math.floor(defense/6),criticalRate:Math.min(.30,.03+agility/1800+(trait.crit||0)),evasionRate:Math.min(.25,.02+agility/2000+(trait.evasion||0))};
+  return {...s,maxHP,startC,vitality,strength,defense,agility,intelligence,charm,trait,attackPower:10+2*L+s.V*(s.wAtk+s.accAtk+Math.floor(strength/6)+(trait.single||0)),defensePower:s.V*s.armorD+Math.floor(defense/6),criticalRate:Math.min(.30,.03+agility/1800+(trait.crit||0)),evasionRate:Math.min(.25,.02+agility/2000+(trait.evasion||0))};
 }
 function learnCharacterSkills(st){
   if(typeof EXTRA_SKILLS==="undefined") return;
@@ -5836,7 +5843,7 @@ function renderStatus(){
       <div class="who"><canvas class="sprite-md" data-char="${cid}" width="192" height="288" aria-hidden="true"></canvas>
         <div><b class="sname">${esc(cid==="moe"?charName(st,"moe"):cid==="hero"?st.profile.name:C.full)}</b><br><span class="small">${inParty?"戦闘メンバー":"控え"}・Lv${L} ${esc(JOBS[s.job].name)}${v.hp<=0?"・戦闘不能":isLow(v.hp,s.maxHP)?"・体力わずか":""}</span></div></div>
       <div class="status-vitals"><div><span>体力（HP）</span><b>${v.hp} / ${s.maxHP}</b><span class="bar"><i style="width:${Math.round(100*v.hp/s.maxHP)}%"></i></span></div><div><span>MP</span><b>${v.c} / ${s.startC}</b><span class="bar cp"><i style="width:${Math.round(100*v.c/s.startC)}%"></i></span></div></div>
-      <details class="status-details"><summary>能力・装備の詳細</summary><dl class="kv">
+      <dl class="ability-summary" aria-label="基礎能力">${(typeof ABILITY_NAMES!=="undefined"?Object.entries(ABILITY_NAMES):[]).map(([k,name])=>`<div><dt>${name}</dt><dd>${s[k]||0}</dd></div>`).join("")}</dl><details class="status-details"><summary>能力・装備の詳細</summary><dl class="kv">
         <dt>レベル</dt><dd>${L}</dd>
         <dt>職業</dt><dd>${esc(JOBS[s.job].name)}</dd>
         <dt>職業熟練度</dt><dd>${s.R}${s.R<jobLimit(st,cid,s.job)?`（次まで ${Math.max(0,jpFor(s.R+1)-jp)}）`:"（現在の上限）"}</dd>
@@ -7251,8 +7258,8 @@ renderSheet=function(){
 const characterBaseRenderStatus=renderStatus;
 renderStatus=function(){
   const st=G.st,L=levelOf(st.xp,st);
-  return characterBaseRenderStatus()+`<details class="status-details"><summary>5つの能力と職業特性</summary><div class="stack">${st.roster.map(cid=>{
-    const s=charStats(st,cid,L);return `<section class="qcard"><b>${esc(charName(st,cid))}</b><dl class="kv">${Object.entries(ABILITY_NAMES).map(([id,name])=>`<dt>${name}</dt><dd>${s[id]||0}</dd>`).join("")}<dt>攻撃力</dt><dd>${s.attackPower||0}</dd><dt>防御力</dt><dd>${s.defensePower||0}</dd><dt>会心率</dt><dd>${Math.round((s.criticalRate||0)*1000)/10}%</dd><dt>回避率</dt><dd>${Math.round((s.evasionRate||0)*1000)/10}%</dd></dl><p class="small">${esc(JOB_TRAITS[s.job].name)}：${esc(JOB_TRAITS[s.job].text)}</p><button class="btn" data-a="characterSkills" data-c="${cid}">習得技と条件</button></section>`;
+  return characterBaseRenderStatus()+`<p class="small ability-links">ちからは攻撃力、身の守りは防御力、すばやさは回避率・会心率、体力は最大HP、かしこさは最大MPに反映します。</p><details class="status-details"><summary>基礎能力・職業ごとの成長</summary><p class="small">次のLvは、現在の職業・装備・熟練度で比較します。転職すると、その職業の能力と成長に切り替わります。</p><div class="stack">${st.roster.map(cid=>{
+    const s=charStats(st,cid,L),next=L<levelLimit(st)?charStats(st,cid,L+1):null;return `<section class="qcard"><b>${esc(charName(st,cid))}</b><dl class="kv">${Object.entries(ABILITY_NAMES).map(([id,name])=>`<dt>${name}</dt><dd>${s[id]||0}${next?` <span class="small">→ ${next[id]}（次のLv＋${next[id]-s[id]}）</span>`:""}</dd>`).join("")}<dt>攻撃力</dt><dd>${s.attackPower||0}</dd><dt>防御力</dt><dd>${s.defensePower||0}</dd><dt>会心率</dt><dd>${Math.round((s.criticalRate||0)*1000)/10}%</dd><dt>回避率</dt><dd>${Math.round((s.evasionRate||0)*1000)/10}%</dd></dl><p class="small">${esc(JOB_TRAITS[s.job].name)}：${esc(JOB_TRAITS[s.job].text)}</p><button class="btn" data-a="characterSkills" data-c="${cid}">習得技と条件</button></section>`;
   }).join("")}</div></details>`;
 };
 const characterBaseRenderCommand=renderCommand;
@@ -7720,7 +7727,7 @@ const SYSTEM_HELP={
   quest:{name:"依頼と物語",text:"街で依頼を受け、街外の通常敵を必要数倒すと地域ボスへ挑めます。討伐で依頼が完了し次の地域への道が開きます。完了した会話は記録から再読できます。"},
   battle:{name:"戦闘・対処・オート",text:"攻撃・職業技能・追加技能・応援・ガード・MP回復・道具・必殺技が使えます。オートは「手動に戻す」で中断できます。ボスのため予告には、指定の行動を異なる2人で対処します。"},
   job:{name:"職業とハローワーク",text:"各街のハローワークで職業ごとの3段階イベントに参加します。完了した職業へ転職できます。熟練度と習得済みの技能は維持されます。新しい職業に合わない専用装備は外れます。街外の実技課題は10ターン以内の勝利を目指します。"},
-  stats:{name:"能力・会心・回避",text:"体力、ちから、身の守り、すばやさ、魅力の5能力があります。職業特性と装備が能力や行動に反映されます。会心は敵防御を無視し1.5倍。敵の痛恨は防御・防護を無視しますがガードは有効です。能力はステータスで確認できます。"},
+  stats:{name:"能力・会心・回避",text:"ちからは攻撃力、身の守りは防御力、すばやさは回避率・会心率、体力は最大HP、かしこさは最大MPに反映します。魅力も維持されます。成長値は現在の職業で変わり、ステータスで次のレベルの値を確認できます。会心は敵防御を無視し1.5倍。敵の痛恨は防御・防護を無視しますがガードは有効です。能力はステータスで確認できます。"},
   skills:{name:"追加技能と必殺技",text:"レベルと職業熟練度を満たすと追加技能を習得します。継承枠へ装備すると他の職業でも使えます。再使用までの残りターンと消費MPを確認してください。人物固有の必殺技は必要なエールを蓄えて使います。"},
   pets:{name:"ペットのお世話と成長",text:"22種類のペットは★1〜★5。高レアほどお迎え・用品のゴールド料金が高価で、なつき度はゆっくり育つ分、技が強力です。育成の端数も保存され、すでに育った段階は下がりません。10段階に成長し、段階1・3・5・8で4つの技を習得します。最大2匹が戦闘で毎ターン最初に行動します。回復・攻撃・防御・すばやさ強化・敵の攻撃低下・混乱・睡眠など、種類と成長で支援内容が変わります。商店街のペットショップでお迎え・用品購入、控え所でお世話・同行選択ができます。ペットメニューは状態・習得済みと習得予定の技を確認できます。ごはん・遊ぶ・お手入れ・休憩・練習・なでるは別々の日次記録です。用品不要の交流遊びは3種類から1日1回。なつき度20・50・80のお祝いは空きがある時に受け取れます。"},
   petTravel:{name:"おさんぽと旅のお手伝い",text:"ひだまりの庭・にぎやかな広場・小川のほとりから行き先を選びます。全ペットで1日1回。用品の保管先と実際の増加量を確認して出発します。旅のお手伝いはバランス・HP・MP重視から選び、生存者だけを回復します。翌日になると日次回数が戻ります。"},
@@ -7878,7 +7885,7 @@ function managementGearPlan(st,cid,slot,id,from=null){
   if(afterCount>UNEQUIPPED_GEAR_MAX&&afterCount>beforeCount)return {ok:false,reason:"未装備品の上限300種類を超えます。金庫へ預けてください。"};
   return {ok:true,cid,slot,id:id||null,from,equipment:next,affected:[cid,...(from?[from]:[])]};
 }
-function managementStatsCompare(st,cid,equip){const L=levelOf(st.xp,st),a=charStats(st,cid,L),b=charStats(st,cid,L,null,equip);const labels=[['maxHP','最大体力'],['startC','最大MP'],['strength','ちから'],['defense','身の守り'],['agility','すばやさ'],['charm','魅力']];return `<b>${esc(charName(st,cid))}</b><dl class="kv">${labels.filter(([k])=>a[k]!==undefined).map(([k,label])=>`<dt>${label}</dt><dd>${a[k]} → ${b[k]}（${b[k]-a[k]>=0?"＋":""}${b[k]-a[k]}）</dd>`).join("")}<dt>攻撃力</dt><dd>${attackPower(a,L)} → ${attackPower(b,L)}</dd><dt>防御力</dt><dd>${defensePower(a,L)} → ${defensePower(b,L)}</dd></dl>`;}
+function managementStatsCompare(st,cid,equip){const L=levelOf(st.xp,st),a=charStats(st,cid,L),b=charStats(st,cid,L,null,equip);const labels=[['maxHP','最大体力'],['startC','最大MP'],['vitality','体力'],['intelligence','かしこさ'],['strength','ちから'],['defense','身の守り'],['agility','すばやさ'],['charm','魅力']];return `<b>${esc(charName(st,cid))}</b><dl class="kv">${labels.filter(([k])=>a[k]!==undefined).map(([k,label])=>`<dt>${label}</dt><dd>${a[k]} → ${b[k]}（${b[k]-a[k]>=0?"＋":""}${b[k]-a[k]}）</dd>`).join("")}<dt>攻撃力</dt><dd>${attackPower(a,L)} → ${attackPower(b,L)}</dd><dt>防御力</dt><dd>${defensePower(a,L)} → ${defensePower(b,L)}</dd></dl>`;}
 const managementBaseRenderParty=renderParty;
 renderParty=function(){
   const st=G.st,d=G.sheetData;if(!st.roster.includes(d.cid)||!d.view?.startsWith("eq:"))return managementBaseRenderParty();
@@ -7938,6 +7945,55 @@ function renderEquipmentMenu(){
  const st=G.st,d=G.sheetData;d.cid=st.roster.includes(d.cid)?d.cid:st.roster[0];if(!["eq:w","eq:a","eq:acc"].includes(d.view))d.view="eq:w";
  return `<p class="small">${isSafe()?"仲間と部位を選び、変更前に能力を比較できます。":"街で装備を変更できます。ここでは比較だけ行えます。"}</p><div class="opts" role="group" aria-label="装備する仲間">${st.roster.map(cid=>`<button class="btn" data-a="partyView" data-c="${cid}" data-v="${d.view}" aria-pressed="${cid===d.cid}">${esc(charName(st,cid))}</button>`).join("")}</div>`+renderParty().replace(/<button class="btn" data-a="partyView" data-c="[^"]+" data-v="">人物へ戻る<\/button>/,"");
 }
+
+/* Exact, side-effect-free set selection. Only carried spare copies and the actor's equipment are available. */
+const GEAR_SET_SLOTS=['w','a','acc'];
+function gearSetFits(st,cid,id,slot){if(id===null)return true;const it=Object.hasOwn(EQUIP,id)?EQUIP[id]:null;if(!it||it.slot!==slot)return false;const s=charStats(st,cid,levelOf(st.xp,st));return !it.job||(it.job===s.job&&s.R>=(it.needR||0));}
+function gearSetCatalog(st,shop){if(!Object.hasOwn(SHOPS,shop))return [];return [...new Set([...SHOPS[shop].items,...JOB_IDS.filter(j=>st.gifts?.W?.[j]).map(j=>'JW'+j.slice(1)),...JOB_IDS.filter(j=>st.gifts?.A?.[j]).map(j=>'JA'+j.slice(1))])].filter(id=>Object.hasOwn(EQUIP,id)&&!EQUIP[id].exchangeOnly&&Number.isSafeInteger(EQUIP[id].price)&&EQUIP[id].price>=0);}
+function gearSetRole(st,cid){const t=JOB_TRAITS[st.jobs[cid]];if(t.heal||t.itemHeal||t.mpHeal)return {key:'support',text:'回復・支援向け：最大MP・HPと回復の補助を重視'};if(t.reduction||t.teamWard||t.startWard)return {key:'guard',text:'守り向け：防御力・最大HPとMPを重視'};if(t.single||t.pierce||t.crit||t.multi)return {key:'attack',text:'攻撃向け：攻撃力・会心率とMPを重視'};return {key:'balance',text:'バランス型：攻守・HP・MP・応援を重視'};}
+function gearSetScore(s,mode,role){const atk=s.attackPower??(10+2*s.L+s.V*(s.wAtk+s.accAtk)),def=s.defensePower??s.V*s.armorD;if(mode==='strongest')return [atk+def,atk,def,s.maxHP,s.startC];const w=role==='support'?[2,3,.15,5]:role==='guard'?[2,5,.3,2]:role==='attack'?[5,2,.1,2.5]:[3,3,.18,3];return [atk*w[0]+def*w[1]+s.maxHP*w[2]+s.startC*w[3]+(s.criticalRate||0)*150+(s.evasionRate||0)*180+(s.charm||0)*.2+(s.pouch?(role==='support'?8:3):0)+(s.rest||0)*2+(s.commentA||0)+(s.family||0)+(s.meter||0)*.5+(s.S||0)*2,atk+def,s.maxHP,s.startC];}
+function gearSetCompareScores(a,b){for(let i=0;i<a.length;i++)if(Math.abs(a[i]-b[i])>1e-8)return a[i]>b[i]?1:-1;return 0;}
+function gearSetCheck(st,cid,target,{source='owned',shop=null}={}){
+ if(!st.roster.includes(cid)||!target||!['owned','shop'].includes(source))return {ok:false,reason:'装備を選び直してください。'};
+ const catalog=source==='shop'?new Set(gearSetCatalog(st,shop)):new Set(),buys=[],owned={...st.owned};let total=0,changed=0;
+ for(const slot of GEAR_SET_SLOTS){const id=target[slot];if(id!==null&&(typeof id!=='string'||!gearSetFits(st,cid,id,slot)))return {ok:false,reason:'職業・熟練度・部位が合いません。'};if(id===null){changed+=st.equip[cid][slot]!==null;continue;}changed+=id!==st.equip[cid][slot];if(id!==st.equip[cid][slot]&&availableCount(st,id)<1){if(!catalog.has(id)||gearReceiveRoom(st,id)<1)return {ok:false,reason:'使える在庫がありません。'};const price=EQUIP[id].price;total+=price;if(!Number.isSafeInteger(total))return {ok:false,reason:'合計金額が上限を超えます。'};owned[id]=(owned[id]||0)+1;buys.push({id,qty:1,price});}}
+ if(buys.length&&!Number.isSafeInteger(st.gold))return {ok:false,reason:'所持金を確認してください。'};
+ if(total>st.gold)return {ok:false,reason:'所持金が足りません。'};
+ const held={...st,owned},before=unequippedGearCount(st),purchased=unequippedGearCount(held);if(buys.length&&purchased>UNEQUIPPED_GEAR_MAX&&purchased>before)return {ok:false,reason:'購入後の未装備品が300種類を超えます。'};
+ const equip={...st.equip,[cid]:{...target}},after=unequippedGearCount({...held,equip});if(after>UNEQUIPPED_GEAR_MAX&&after>before)return {ok:false,reason:'装備変更後の未装備品が300種類を超えます。'};
+ return {ok:true,cid,target:{...target},buys,total,changed};
+}
+function gearSetPlan(st,cid,mode,source='owned',shop=null){
+ if(!st.roster.includes(cid)||!['strongest','recommended'].includes(mode)||!['owned','shop'].includes(source)||source==='shop'&&!Object.hasOwn(SHOPS,shop))return {ok:false,reason:'提案を選び直してください。'};
+ const current=st.equip[cid],L=levelOf(st.xp,st),role=gearSetRole(st,cid),catalog=source==='shop'?new Set(gearSetCatalog(st,shop)):new Set(),pool=[...new Set([...Object.keys(st.owned).filter(id=>st.owned[id]>0),...catalog])],spares=new Map(pool.map(id=>[id,availableCount(st,id)])),before=unequippedGearCount(st);
+ const choices=GEAR_SET_SLOTS.map(slot=>{const old=current[slot]||null;return [...new Set([old,null,...pool])].filter(id=>id===null||gearSetFits(st,cid,id,slot)).flatMap(id=>{const same=id===old,spare=spares.get(id)||0,buy=!!id&&!same&&spare<1;if(buy&&(!catalog.has(id)||gearReceiveRoom(st,id)<1))return [];const cost=buy?EQUIP[id].price:0,delta=(old&&!same&&availableCount(st,old)===0?1:0)-(id&&!same&&!buy&&spare===1?1:0);return [{id,cost,buy:buy?1:0,changed:same?0:1,delta}];});});
+ let best=null;
+ for(const w of choices[0])for(const a of choices[1])for(const acc of choices[2]){const total=w.cost+a.cost+acc.cost,buys=w.buy+a.buy+acc.buy,changed=w.changed+a.changed+acc.changed,after=before+w.delta+a.delta+acc.delta;if(!Number.isSafeInteger(total)||total>st.gold||buys&&(!Number.isSafeInteger(st.gold)||before+buys>UNEQUIPPED_GEAR_MAX)||after>UNEQUIPPED_GEAR_MAX&&after>before)continue;const target={w:w.id,a:a.id,acc:acc.id},stats=charStats(st,cid,L,null,target),score=gearSetScore({...stats,L},mode,role.key),order=best?gearSetCompareScores(score,best.score):1;if(order>0||order===0&&(total<best.total||total===best.total&&changed<best.changed))best={target,total,changed,score};}
+ if(!best)return {ok:false,reason:'今の所持金・在庫・職業条件ではセットを組めません。'};
+ const checked=gearSetCheck(st,cid,best.target,{source,shop});return checked.ok?{...checked,score:best.score,mode,source,shop,role:role.text}:checked;
+}
+/* UI: a proposal never changes the save; buying and equipping are separate confirmed transactions. */
+function gearSetStateToken(st){return checksum(JSON.stringify([managementToken(st),st.xp,st.gifts,st.quests,st.support,st.characterVersion]));}
+function gearSetSignature(p){return checksum(JSON.stringify([p.cid,p.mode,p.source,p.shop,p.target,p.buys,p.total,p.changed]));}
+function gearSetAtShop(id){return nearbyObjects().some(o=>o.type==='shop'&&o.shop===id);}
+function gearSetViewContext(keys,el){return !!G.st&&G.screen==='explore'&&!G.st.run&&!G.dlg&&!systemOperationPending()&&keys.includes(G.sheet)&&currentActionButton(el)&&(typeof HTMLElement==='undefined'||el instanceof HTMLElement&&el.isConnected);}
+function gearSetProposalFresh(d){return !!d?.plan?.ok&&d.stateToken===gearSetStateToken(G.st)&&d.signature===gearSetSignature(d.plan);}
+function gearSetOptions(cid,source,shop){return `<div class="opts gear-set-actions"><button class="btn" data-a="gearSetPreview" data-c="${cid}" data-mode="strongest" data-v="strongest" data-source="${source}" data-shop="${shop||''}">最強セットを提案</button><button class="btn" data-a="gearSetPreview" data-c="${cid}" data-mode="recommended" data-v="recommended" data-source="${source}" data-shop="${shop||''}">おすすめセットを提案</button></div>`;}
+function gearSetRules(){return '<p class="small">最強は攻撃力と防御力の合計を優先。おすすめは職業に合わせ、HP・MPや支援効果も重視します。使える在庫は、本人の装備と手元の未装備品です。</p>';}
+const gearSetBaseEquipment=renderEquipmentMenu;
+renderEquipmentMenu=function(){const html=gearSetBaseEquipment(),cid=G.sheetData.cid;return `<section class="qcard"><h3 class="label">所持品からセットを提案</h3>${gearSetRules()}${gearSetOptions(cid,'owned',null)}</section>`+html;};
+const gearSetBaseShop=renderShop;
+renderShop=function(){const html=gearSetBaseShop();if(G.sheetData.item||(G.sheetData.tab||'buy')!=='buy'||!SHOPS[G.sheetData.shop])return html;return `<details class="gear-shop-suggestions"><summary>キャラ別の装備セットを提案</summary>${gearSetRules()}<p class="small">今の店と所持品から、所持金以内のセットを選びます。足りない品だけを購入します。</p>${G.st.roster.map(cid=>`<section class="qcard"><b>${esc(charName(G.st,cid))}・${esc(JOBS[G.st.jobs[cid]].name)}</b>${gearSetOptions(cid,'shop',G.sheetData.shop)}</section>`).join('')}</details>`+html;};
+function gearSetComparison(st,cid,target){const L=levelOf(st.xp,st),before=charStats(st,cid,L),after=charStats(st,cid,L,null,target),rows=[['attackPower','攻撃力'],['defensePower','防御力'],['maxHP','最大HP'],['startC','最大MP'],...Object.entries(ABILITY_NAMES).map(([k,v])=>[k,v]),['evasionRate','回避率'],['criticalRate','会心率']],fmt=(k,v)=>k.endsWith('Rate')?(Math.round(v*1000)/10)+'%':Number(v).toLocaleString();return `<h3 class="label">${esc(charName(st,cid))}・${esc(JOBS[st.jobs[cid]].name)}</h3><table class="gear-set-compare"><thead><tr><th scope="col">能力</th><th scope="col">現在</th><th scope="col">変更後</th><th scope="col">差</th></tr></thead><tbody>${rows.map(([key,name])=>{const a=before[key]||0,b=after[key]||0,d=b-a;return `<tr><th scope="row">${name}</th><td>${fmt(key,a)}</td><td>${fmt(key,b)}</td><td class="${d>0?'good':d<0?'warn':''}">${d>0?'＋':d<0?'−':'±'}${fmt(key,Math.abs(d))}</td></tr>`;}).join('')}</tbody></table>`;}
+function gearSetTargetRows(p,receipt=false){return `<ul class="list">${GEAR_SET_SLOTS.map(slot=>{const old=G.st.equip[p.cid][slot],id=p.target[slot],buy=p.buys.find(b=>b.id===id);return `<li><b>${{w:'武器',a:'防具',acc:'アクセサリー'}[slot]}</b>：${esc(EQUIP[old]?.name||'なし')} → <b>${esc(EQUIP[id]?.name||'なし')}</b>${buy?`<br><span class="small">${receipt?"購入済み":"1個購入"}・${buy.price.toLocaleString()}G</span>`:'<br><span class="small">購入不要</span>'}</li>`;}).join('')}</ul>`;}
+function renderGearSetProposal(receipt=false){const d=G.sheetData,p=d.plan;if(!gearSetProposalFresh(d))return '<p class="warn">状態が変わりました。戻って提案を作り直してください。</p><button class="btn" data-a="closeSheet">戻る</button>';const fresh=gearSetCheck(G.st,p.cid,p.target,{source:receipt?'owned':p.source,shop:p.shop});if(!fresh.ok)return `<p class="warn">${esc(fresh.reason)}</p><button class="btn" data-a="closeSheet">戻る</button>`;const attrs=`data-token="${managementToken(G.st)}" data-set-token="${d.signature}"`,can=managementCanAct(),buy=!receipt&&p.source==='shop'&&p.buys.length>0;return `<p>${p.mode==='strongest'?'最強：攻撃力＋防御力を優先':esc(p.role)}</p>${receipt?`<p class="good">${p.buys.length}点を${p.total.toLocaleString()}Gで購入しました。装備はまだ変更していません。</p>`:''}${gearSetTargetRows(p,receipt)}<details class="gear-set-effects"><summary>装備の効果を確認</summary><ul class="list">${GEAR_SET_SLOTS.filter(k=>p.target[k]).map(k=>`<li><b>${esc(EQUIP[p.target[k]].name)}</b><p class="small">${esc(EQUIP[p.target[k]].text||"説明はありません。")}</p></li>`).join("")}</ul></details>${gearSetComparison(G.st,p.cid,p.target)}${buy?`<p class="set-cost">合計 <b>${p.total.toLocaleString()}G</b>・所持金 ${G.st.gold.toLocaleString()}G → ${(G.st.gold-p.total).toLocaleString()}G</p><button class="btn primary wide" data-a="gearSetBuy" ${attrs} ${can&&gearSetAtShop(p.shop)?'':'disabled'}>このセットを一括購入</button><button class="btn wide" data-a="closeSheet">購入しない</button>`:`${p.changed?'<p class="small">現在のHP・MPは、変更後の上限まで引き継ぎます。</p>':'<p>現在の装備が条件内で最適です。</p>'}<button class="btn primary wide" data-a="gearSetApply" ${attrs} ${can&&fresh.changed?'':'disabled'}>${receipt?'購入したセットを一括装備':'このセットを装備'}</button><button class="btn wide" data-a="closeSheet">${receipt?'購入のみで戻る':'変更しない'}</button>`}${!isSafe()?'<p class="warn">装備の変更と購入は街で行います。</p>':''}${buy&&!gearSetAtShop(p.shop)?'<p class="warn">この店のそばで購入できます。</p>':''}`;}
+const gearSetBaseSheet=renderSheet;
+renderSheet=function(){if(G.sheet==='gearSetProposal')return sheetWrap('セットの比較と確認',renderGearSetProposal());if(G.sheet==='gearSetReceipt')return sheetWrap('購入後の装備を選ぶ',renderGearSetProposal(true));return gearSetBaseSheet();};
+Object.assign(ACT,{
+ gearSetPreview(el){if(!gearSetViewContext(['equipment','shop'],el))return;const source=G.sheet==='shop'?'shop':'owned';if(el.dataset.source!==source||source==='shop'&&el.dataset.shop!==G.sheetData.shop||source==='owned'&&el.dataset.c!==G.sheetData.cid)return;const p=gearSetPlan(G.st,el.dataset.c,el.dataset.mode,source,source==='shop'?G.sheetData.shop:null);if(!p.ok)return toast(p.reason);openSheet('gearSetProposal',{plan:p,stateToken:gearSetStateToken(G.st),signature:gearSetSignature(p)});},
+ gearSetBuy(el){if(!gearSetViewContext(['gearSetProposal'],el)||!gearSetProposalFresh(G.sheetData))return;const p=G.sheetData.plan;if(p.source!=='shop'||!p.buys.length||el.dataset.setToken!==G.sheetData.signature||!gearSetAtShop(p.shop))return;const fresh=gearSetCheck(G.st,p.cid,p.target,{source:'shop',shop:p.shop});if(!fresh.ok||fresh.total!==p.total||JSON.stringify(fresh.buys)!==JSON.stringify(p.buys))return toast('購入内容が変わりました。提案を作り直してください。');return managementMutation(el,st=>{st.gold-=fresh.total;for(const b of fresh.buys)st.owned[b.id]=(st.owned[b.id]||0)+b.qty;return {ok:true,message:'セットを購入しました。続けて装備するか選べます。',after:()=>{G.sheet='gearSetReceipt';G.sheetData={plan:p,stateToken:gearSetStateToken(st),signature:gearSetSignature(p)};}};},{sound:'buy'});},
+ gearSetApply(el){if(!gearSetViewContext(['gearSetProposal','gearSetReceipt'],el)||!gearSetProposalFresh(G.sheetData)||el.dataset.setToken!==G.sheetData.signature)return;const p=G.sheetData.plan;if(G.sheet==='gearSetProposal'&&p.buys.length)return;const fresh=gearSetCheck(G.st,p.cid,p.target);if(!fresh.ok||!fresh.changed)return;return managementMutation(el,st=>{st.equip[p.cid]={...fresh.target};ensureVitals(st);return {ok:true,message:'提案したセットへ装備を変更しました。',after:()=>{G.sheet='equipment';G.sheetData={cid:p.cid,view:'eq:w'};if(G.sheetHistory?.at(-1)?.key==='equipment')G.sheetHistory.pop();}};},{sound:'ok'});}
+});
 
 /* 行先・依頼・操作の補助。検索条件と移動予定は実行中だけ保持し、セーブ形式は変えない。 */
 const NAV_UI={state:null,serial:0,guide:{filter:'priority',query:'',page:0},quests:{filter:'local',query:'',page:0}};
@@ -8365,7 +8421,7 @@ ART.object=function(type,frame){if(type!=='worldPort')return worldBaseObjectArt(
 
 /* すべての画面から同じ禁止状態を使う。保存中の別操作と、古いボタンの直接呼出しも拒否する。 */
 const READ_ONLY_ACTIONS=new Set([
-  "worldMapSearch","worldMapFilter","worldMapReset","worldFocusSearch","worldFitRoute","worldFocusTarget","worldZoom","worldPan","searchReset","helpReset","navQuick","navReset","navFilter","navSearch","navClear","navPage","openSheet","closeSheet","returnToMap","openHelp","dlgNext","dlgBack","dlgSkip","toTitle","dexNav","partyView","shopTab","shopItem","shopQty","vaultOpen","vaultBack",
+  "gearSetPreview","worldMapSearch","worldMapFilter","worldMapReset","worldFocusSearch","worldFitRoute","worldFocusTarget","worldZoom","worldPan","searchReset","helpReset","navQuick","navReset","navFilter","navSearch","navClear","navPage","openSheet","closeSheet","returnToMap","openHelp","dlgNext","dlgBack","dlgSkip","toTitle","dexNav","partyView","shopTab","shopItem","shopQty","vaultOpen","vaultBack",
   "shareCopy","shareNative","replayStory","replay","battleProgressMove","battleLogLine","battleLogBack","battleLogPage","battleLogExpand","battleChallengeFilter","badgeFilter",
   "itemVaultOpen","itemVaultMode","itemVaultFilter","itemVaultSearch","itemVaultPage","itemVaultSelect","itemVaultQty","itemVaultEdit","itemVaultBack",
   "petShopFilter","petShopPet","petCareSection","petView","petFilter","petPage","petSupplySelect","petDetails","petWalkView","petTravelPolicy","petVaultOpen",

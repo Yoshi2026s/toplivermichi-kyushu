@@ -273,6 +273,9 @@ jobs:
       - run: node scripts/test-equipment-pet-search.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-status-usability.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -287,4 +290,5 @@ jobs:
             .task/auto-equipment/
             .task/recent-queues/
             .task/equipment-pet-search/
+            .task/status-usability/
           if-no-files-found: ignore

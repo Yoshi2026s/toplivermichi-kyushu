@@ -15,7 +15,7 @@ const st=make();explore(st);st.gold=10000;const shop=near(st,'shop');g.G.sheet='
 let html=g.renderShop();assert.match(html,/検索/);assert.match(html,/\d+件・1／\d+/);assert((html.match(/data-a="shopItem"/g)||[]).length<=6);
 g.G.sheetData.query='声合わせ';assert(g.managementShopEntries(st,g.G.sheetData).every(id=>g.EQUIP[id].name.includes('声合わせ')));
 g.G.sheetData.query='ｃｗ０１';assert(g.managementShopEntries(st,g.G.sheetData).includes('CW01'),'search normalizes fullwidth IDs');
-g.G.sheetData.query='存在しない品';assert.match(g.renderShop(),/見つかりません。解除で検索条件をリセットできます/);
+g.G.sheetData.query='存在しない品';assert.match(g.renderShop(),/該当する品物がありません/);
 g.G.sheetData.query='';g.G.sheetData.filter='w';assert(g.managementShopEntries(st,g.G.sheetData).every(id=>g.EQUIP[id].slot==='w'));
 g.ACT.managementShopFilter({dataset:{v:'constructor'}});assert.equal(g.G.sheetData.filter,'w','inherited filter keys rejected');
 g.G.sheetData={shop:shop.shop,npc:shop.npc,tab:'item',item:'IT001',qty:1};

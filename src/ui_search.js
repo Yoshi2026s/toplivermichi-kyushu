@@ -1,4 +1,4 @@
-/* 一覧検索の入力・解除・フォーカスを揃える。保存データは変更しない。 */
+/* 一覧検索の入力・クリア・フォーカスを揃える。保存データは変更しない。 */
 const LIST_SEARCH={
  shop:{sheets:['shop'],input:'managementShopSearch',action:'managementShopSearch',label:'品物を検索',placeholder:'名前・効果',max:80},
  vault:{sheets:['itemVault'],input:'itemVaultSearch',action:'itemVaultSearch',label:'金庫の品物を検索',placeholder:'名前で検索',max:60},
@@ -7,7 +7,7 @@ const LIST_SEARCH={
  skill:{sheets:['battleSkills'],input:'expandedSkillSearch',action:'expandedSkillSearch',label:'追加技能を検索',placeholder:'技名・効果',max:50}
 };
 function listSearchBlocked(kind){return typeof systemOperationPending==='function'&&systemOperationPending()||kind==='vault'&&typeof canViewItemVault==='function'&&!canViewItemVault()||kind==='skill'&&(!G.st?.run||G.st.run.state!=='input'||G.sheetData.seq!==G.st.run.seq||G.sheetData.turn!==G.st.run.turn);}
-function listSearchForm(kind){const c=LIST_SEARCH[kind],disabled=listSearchBlocked(kind)?'disabled':'';return `<form class="compact-search" data-list-search="${kind}"><label class="sr-only" for="${c.input}">${c.label}</label><input id="${c.input}" class="input" type="search" enterkeyhint="search" autocomplete="off" maxlength="${c.max}" placeholder="${c.placeholder}" value="${esc(G.sheetData.query||'')}" ${disabled}><button type="submit" class="btn" ${disabled}>検索</button><button type="button" class="btn" data-a="searchReset" data-v="${kind}" ${disabled}>解除</button></form>`;}
+function listSearchForm(kind){const c=LIST_SEARCH[kind],disabled=listSearchBlocked(kind)?'disabled':'';return `<form class="compact-search" data-list-search="${kind}"><label class="sr-only" for="${c.input}">${c.label}</label><input id="${c.input}" class="input" type="search" enterkeyhint="search" autocomplete="off" maxlength="${c.max}" placeholder="${c.placeholder}" value="${esc(G.sheetData.query||'')}" ${disabled}><button type="submit" class="btn" ${disabled}>検索</button><button type="button" class="btn" data-a="searchReset" data-v="${kind}" ${disabled} aria-label="検索条件をクリア">クリア</button></form>`;}
 function listSearchContext(kind,el){return Object.hasOwn(LIST_SEARCH,kind)&&!!G.st&&LIST_SEARCH[kind].sheets.includes(G.sheet)&&!G.dlg&&!listSearchBlocked(kind)&&currentActionButton(el);}
 function listSearchFocus(kind){document.querySelector('#'+LIST_SEARCH[kind].input)?.focus?.({preventScroll:true});}
 function listSearchDraft(kind){const c=LIST_SEARCH[kind],input=document.querySelector('#'+c.input);if(!input)return false;const query=input.value.slice(0,c.max),changed=query!==(G.sheetData.query||'');G.sheetData.query=query;if(changed)G.sheetData.page=0;return changed;}

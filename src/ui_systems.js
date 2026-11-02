@@ -66,11 +66,11 @@ Object.assign(ACT,{
 });
 
 const SYSTEM_HELP={
-  walk:{name:"街と街外・移動",text:"街と室内は安全です。「街外へ」で出口まで歩き、街外MAPの道から隣の街外へ進んで街に入ります。街間の直行は新幹線駅から訪問済みの街へ乗る場合だけです。地図は街の出口までの徒歩案内です。地面のタップ、スティック、キーボードで移動できます。オート移動は実際に歩いて向かい、遭遇で中断します。移動速度は設定で通常／高速を選べます。"},
+  walk:{name:"街と街外・移動",text:"街・室内は安全です。「街外へ」で出口まで歩き、街外の道から各地へ進みます。海を渡る道は港から船で移動します。未解放の地域には入れません。新幹線は訪問済みの街へ移動できます。地面のタップ・スティック・キーボードで移動し、オート移動は遭遇で中断します。速度は設定で通常／高速を選べます。"},
   quest:{name:"依頼と物語",text:"街で依頼を受け、街外の通常敵を必要数倒すと地域ボスへ挑めます。討伐で依頼が完了し次の地域への道が開きます。完了した会話は記録から再読できます。"},
-  battle:{name:"戦闘・対処・オート",text:"攻撃、職業技能、追加技能、応援、ガード、MP回復、道具、必殺技を使えます。全戦闘でオートを使用でき、中断すると手動に戻ります。通常の敵の次行動予告は表示しません。地域ボスのため中は説明された対処を異なる2人で行います。"},
+  battle:{name:"戦闘・対処・オート",text:"攻撃・職業技能・追加技能・応援・ガード・MP回復・道具・必殺技が使えます。オートは「手動に戻す」で中断できます。ボスのため予告には、指定の行動を異なる2人で対処します。"},
   job:{name:"職業とハローワーク",text:"各街のハローワークで職業ごとの3段階イベントに参加します。完了した職業へ転職できます。熟練度と習得済みの技能は維持されます。新しい職業に合わない専用装備は外れます。街外の実技課題は10ターン以内の勝利を目指します。"},
-  stats:{name:"能力・会心・回避",text:"体力、ちから、身の守り、すばやさ、魅力の5能力があります。職業特性と装備が能力や行動に反映されます。会心は敵防御を無視し1.5倍。敵の痛恨は防御・防護を無視しますがガードは有効です。具体的な能力は状態画面で比較できます。"},
+  stats:{name:"能力・会心・回避",text:"体力、ちから、身の守り、すばやさ、魅力の5能力があります。職業特性と装備が能力や行動に反映されます。会心は敵防御を無視し1.5倍。敵の痛恨は防御・防護を無視しますがガードは有効です。能力はステータスで確認できます。"},
   skills:{name:"追加技能と必殺技",text:"レベルと職業熟練度を満たすと追加技能を習得します。継承枠へ装備すると他の職業でも使えます。再使用までの残りターンと消費MPを確認してください。人物固有の必殺技は必要なエールを蓄えて使います。"},
   pets:{name:"ペットのお世話と成長",text:"22種類のペットは★1〜★5。高レアほどお迎え・用品が高価で、なつき度はゆっくり育つ分、技が強力です。育成の端数も保存され、すでに育った段階は下がりません。10段階に成長し、段階1・3・5・8で4つの技を習得します。最大2匹が戦闘で毎ターン最初に行動します。回復・攻撃・防御・すばやさ強化・敵の攻撃低下・混乱・睡眠など、種類と成長で支援内容が変わります。商店街のペットショップでお迎え・用品購入、控え所でお世話・同行選択ができます。ペットメニューは状態・習得済みと習得予定の技を確認できます。ごはん・遊ぶ・お手入れ・休憩・練習・なでるは別々の日次記録です。用品不要の交流遊びは3種類から1日1回。なつき度20・50・80のお祝いは空きがある時に受け取れます。"},
   petTravel:{name:"おさんぽと旅のお手伝い",text:"ひだまりの庭・にぎやかな広場・小川のほとりから行き先を選びます。全ペットで1日1回。用品の保管先と実際の増加量を確認して出発します。旅のお手伝いはバランス・HP・MP重視から選び、生存者だけを回復します。翌日になると日次回数が戻ります。"},
@@ -85,9 +85,9 @@ const helpNormalize=s=>String(s||"").normalize("NFKC").toLocaleLowerCase().trim(
 function helpResultEntries(d){const category=Object.hasOwn(SYSTEM_HELP,d.category)?d.category:'all',words=helpNormalize(d.query).split(/\s+/).filter(Boolean);return Object.entries(SYSTEM_HELP).filter(([id,h])=>(category==='all'||category===id)&&words.every(w=>helpNormalize(h.name+' '+h.text).includes(w)));}
 function renderSystemHelp(){
  const d=G.sheetData,category=Object.hasOwn(SYSTEM_HELP,d.category)?d.category:'all',entries=helpResultEntries(d),pages=Math.max(1,Math.ceil(entries.length/4)),page=Math.max(0,Math.min(pages-1,Number.isInteger(d.page)?d.page:0));d.page=page;
- return `<form class="help-search" data-help-search><label for="helpSearch" class="field-label">解説を検索</label><input id="helpSearch" class="input" maxlength="100" value="${esc(d.query||'')}"><button type="submit" class="btn">検索</button><button type="button" class="btn" data-a="helpReset">解除</button></form>
+ return `<form class="help-search" data-help-search><label for="helpSearch" class="field-label">解説を検索</label><input id="helpSearch" class="input" maxlength="100" value="${esc(d.query||'')}"><button type="submit" class="btn">検索</button><button type="button" class="btn" data-a="helpReset" aria-label="検索条件をクリア">クリア</button></form>
  <details class="help-categories"><summary>分野：${category==='all'?'すべて':esc(SYSTEM_HELP[category].name)}</summary><div class="opts" role="group" aria-label="解説の分野">${[['all','すべて'],...Object.entries(SYSTEM_HELP).map(([id,h])=>[id,h.name])].map(([id,name])=>`<button class="btn opt" data-a="helpFilter" data-v="${id}" aria-pressed="${category===id}">${esc(name)}</button>`).join('')}</div></details>
- ${entries.length?entries.slice(page*4,page*4+4).map(([,h])=>`<section class="qcard"><h3 class="label">${h.name}</h3><p>${h.text}</p></section>`).join(''):'<p>見つかりません。解除で検索条件をリセットできます。</p>'}
+ ${entries.length?entries.slice(page*4,page*4+4).map(([,h])=>`<section class="qcard"><h3 class="label">${h.name}</h3><p>${h.text}</p></section>`).join(''):'<p>該当する解説がありません。</p>'}
  <div class="row3"><button class="btn" data-a="helpPage" data-v="${page-1}" ${page===0?'disabled':''}>前へ</button><span role="status" aria-live="polite">${entries.length}件・${page+1}／${pages}</span><button class="btn" data-a="helpPage" data-v="${page+1}" ${page+1>=pages?'disabled':''}>次へ</button></div>`;
 }
 const systemBaseRenderSheet=renderSheet;
@@ -99,7 +99,7 @@ renderSettings=function(){
   if(!Number.isFinite(s.musicVolume))s.musicVolume=SND.volumes.music;
   if(!Number.isFinite(s.effectVolume))s.effectVolume=SND.volumes.effects;
  }
- const volumeControls=`<p class="small sound-state" id="soundState" role="status" aria-live="polite" aria-atomic="true">${esc(soundStatusText())}</p><h3 class="label">音量を個別に調整</h3><p class="small">BGMだけ、効果音だけを消すこともできます。全体をOFFにすると、両方とも鳴りません。</p>${[["musicVolume","BGM"],["effectVolume","効果音"]].map(([key,label])=>`<fieldset class="sound-volume"><legend>${label}：${(s[key]??1)===0?'消音':Math.round((s[key]??1)*100)+'％'}</legend><div class="opts" role="group" aria-label="${label}の音量">${[0,.25,.5,.75,1].map(n=>`<button class="btn opt" data-a="soundVolume" data-k="${key}" data-v="${n}" aria-label="${label} ${n===0?'消音':n*100+'％'}" aria-pressed="${(s[key]??1)===n}">${n===0?'消音':n*100+'％'}</button>`).join("")}</div></fieldset>`).join("")}<button class="btn wide" data-a="soundPreview" ${!soundIsOn()||SND.volumes.effects===0?'disabled':''} aria-describedby="soundPreviewHint">効果音を試す</button><p class="small" id="soundPreviewHint">${!soundIsOn()?'試聴するには「BGM・効果音」をONにしてください。':SND.volumes.effects===0?'試聴するには効果音の音量を上げてください。':'現在の効果音の音量で、短い回復音を鳴らします。'}</p>`;
+ const volumeControls=`<p class="small sound-state" id="soundState" role="status" aria-live="polite" aria-atomic="true">${esc(soundStatusText())}</p><h3 class="label">音量を個別に調整</h3><p class="small">「BGM・効果音」をOFFにすると、両方とも消音します。</p>${[["musicVolume","BGM"],["effectVolume","効果音"]].map(([key,label])=>`<fieldset class="sound-volume"><legend>${label}：${(s[key]??1)===0?'消音':Math.round((s[key]??1)*100)+'％'}</legend><div class="opts" role="group" aria-label="${label}の音量">${[0,.25,.5,.75,1].map(n=>`<button class="btn opt" data-a="soundVolume" data-k="${key}" data-v="${n}" aria-label="${label} ${n===0?'消音':n*100+'％'}" aria-pressed="${(s[key]??1)===n}">${n===0?'消音':n*100+'％'}</button>`).join("")}</div></fieldset>`).join("")}<button class="btn wide" data-a="soundPreview" ${!soundIsOn()||SND.volumes.effects===0?'disabled':''} aria-describedby="soundPreviewHint">効果音を試す</button><p class="small" id="soundPreviewHint">${!soundIsOn()?'試聴するには「BGM・効果音」をONにしてください。':SND.volumes.effects===0?'試聴するには効果音の音量を上げてください。':'短い回復音で音量を確認できます。'}</p>`;
  // Keep audio controls beside the sound switch, ahead of save/restore fields.
  return base.replace('<details class="control-help">',volumeControls+'<details class="control-help">')+`<h3 class="label">移動と応援</h3><button class="btn" data-a="moveSpeed">移動速度：${s.moveSpeed==="fast"?"高速":"通常"}</button><button class="btn ${s.listenerComments===false?'':'on'}" data-a="listenerToggle" aria-pressed="${s.listenerComments!==false}">リスナーコメント：${s.listenerComments===false?"OFF":"ON"}</button>`;
 };

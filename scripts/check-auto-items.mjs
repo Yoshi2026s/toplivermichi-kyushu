@@ -9,7 +9,7 @@ const ui=readFileSync(resolve(root,'src','ui.js'),'utf8');
 const itemHistoryFn=ui.match(/function renderUsedItemHistory\(result,usedItems\)\{[\s\S]*?\n\}/)?.[0];
 if(!itemHistoryFn) throw new Error('result item history renderer missing');
 const showItemHistory=runInNewContext(`${itemHistoryFn}\nrenderUsedItemHistory`);
-if(!showItemHistory({itemsUsedKnown:true},[]).includes('道具は使いませんでした。')||!showItemHistory({itemsUsedKnown:false},[]).includes('使用記録がありません')||!showItemHistory({itemsUsedKnown:false,itemsUsed:[{id:'IT001'}]},['<li>使用</li>']).includes('一部欠けている可能性')) throw new Error('result item history states failed');
+if(!showItemHistory({itemsUsedKnown:true},[]).includes('道具は使いませんでした。')||!showItemHistory({itemsUsedKnown:false},[]).includes('道具の使用は記録されていません。')||!showItemHistory({itemsUsedKnown:false,itemsUsed:[{id:'IT001'}]},['<li>使用</li>']).includes('一部欠けている可能性')) throw new Error('result item history states failed');
 const game=runInNewContext(`${source}\n({newGame,createFieldRun,aiCandidates,aiChoose,aiIncoming,aiItemUseful,itemBattleBadges,growthBattleBadges,partyBattleBadges,actionBattleBadges,healBattleBadges,mpBattleBadges,cheerBattleBadges,speedBattleBadges,attackBattleBadges,guardBattleBadges,defenseBattleBadges,enemyPhase,applyAction})`);
 const fail=msg=>{throw new Error(msg)};
 const st=game.newGame('確認用','女性');

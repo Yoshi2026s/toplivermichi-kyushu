@@ -49,7 +49,7 @@ function renderJobcenter(){
   html+=`<div class="stack">${list.slice(page*6,page*6+6).map(job=>{
     const event=JOB_EVENTS[job],done=st.jobEvents[job]===true,s=charStats(st,cid,levelOf(st.xp,st),job,previewEquipFor(st,cid,job));
     return `<section class="qcard"><b>${esc(JOBS[job].name)} ${done?"体験済み":"未体験"}</b><p>${esc(view==="events"?event.name:JOB_TRAITS[job].name)}</p><p class="small">${esc(view==="events"?event.intro:JOB_TRAITS[job].text)}</p>${view==="events"?`<button class="btn" data-a="jobEventStart" data-v="${job}" ${can&&!done?"":"disabled"}>この職業を体験する</button>`:`<p class="small">変更後：体力${s.maxHP}・攻撃${s.attackPower}・防御${s.defensePower}・熟練度${s.R}。前職専用装備は外します。</p><button class="btn" data-a="characterJobSet" data-c="${cid}" data-v="${job}" data-old="${st.jobs[cid]}" data-token="${esc(characterJobToken(st,cid,job))}" ${can&&done&&st.jobs[cid]!==job?"":"disabled"}>${esc(charName(st,cid))}をこの職業へ</button>`}</section>`;
-  }).join("")||'<p>見つかりません。解除で検索をリセットできます。</p>'}</div><div class="row3"><button class="btn" data-a="jobcenterPage" data-v="${page-1}" ${page>0?"":"disabled"}>前へ</button><span>${page+1}/${pages}</span><button class="btn" data-a="jobcenterPage" data-v="${page+1}" ${page+1<pages?"":"disabled"}>次へ</button></div>`;
+  }).join("")||'<p>該当する職業がありません。</p>'}</div><div class="row3"><button class="btn" data-a="jobcenterPage" data-v="${page-1}" ${page>0?"":"disabled"}>前へ</button><span>${page+1}/${pages}</span><button class="btn" data-a="jobcenterPage" data-v="${page+1}" ${page+1<pages?"":"disabled"}>次へ</button></div>`;
   return html;
 }
 function renderCharacterSkills(){

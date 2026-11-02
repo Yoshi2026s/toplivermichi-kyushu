@@ -21,7 +21,7 @@ try{for(const device of ['standard','small','landscape','short','narrow','keyboa
   assert.equal(await page.locator('.result-details[open]').count(),0);assert.equal(await page.locator('.rmem.low').count(),2);assert(await page.locator('.rvitals').nth(1).textContent().then(t=>t.includes('戦闘不能')));
   if(kind==='storage-overflow'){const text=await page.locator('.rsummary.warn').textContent();assert(text.includes('入手 3件'));assert(text.includes('受取不可 1件'),'lost rewards must be visible in the overview and excluded from received count');}
   await page.screenshot({path:resolve(out,device+'-'+kind+'.png')});
-  await page.locator('.result-details>summary').tap();assert(await page.locator('.result-details').textContent().then(t=>t.includes(kind==='legacy'?'使用記録がありません':'道具は使いませんでした')));await page.locator('.result-details>summary').tap();
+  await page.locator('.result-details>summary').tap();assert(await page.locator('.result-details').textContent().then(t=>t.includes(kind==='legacy'?'道具の使用は記録されていません。':'道具は使いませんでした')));await page.locator('.result-details>summary').tap();
   await page.locator('[data-a="resultDone"]').tap();await page.waitForFunction(()=>G.screen==='explore');assert.equal(await page.locator('#map').count(),1,JSON.stringify(await page.evaluate(()=>({screen:G.screen,sheet:G.sheet,dlg:!!G.dlg,html:document.querySelector('#screen').innerHTML.slice(0,300)}))));results.push({device,kind,passed:true,bounds});
  }
  assert.deepEqual(errors,[]);

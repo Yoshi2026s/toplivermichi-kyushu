@@ -276,6 +276,9 @@ jobs:
       - run: node scripts/test-status-usability.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-status-peer.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - run: node scripts/test-status-preparation.mjs
         env:
           MOBILE_BROWSER: chromium
@@ -295,4 +298,5 @@ jobs:
             .task/equipment-pet-search/
             .task/status-usability/
             .task/status-preparation/
+            .task/status-peer/
           if-no-files-found: ignore

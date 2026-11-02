@@ -43,6 +43,8 @@ body.reduce-motion .battle-fx-layer{display:none}
 .world-search-result{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:5px 0}.world-search-result .btn{min-width:48px;min-height:48px;font-size:13px;padding:5px 8px}
 .world-map-key{display:flex;flex-wrap:wrap;gap:2px 9px}.world-map-key>span{white-space:nowrap}.world-overview:focus{outline:2px solid #a7ede2;outline-offset:3px}
 .world-port-heading{display:flex;align-items:center;gap:10px;padding:10px;background:#173b4d;border:1px solid #92c6c4;border-radius:9px}.world-port-heading svg{width:64px;height:64px;flex:none}.world-port-heading p{margin:5px 0 0}.world-ferry-routes{display:grid;gap:8px}.sheet .btn.world-ferry-route{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-height:64px;text-align:left}.world-ferry-route small{font-size:12px;color:#a7ddd4}.world-ferry-route:disabled small{color:#c2bbc9}
+/* Long menus keep scrolling within the panel and expose a clear scroll thumb. */
+.sheet{overscroll-behavior-y:contain;scrollbar-color:#b7c9c9 #14283b}
 </style>
 <style>
 /* 縦1列・幅上限480。濃紺の文字窓と生成りの二重枠（第21F・21K節）。単一の夜色テーマで統一 */

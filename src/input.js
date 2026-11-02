@@ -82,11 +82,11 @@ const PAD = (()=>{
     });
   }
   function current(sc){ const a=document.activeElement;if(a&&a!==document.body&&sc.contains(a)&&focusables(sc).includes(a))return a;return sc.querySelector(".kfocus"); }
-  function setCursor(el){
+  function setCursor(el,scroll=true){
     document.querySelectorAll(".kfocus").forEach(x=>x.classList.remove("kfocus"));
     if(!el) return; el.classList.add("kfocus");
     try{ el.focus({preventScroll:true}); }catch(e){}
-    el.scrollIntoView({block:"nearest",inline:"nearest"});
+    if(scroll)el.scrollIntoView({block:"nearest",inline:"nearest"});
     G.cursorSig = sig(el);if(typeof updateControlHints==="function")updateControlHints();
   }
   function sig(el){ return [el.dataset.a,el.dataset.k,el.dataset.v,el.dataset.i,el.dataset.c,el.dataset.s,el.id].join("|"); }
@@ -212,7 +212,7 @@ const PAD = (()=>{
   function wantSound(){ if(G.soundWant!=null) return G.soundWant; if(G.st && G.st.settings && G.st.settings.sound===false) return false; return soundPref(); }
   const unlock=e=>{ if(e?.target?.closest?.('[data-a="titleMusic"]'))return; if(SND.on) SND.resume(); else if(wantSound()) SND.setOn(true); if(typeof refreshTitleMusic==="function")refreshTitleMusic(); };
   ["pointerdown","keydown","touchend"].forEach(ev=>document.addEventListener(ev,unlock,{capture:true,passive:true}));
-  return { mount, restore, pressA, pressB, release:releaseInput };
+  return { mount, restore, pressA, pressB, focus:el=>setCursor(el,false), release:releaseInput };
 })();
 
 if(window.claude&&window.claude.hot&&window.claude.hot.ready) window.claude.hot.ready(()=>boot()); else boot();

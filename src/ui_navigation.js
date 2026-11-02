@@ -106,6 +106,7 @@ function updateControlHints(){
  else if(G.screen==='explore'&&!G.sheet){const p=navigationValidPlan();a=p&&(p.paused||!G.walk.path.length)?'再開':G.walk.path.length?'停止':nearbyObjects().length?'調べる':'案内';b=p&&!p.paused?'停止':'戻る';}
  else if(G.screen==='battle'&&!G.sheet){a=G.auto?'決定':document.querySelector('.cmd [data-a="confirmAct"]:not([disabled])')?'確定':'選ぶ';b=G.auto?'中断':!G.cmd?.type?'休止':'戻る';}
  else if(G.screen==='result'&&!G.sheet)a='MAPへ';
+ const selected=document.activeElement;if(!G.sheet&&!G.dlg&&['battle','result'].includes(G.screen)&&selected?.closest?.('.battle,.result')){if(selected.matches('button[data-a="openSheet"]'))a=selected.textContent.trim();else if(selected.matches('summary'))a=selected.parentElement.open?'詳細を閉じる':'詳細を開く';}
  back.disabled=!!(G.dlg&&(G.dlg.i||0)===0&&(G.dlg.after||G.dlg.sceneId));confirm.textContent='決定';confirm.setAttribute('aria-label','決定：'+a);confirm.title=a;back.textContent='戻る';back.setAttribute('aria-label','戻る：'+b);back.title=b;
 }
 function manualTravelOverride(){if(!G.walkPlan)return;G.walkPlan=null;G.walk.path=G.walk.path.slice(0,1);G.walk.pending=null;updateNavigationHud();updateControlHints();}

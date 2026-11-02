@@ -75,6 +75,9 @@ jobs:
       - run: node scripts/test-mobile-facilities-ui.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-menu-return.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - run: node scripts/test-screen-clarity.mjs
         env:
           MOBILE_BROWSER: chromium
@@ -155,6 +158,8 @@ jobs:
           path: |
             .task/mobile-facilities/*.png
             .task/mobile-facilities/report.json
+            .task/menu-return/*.png
+            .task/menu-return/report.json
             .task/screen-clarity/*.png
             .task/screen-clarity/report.json
             .task/mobile-usability/*.png

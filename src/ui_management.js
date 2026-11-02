@@ -13,8 +13,8 @@ for(const [id,it] of Object.entries(LEGACY_GEAR))if(!Object.hasOwn(EQUIP,id))EQU
 const managementNormalize=s=>String(s??"").normalize("NFKC").toLocaleLowerCase().trim();
 function managementToken(st){return checksum(JSON.stringify([st.saveGeneration,st.mapId,st.pos,st.day,st.gold,st.owned,st.equip,st.bag,st.itemVault,st.party,st.roster,st.jobs,st.jp]));}
 function managementCanAct(){return !!G.st&&!G.readOnly&&!G.featureSaving&&!G.shopSaving&&!G.vaultSaving&&!G.petSaving&&!G.oceanSaving&&!G.characterSaving&&G.screen==="explore"&&!G.dlg&&!G.st.run&&!G.st.jobEvent&&!G.walk.path.length&&isSafe()&&(typeof document==="undefined"||!document.hidden);}
-async function managementMutation(el,fn,{sheet=G.sheet,message="記録しました。",sound="ok"}={}){
-  if(!managementCanAct()||G.sheet!==sheet||!el.dataset.token||el.dataset.token!==managementToken(G.st))return toast("状態が変わりました。現在の画面で確認し直してください。");
+async function managementMutation(el,fn,{sheet=G.sheet,message="記録しました。",sound="ok",canAct=managementCanAct}={}){
+  if(!canAct()||G.sheet!==sheet||!el.dataset.token||el.dataset.token!==managementToken(G.st))return toast("状態が変わりました。現在の画面で確認し直してください。");
   const st=G.st,before=clone(st);let result;
   try{result=fn(st);}catch(e){Object.keys(st).forEach(k=>delete st[k]);Object.assign(st,before);return toast("処理できませんでした。元の記録を保持しています。");}
   if(!result?.ok)return toast(result?.reason||"現在はこの操作を行えません。");

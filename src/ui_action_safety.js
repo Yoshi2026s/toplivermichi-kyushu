@@ -1,5 +1,5 @@
 /* 画面が変わった後の古い操作は実行しない。進行・保存形式・戦闘計算は変更しない。 */
-const ACTION_SCREEN_BUTTONS=new Set(['dlgNext','dlgBack','dlgSkip','statusFilter','statusJump','statusGrowth','statusOpen']);
+const ACTION_SCREEN_BUTTONS=new Set(['dlgNext','dlgBack','dlgSkip','statusOptions','statusView','statusMetric','statusOrder','statusShowCard','statusRecoveryPick','statusRecoveryBack','statusRecoveryAll','statusRecoveryUse','statusFilter','statusJump','statusGrowth','statusOpen']);
 function currentActionButton(el){return !el?.dataset?.actionEpoch||el.dataset.actionEpoch===String(G.controlEpoch||0);}
 const actionSafetyRender=render;
 render=function(){

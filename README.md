@@ -160,3 +160,5 @@ BGM切替時の減衰と、結果画面の閲覧位置・詳細保持は [音と
 ステータスの2人比較・検索・回復導線: [仕様と検証](docs/STATUS_PEER_SEARCH_2026_11_02.md)
 
 ステータスの装備効果・成長予測: [仕様と検証](docs/STATUS_EQUIPMENT_GROWTH_2026_11_02.md)
+
+ステータスの職業比較: [仕様と検証](docs/STATUS_JOB_COMPARISON_2026_11_03.md)

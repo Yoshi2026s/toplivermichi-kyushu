@@ -63,7 +63,11 @@ function reducedMotion(){
 const $ = s=>document.querySelector(s);
 const esc = s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const P = ()=>esc(G.st.profile.name);
-function toast(msg){ G.toast=msg; const el=$("#toast"); if(el){ el.textContent=msg; el.hidden=false; clearTimeout(toast.t); toast.t=setTimeout(()=>{el.hidden=true;},2600);} }
+function dismissToast(){clearTimeout(toast.t);const el=$("#toast");if(el)el.hidden=true;}
+function toastDuration(msg){return Math.min(12000,Math.max(2600,1500+Array.from(String(msg)).length*80));}
+function toast(msg){ G.toast=msg; const el=$("#toast"); if(el){ el.textContent=msg; el.hidden=false; clearTimeout(toast.t); toast.t=setTimeout(()=>{el.hidden=true;},toastDuration(msg));} }
+document.addEventListener('pointerdown',e=>{if(e.isPrimary!==false&&(e.button==null||e.button===0))dismissToast();},{capture:true,passive:true});
+document.addEventListener('keydown',e=>{if(!e.isComposing&&!e.repeat&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!['Shift','Control','Alt','Meta','CapsLock'].includes(e.key))dismissToast();},true);
 function hubOf(mapId){ return MAPS[mapId].hub; }
 function curHub(){ return hubOf(G.st.mapId); }
 function tileAt(m,x,y){ return (m.tiles[y]&&m.tiles[y][x])||"T"; }
@@ -925,14 +929,14 @@ function renderSheet(){
 function renderShare(){
   const links=SHARE.links();
   return `<label class="field-label" for="shareUrl">ゲームのURL</label>
-    <textarea id="shareUrl" class="input mono" rows="3" readonly>${esc(SHARE.url())}</textarea>
+    <textarea id="shareUrl" class="input mono" rows="3" readonly aria-describedby="shareSaveNote">${esc(SHARE.url())}</textarea>
     <div class="stack">
     ${typeof navigator.share==="function"?'<button class="btn" data-a="shareNative">スマホの共有メニューを開く</button>':""}
     <button class="btn" data-a="shareCopy" data-v="url">URLだけコピー</button>
     <button class="btn" data-a="shareCopy" data-v="intro">紹介文つきでコピー</button>
     <a class="btn" href="${esc(links.line)}" target="_blank" rel="noopener noreferrer">LINEで送る</a>
     <a class="btn" href="${esc(links.x)}" target="_blank" rel="noopener noreferrer">Xでポスト</a></div>
-    <p class="small">記録（セーブ）は送られません。受け取った人は「はじめから」で遊べます。</p>`;
+    <p class="small" id="shareSaveNote">記録（セーブ）は送られません。受け取った人は「はじめから」で遊べます。</p>`;
 }
 function renderSettings(){
   const st=G.st; const s=st?st.settings:G.tmpSettings||(G.tmpSettings={difficulty:"std",sound:soundPref(),reduceMotion:false});
@@ -949,9 +953,9 @@ function renderSettings(){
     ${st?`<h3 class="label">保存</h3><p class="small">行動を確定するたびに、この端末のブラウザ内へ自動保存しています。状態：${esc(G.saveStatus)}</p>
     <p class="small">端末の変更やブラウザのデータ削除の前に、下の「バックアップを表示」で文字列をコピーし、メモ帳などへ保管してください。</p>
     <div class="stack"><button class="btn" data-a="showBackup">バックアップを表示</button></div>
-    ${G.sheetData.backup?`<textarea id="backupOut" class="input mono" rows="5" readonly>${esc(G.sheetData.backup)}</textarea><button class="btn" data-a="copyBackup">コピーする</button>`:""}`:""}
-    <h3 class="label">復元</h3><p class="small">保管したバックアップの文字列を貼り付けて読み込みます（現在の記録は置き換わります）。</p>
-    <textarea id="restoreIn" class="input mono" rows="4" aria-label="バックアップの貼り付け"></textarea>
+    ${G.sheetData.backup?`<label class="field-label" for="backupOut">保管するバックアップ文字列</label><p class="small" id="backupCopyHelp">読み取り専用です。「コピーする」で文字列をコピーし、メモ帳などへ保管してください。</p><textarea id="backupOut" class="input mono" rows="5" readonly aria-describedby="backupCopyHelp" spellcheck="false">${esc(G.sheetData.backup)}</textarea><button class="btn" data-a="copyBackup">コピーする</button>`:""}`:""}
+    <h3 class="label">復元</h3><p class="small" id="restoreHelp">保管したバックアップの文字列を貼り付けて読み込みます（現在の記録は置き換わります）。</p>
+    <label class="field-label" for="restoreIn">バックアップの貼り付け</label><textarea id="restoreIn" class="input mono" rows="4" aria-describedby="restoreHelp" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off"></textarea>
     <div class="stack"><button class="btn" data-a="restore">貼り付けた記録を読み込む</button>
     ${st&&G.screen!=="title"?`<button class="btn" data-a="toTitle">タイトルへ戻る</button>`:""}</div>
     <h3 class="label">共有</h3><button class="btn" data-a="openSheet" data-k="share">友だちに教える（URLを共有）</button>`;

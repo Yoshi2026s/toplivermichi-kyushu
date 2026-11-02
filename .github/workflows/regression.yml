@@ -255,6 +255,9 @@ jobs:
       - run: node scripts/test-command-groups.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-notice-input.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -263,4 +266,5 @@ jobs:
           path: |
             .task/focus-visibility/
             .task/command-groups/
+            .task/notice-input/
           if-no-files-found: ignore

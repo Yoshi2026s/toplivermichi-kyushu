@@ -188,6 +188,11 @@ function petWalkSprite(id,stage,dir,frame){
  if(dir!==1){const raw=SOFT_ART.creature('pet/'+id,spec.shape,spec.color,96,0,false,stage);g.drawImage(raw,0,0,96,70,0,0,96,70);for(let side=0;side<2;side++){const stride=frame?Math.sin(phase+side*Math.PI)*2.5:0;g.drawImage(raw,side*48,70,48,26,side*48+stride,70-Math.max(0,-stride),48,26);}}
  else{const rear=typeof SOFT_ART!=='undefined'&&SOFT_ART.petRear(id,96);if(rear){g.save();g.translate(48,78);g.rotate(frame?Math.sin(phase)*.025:0);g.translate(-48,-78);g.drawImage(rear,0,0,96,75,0,0,96,75);for(let side=0;side<2;side++){const stride=frame?Math.sin(phase+side*Math.PI)*1.8:0;g.drawImage(rear,side*48,75,48,21,side*48+stride,75-Math.max(0,-stride),48,21);}g.restore();if(stage>=5){g.strokeStyle='#e8cb7c';g.lineWidth=3;g.beginPath();g.ellipse(48,55,19,4,0,0,Math.PI);g.stroke();}if(stage>=8){g.fillStyle='#efcf82';g.strokeStyle='#7b653b';g.lineWidth=.8;g.beginPath();g.moveTo(34,17);g.lineTo(31,6);g.lineTo(42,11);g.lineTo(48,1);g.lineTo(54,11);g.lineTo(65,6);g.lineTo(62,17);g.closePath();g.fill();g.stroke();}}else drawPetRear(g,spec,stage,phase,frame);}
 
- g.restore();petMapImages.set(key,c);if(petMapImages.size>64)petMapImages.delete(petMapImages.keys().next().value);return c;
+ g.restore();
+ // Anchor visible feet, not the transparent padding around each species/frame.
+ const pixels=g.getImageData(0,0,c.width,c.height).data;
+ c.mapFootY=c.height;
+ foot:for(let y=c.height-1;y>=0;y--)for(let x=0;x<c.width;x++)if(pixels[(y*c.width+x)*4+3]>=128){c.mapFootY=y+1;break foot;}
+ petMapImages.set(key,c);if(petMapImages.size>64)petMapImages.delete(petMapImages.keys().next().value);return c;
 }
 function petMapFollowers(st,pp,frame,sprites){(petData(st)?.companions||[]).slice(0,2).forEach((id,i)=>{const pet=petOwned(st,id);if(!pet||!partyTrail(st).points.length)return;const p=followerPose(st,st.party.length+i);sprites.push({y:p.y/16,px:p,img:petWalkSprite(id,petStage(pet),p.dir,p.moving?frame:0)});});}

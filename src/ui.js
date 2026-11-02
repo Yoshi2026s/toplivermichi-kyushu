@@ -635,9 +635,10 @@ function renderCommand(run){
   const S=a.S;
   const entries=[["attack","アタック"],["comment",a.job==="J02"?"コメント整理":"応援コメント"],["skill",JOBS[a.job].skill],["item","道具"],["guard","ガード"],["rest","ひと息つく"],["other","その他"]];
   const chip=(k,v,on,label)=>`<button class="chip ${on?"on":""}" data-a="cmdSet" data-k="${k}" data-v="${v}" aria-pressed="${on}">${on?"▶":""}${label}</button>`;
-  const enemyPick=()=>`<span class="chiplabel">対象</span>`+run.enemies.filter(e=>e.hp>0).map(e=>chip("target",e.slot,c.target===e.slot,esc(e.display)+`<small>HP ${e.hp}／${e.maxHP}</small>`)).join("");
-  const allyPick=(other)=>`<span class="chiplabel">対象</span>`+run.party.filter(m=>m.hp>0&&(!other||m!==a)).map(m=>chip("ally",m.pos,c.ally===m.pos,esc(m.name)+`<small>HP ${m.hp}／${m.maxHP}・MP ${m.c}／${battleMPCap(m)}</small>`)).join("");
-  const linePick=()=>["greet","plan","thanks"].map(l=>chip("line",l,c.line===l,LINE_NAMES[l])).join("");
+  const choiceGroup=(label,html)=>`<fieldset class="command-choices"><legend>${label}</legend><div class="choice-options">${html}</div></fieldset>`;
+  const enemyPick=()=>choiceGroup('対象の敵',run.enemies.filter(e=>e.hp>0).map(e=>chip("target",e.slot,c.target===e.slot,esc(e.display)+`<small>HP ${e.hp}／${e.maxHP}</small>`)).join(""));
+  const allyPick=(other)=>choiceGroup('対象の仲間',run.party.filter(m=>m.hp>0&&(!other||m!==a)).map(m=>chip("ally",m.pos,c.ally===m.pos,esc(m.name)+`<small>HP ${m.hp}／${m.maxHP}・MP ${m.c}／${battleMPCap(m)}</small>`)).join(""));
+  const linePick=()=>choiceGroup('コメントの台詞',["greet","plan","thanks"].map(l=>chip("line",l,c.line===l,LINE_NAMES[l])).join(""));
   const liveE=run.enemies.filter(e=>e.hp>0); if(liveE.length===1) c.target=liveE[0].slot;
   let sub="", info="";
   if(c.type==="attack") sub=enemyPick();
@@ -651,7 +652,7 @@ function renderCommand(run){
     if(need==="line") sub=linePick();
     if(need==="mode"){
       const modes = a.job==="J04"?[["hp","体力補給"],["c","集中補給"]]:[["safe","堅実"],["bold","強気"]];
-      sub=modes.map(([k,n])=>chip("mode",k,c.mode===k,n)).join("");
+      sub=choiceGroup('技の使い方',modes.map(([k,n])=>chip("mode",k,c.mode===k,n)).join(""));
       if(c.mode==="hp") sub+=allyPick(false); if(c.mode==="c") sub+=allyPick(true);
       if(c.mode==="safe"||c.mode==="bold") sub+=enemyPick();
     }
@@ -659,17 +660,17 @@ function renderCommand(run){
   if(c.type==="item"){
     const usable=(run.bag||[]).filter(e=>e.n>0&&ITEMS[e.id]&&!ITEMS[e.id].petSupply);
     if(!usable.length) sub=`<span class="hint">使える道具を持っていません。ショップで買えます。</span>`;
-    else { sub=usable.map(e=>chip("item",e.id,c.item===e.id,`${esc(ITEMS[e.id].name)}×${e.n}`)).join("");
+    else { sub=choiceGroup('使う道具',usable.map(e=>chip("item",e.id,c.item===e.id,`${esc(ITEMS[e.id].name)}×${e.n}`)).join(""));
       const it=c.item&&ITEMS[c.item];
       if(it){ const nd=itemNeeds(it); info=`${itemText(it,run.V)}（${ITEM_RARITY[it.stars].slice(0,2)}）${a.pouch&&it.cat!=="攻撃"?"・ポーチで1.5倍":""}`;
-        if(nd==="enemy") sub+=`<span class="chipbreak"></span>`+enemyPick(); if(nd==="ally") sub+=`<span class="chipbreak"></span>`+allyPick(false);
-        if(nd==="down") sub+=`<span class="chipbreak"></span><span class="chiplabel">対象</span>`+(run.party.filter(m=>m.hp<=0).map(m=>chip("ally",m.pos,c.ally===m.pos,esc(m.name)+`<small>戦闘不能・HP 0／${m.maxHP}</small>`)).join("")||`<span class="hint">戦闘不能の仲間はいません</span>`); } }
+        if(nd==="enemy") sub+=enemyPick(); if(nd==="ally") sub+=allyPick(false);
+        if(nd==="down") sub+=choiceGroup('復帰させる仲間',run.party.filter(m=>m.hp<=0).map(m=>chip("ally",m.pos,c.ally===m.pos,esc(m.name)+`<small>戦闘不能・HP 0／${m.maxHP}</small>`)).join("")||`<span class="hint">戦闘不能の仲間はいません</span>`); } }
   }
   if(c.type==="guard") info="受けるダメージ半分・MP＋1";
   if(c.type==="rest") info=`自分のMP＋${4+a.rest}`;
   if(c.type==="other"){
-    sub=chip("o","meter",c.o==="meter",`メーター突破`)+chip("o","family",c.o==="family",`ファミリー応援`)
-      +`<button class="chip" data-a="retreat">撤退</button><button class="chip" data-a="pauseBattle">休止</button>`;
+    sub=choiceGroup('特殊行動',chip("o","meter",c.o==="meter",`メーター突破`)+chip("o","family",c.o==="family",`ファミリー応援`)
+      +`<button class="chip" data-a="retreat">撤退</button><button class="chip" data-a="pauseBattle">休止</button>`);
     info = c.o==="meter"?`エール80・敵全体に${18+4*run.L+run.V*a.meter}−防御力`: c.o==="family"?`エール40・全員の体力＋${(12+a.family)*run.V}・戦闘不能から復帰`:"";
   }
   const act=buildAct(a);
@@ -883,7 +884,7 @@ function openSheet(k,data={}){ if(G.vaultSaving||G.shopSaving||G.petSaving||G.ch
 function closeSheet(){ if(G.vaultSaving||G.shopSaving||G.petSaving||G.characterSaving||G.featureSaving) return; G.sheet=null; render(); }
 function updateMenuInsets(){const sheet=document.querySelector('.sheet'),head=sheet?.querySelector('.sheet-head');if(sheet&&head)sheet.style.setProperty('--menu-head-space',Math.ceil(head.getBoundingClientRect().height)+22+'px');}
 window.addEventListener('resize',updateMenuInsets,{passive:true});
-function sheetWrap(title, body){ return `<div class="overlay" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div data-sheet="${esc(G.sheet||'')}" class="win sheet ${['guide','quests'].includes(G.sheet)?'navigation-sheet':G.sheet==='help'?'help-sheet':''}"><div class="sheet-head"><h2 class="label">${esc(title)}</h2><div class="sheet-actions"><button class="btn" data-a="closeSheet" title="${G.sheetHistory?.length?'前のメニューへ戻る':'元の画面へ戻る'}" ${G.vaultSaving||G.shopSaving?"disabled":""}>戻る</button>${G.screen==="explore"&&G.st&&!G.st.run?`<button class="btn" data-a="returnToMap" aria-label="MAPへ戻る">MAPへ</button>`:""}</div></div>${body}</div></div>`; }
+function sheetWrap(title, body){ return `<div class="overlay" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div data-sheet="${esc(G.sheet||'')}" class="win sheet ${['guide','quests'].includes(G.sheet)?'navigation-sheet':G.sheet==='help'?'help-sheet':''}"><div class="sheet-head"><h2 class="label">${esc(title)}</h2><div class="sheet-actions">${G.screen==="explore"&&G.st&&!G.st.run?`<button class="btn" data-a="returnToMap" aria-label="MAPへ戻る">MAPへ</button>`:""}<button class="btn" data-a="closeSheet" title="${G.sheetHistory?.length?'前のメニューへ戻る':'元の画面へ戻る'}" ${G.vaultSaving||G.shopSaving?"disabled":""}>戻る</button></div></div>${body}</div></div>`; }
 function renderSheet(){
   const k=G.sheet; if(!k) return ""; const st=G.st; const d=G.sheetData;
   switch(k){

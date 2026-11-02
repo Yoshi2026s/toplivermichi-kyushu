@@ -359,6 +359,8 @@ body.reduce-motion .battle-fx-layer{display:none}
 .world-port-heading{display:flex;align-items:center;gap:10px;padding:10px;background:#173b4d;border:1px solid #92c6c4;border-radius:9px}.world-port-heading svg{width:64px;height:64px;flex:none}.world-port-heading p{margin:5px 0 0}.world-ferry-routes{display:grid;gap:8px}.sheet .btn.world-ferry-route{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-height:64px;text-align:left}.world-ferry-route small{font-size:12px;color:#a7ddd4}.world-ferry-route:disabled small{color:#c2bbc9}
 /* Long menus keep scrolling within the panel and expose a clear scroll thumb. */
 .sheet{overscroll-behavior-y:contain;scrollbar-color:#b7c9c9 #14283b}
+/* Separate action choices from their targets without narrowing touch controls. */
+.command-choices{flex:1 1 100%;min-width:0;max-width:100%;margin:0;padding:6px 8px 8px;border:1px solid #7c9ba4;border-radius:7px;box-sizing:border-box;background:#102b3a}.command-choices legend{padding:0 5px;color:#c0ded8;font-size:13px;font-weight:700}.choice-options{display:flex;flex-wrap:wrap;gap:6px;min-width:0}.choice-options .chip{max-width:100%;overflow-wrap:anywhere;text-align:left}.command-choices .hint{font-size:14px;line-height:1.5}
 </style>
 <style>
 /* 縦1列・幅上限480。濃紺の文字窓と生成りの二重枠（第21F・21K節）。単一の夜色テーマで統一 */
@@ -987,7 +989,7 @@ body:not(.no-dock){--dockH:88px}body.in-explore:not(.no-dock){--dockH:116px}body
 .battle .enemies,.battle .enemies[data-count="2"]{min-height:110px;padding:6px;align-items:center;align-content:center;border:2px solid #bfa776;border-radius:8px}.battle .ecard .esprite,.battle .ecard.isboss .esprite,.battle .enemies[data-count="2"] .esprite{width:min(100%,100px);height:100px}.battle .ecard.isboss .esprite{width:min(100%,112px);height:112px}
 .battle-progress{padding:7px 9px}.battle-progress-nav{display:grid;grid-template-columns:48px minmax(0,1fr) 48px;align-items:center;gap:6px}.battle-progress-nav>span{text-align:center;font-size:12px;color:#c3cece}.battle-progress-nav .btn{min-height:48px;min-width:48px;padding:4px}.battle-progress-text{display:block;width:100%;min-height:48px;padding:8px 2px;background:transparent;border:0;color:var(--cream);font:inherit;line-height:1.6;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;cursor:pointer}.battle-progress-text:focus-visible{outline:2px solid #f4d581}
 .battle .party{gap:5px;border-color:#76aab0}.battle .pcard{padding:5px 7px;min-height:72px;gap:2px}.battle .party-portrait,.battle .pjob,.battle .pcard>.bar{display:none}.battle .pline{padding:0}.battle .pline b{font-size:14px}.battle .pbadges{font-size:12px;min-height:0}.battle .pstat{display:block;white-space:normal;overflow:visible;font-size:13px}.p-vital{display:grid;grid-template-columns:minmax(0,1fr) 32px;gap:4px;align-items:center}.p-vital>span:first-child{overflow-wrap:anywhere}.mini-meter{display:block;height:4px;background:#314b5a;border-radius:3px;overflow:hidden}.mini-meter i{display:block;height:100%;background:#8cc8bd}.mini-meter.mp i{background:#8dbdf6}.pcard.low .mini-meter:not(.mp) i{background:#ed987c}.battle .pet-party{grid-template-columns:repeat(2,minmax(0,1fr));background:#203c38;padding:6px;border-radius:5px}.battle .pet-battle-summary{margin:0}
-.sheet{border:2px solid #c9b373;border-radius:10px;background:linear-gradient(120deg,#263d51,#14283b);padding:12px 14px;scrollbar-gutter:stable}.sheet-head{border-bottom:1px solid #c9b373;padding:6px 0;margin-bottom:16px;align-items:center;z-index:4;background:#21384d}.sheet-head .label{color:#e5d39f;font-size:18px;font-weight:500}.sheet-actions{flex-direction:row-reverse}.sheet .btn{border-radius:7px;min-height:48px}.sheet .input,.sheet select{min-height:48px;box-sizing:border-box}.sheet .qcard{padding:12px}.sheet .nav-filters{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:4px 0 16px}.nav-instruction{line-height:1.6;font-size:14px;color:#d2d8d6}.nav-search{margin:20px 0 14px}.nav-destination.btn{border:0;border-radius:0;border-bottom:1px solid #7c909a;background:transparent;box-shadow:none;text-align:left;align-items:stretch;padding:15px 6px;gap:6px}.nav-destination.btn>b,.nav-destination.btn>span{text-align:left}.nav-destination b{font-size:16px}.nav-destination span{font-size:14px;line-height:1.6}.nav-results{gap:0}.nav-quest{border-width:0 0 1px;border-radius:0;box-shadow:none;background:transparent;padding:16px 6px}
+.sheet{border:2px solid #c9b373;border-radius:10px;background:linear-gradient(120deg,#263d51,#14283b);padding:12px 14px;scrollbar-gutter:stable}.sheet-head{border-bottom:1px solid #c9b373;padding:6px 0;margin-bottom:16px;align-items:center;z-index:4;background:#21384d}.sheet-head .label{color:#e5d39f;font-size:18px;font-weight:500}.sheet-actions{flex-direction:row}.sheet .btn{border-radius:7px;min-height:48px}.sheet .input,.sheet select{min-height:48px;box-sizing:border-box}.sheet .qcard{padding:12px}.sheet .nav-filters{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:4px 0 16px}.nav-instruction{line-height:1.6;font-size:14px;color:#d2d8d6}.nav-search{margin:20px 0 14px}.nav-destination.btn{border:0;border-radius:0;border-bottom:1px solid #7c909a;background:transparent;box-shadow:none;text-align:left;align-items:stretch;padding:15px 6px;gap:6px}.nav-destination.btn>b,.nav-destination.btn>span{text-align:left}.nav-destination b{font-size:16px}.nav-destination span{font-size:14px;line-height:1.6}.nav-results{gap:0}.nav-quest{border-width:0 0 1px;border-radius:0;box-shadow:none;background:transparent;padding:16px 6px}
 .dock .dock-back{order:0;border-radius:50%;width:64px;min-width:64px;min-height:64px;border:3px solid #ede2bd;background:#263c4e}.dock .dock-center{order:1}.dock .stick{order:2}.dock-battle-actions{display:none;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;width:100%}.dock-battle-actions .btn{min-height:48px;padding:4px;font-size:12px}.dock-battle-actions .auto{border:2px solid #d7b75a;color:#f0d58b}.in-battle .dock-battle-actions{display:grid}.in-battle .dock-battle-actions .btn:first-child{grid-column:1/-1;min-height:32px}body.in-battle:not(.no-dock){--dockH:100px}
 @media(max-width:350px){.dock .dock-back{width:64px;min-width:64px;min-height:64px}.sheet{padding-left:10px;padding-right:10px}.sheet-head .label{font-size:16px}.enemy-data-card .ename{font-size:13px}.enemy-hp{font-size:18px}.battle .party{padding:5px}.battle .pcard{padding:4px}.battle .pline b{font-size:13px}.battle .pstat{font-size:12px}}
 @media(orientation:landscape) and (max-height:600px){.battle .enemies,.battle .enemies[data-count="2"]{min-height:100px}.sheet{max-width:800px}.enemy-data-grid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}}
@@ -6229,9 +6231,10 @@ function renderCommand(run){
   const S=a.S;
   const entries=[["attack","アタック"],["comment",a.job==="J02"?"コメント整理":"応援コメント"],["skill",JOBS[a.job].skill],["item","道具"],["guard","ガード"],["rest","ひと息つく"],["other","その他"]];
   const chip=(k,v,on,label)=>`<button class="chip ${on?"on":""}" data-a="cmdSet" data-k="${k}" data-v="${v}" aria-pressed="${on}">${on?"▶":""}${label}</button>`;
-  const enemyPick=()=>`<span class="chiplabel">対象</span>`+run.enemies.filter(e=>e.hp>0).map(e=>chip("target",e.slot,c.target===e.slot,esc(e.display)+`<small>HP ${e.hp}／${e.maxHP}</small>`)).join("");
-  const allyPick=(other)=>`<span class="chiplabel">対象</span>`+run.party.filter(m=>m.hp>0&&(!other||m!==a)).map(m=>chip("ally",m.pos,c.ally===m.pos,esc(m.name)+`<small>HP ${m.hp}／${m.maxHP}・MP ${m.c}／${battleMPCap(m)}</small>`)).join("");
-  const linePick=()=>["greet","plan","thanks"].map(l=>chip("line",l,c.line===l,LINE_NAMES[l])).join("");
+  const choiceGroup=(label,html)=>`<fieldset class="command-choices"><legend>${label}</legend><div class="choice-options">${html}</div></fieldset>`;
+  const enemyPick=()=>choiceGroup('対象の敵',run.enemies.filter(e=>e.hp>0).map(e=>chip("target",e.slot,c.target===e.slot,esc(e.display)+`<small>HP ${e.hp}／${e.maxHP}</small>`)).join(""));
+  const allyPick=(other)=>choiceGroup('対象の仲間',run.party.filter(m=>m.hp>0&&(!other||m!==a)).map(m=>chip("ally",m.pos,c.ally===m.pos,esc(m.name)+`<small>HP ${m.hp}／${m.maxHP}・MP ${m.c}／${battleMPCap(m)}</small>`)).join(""));
+  const linePick=()=>choiceGroup('コメントの台詞',["greet","plan","thanks"].map(l=>chip("line",l,c.line===l,LINE_NAMES[l])).join(""));
   const liveE=run.enemies.filter(e=>e.hp>0); if(liveE.length===1) c.target=liveE[0].slot;
   let sub="", info="";
   if(c.type==="attack") sub=enemyPick();
@@ -6245,7 +6248,7 @@ function renderCommand(run){
     if(need==="line") sub=linePick();
     if(need==="mode"){
       const modes = a.job==="J04"?[["hp","体力補給"],["c","集中補給"]]:[["safe","堅実"],["bold","強気"]];
-      sub=modes.map(([k,n])=>chip("mode",k,c.mode===k,n)).join("");
+      sub=choiceGroup('技の使い方',modes.map(([k,n])=>chip("mode",k,c.mode===k,n)).join(""));
       if(c.mode==="hp") sub+=allyPick(false); if(c.mode==="c") sub+=allyPick(true);
       if(c.mode==="safe"||c.mode==="bold") sub+=enemyPick();
     }
@@ -6253,17 +6256,17 @@ function renderCommand(run){
   if(c.type==="item"){
     const usable=(run.bag||[]).filter(e=>e.n>0&&ITEMS[e.id]&&!ITEMS[e.id].petSupply);
     if(!usable.length) sub=`<span class="hint">使える道具を持っていません。ショップで買えます。</span>`;
-    else { sub=usable.map(e=>chip("item",e.id,c.item===e.id,`${esc(ITEMS[e.id].name)}×${e.n}`)).join("");
+    else { sub=choiceGroup('使う道具',usable.map(e=>chip("item",e.id,c.item===e.id,`${esc(ITEMS[e.id].name)}×${e.n}`)).join(""));
       const it=c.item&&ITEMS[c.item];
       if(it){ const nd=itemNeeds(it); info=`${itemText(it,run.V)}（${ITEM_RARITY[it.stars].slice(0,2)}）${a.pouch&&it.cat!=="攻撃"?"・ポーチで1.5倍":""}`;
-        if(nd==="enemy") sub+=`<span class="chipbreak"></span>`+enemyPick(); if(nd==="ally") sub+=`<span class="chipbreak"></span>`+allyPick(false);
-        if(nd==="down") sub+=`<span class="chipbreak"></span><span class="chiplabel">対象</span>`+(run.party.filter(m=>m.hp<=0).map(m=>chip("ally",m.pos,c.ally===m.pos,esc(m.name)+`<small>戦闘不能・HP 0／${m.maxHP}</small>`)).join("")||`<span class="hint">戦闘不能の仲間はいません</span>`); } }
+        if(nd==="enemy") sub+=enemyPick(); if(nd==="ally") sub+=allyPick(false);
+        if(nd==="down") sub+=choiceGroup('復帰させる仲間',run.party.filter(m=>m.hp<=0).map(m=>chip("ally",m.pos,c.ally===m.pos,esc(m.name)+`<small>戦闘不能・HP 0／${m.maxHP}</small>`)).join("")||`<span class="hint">戦闘不能の仲間はいません</span>`); } }
   }
   if(c.type==="guard") info="受けるダメージ半分・MP＋1";
   if(c.type==="rest") info=`自分のMP＋${4+a.rest}`;
   if(c.type==="other"){
-    sub=chip("o","meter",c.o==="meter",`メーター突破`)+chip("o","family",c.o==="family",`ファミリー応援`)
-      +`<button class="chip" data-a="retreat">撤退</button><button class="chip" data-a="pauseBattle">休止</button>`;
+    sub=choiceGroup('特殊行動',chip("o","meter",c.o==="meter",`メーター突破`)+chip("o","family",c.o==="family",`ファミリー応援`)
+      +`<button class="chip" data-a="retreat">撤退</button><button class="chip" data-a="pauseBattle">休止</button>`);
     info = c.o==="meter"?`エール80・敵全体に${18+4*run.L+run.V*a.meter}−防御力`: c.o==="family"?`エール40・全員の体力＋${(12+a.family)*run.V}・戦闘不能から復帰`:"";
   }
   const act=buildAct(a);
@@ -6477,7 +6480,7 @@ function openSheet(k,data={}){ if(G.vaultSaving||G.shopSaving||G.petSaving||G.ch
 function closeSheet(){ if(G.vaultSaving||G.shopSaving||G.petSaving||G.characterSaving||G.featureSaving) return; G.sheet=null; render(); }
 function updateMenuInsets(){const sheet=document.querySelector('.sheet'),head=sheet?.querySelector('.sheet-head');if(sheet&&head)sheet.style.setProperty('--menu-head-space',Math.ceil(head.getBoundingClientRect().height)+22+'px');}
 window.addEventListener('resize',updateMenuInsets,{passive:true});
-function sheetWrap(title, body){ return `<div class="overlay" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div data-sheet="${esc(G.sheet||'')}" class="win sheet ${['guide','quests'].includes(G.sheet)?'navigation-sheet':G.sheet==='help'?'help-sheet':''}"><div class="sheet-head"><h2 class="label">${esc(title)}</h2><div class="sheet-actions"><button class="btn" data-a="closeSheet" title="${G.sheetHistory?.length?'前のメニューへ戻る':'元の画面へ戻る'}" ${G.vaultSaving||G.shopSaving?"disabled":""}>戻る</button>${G.screen==="explore"&&G.st&&!G.st.run?`<button class="btn" data-a="returnToMap" aria-label="MAPへ戻る">MAPへ</button>`:""}</div></div>${body}</div></div>`; }
+function sheetWrap(title, body){ return `<div class="overlay" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div data-sheet="${esc(G.sheet||'')}" class="win sheet ${['guide','quests'].includes(G.sheet)?'navigation-sheet':G.sheet==='help'?'help-sheet':''}"><div class="sheet-head"><h2 class="label">${esc(title)}</h2><div class="sheet-actions">${G.screen==="explore"&&G.st&&!G.st.run?`<button class="btn" data-a="returnToMap" aria-label="MAPへ戻る">MAPへ</button>`:""}<button class="btn" data-a="closeSheet" title="${G.sheetHistory?.length?'前のメニューへ戻る':'元の画面へ戻る'}" ${G.vaultSaving||G.shopSaving?"disabled":""}>戻る</button></div></div>${body}</div></div>`; }
 function renderSheet(){
   const k=G.sheet; if(!k) return ""; const st=G.st; const d=G.sheetData;
   switch(k){

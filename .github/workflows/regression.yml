@@ -252,10 +252,15 @@ jobs:
       - run: node scripts/test-focus-visibility.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-command-groups.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: focus-visibility
           include-hidden-files: true
-          path: .task/focus-visibility/
+          path: |
+            .task/focus-visibility/
+            .task/command-groups/
           if-no-files-found: ignore

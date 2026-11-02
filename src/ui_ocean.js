@@ -14,7 +14,7 @@ interact=function(o){
   if(o?.oceanRoute){
     if(!G.st||G.readOnly||G.screen!=="explore"||G.st.run||G.dlg||G.lock)return;
     if(!MAPS[G.st.mapId].objects.includes(o)||Math.max(Math.abs(o.x-G.st.pos.x),Math.abs(o.y-G.st.pos.y))>1)return;
-    if(!oceanRouteAvailable(G.st,o.oceanRoute))return say([["港の案内人",`この航路は「${QUESTS[OCEAN_ROUTES[o.oceanRoute].quest].name}」の完了後に出航できます。港と街は安全。航路E・海辺Sでは海洋モンスターに遭遇します。`]]);
+    if(!oceanRouteAvailable(G.st,o.oceanRoute))return say([["港の案内人",`この航路は「${QUESTS[OCEAN_ROUTES[o.oceanRoute].quest].name}」の完了後に出航できます。港と街は安全です。航路・海辺では敵に遭遇します。`]]);
     SND.sfx("seaWave");
   }
   if(o?.type==="oceanEvent"){
@@ -43,19 +43,19 @@ function oceanOverview(){
   const localMap=MAPS[st.mapId],atSea=localMap.combatDomain==="sea";
   const eventCards=Object.entries(eventLabels).map(([key,label])=>{
     const status=oceanEventAvailability(st,id,key,{readOnly:G.readOnly,busy:!!G.lock||!!G.oceanSaving});
-    return `<div class="qcard"><b>${r[key]?"● 完了":"○ 未完了"} ${label}</b><p class="small">${key==="survey"?"同じ海域の海洋敵3体を討伐して報告。報酬：応援ポイント60。":key==="treasure"?"この海域で救助後、灯台の地図を調べる。報酬：120G。":"この海域の海面か案内標で救助。報酬：80G。"}</p>${r[key]?"":`<button class="btn" data-a="oceanEventSelect" data-area="${id}" data-event="${key}" ${status.ok?"":"disabled"}>${label}の確認</button>${status.ok?"":`<p class="small">${esc(status.reason)}</p>`}`}</div>`;
+    return `<div class="qcard"><b>${r[key]?"● 完了":"○ 未完了"} ${label}</b><p class="small">${key==="survey"?"同じ海域の海洋敵3体を討伐して報告。報酬：チケット60枚。":key==="treasure"?"この海域で救助後、灯台の地図を調べる。報酬：120G。":"この海域の海面か案内標で救助。報酬：80G。"}</p>${r[key]?"":`<button class="btn" data-a="oceanEventSelect" data-area="${id}" data-event="${key}" ${status.ok?"":"disabled"}>${label}の確認</button>${status.ok?"":`<p class="small">${esc(status.reason)}</p>`}`}</div>`;
   }).join("");
-  return `<p class="small">港と街は安全です。船は指定された航路E・海辺Sだけを進みます。未指定の水面には入れません。既存の街道・物語の条件は変わりません。</p>
-    <h3 class="label">${esc(a.name)}</h3><p>適正レベル${a.q}・海洋敵討伐${r.kills}/3体・${esc(OCEAN_THEMES[a.region].name)}</p><p class="small">${esc(a.lore)}</p>
+  return `<p class="small">港と街は安全です。船は指定の航路・海辺を進み、敵に遭遇します。航路外の水面には入れません。イベント報酬は各海域でそれぞれ1回です。</p>
+    <h3 class="label">${esc(a.name)}</h3><p>推奨レベル${a.q}・海洋敵討伐${r.kills}/3体・${esc(OCEAN_THEMES[a.region].name)}</p><p class="small">${esc(a.lore)}</p>
     <div class="srow">${OCEAN_SPECIES.map((name,f)=>`<span><canvas data-ocean-sprite="${id}|${f*10}" width="64" height="64" style="width:48px;height:48px;image-rendering:pixelated" aria-hidden="true"></canvas><br><span class="small">${name}</span></span>`).join("")}</div>
     ${pending&&G.sheetData.opState===st?`<div class="qcard"><b>${esc(eventLabels[pending.event])}を実行します</b><p class="small">報酬はこの海域で一度だけです。</p><button class="btn primary" data-a="oceanEventDo" data-area="${pending.area}" data-event="${pending.event}" data-token="${esc(pending.token)}" ${G.oceanSaving?"disabled":""}>確定する</button><button class="btn" data-a="oceanEventCancel" ${G.oceanSaving?"disabled":""}>やめる</button></div>`:eventCards}
-    <button class="btn" data-a="oceanDexOpen" data-area="${id}">海洋モンスター図鑑（65海域・3,250項目）</button>
+    <button class="btn" data-a="oceanDexOpen" data-area="${id}">海洋モンスター図鑑</button>
     ${atSea&&localMap.oceanRoute===a.routeId?`<button class="btn" data-a="oceanMoveArea" data-area="${id}" ${G.readOnly?"disabled":""}>${esc(a.name)}の海面へ歩く</button>`:""}
     <details class="ocean-area-picker"><summary>海域を選ぶ（65海域）</summary>${Object.values(OCEAN_ROUTES).map(v=>`<h3 class="label">${esc(OCEAN_THEMES.find(t=>t.id===v.theme).name)}</h3><div class="stack">${v.areas.map(k=>`<button class="btn ${k===id?"on":""}" data-a="oceanArea" data-area="${k}">${esc(OCEAN_AREAS[k].name)}・Lv${OCEAN_AREAS[k].q}</button>`).join("")}</div>`).join("")}</details>
-    <h3 class="label">8地方の新航路</h3><div class="stack">${Object.values(OCEAN_ROUTES).map(v=>{
+    <details class="ocean-route-picker"><summary>港と航路（8地方）</summary><div class="stack">${Object.values(OCEAN_ROUTES).map(v=>{
       const unlocked=oceanRouteAvailable(st,v.id),atPort=st.mapId===v.hub;
-      return `<div class="qcard"><b>${esc(v.name)}</b><p class="small">${esc(HUBS[v.hub].name)}の港／${unlocked?"解放済み":`「${esc(QUESTS[v.quest].name)}」完了で解放`}。港1・指定海面27区画。</p><button class="btn" data-a="oceanDepart" data-route="${v.id}" ${unlocked&&atPort&&!G.readOnly?"":"disabled"}>港まで歩いて出発</button>${atPort?"":`<p class="small">${esc(HUBS[v.hub].name)}の街から出発します。</p>`}</div>`;
-    }).join("")}</div><p class="small">現在の航路：${atSea?esc(OCEAN_ROUTES[localMap.oceanRoute].name):"陸上"}。戻るとオート移動へ戻ります。</p>`;
+      return `<div class="qcard"><b>${esc(v.name)}</b><p class="small">${esc(HUBS[v.hub].name)}の港／${unlocked?"解放済み":`「${esc(QUESTS[v.quest].name)}」完了で解放`}。</p><button class="btn" data-a="oceanDepart" data-route="${v.id}" ${unlocked&&atPort&&!G.readOnly?"":"disabled"}>港まで歩いて出発</button>${atPort?"":`<p class="small">${esc(HUBS[v.hub].name)}の街から出発します。</p>`}</div>`;
+    }).join("")}</div></details><p class="small">現在の航路：${atSea?esc(OCEAN_ROUTES[localMap.oceanRoute].name):"陸上"}。</p>`;
 }
 function oceanDexHtml(){
   const st=G.st,id=oceanDefaultArea(),a=OCEAN_AREAS[id],page=Math.max(0,Math.min(4,Number(G.sheetData.page)||0)),seen=Object.keys(st.seen||{}).filter(k=>k.startsWith("OCN-")).length;
@@ -104,6 +104,6 @@ Object.assign(ACT,{
     let saved=false;try{saved=await commit();}catch(e){}
     G.oceanSaving=false;
     if(!saved){st.gold=before.gold;st.tickets=before.tickets;if(before.ocean===undefined)delete st.ocean;else st.ocean=before.ocean;delete d.pendingEvent;delete d.opState;render();return toast("保存できなかったため、イベントと報酬を元に戻しました。保存先の空きを確認して再試行してください。");}
-    delete d.pendingEvent;delete d.opState;render();SND.sfx(event==="rescue"?"seaRescue":event==="treasure"?"seaTreasure":"ok");say([...result.lines,["",`${result.gold?`${result.gold}ゴールド`:"応援ポイント60"}を受け取った。この海域では受取済みとして保存した。`]]);
+    delete d.pendingEvent;delete d.opState;render();SND.sfx(event==="rescue"?"seaRescue":event==="treasure"?"seaTreasure":"ok");say([...result.lines,["",`${result.gold?`${result.gold}G`:`チケット${result.tickets}枚`}を受け取りました。`]]);
   }
 });

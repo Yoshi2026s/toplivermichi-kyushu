@@ -20,7 +20,7 @@ state.sheetData={page:9,line:79};
 if(!render().includes('記録4')||!render().includes('履歴に戻る')) throw new Error('selected older log entry missing');
 state.st.run.log=[];state.sheetData.page=99;
 delete state.sheetData.line;
-if(!render().includes('まだありません。')||!render().includes('1/1ページ')) throw new Error('empty or stale page failed');
+if(!render().includes('行動の記録はありません。')||!render().includes('1/1ページ')) throw new Error('empty or stale page failed');
 const actionDef=ui.match(/const ACT = \{[\s\S]*?\n\};/)?.[0];
 if(!actionDef) throw new Error('battle log action missing');
 const view={st:{run:{log:[]}},screen:'battle',sheet:null,dlg:null,auto:true,autoT:null,autoLast:{},cmd:{stale:true},cursorSig:'auto',logExpanded:false};

@@ -509,7 +509,7 @@ function openBox(o){
 function bossPrompt(bid){
   const st=G.st, b=BOSSES[bid]; if(MAPS[st.mapId].kind!=="field"||!b) return; const qid=Object.keys(QUESTS).find(k=>QUESTS[k].boss===bid);
   if(st.bossDefeated[bid]) return say([["","乱れは静まっている。図鑑から記録を見られます。"]]);
-  if(st.quests[qid]!=="bossReady") return say([["",`奥から大きな重なりを感じる（${b.name}・推奨レベル${b.q}）。依頼「${qid}」を受けて通常敵を倒すと挑戦できます。`]]);
+  if(st.quests[qid]!=="bossReady") return say([["",`奥から大きな重なりを感じる（${b.name}・推奨レベル${b.q}）。依頼「${QUESTS[qid]?.name||"この地域の依頼"}」を受けて通常敵を倒すと挑戦できます。`]]);
   openSheet("boss",{bid});
 }
 function say(lines, after){ if(G.st?.heroine?.name)lines=lines.map(([who,line])=>[who==="もえ"?charName(G.st,"moe"):who,String(line).replace(/雪餅羽[ ]?もえ|のわんもえ|もえ/g,charName(G.st,"moe"))]); G.dlg={lines, i:0, after}; render(); }
@@ -605,14 +605,14 @@ function battleProgressIndex(run){
  else if(reader.tail!==lines[last]||reader.length!==lines.length){if(reader.index>=reader.length-1)reader.index=last;else if(reader.anchor){const found=lines.indexOf(reader.anchor);reader.index=found<0?0:found;}reader.length=lines.length;reader.tail=lines[last];}
  reader.index=Math.max(0,Math.min(last,reader.index));reader.anchor=lines[reader.index];return reader.index;
 }
-function renderBattleProgress(run){const lines=run.log||[],i=battleProgressIndex(run);return `<section class="battle-progress" aria-label="戦闘の進行"><div class="battle-progress-nav"><button class="btn" data-a="battleProgressMove" data-v="-1" aria-label="前の進行文" ${i>0?'':'disabled'}>◀</button><span>進行 ${lines.length?i+1:0}／${lines.length}・全文を読む</span><button class="btn" data-a="battleProgressMove" data-v="1" aria-label="次の進行文" ${i+1<lines.length?'':'disabled'}>▶</button></div>${lines.length?`<button class="battle-progress-text" data-a="battleLogLine" data-v="${i}" aria-label="進行文の全文を読む"><span class="battle-progress-line">${esc(lines[i])}</span></button>`:'<p>行動の記録はありません。</p>'}</section>`;}
+function renderBattleProgress(run){const lines=run.log||[],i=battleProgressIndex(run);return `<section class="battle-progress" aria-label="戦闘の進行"><div class="battle-progress-nav"><button class="btn" data-a="battleProgressMove" data-v="-1" aria-label="前の進行文" ${i>0?'':'disabled'}>◀</button><span>進行 ${lines.length?i+1:0}／${lines.length}${lines.length?"・全文を読む":""}</span><button class="btn" data-a="battleProgressMove" data-v="1" aria-label="次の進行文" ${i+1<lines.length?'':'disabled'}>▶</button></div>${lines.length?`<button class="battle-progress-text" data-a="battleLogLine" data-v="${i}" aria-label="進行文の全文を読む"><span class="battle-progress-line">${esc(lines[i])}</span></button>`:'<p>行動の記録はありません。</p>'}</section>`;}
 function renderBattleLog(){
   const lines=(Array.isArray(G.st?.run?.log)?G.st.run.log:[]).slice(-80).reverse();
   const pages=Math.max(1,Math.ceil(lines.length/8));
   const page=Math.min(Math.max(0,Number.isInteger(G.sheetData?.page)?G.sheetData.page:0),pages-1);
   const selected=G.sheetData?.line;
   if(Number.isInteger(selected)&&selected>=0&&selected<lines.length) return `<p class="small">戦闘ログ・${lines.length-selected}件目</p><p>${esc(lines[selected])}</p><button class="btn" data-a="battleLogBack">履歴に戻る</button>`;
-  return `<p class="small">直近${lines.length}件・新しい順（${page+1}/${pages}ページ）</p><div class="stack">${lines.slice(page*8,(page+1)*8).map((l,i)=>`<button class="btn" data-a="battleLogLine" data-v="${lines.length-1-(page*8+i)}">${esc(l)}</button>`).join("")||"<p>まだありません。</p>"}</div><div class="srow"><button class="btn" data-a="battleLogPage" data-v="${page-1}" ${page>0?"":"disabled"}>新しい記録</button><button class="btn" data-a="battleLogPage" data-v="${page+1}" ${page+1<pages?"":"disabled"}>古い記録</button></div>`;
+  return `<p class="small">直近${lines.length}件・新しい順（${page+1}/${pages}ページ）</p><div class="stack">${lines.slice(page*8,(page+1)*8).map((l,i)=>`<button class="btn" data-a="battleLogLine" data-v="${lines.length-1-(page*8+i)}">${esc(l)}</button>`).join("")||"<p>行動の記録はありません。</p>"}</div><div class="srow"><button class="btn" data-a="battleLogPage" data-v="${page-1}" ${page>0?"":"disabled"}>新しい記録</button><button class="btn" data-a="battleLogPage" data-v="${page+1}" ${page+1<pages?"":"disabled"}>古い記録</button></div>`;
 }
 function revealBattleCommand(){
  if(typeof document==='undefined'||!document.body)return;
@@ -855,7 +855,7 @@ function renderResult(){
       ${up?`<p class="good">レベルアップ！ ${r.levelBefore} → ${r.levelAfter}</p>`:""}
       ${items.length||gifts.length?`<h3 class="label">手に入れたもの</h3><ul class="rlist">${[...items,...gifts].join("")}</ul>`:""}
       ${renderUsedItemHistory(r,usedItems)}
-      ${(r.newBadges||[]).length?`<details class="rbox result-badges"><summary>新しい戦闘バッジ（${r.newBadges.length}件）</summary><ul class="rlist">${r.newBadges.map(id=>`<li>${id} ${esc(ITEM_BADGES[id]||GROWTH_BADGES[id]||PARTY_BADGES[id]||ACTION_BADGES[id]||HEAL_BADGES[id]||MP_BADGES[id]||CHEER_BADGES[id]||SPEED_BADGES[id]||ATTACK_BADGES[id]||GUARD_BADGES[id]||DEFENSE_BADGES[id]||EXTRA_BADGES[id]||id)}</li>`).join("")}</ul></details>`:""}
+      ${(r.newBadges||[]).length?`<details class="rbox result-badges"><summary>新しい戦闘バッジ（${r.newBadges.length}件）</summary><ul class="rlist">${r.newBadges.map(id=>`<li>${esc(ITEM_BADGES[id]||GROWTH_BADGES[id]||PARTY_BADGES[id]||ACTION_BADGES[id]||HEAL_BADGES[id]||MP_BADGES[id]||CHEER_BADGES[id]||SPEED_BADGES[id]||ATTACK_BADGES[id]||GUARD_BADGES[id]||DEFENSE_BADGES[id]||EXTRA_BADGES[id]||id)}</li>`).join("")}</ul></details>`:""}
       <button class="btn" data-a="openSheet" data-k="record">戦闘バッジ一覧を見る</button>
       ${(r.notes||[]).map(n=>`<p class="good rnote">${esc(n)}</p>`).join("")}
     </details></section>`;

@@ -138,3 +138,5 @@ BGM切替時の減衰と、結果画面の閲覧位置・詳細保持は [音と
 行動・対象の選択とメニュー順序の改善： [ACTION_GROUPS_2026_11_02.md](docs/ACTION_GROUPS_2026_11_02.md)。
 
 お知らせとコピー・復元欄の改善： [NOTICE_INPUT_READABILITY_2026_11_02.md](docs/NOTICE_INPUT_READABILITY_2026_11_02.md)。
+
+閲覧専用の表示と操作の改善： [READONLY_CLARITY_2026_11_02.md](docs/READONLY_CLARITY_2026_11_02.md)。

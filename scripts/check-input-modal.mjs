@@ -3,14 +3,14 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 
 const handlers={},document={activeElement:null,addEventListener(type,fn){(handlers[type]??=[]).push(fn);},
-  querySelector(selector){return selector==='.overlay'?overlay:null;}};
+  getElementById(){return null;},querySelector(selector){return selector==='.overlay'?overlay:null;}};
 function control(tagName){return {tagName,disabled:false,getAttribute:()=>null,closest:()=>null,
   getBoundingClientRect:()=>({width:100,height:30}),focus(){document.activeElement=this;}};}
 const first=control('BUTTON'),select=control('SELECT'),last=control('INPUT');
 const overlay={querySelectorAll:()=>[first,select,last]};
 const G={screen:'title',sheet:'settings',dlg:null};
 runInNewContext(readFileSync(new URL('../src/input.js',import.meta.url),'utf8'),{
-  document,G,window:{addEventListener(){}},boot(){}
+  document,G,window:{addEventListener(){}},getComputedStyle:()=>({visibility:'visible'}),requestAnimationFrame(){},boot(){}
 });
 function tab(target,shiftKey=false){const e={key:'Tab',target,shiftKey,prevented:false,preventDefault(){this.prevented=true;}};handlers.keydown[0](e);return e;}
 document.activeElement=last;assert(tab(last).prevented);assert.equal(document.activeElement,first);

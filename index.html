@@ -357,6 +357,8 @@ body.reduce-motion .battle-fx-layer{display:none}
 .world-search-result{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:5px 0}.world-search-result .btn{min-width:48px;min-height:48px;font-size:13px;padding:5px 8px}
 .world-map-key{display:flex;flex-wrap:wrap;gap:2px 9px}.world-map-key>span{white-space:nowrap}.world-overview:focus{outline:2px solid #a7ede2;outline-offset:3px}
 .world-port-heading{display:flex;align-items:center;gap:10px;padding:10px;background:#173b4d;border:1px solid #92c6c4;border-radius:9px}.world-port-heading svg{width:64px;height:64px;flex:none}.world-port-heading p{margin:5px 0 0}.world-ferry-routes{display:grid;gap:8px}.sheet .btn.world-ferry-route{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-height:64px;text-align:left}.world-ferry-route small{font-size:12px;color:#a7ddd4}.world-ferry-route:disabled small{color:#c2bbc9}
+/* Long menus keep scrolling within the panel and expose a clear scroll thumb. */
+.sheet{overscroll-behavior-y:contain;scrollbar-color:#b7c9c9 #14283b}
 </style>
 <style>
 /* 縦1列・幅上限480。濃紺の文字窓と生成りの二重枠（第21F・21K節）。単一の夜色テーマで統一 */
@@ -8398,7 +8400,11 @@ const PAD = (()=>{
   function focusables(sc){
     return [...sc.querySelectorAll("button,input,textarea,select,summary,a[href],[data-a]")].filter(el=>{
       if(el.disabled||el.getAttribute("aria-disabled")==="true") return false;
-      if(el.closest("[hidden]")) return false; const r=el.getBoundingClientRect(); return r.width>0&&r.height>0;
+      if(el.closest("[hidden],[inert]")) return false;
+      for(let d=el.closest('details:not([open])');d;d=d.parentElement?.closest('details:not([open])')){
+        if(!d.querySelector(':scope > summary')?.contains(el))return false;
+      }
+      const style=getComputedStyle(el),r=el.getBoundingClientRect();return style.visibility!=='hidden'&&style.visibility!=='collapse'&&r.width>0&&r.height>0;
     });
   }
   function current(sc){ const a=document.activeElement;if(a&&a!==document.body&&sc.contains(a)&&focusables(sc).includes(a))return a;return sc.querySelector(".kfocus"); }
@@ -8406,8 +8412,24 @@ const PAD = (()=>{
     document.querySelectorAll(".kfocus").forEach(x=>x.classList.remove("kfocus"));
     if(!el) return; el.classList.add("kfocus");
     try{ el.focus({preventScroll:true}); }catch(e){}
-    if(scroll)el.scrollIntoView({block:"nearest",inline:"nearest"});
+    if(scroll)revealFocus(el);
     G.cursorSig = sig(el);if(typeof updateControlHints==="function")updateControlHints();
+  }
+  function revealFocus(el){
+    if(!el?.isConnected||el===document.body||el.closest('#dock'))return;
+    const sheet=el.closest('.sheet');
+    if(sheet){
+      const p=sheet.getBoundingClientRect(),head=sheet.querySelector('.sheet-head')?.getBoundingClientRect(),r=el.getBoundingClientRect();
+      const top=(el.closest('.sheet-head')?p.top:Math.max(p.top,head?.bottom||p.top))+4,bottom=p.bottom-8;
+      const dy=r.top<top||r.height>bottom-top?r.top-top:r.bottom>bottom?r.bottom-bottom:0;
+      if(Math.abs(dy)>1)sheet.scrollTop+=dy;
+      return;
+    }
+    el.scrollIntoView({block:'nearest',inline:'nearest'});
+    const r=el.getBoundingClientRect(),view=window.visualViewport,top=view?.offsetTop||0,dock=document.querySelector('#dock');
+    const bottom=Math.min(top+(view?.height||innerHeight),dock&&!document.body.classList.contains('no-dock')?dock.getBoundingClientRect().top:innerHeight)-8;
+    const dy=r.top<top+4||r.height>bottom-top-4?r.top-top-4:r.bottom>bottom?r.bottom-bottom:0;
+    if(Math.abs(dy)>1)window.scrollBy(0,dy);
   }
   function sig(el){ return [el.dataset.a,el.dataset.k,el.dataset.v,el.dataset.i,el.dataset.c,el.dataset.s,el.id].join("|"); }
   function moveCursor(d){
@@ -8496,13 +8518,16 @@ const PAD = (()=>{
   document.addEventListener("keydown",e=>{
     const t=e.target;
     if(e.isComposing||e.ctrlKey||e.metaKey||e.altKey) return;
-    if(e.key==="Tab"&&(G.sheet||G.dlg)){
-      const sc=scope(),list=sc?focusables(sc):[],active=document.activeElement;
-      const i=list.indexOf(active);
-      if(!list.length){ e.preventDefault(); return; }
-      if(i<0||(!e.shiftKey&&i===list.length-1)||(e.shiftKey&&i===0)){
-        e.preventDefault(); list[e.shiftKey?list.length-1:0].focus({preventScroll:true});
+    if(e.key==="Tab"){
+      const sc=scope();
+      if(G.sheet||G.dlg){
+        const list=sc?focusables(sc):[],i=list.indexOf(document.activeElement);
+        if(!list.length){e.preventDefault();return;}
+        if(i<0||(!e.shiftKey&&i===list.length-1)||(e.shiftKey&&i===0)){
+          e.preventDefault();list[e.shiftKey?list.length-1:0].focus({preventScroll:true});
+        }
       }
+      requestAnimationFrame(()=>{const active=document.activeElement;if(sc?.isConnected&&sc.contains(active)){revealFocus(active);if(typeof updateControlHints==='function')updateControlHints();}});
       return;
     }
     if(e.key==="Escape"&&(G.sheet||G.dlg)){e.preventDefault();if(!e.repeat)pressB();return;}

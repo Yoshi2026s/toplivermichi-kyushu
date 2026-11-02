@@ -132,3 +132,5 @@ BGM切替時の減衰と、結果画面の閲覧位置・詳細保持は [音と
 街・戦闘・結果・全メニューの状態と選択表示: [仕様・検証](docs/ALL_SCREEN_CLARITY_2026_11_02.md)。
 
 メニューの戻り位置・操作継続: [仕様・検証](docs/MENU_RETURN_2026_11_02.md)。
+
+選択中の操作の視認性改善と検証： [FOCUS_VISIBILITY_2026_11_02.md](docs/FOCUS_VISIBILITY_2026_11_02.md)。

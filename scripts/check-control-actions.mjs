@@ -6,7 +6,7 @@ const noop=()=>{},G={screen:'battle',st:{run:{state:'input'}},cmd:{actor:0,type:
 const screen={contains:()=>true,querySelector:()=>null,querySelectorAll:()=>[]};
 const document={hidden:false,activeElement:chip,addEventListener:noop,getElementById:()=>screen,querySelector:s=>s==='.cmd [data-a="confirmAct"]:not([disabled])'?confirm:null,querySelectorAll:()=>[]};
 const ACT={pauseBattle(){paused++;},dlgBack(){G.dlg.i--;},dlgSkip(){skipped++;G.dlg=null;},expandedSkillBack(){delete G.sheetData.skill;}};
-const pad=runInNewContext(readFileSync(new URL('../src/input.js',import.meta.url),'utf8')+';PAD',{G,ACT,document,window:{addEventListener:noop},render(){rendered++;},SND:{sfx:noop},boot:noop,performance:{now:()=>0},requestAnimationFrame:noop});
+const pad=runInNewContext(readFileSync(new URL('../src/input.js',import.meta.url),'utf8')+';PAD',{G,ACT,document,window:{addEventListener:noop},getComputedStyle:el=>({visibility:el.visibility||'visible'}),render(){rendered++;},SND:{sfx:noop},boot:noop,performance:{now:()=>0},requestAnimationFrame:noop});
 pad.pressB();assert.equal(G.cmd.type,'item');assert.equal(G.cmd.item,'I01');assert.equal(G.cmd.target,undefined);
 pad.pressB();assert.equal(G.cmd.type,'item');assert.equal(G.cmd.item,undefined);
 pad.pressB();assert.equal(G.cmd.type,undefined);pad.pressB();assert.equal(paused,1);
@@ -18,5 +18,6 @@ G.dlg={i:0,lines:[['','normal']]};pad.pressB();assert.equal(skipped,1);
 G.walkPlan={paused:false};G.walk={path:[{x:1,y:0}],prog:.4,pending:{}};pad.release();assert(G.walkPlan.paused);assert.equal(G.walk.path.length,0);assert.equal(G.walk.pending,null);
 G.dlg=null;G.screen='battle';G.cmd={actor:0};let focusedClicks=0,staleClicks=0;
 const focusable=click=>({disabled:false,getAttribute:()=>null,closest:()=>null,getBoundingClientRect:()=>({width:80,height:48}),click});const stale=focusable(()=>staleClicks++),focused=focusable(()=>focusedClicks++);screen.querySelector=()=>stale;screen.querySelectorAll=()=>[stale,focused];document.activeElement=focused;pad.pressA();assert.equal(focusedClicks,1,'native focus wins over old joystick highlight');assert.equal(staleClicks,0);
-console.log('Control actions: back unwinds target/item/action, idle opens pause, ready action confirms, dialogue goes back, held movement releases');
+focused.visibility='hidden';document.activeElement=focused;screen.querySelector=()=>null;screen.querySelectorAll=()=>[focused];pad.pressA();assert.equal(focusedClicks,1,'CSS-hidden focus cannot execute an action');focused.visibility='visible';
+console.log('Control actions: back unwinds target/item/action, idle opens pause, ready action confirms, dialogue goes back, held movement releases, hidden focus is ignored');
 G.sheet='battleSkills';G.sheetData={skill:'selected'};pad.pressB();assert.equal(G.sheet,'battleSkills');assert.equal(G.sheetData.skill,undefined,'Back from skill details returns to its list');G.sheet=null;

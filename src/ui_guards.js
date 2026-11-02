@@ -9,6 +9,14 @@ const READ_ONLY_ACTIONS=new Set([
   "helpFilter","helpSearch","helpPage","featureBack","managementShopSearch","managementShopFilter","managementShopPage","managementShopQty","managementEquipPreview","managementShopTalk","managementNpcTalk","managementGearSearch","managementGearPage","managementDisposePreview"
 ]);
 function systemOperationPending(){return !!(G.petSaving||G.characterSaving||G.oceanSaving||G.featureSaving||G.vaultSaving||G.shopSaving||G.starting);}
+function syncReadOnlyUi(){
+  if(!G.readOnly)return;
+  const sheet=document.querySelector('.sheet'),host=sheet||document.querySelector('.explore .xsave,.battle .cmd,.result .rfoot');
+  if(!host)return;
+  let note=document.getElementById('readonlyContext');
+  if(!note){note=document.createElement('p');note.id='readonlyContext';note.className='readonly-note';note.textContent='閲覧専用：この画面では記録を変更できません。操作中のタブで続けてください。';if(sheet)sheet.querySelector('.sheet-head').after(note);else host.prepend(note);}
+  document.querySelectorAll('#screen button[data-a]').forEach(button=>{if(READ_ONLY_ACTIONS.has(button.dataset.a))return;button.disabled=true;const ids=new Set((button.getAttribute('aria-describedby')||'').split(/\s+/).filter(Boolean));ids.add(note.id);button.setAttribute('aria-describedby',[...ids].join(' '));});
+}
 for(const [name,handler] of Object.entries(ACT)){
   ACT[name]=function(...args){
     if(systemOperationPending())return;

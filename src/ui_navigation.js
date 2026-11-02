@@ -107,7 +107,8 @@ function updateControlHints(){
  else if(G.screen==='battle'&&!G.sheet){a=G.auto?'決定':document.querySelector('.cmd [data-a="confirmAct"]:not([disabled])')?'確定':'選ぶ';b=G.auto?'中断':!G.cmd?.type?'休止':'戻る';}
  else if(G.screen==='result'&&!G.sheet)a='MAPへ';
  const selected=document.activeElement;if(!G.sheet&&!G.dlg&&['battle','result'].includes(G.screen)&&selected?.closest?.('.battle,.result')){if(selected.matches('button[data-a="openSheet"]'))a=selected.textContent.trim();else if(selected.matches('summary'))a=selected.parentElement.open?'詳細を閉じる':'詳細を開く';}
- back.disabled=!!(G.dlg&&(G.dlg.i||0)===0&&(G.dlg.after||G.dlg.sceneId));confirm.textContent='決定';confirm.setAttribute('aria-label','決定：'+a);confirm.title=a;back.textContent='戻る';back.setAttribute('aria-label','戻る：'+b);back.title=b;
+ const readOnlyRoot=!!(G.readOnly&&!G.sheet&&!G.dlg&&['explore','battle','result'].includes(G.screen));if(readOnlyRoot){a=G.screen==='explore'?'閲覧項目を選ぶ':'閲覧専用';b='閲覧専用';}
+ back.disabled=readOnlyRoot||!!(G.dlg&&(G.dlg.i||0)===0&&(G.dlg.after||G.dlg.sceneId));confirm.textContent='決定';confirm.setAttribute('aria-label','決定：'+a);confirm.title=a;back.textContent='戻る';back.setAttribute('aria-label','戻る：'+b);back.title=b;
 }
 function manualTravelOverride(){if(!G.walkPlan)return;G.walkPlan=null;G.walk.path=G.walk.path.slice(0,1);G.walk.pending=null;updateNavigationHud();updateControlHints();}
 function navigationReleaseOnContextChange(){const next={state:G.st,screen:G.screen,sheet:G.sheet,dialog:G.dlg,run:G.st?.run,readonly:G.readOnly},old=NAV_UI.inputContext;if(old?.state===G.st&&['guide','quests'].includes(old.sheet)&&next.sheet!==old.sheet)navigationCaptureDraft(old.sheet);if(old&&Object.keys(next).some(k=>next[k]!==old[k])&&typeof PAD!=='undefined')PAD.release?.();NAV_UI.inputContext=next;}

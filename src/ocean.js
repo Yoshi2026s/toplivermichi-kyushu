@@ -21,7 +21,7 @@ function oceanEnemyDef(areaId,idx){
   const b=bases[family],rarity=Math.min(5,1+Math.floor((stage-1)/2));
   return {id:`OCN-${areaId}-F${family+1}-S${String(stage).padStart(2,"0")}`,areaId,profile:`OF${family+1}`,family,stage,theme:a.region,
     name:`${a.name}の${OCEAN_STAGES[stage-1]}${theme.forms[family]}`,species:OCEAN_SPECIES[family],attr:"水",type:`海洋・${OCEAN_SPECIES[family]}`,baseHP:b.hp+stage*3,baseDEF:b.def+Math.floor(stage/3),cycle:b.cycle.map(([t,p])=>[t,t==="c"?0:p+Math.floor(stage/2)]),
-    trait:`${theme.name}の${OCEAN_SPECIES[family]}系・第${stage}段階。航路E・海辺Sに出現する。`,counter:family===2?"甲殻は防御が高い。防御を越える技が有効。":family===1?"全体攻撃の後、休止を利用して回復しよう。":"休止を使ってMPと体力を整えよう。",rarity,weight:[250,200,125,60,20][rarity-1],q};
+    trait:`${theme.name}の${OCEAN_SPECIES[family]}系・第${stage}段階。航路・海辺に出現する。`,counter:family===2?"甲殻は防御が高い。防御を越える技が有効。":family===1?"全体攻撃の後は、道具や回復技で体力を回復しよう。":"「ひと息つく」でMPを、道具や回復技で体力を回復しよう。",rarity,weight:[250,200,125,60,20][rarity-1],q};
 }
 function pickOceanEnemy(areaId,r){
   if(!OCEAN_AREAS[areaId]||!Number.isFinite(r))throw Error("海域抽選値が正しくありません。");

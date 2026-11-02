@@ -2477,7 +2477,7 @@ for(let region=0;region<OCEAN_THEMES.length;region++){
   for(let local=0;local<theme.areas.length;local++){
     const id=`OCEAN-A${String(++oceanAreaNumber).padStart(2,"0")}`;
     const area={id,name:theme.areas[local],themeId:theme.id,region,hub:theme.hub,routeId,q:theme.q+Math.floor(local/3),mapId,
-      lore:`${theme.name}の創作海域。${theme.areas[local]}の航路Eと海辺Sで、魚・クラゲ・カニ・ウミガメ・海竜の声を調べる。港は安全。`,
+      lore:`${theme.name}の海域。${theme.areas[local]}の航路と海辺で、魚・クラゲ・カニ・ウミガメ・海竜の声を調べる。港は安全。`,
       rescueStory:`${theme.areas[local]}の波間で、流された小舟を見つけた。船頭の合図を待って綱を渡すと、旅人は「この海の灯りに助けられた」と地図へ帰り道を書き込んだ。`,
       treasureStory:`救助した旅人の地図には、${theme.areas[local]}の灯台から見える島影が描かれていた。満ち引きを待ってたどり着いた漂着箱には、次の航海への資金が入っていた。`};
     route.areas.push(id);OCEAN_AREAS[id]=area;
@@ -5443,7 +5443,7 @@ function oceanEnemyDef(areaId,idx){
   const b=bases[family],rarity=Math.min(5,1+Math.floor((stage-1)/2));
   return {id:`OCN-${areaId}-F${family+1}-S${String(stage).padStart(2,"0")}`,areaId,profile:`OF${family+1}`,family,stage,theme:a.region,
     name:`${a.name}の${OCEAN_STAGES[stage-1]}${theme.forms[family]}`,species:OCEAN_SPECIES[family],attr:"水",type:`海洋・${OCEAN_SPECIES[family]}`,baseHP:b.hp+stage*3,baseDEF:b.def+Math.floor(stage/3),cycle:b.cycle.map(([t,p])=>[t,t==="c"?0:p+Math.floor(stage/2)]),
-    trait:`${theme.name}の${OCEAN_SPECIES[family]}系・第${stage}段階。航路E・海辺Sに出現する。`,counter:family===2?"甲殻は防御が高い。防御を越える技が有効。":family===1?"全体攻撃の後、休止を利用して回復しよう。":"休止を使ってMPと体力を整えよう。",rarity,weight:[250,200,125,60,20][rarity-1],q};
+    trait:`${theme.name}の${OCEAN_SPECIES[family]}系・第${stage}段階。航路・海辺に出現する。`,counter:family===2?"甲殻は防御が高い。防御を越える技が有効。":family===1?"全体攻撃の後は、道具や回復技で体力を回復しよう。":"「ひと息つく」でMPを、道具や回復技で体力を回復しよう。",rarity,weight:[250,200,125,60,20][rarity-1],q};
 }
 function pickOceanEnemy(areaId,r){
   if(!OCEAN_AREAS[areaId]||!Number.isFinite(r))throw Error("海域抽選値が正しくありません。");
@@ -6108,7 +6108,7 @@ function openBox(o){
 function bossPrompt(bid){
   const st=G.st, b=BOSSES[bid]; if(MAPS[st.mapId].kind!=="field"||!b) return; const qid=Object.keys(QUESTS).find(k=>QUESTS[k].boss===bid);
   if(st.bossDefeated[bid]) return say([["","乱れは静まっている。図鑑から記録を見られます。"]]);
-  if(st.quests[qid]!=="bossReady") return say([["",`奥から大きな重なりを感じる（${b.name}・推奨レベル${b.q}）。依頼「${qid}」を受けて通常敵を倒すと挑戦できます。`]]);
+  if(st.quests[qid]!=="bossReady") return say([["",`奥から大きな重なりを感じる（${b.name}・推奨レベル${b.q}）。依頼「${QUESTS[qid]?.name||"この地域の依頼"}」を受けて通常敵を倒すと挑戦できます。`]]);
   openSheet("boss",{bid});
 }
 function say(lines, after){ if(G.st?.heroine?.name)lines=lines.map(([who,line])=>[who==="もえ"?charName(G.st,"moe"):who,String(line).replace(/雪餅羽[ ]?もえ|のわんもえ|もえ/g,charName(G.st,"moe"))]); G.dlg={lines, i:0, after}; render(); }
@@ -6204,14 +6204,14 @@ function battleProgressIndex(run){
  else if(reader.tail!==lines[last]||reader.length!==lines.length){if(reader.index>=reader.length-1)reader.index=last;else if(reader.anchor){const found=lines.indexOf(reader.anchor);reader.index=found<0?0:found;}reader.length=lines.length;reader.tail=lines[last];}
  reader.index=Math.max(0,Math.min(last,reader.index));reader.anchor=lines[reader.index];return reader.index;
 }
-function renderBattleProgress(run){const lines=run.log||[],i=battleProgressIndex(run);return `<section class="battle-progress" aria-label="戦闘の進行"><div class="battle-progress-nav"><button class="btn" data-a="battleProgressMove" data-v="-1" aria-label="前の進行文" ${i>0?'':'disabled'}>◀</button><span>進行 ${lines.length?i+1:0}／${lines.length}・全文を読む</span><button class="btn" data-a="battleProgressMove" data-v="1" aria-label="次の進行文" ${i+1<lines.length?'':'disabled'}>▶</button></div>${lines.length?`<button class="battle-progress-text" data-a="battleLogLine" data-v="${i}" aria-label="進行文の全文を読む"><span class="battle-progress-line">${esc(lines[i])}</span></button>`:'<p>行動の記録はありません。</p>'}</section>`;}
+function renderBattleProgress(run){const lines=run.log||[],i=battleProgressIndex(run);return `<section class="battle-progress" aria-label="戦闘の進行"><div class="battle-progress-nav"><button class="btn" data-a="battleProgressMove" data-v="-1" aria-label="前の進行文" ${i>0?'':'disabled'}>◀</button><span>進行 ${lines.length?i+1:0}／${lines.length}${lines.length?"・全文を読む":""}</span><button class="btn" data-a="battleProgressMove" data-v="1" aria-label="次の進行文" ${i+1<lines.length?'':'disabled'}>▶</button></div>${lines.length?`<button class="battle-progress-text" data-a="battleLogLine" data-v="${i}" aria-label="進行文の全文を読む"><span class="battle-progress-line">${esc(lines[i])}</span></button>`:'<p>行動の記録はありません。</p>'}</section>`;}
 function renderBattleLog(){
   const lines=(Array.isArray(G.st?.run?.log)?G.st.run.log:[]).slice(-80).reverse();
   const pages=Math.max(1,Math.ceil(lines.length/8));
   const page=Math.min(Math.max(0,Number.isInteger(G.sheetData?.page)?G.sheetData.page:0),pages-1);
   const selected=G.sheetData?.line;
   if(Number.isInteger(selected)&&selected>=0&&selected<lines.length) return `<p class="small">戦闘ログ・${lines.length-selected}件目</p><p>${esc(lines[selected])}</p><button class="btn" data-a="battleLogBack">履歴に戻る</button>`;
-  return `<p class="small">直近${lines.length}件・新しい順（${page+1}/${pages}ページ）</p><div class="stack">${lines.slice(page*8,(page+1)*8).map((l,i)=>`<button class="btn" data-a="battleLogLine" data-v="${lines.length-1-(page*8+i)}">${esc(l)}</button>`).join("")||"<p>まだありません。</p>"}</div><div class="srow"><button class="btn" data-a="battleLogPage" data-v="${page-1}" ${page>0?"":"disabled"}>新しい記録</button><button class="btn" data-a="battleLogPage" data-v="${page+1}" ${page+1<pages?"":"disabled"}>古い記録</button></div>`;
+  return `<p class="small">直近${lines.length}件・新しい順（${page+1}/${pages}ページ）</p><div class="stack">${lines.slice(page*8,(page+1)*8).map((l,i)=>`<button class="btn" data-a="battleLogLine" data-v="${lines.length-1-(page*8+i)}">${esc(l)}</button>`).join("")||"<p>行動の記録はありません。</p>"}</div><div class="srow"><button class="btn" data-a="battleLogPage" data-v="${page-1}" ${page>0?"":"disabled"}>新しい記録</button><button class="btn" data-a="battleLogPage" data-v="${page+1}" ${page+1<pages?"":"disabled"}>古い記録</button></div>`;
 }
 function revealBattleCommand(){
  if(typeof document==='undefined'||!document.body)return;
@@ -6454,7 +6454,7 @@ function renderResult(){
       ${up?`<p class="good">レベルアップ！ ${r.levelBefore} → ${r.levelAfter}</p>`:""}
       ${items.length||gifts.length?`<h3 class="label">手に入れたもの</h3><ul class="rlist">${[...items,...gifts].join("")}</ul>`:""}
       ${renderUsedItemHistory(r,usedItems)}
-      ${(r.newBadges||[]).length?`<details class="rbox result-badges"><summary>新しい戦闘バッジ（${r.newBadges.length}件）</summary><ul class="rlist">${r.newBadges.map(id=>`<li>${id} ${esc(ITEM_BADGES[id]||GROWTH_BADGES[id]||PARTY_BADGES[id]||ACTION_BADGES[id]||HEAL_BADGES[id]||MP_BADGES[id]||CHEER_BADGES[id]||SPEED_BADGES[id]||ATTACK_BADGES[id]||GUARD_BADGES[id]||DEFENSE_BADGES[id]||EXTRA_BADGES[id]||id)}</li>`).join("")}</ul></details>`:""}
+      ${(r.newBadges||[]).length?`<details class="rbox result-badges"><summary>新しい戦闘バッジ（${r.newBadges.length}件）</summary><ul class="rlist">${r.newBadges.map(id=>`<li>${esc(ITEM_BADGES[id]||GROWTH_BADGES[id]||PARTY_BADGES[id]||ACTION_BADGES[id]||HEAL_BADGES[id]||MP_BADGES[id]||CHEER_BADGES[id]||SPEED_BADGES[id]||ATTACK_BADGES[id]||GUARD_BADGES[id]||DEFENSE_BADGES[id]||EXTRA_BADGES[id]||id)}</li>`).join("")}</ul></details>`:""}
       <button class="btn" data-a="openSheet" data-k="record">戦闘バッジ一覧を見る</button>
       ${(r.notes||[]).map(n=>`<p class="good rnote">${esc(n)}</p>`).join("")}
     </details></section>`;
@@ -7506,7 +7506,7 @@ interact=function(o){
   if(o?.oceanRoute){
     if(!G.st||G.readOnly||G.screen!=="explore"||G.st.run||G.dlg||G.lock)return;
     if(!MAPS[G.st.mapId].objects.includes(o)||Math.max(Math.abs(o.x-G.st.pos.x),Math.abs(o.y-G.st.pos.y))>1)return;
-    if(!oceanRouteAvailable(G.st,o.oceanRoute))return say([["港の案内人",`この航路は「${QUESTS[OCEAN_ROUTES[o.oceanRoute].quest].name}」の完了後に出航できます。港と街は安全。航路E・海辺Sでは海洋モンスターに遭遇します。`]]);
+    if(!oceanRouteAvailable(G.st,o.oceanRoute))return say([["港の案内人",`この航路は「${QUESTS[OCEAN_ROUTES[o.oceanRoute].quest].name}」の完了後に出航できます。港と街は安全です。航路・海辺では敵に遭遇します。`]]);
     SND.sfx("seaWave");
   }
   if(o?.type==="oceanEvent"){
@@ -7535,19 +7535,19 @@ function oceanOverview(){
   const localMap=MAPS[st.mapId],atSea=localMap.combatDomain==="sea";
   const eventCards=Object.entries(eventLabels).map(([key,label])=>{
     const status=oceanEventAvailability(st,id,key,{readOnly:G.readOnly,busy:!!G.lock||!!G.oceanSaving});
-    return `<div class="qcard"><b>${r[key]?"● 完了":"○ 未完了"} ${label}</b><p class="small">${key==="survey"?"同じ海域の海洋敵3体を討伐して報告。報酬：応援ポイント60。":key==="treasure"?"この海域で救助後、灯台の地図を調べる。報酬：120G。":"この海域の海面か案内標で救助。報酬：80G。"}</p>${r[key]?"":`<button class="btn" data-a="oceanEventSelect" data-area="${id}" data-event="${key}" ${status.ok?"":"disabled"}>${label}の確認</button>${status.ok?"":`<p class="small">${esc(status.reason)}</p>`}`}</div>`;
+    return `<div class="qcard"><b>${r[key]?"● 完了":"○ 未完了"} ${label}</b><p class="small">${key==="survey"?"同じ海域の海洋敵3体を討伐して報告。報酬：チケット60枚。":key==="treasure"?"この海域で救助後、灯台の地図を調べる。報酬：120G。":"この海域の海面か案内標で救助。報酬：80G。"}</p>${r[key]?"":`<button class="btn" data-a="oceanEventSelect" data-area="${id}" data-event="${key}" ${status.ok?"":"disabled"}>${label}の確認</button>${status.ok?"":`<p class="small">${esc(status.reason)}</p>`}`}</div>`;
   }).join("");
-  return `<p class="small">港と街は安全です。船は指定された航路E・海辺Sだけを進みます。未指定の水面には入れません。既存の街道・物語の条件は変わりません。</p>
-    <h3 class="label">${esc(a.name)}</h3><p>適正レベル${a.q}・海洋敵討伐${r.kills}/3体・${esc(OCEAN_THEMES[a.region].name)}</p><p class="small">${esc(a.lore)}</p>
+  return `<p class="small">港と街は安全です。船は指定の航路・海辺を進み、敵に遭遇します。航路外の水面には入れません。イベント報酬は各海域でそれぞれ1回です。</p>
+    <h3 class="label">${esc(a.name)}</h3><p>推奨レベル${a.q}・海洋敵討伐${r.kills}/3体・${esc(OCEAN_THEMES[a.region].name)}</p><p class="small">${esc(a.lore)}</p>
     <div class="srow">${OCEAN_SPECIES.map((name,f)=>`<span><canvas data-ocean-sprite="${id}|${f*10}" width="64" height="64" style="width:48px;height:48px;image-rendering:pixelated" aria-hidden="true"></canvas><br><span class="small">${name}</span></span>`).join("")}</div>
     ${pending&&G.sheetData.opState===st?`<div class="qcard"><b>${esc(eventLabels[pending.event])}を実行します</b><p class="small">報酬はこの海域で一度だけです。</p><button class="btn primary" data-a="oceanEventDo" data-area="${pending.area}" data-event="${pending.event}" data-token="${esc(pending.token)}" ${G.oceanSaving?"disabled":""}>確定する</button><button class="btn" data-a="oceanEventCancel" ${G.oceanSaving?"disabled":""}>やめる</button></div>`:eventCards}
-    <button class="btn" data-a="oceanDexOpen" data-area="${id}">海洋モンスター図鑑（65海域・3,250項目）</button>
+    <button class="btn" data-a="oceanDexOpen" data-area="${id}">海洋モンスター図鑑</button>
     ${atSea&&localMap.oceanRoute===a.routeId?`<button class="btn" data-a="oceanMoveArea" data-area="${id}" ${G.readOnly?"disabled":""}>${esc(a.name)}の海面へ歩く</button>`:""}
     <details class="ocean-area-picker"><summary>海域を選ぶ（65海域）</summary>${Object.values(OCEAN_ROUTES).map(v=>`<h3 class="label">${esc(OCEAN_THEMES.find(t=>t.id===v.theme).name)}</h3><div class="stack">${v.areas.map(k=>`<button class="btn ${k===id?"on":""}" data-a="oceanArea" data-area="${k}">${esc(OCEAN_AREAS[k].name)}・Lv${OCEAN_AREAS[k].q}</button>`).join("")}</div>`).join("")}</details>
-    <h3 class="label">8地方の新航路</h3><div class="stack">${Object.values(OCEAN_ROUTES).map(v=>{
+    <details class="ocean-route-picker"><summary>港と航路（8地方）</summary><div class="stack">${Object.values(OCEAN_ROUTES).map(v=>{
       const unlocked=oceanRouteAvailable(st,v.id),atPort=st.mapId===v.hub;
-      return `<div class="qcard"><b>${esc(v.name)}</b><p class="small">${esc(HUBS[v.hub].name)}の港／${unlocked?"解放済み":`「${esc(QUESTS[v.quest].name)}」完了で解放`}。港1・指定海面27区画。</p><button class="btn" data-a="oceanDepart" data-route="${v.id}" ${unlocked&&atPort&&!G.readOnly?"":"disabled"}>港まで歩いて出発</button>${atPort?"":`<p class="small">${esc(HUBS[v.hub].name)}の街から出発します。</p>`}</div>`;
-    }).join("")}</div><p class="small">現在の航路：${atSea?esc(OCEAN_ROUTES[localMap.oceanRoute].name):"陸上"}。戻るとオート移動へ戻ります。</p>`;
+      return `<div class="qcard"><b>${esc(v.name)}</b><p class="small">${esc(HUBS[v.hub].name)}の港／${unlocked?"解放済み":`「${esc(QUESTS[v.quest].name)}」完了で解放`}。</p><button class="btn" data-a="oceanDepart" data-route="${v.id}" ${unlocked&&atPort&&!G.readOnly?"":"disabled"}>港まで歩いて出発</button>${atPort?"":`<p class="small">${esc(HUBS[v.hub].name)}の街から出発します。</p>`}</div>`;
+    }).join("")}</div></details><p class="small">現在の航路：${atSea?esc(OCEAN_ROUTES[localMap.oceanRoute].name):"陸上"}。</p>`;
 }
 function oceanDexHtml(){
   const st=G.st,id=oceanDefaultArea(),a=OCEAN_AREAS[id],page=Math.max(0,Math.min(4,Number(G.sheetData.page)||0)),seen=Object.keys(st.seen||{}).filter(k=>k.startsWith("OCN-")).length;
@@ -7596,7 +7596,7 @@ Object.assign(ACT,{
     let saved=false;try{saved=await commit();}catch(e){}
     G.oceanSaving=false;
     if(!saved){st.gold=before.gold;st.tickets=before.tickets;if(before.ocean===undefined)delete st.ocean;else st.ocean=before.ocean;delete d.pendingEvent;delete d.opState;render();return toast("保存できなかったため、イベントと報酬を元に戻しました。保存先の空きを確認して再試行してください。");}
-    delete d.pendingEvent;delete d.opState;render();SND.sfx(event==="rescue"?"seaRescue":event==="treasure"?"seaTreasure":"ok");say([...result.lines,["",`${result.gold?`${result.gold}ゴールド`:"応援ポイント60"}を受け取った。この海域では受取済みとして保存した。`]]);
+    delete d.pendingEvent;delete d.opState;render();SND.sfx(event==="rescue"?"seaRescue":event==="treasure"?"seaTreasure":"ok");say([...result.lines,["",`${result.gold?`${result.gold}G`:`チケット${result.tickets}枚`}を受け取りました。`]]);
   }
 });
 
@@ -7947,7 +7947,7 @@ function navigationPriorityPlan(){
  }
  if(!q)return {key:'free',kind:'free',title:'地域の探索と旅の記録',reason:'受注できる依頼や未訪問の場所を確認できます。',action:'quests'};
  const target=navigationQuestTarget(id),status=st.quests[id];
- return {key:'quest-'+id,kind:'quest',questId:id,target,action:target?null:'quests',title:status==='bossReady'?'地域ボスへ挑戦':status==='active'?'受注中の依頼を進める':q.main?'次の本編を優先':'取り組める依頼を確認',reason:q.name+(target?'：'+target.label:'：やることで受注できます。')};
+ return {key:'quest-'+id,kind:'quest',questId:id,target,action:target?null:'quests',title:status==='bossReady'?'地域ボスへ挑戦':status==='active'?'受注中の依頼を進める':q.main?'次の本編を優先':'取り組める依頼を確認',reason:q.name+(target?'：'+target.label:'：やることで受注条件を確認。')};
 }
 function navigationPriorityHtml(token){const p=navigationPriorityPlan(),q=QUESTS[p.questId],target=p.target,button=target?(p.kind==='quest'?`<button class="btn primary" data-a="navQuestGo" data-v="${p.questId}" data-map="${esc(G.st.mapId)}" data-nav-token="${token}" ${G.readOnly?'disabled':''}>${esc(target.label)}へ（${target.steps}歩）</button>`:`<button class="btn primary" data-a="priorityGo" data-v="${esc(p.key)}" data-map="${esc(G.st.mapId)}" data-nav-token="${token}" ${G.readOnly?'disabled':''}>${esc(target.label)}へ（${target.steps}歩）</button>`):`<button class="btn" data-a="openSheet" data-k="${p.action||'quests'}">${p.action==='items'?'回復用の道具を確認':'依頼を確認・受注する'}</button>`;return `<section class="nav-goal nav-priority" aria-label="今の最優先"><span class="tag">今の最優先</span><b>${esc(p.title)}</b><p>${esc(p.reason)}</p>${q&&p.questId===G.st.activeQuest?`<progress max="${q.kills}" value="${Math.min(q.kills,G.st.qprog[p.questId]||0)}" aria-label="討伐の進捗"></progress>`:''}${button}</section>`;}
 function navigationQuestShortcut(token){const id=navigationRecommendedQuest();if(!id)return '';const target=navigationQuestTarget(id);return `<div class="nav-goal"><b>次の依頼：${esc(QUESTS[id].name)}</b>${target?`<button class="btn" data-a="navQuestGo" data-v="${id}" data-map="${esc(G.st.mapId)}" data-nav-token="${token}" ${G.readOnly?'disabled':''}>${esc(target.label)}へ（${target.steps}歩）</button>`:'<button class="btn" data-a="openSheet" data-k="quests">依頼を確認・受注する</button>'}</div>`;}

@@ -20,7 +20,7 @@ for(let region=0;region<OCEAN_THEMES.length;region++){
   for(let local=0;local<theme.areas.length;local++){
     const id=`OCEAN-A${String(++oceanAreaNumber).padStart(2,"0")}`;
     const area={id,name:theme.areas[local],themeId:theme.id,region,hub:theme.hub,routeId,q:theme.q+Math.floor(local/3),mapId,
-      lore:`${theme.name}の創作海域。${theme.areas[local]}の航路Eと海辺Sで、魚・クラゲ・カニ・ウミガメ・海竜の声を調べる。港は安全。`,
+      lore:`${theme.name}の海域。${theme.areas[local]}の航路と海辺で、魚・クラゲ・カニ・ウミガメ・海竜の声を調べる。港は安全。`,
       rescueStory:`${theme.areas[local]}の波間で、流された小舟を見つけた。船頭の合図を待って綱を渡すと、旅人は「この海の灯りに助けられた」と地図へ帰り道を書き込んだ。`,
       treasureStory:`救助した旅人の地図には、${theme.areas[local]}の灯台から見える島影が描かれていた。満ち引きを待ってたどり着いた漂着箱には、次の航海への資金が入っていた。`};
     route.areas.push(id);OCEAN_AREAS[id]=area;

@@ -273,6 +273,9 @@ jobs:
       - run: node scripts/test-equipment-pet-search.mjs
         env:
           MOBILE_BROWSER: chromium
+      - run: node scripts/test-status-jobs.mjs
+        env:
+          MOBILE_BROWSER: chromium
       - run: node scripts/test-status-impact.mjs
         env:
           MOBILE_BROWSER: chromium
@@ -299,6 +302,7 @@ jobs:
             .task/auto-equipment/
             .task/recent-queues/
             .task/equipment-pet-search/
+            .task/status-jobs/
             .task/status-impact/
             .task/status-usability/
             .task/status-preparation/

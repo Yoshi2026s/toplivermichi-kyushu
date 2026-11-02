@@ -93,7 +93,8 @@ function charStats(st, cid, L, jobOverride, equipOverride){
   const S = Kof(R) + (W && W.job===job ? 1 : 0);
   const supportHP = 0;
   const maxHP = 50+6*(L-1) + 2*Math.floor(R/2) + V*(((A&&A.hp)||0)+((X&&X.hp)||0)+supportHP);
-  const startC = Math.min(10, 8+(R>=5?1:0)+((W&&W.c)||0)+((A&&A.c)||0)+((X&&X.c)||0));
+  const rawMP=8+(R>=5?1:0)+((W&&W.c)||0)+((A&&A.c)||0)+((X&&X.c)||0);
+  const startC = st.characterVersion===1?rawMP:Math.min(10,rawMP);
   const stats={ job, R, S, V, maxHP, startC,
     wAtk:(W&&W.atk)||0, accAtk:(X&&X.atk)||0, armorD:(A&&A.d)||0,
     commentA:((W&&W.commentA)||0)+((X&&X.commentA)||0),
@@ -1121,7 +1122,8 @@ function migrateCharacter(st){
     const run=st.run;run.expanded=true;run.rngState=Number.isInteger(run.rngState)&&run.rngState!==0?run.rngState:((run.seq||1)*2654435761)>>>0;run.rngCount=Number.isInteger(run.rngCount)?run.rngCount:0;
     for(const m of run.party||[]){
       const s=charStats(st,m.cid,run.L||levelOf(st.xp,st));
-      for(const key of ["vitality","strength","defense","agility","charm","criticalRate","evasionRate","trait"])m[key]=s[key];
+      for(const key of ["vitality","strength","defense","agility","intelligence","charm","criticalRate","evasionRate","trait"])m[key]=s[key];
+      m.maxMP=s.startC;m.c=Math.max(0,Math.min(m.maxMP,Number(m.c)||0));
       m.learnedJobs=[...(st.learnedJobs[m.cid]||[])];m.learnedSkills=[...(st.learnedSkills[m.cid]||[])];m.cooldowns=m.cooldowns||{};m.signatureUsed=!!m.signatureUsed;m.name=charName(st,m.cid);
     }
   }
@@ -1134,9 +1136,11 @@ function expandedCharStats(st,cid,L,s,equipment){
   const strength=Math.max(1,Math.floor((10+2*(L-1)+Math.floor(s.R/3))*mult[1])+add("strength"));
   const defense=Math.max(1,Math.floor((8+L-1+Math.floor(s.R/3))*mult[2])+add("defense"));
   const agility=Math.max(1,Math.floor((8+L-1+Math.floor(s.R/4))*mult[3])+add("agility"));
+  const intelligence=Math.max(1,Math.floor((12+2*(L-1)+Math.floor(s.R/3))*JOB_INTELLIGENCE_MULT[s.job])+add("intelligence"));
+  const startC=Math.max(1,s.startC+Math.max(0,Math.floor(intelligence/6)-2));
   const charm=Math.max(1,Math.floor((10+Math.floor((L-1)*.8)+Math.floor(s.R/3))*mult[4])+add("charm"));
   const maxHP=Math.max(1,Math.floor(s.maxHP*mult[0])+add("vitality")*2);
-  return {...s,maxHP,vitality,strength,defense,agility,charm,trait,attackPower:10+2*L+s.V*(s.wAtk+s.accAtk+Math.floor(strength/6)+(trait.single||0)),defensePower:s.V*s.armorD+Math.floor(defense/6),criticalRate:Math.min(.30,.03+agility/1800+(trait.crit||0)),evasionRate:Math.min(.25,.02+agility/2000+(trait.evasion||0))};
+  return {...s,maxHP,startC,vitality,strength,defense,agility,intelligence,charm,trait,attackPower:10+2*L+s.V*(s.wAtk+s.accAtk+Math.floor(strength/6)+(trait.single||0)),defensePower:s.V*s.armorD+Math.floor(defense/6),criticalRate:Math.min(.30,.03+agility/1800+(trait.crit||0)),evasionRate:Math.min(.25,.02+agility/2000+(trait.evasion||0))};
 }
 function learnCharacterSkills(st){
   if(typeof EXTRA_SKILLS==="undefined") return;

@@ -228,7 +228,7 @@ function renderStatus(){
       <div class="who"><canvas class="sprite-md" data-char="${cid}" width="192" height="288" aria-hidden="true"></canvas>
         <div><b class="sname">${esc(cid==="moe"?charName(st,"moe"):cid==="hero"?st.profile.name:C.full)}</b><br><span class="small">${inParty?"戦闘メンバー":"控え"}・Lv${L} ${esc(JOBS[s.job].name)}${v.hp<=0?"・戦闘不能":isLow(v.hp,s.maxHP)?"・体力わずか":""}</span></div></div>
       <div class="status-vitals"><div><span>体力（HP）</span><b>${v.hp} / ${s.maxHP}</b><span class="bar"><i style="width:${Math.round(100*v.hp/s.maxHP)}%"></i></span></div><div><span>MP</span><b>${v.c} / ${s.startC}</b><span class="bar cp"><i style="width:${Math.round(100*v.c/s.startC)}%"></i></span></div></div>
-      <details class="status-details"><summary>能力・装備の詳細</summary><dl class="kv">
+      <dl class="ability-summary" aria-label="基礎能力">${(typeof ABILITY_NAMES!=="undefined"?Object.entries(ABILITY_NAMES):[]).map(([k,name])=>`<div><dt>${name}</dt><dd>${s[k]||0}</dd></div>`).join("")}</dl><details class="status-details"><summary>能力・装備の詳細</summary><dl class="kv">
         <dt>レベル</dt><dd>${L}</dd>
         <dt>職業</dt><dd>${esc(JOBS[s.job].name)}</dd>
         <dt>職業熟練度</dt><dd>${s.R}${s.R<jobLimit(st,cid,s.job)?`（次まで ${Math.max(0,jpFor(s.R+1)-jp)}）`:"（現在の上限）"}</dd>

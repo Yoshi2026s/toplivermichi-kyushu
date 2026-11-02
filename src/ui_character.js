@@ -13,8 +13,8 @@ renderSheet=function(){
 const characterBaseRenderStatus=renderStatus;
 renderStatus=function(){
   const st=G.st,L=levelOf(st.xp,st);
-  return characterBaseRenderStatus()+`<details class="status-details"><summary>5つの能力と職業特性</summary><div class="stack">${st.roster.map(cid=>{
-    const s=charStats(st,cid,L);return `<section class="qcard"><b>${esc(charName(st,cid))}</b><dl class="kv">${Object.entries(ABILITY_NAMES).map(([id,name])=>`<dt>${name}</dt><dd>${s[id]||0}</dd>`).join("")}<dt>攻撃力</dt><dd>${s.attackPower||0}</dd><dt>防御力</dt><dd>${s.defensePower||0}</dd><dt>会心率</dt><dd>${Math.round((s.criticalRate||0)*1000)/10}%</dd><dt>回避率</dt><dd>${Math.round((s.evasionRate||0)*1000)/10}%</dd></dl><p class="small">${esc(JOB_TRAITS[s.job].name)}：${esc(JOB_TRAITS[s.job].text)}</p><button class="btn" data-a="characterSkills" data-c="${cid}">習得技と条件</button></section>`;
+  return characterBaseRenderStatus()+`<p class="small ability-links">ちからは攻撃力、身の守りは防御力、すばやさは回避率・会心率、体力は最大HP、かしこさは最大MPに反映します。</p><details class="status-details"><summary>基礎能力・職業ごとの成長</summary><p class="small">次のLvは、現在の職業・装備・熟練度で比較します。転職すると、その職業の能力と成長に切り替わります。</p><div class="stack">${st.roster.map(cid=>{
+    const s=charStats(st,cid,L),next=L<levelLimit(st)?charStats(st,cid,L+1):null;return `<section class="qcard"><b>${esc(charName(st,cid))}</b><dl class="kv">${Object.entries(ABILITY_NAMES).map(([id,name])=>`<dt>${name}</dt><dd>${s[id]||0}${next?` <span class="small">→ ${next[id]}（次のLv＋${next[id]-s[id]}）</span>`:""}</dd>`).join("")}<dt>攻撃力</dt><dd>${s.attackPower||0}</dd><dt>防御力</dt><dd>${s.defensePower||0}</dd><dt>会心率</dt><dd>${Math.round((s.criticalRate||0)*1000)/10}%</dd><dt>回避率</dt><dd>${Math.round((s.evasionRate||0)*1000)/10}%</dd></dl><p class="small">${esc(JOB_TRAITS[s.job].name)}：${esc(JOB_TRAITS[s.job].text)}</p><button class="btn" data-a="characterSkills" data-c="${cid}">習得技と条件</button></section>`;
   }).join("")}</div></details>`;
 };
 const characterBaseRenderCommand=renderCommand;

@@ -62,7 +62,7 @@ function managementGearPlan(st,cid,slot,id,from=null){
   if(afterCount>UNEQUIPPED_GEAR_MAX&&afterCount>beforeCount)return {ok:false,reason:"未装備品の上限300種類を超えます。金庫へ預けてください。"};
   return {ok:true,cid,slot,id:id||null,from,equipment:next,affected:[cid,...(from?[from]:[])]};
 }
-function managementStatsCompare(st,cid,equip){const L=levelOf(st.xp,st),a=charStats(st,cid,L),b=charStats(st,cid,L,null,equip);const labels=[['maxHP','最大体力'],['startC','最大MP'],['strength','ちから'],['defense','身の守り'],['agility','すばやさ'],['charm','魅力']];return `<b>${esc(charName(st,cid))}</b><dl class="kv">${labels.filter(([k])=>a[k]!==undefined).map(([k,label])=>`<dt>${label}</dt><dd>${a[k]} → ${b[k]}（${b[k]-a[k]>=0?"＋":""}${b[k]-a[k]}）</dd>`).join("")}<dt>攻撃力</dt><dd>${attackPower(a,L)} → ${attackPower(b,L)}</dd><dt>防御力</dt><dd>${defensePower(a,L)} → ${defensePower(b,L)}</dd></dl>`;}
+function managementStatsCompare(st,cid,equip){const L=levelOf(st.xp,st),a=charStats(st,cid,L),b=charStats(st,cid,L,null,equip);const labels=[['maxHP','最大体力'],['startC','最大MP'],['vitality','体力'],['intelligence','かしこさ'],['strength','ちから'],['defense','身の守り'],['agility','すばやさ'],['charm','魅力']];return `<b>${esc(charName(st,cid))}</b><dl class="kv">${labels.filter(([k])=>a[k]!==undefined).map(([k,label])=>`<dt>${label}</dt><dd>${a[k]} → ${b[k]}（${b[k]-a[k]>=0?"＋":""}${b[k]-a[k]}）</dd>`).join("")}<dt>攻撃力</dt><dd>${attackPower(a,L)} → ${attackPower(b,L)}</dd><dt>防御力</dt><dd>${defensePower(a,L)} → ${defensePower(b,L)}</dd></dl>`;}
 const managementBaseRenderParty=renderParty;
 renderParty=function(){
   const st=G.st,d=G.sheetData;if(!st.roster.includes(d.cid)||!d.view?.startsWith("eq:"))return managementBaseRenderParty();

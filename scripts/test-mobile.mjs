@@ -24,6 +24,14 @@ async function closeDialogs(page){
 try{
   // Server must not expose project files through the local preview URL.
   for(const path of (process.env.GAME_TEST_URL?[]:['.git/config','src/core.js','.task/mobile/preview.json']))assert.equal((await fetch(app.url+path)).status,404);
+  const manifestResponse=await fetch(app.url+'manifest.webmanifest?v=20261106');
+  assert.equal(manifestResponse.status,200,'home manifest is served');
+  const homeManifest=await manifestResponse.json();
+  assert.equal(homeManifest.name,'ポコチャクエスト');
+  for(const path of ['assets/icons/quest-icon-180.png',...homeManifest.icons.map(icon=>icon.src)]){
+    const response=await fetch(new URL(path,app.url));assert.equal(response.status,200,'home icon is served: '+path);
+    assert.equal(response.headers.get('content-type').split(';')[0],'image/png');
+  }
   for(const device of Object.keys(presets)){
     const errors=[],steps=[];
     let context,page;

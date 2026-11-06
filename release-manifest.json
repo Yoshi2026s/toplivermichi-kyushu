@@ -5,8 +5,8 @@
   "sourceFileCount": 37,
   "files": {
     "index.html": {
-      "bytes": 8736392,
-      "sha256": "73f2fbc9d81cb2ffe646903210d4a1d6f6dd206c8996254a808631c96e953d63"
+      "bytes": 8736732,
+      "sha256": "5788a5b0d1740d005d23c5b9f75db218d3c8116ee71deae6f11fd60ef67b4ebe"
     },
     "README.md": {
       "bytes": 14093,
@@ -17,12 +17,32 @@
       "sha256": "4bc1061edf51ac10ad713f2821a194ff940adda9b29493df28c69f92fa49556e"
     },
     "GAME_SPEC.md": {
-      "bytes": 33965,
-      "sha256": "3eff3d011ec4f39672ccef75a7c08adaf5ae7b63fc0995e8934a2f298337bc8f"
+      "bytes": 34500,
+      "sha256": "77a0e977e585a38b1b9d11d88679ebb4f301ddc8f2873baafd910c754010bd38"
     },
     "GAME_SPEC.txt": {
-      "bytes": 33965,
-      "sha256": "3eff3d011ec4f39672ccef75a7c08adaf5ae7b63fc0995e8934a2f298337bc8f"
+      "bytes": 34500,
+      "sha256": "77a0e977e585a38b1b9d11d88679ebb4f301ddc8f2873baafd910c754010bd38"
+    },
+    "manifest.webmanifest": {
+      "bytes": 558,
+      "sha256": "ef351fafb3c08b9c0946202c6ba53367449c3d0d66033f28e228855583589b5d"
+    },
+    "assets/icons/quest-icon-source.png": {
+      "bytes": 1726568,
+      "sha256": "8eed70ce6ff67c3e491ad8f50f011f7cf44422e2dd6d026b478918169b2b1ffb"
+    },
+    "assets/icons/quest-icon-180.png": {
+      "bytes": 53942,
+      "sha256": "ee738d81a9e86cd54b5eb8a0e061f7a38863b0ea28a2c6f298b19359b2be0115"
+    },
+    "assets/icons/quest-icon-192.png": {
+      "bytes": 60378,
+      "sha256": "c6b0e01feb30fad86d1317e2a8d7bf9112176cb69c9fdf61ac85a2456afd8b87"
+    },
+    "assets/icons/quest-icon-512.png": {
+      "bytes": 346428,
+      "sha256": "3f2fd0424b7fac58e684aa72186dc14d08e36368a4bbb75695cd321ac81acd31"
     }
   },
   "assets": {

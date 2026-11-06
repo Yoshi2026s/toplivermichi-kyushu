@@ -30,6 +30,8 @@ export async function serveGame(port=0){
     if(!['GET','HEAD'].includes(req.method)){res.writeHead(405,{Allow:'GET, HEAD'}).end();return;}
     let pathname;
     try{pathname=new URL(req.url,'http://localhost').pathname;}catch{res.writeHead(400).end();return;}
+    const staticFiles={'/manifest.webmanifest':'application/manifest+json','/assets/icons/quest-icon-180.png':'image/png','/assets/icons/quest-icon-192.png':'image/png','/assets/icons/quest-icon-512.png':'image/png'};
+    if(staticFiles[pathname]){readFile(resolve(root,'.'+pathname)).then(bytes=>{res.writeHead(200,{'Content-Type':staticFiles[pathname],'Cache-Control':'no-store'});res.end(req.method==='HEAD'?undefined:bytes);}).catch(()=>res.writeHead(404).end());return;}
     if(pathname==='/favicon.ico'){res.writeHead(204).end();return;}
     if(!['/','/index.html'].includes(pathname)){res.writeHead(404).end();return;}
     res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});

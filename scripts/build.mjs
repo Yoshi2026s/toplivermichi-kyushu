@@ -41,6 +41,10 @@ const header = `<!doctype html><html lang="ja"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="福岡編から47都道府県へ旅する、スマホ向けの非公式創作RPG。全47都道府県の物語・地域ボスを収録。街と街外を分けた全国編。">
 <meta name="theme-color" content="#101820">
+<meta name="apple-mobile-web-app-title" content="ポコチャクエスト">
+<link rel="apple-touch-icon" sizes="180x180" href="./assets/icons/quest-icon-180.png?v=20261106">
+<link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/quest-icon-192.png?v=20261106">
+<link rel="manifest" href="./manifest.webmanifest?v=20261106">
 <style>body{margin:0}</style>
 <script>window.TLR_PUBLIC=true;window.TLR_BUILD="2026-10-31";</script>
 </head><body>
@@ -51,6 +55,9 @@ for(const name of ['README.md','VERSION.txt','GAME_SPEC.md'])await emitArtifact(
 await emitArtifact('GAME_SPEC.txt', await textFile('GAME_SPEC.md'));
 const releaseFiles={};
 for(const name of ['index.html','README.md','VERSION.txt','GAME_SPEC.md','GAME_SPEC.txt']){
+  const bytes=await readFile(resolve(root,name));releaseFiles[name]={bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};
+}
+for(const name of ['manifest.webmanifest','assets/icons/quest-icon-source.png','assets/icons/quest-icon-180.png','assets/icons/quest-icon-192.png','assets/icons/quest-icon-512.png']){
   const bytes=await readFile(resolve(root,name));releaseFiles[name]={bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};
 }
 const version=(scripts[files.indexOf('data.js')].match(/const GAME_VERSION = "([^"]+)"/)||[])[1];
